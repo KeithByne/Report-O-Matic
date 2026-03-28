@@ -1,0 +1,25 @@
+# Dependencies & build
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/.pnpm-store/
+
+# Env & secrets (never commit)
+**/.env
+**/.env.*
+!**/.env*.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Vercel
+**/.vercel
+
+# TypeScript
+**/*.tsbuildinfo
+
+# Misc
+**/coverage/

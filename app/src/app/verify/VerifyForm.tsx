@@ -1,0 +1,121 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+
+type Status = "idle" | "submitting" | "ok" | "err";
+
+export function VerifyForm() {
+  const sp = useSearchParams();
+  const router = useRouter();
+
+  const email = useMemo(() => (sp.get("email") || "").trim(), [sp]);
+  const challenge = useMemo(() => (sp.get("challenge") || "").trim(), [sp]);
+
+  const [code, setCode] = useState("");
+  const [status, setStatus] = useState<Status>("idle");
+  const [msg, setMsg] = useState<string>("");
+
+  useEffect(() => {
+    setMsg("");
+    setStatus("idle");
+  }, [email, challenge]);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg("");
+
+    const c = code.trim();
+    if (!email || !challenge) {
+      setStatus("err");
+      setMsg("Missing email or challenge. Please return to the landing page and request a new code.");
+      return;
+    }
+    if (!/^\d{6,7}$/.test(c)) {
+      setStatus("err");
+      setMsg("Please enter the 6–7 digit code from your email.");
+      return;
+    }
+
+    setStatus("submitting");
+    try {
+      const res = await fetch("/api/auth/verify-code", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, challenge_id: challenge, code: c }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && (data.error || data.message)) || "Verification failed.");
+
+      setStatus("ok");
+      setMsg("Verified. Redirecting…");
+      setTimeout(() => router.push("/dashboard"), 500);
+    } catch (err: unknown) {
+      setStatus("err");
+      setMsg(err instanceof Error ? err.message : "Verification failed.");
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-zinc-50 text-zinc-950 flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white shadow-sm p-6">
+        <div className="mb-4">
+          <h1 className="text-xl font-bold tracking-tight">Enter your security code</h1>
+          <p className="text-sm text-zinc-600 mt-1">
+            {email ? (
+              <>
+                We sent a code to <span className="font-medium">{email}</span>.
+              </>
+            ) : (
+              <>Return to the landing page and request a new code.</>
+            )}
+          </p>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-3">
+          <label className="block">
+            <span className="block text-xs font-medium text-zinc-600">Security code</span>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="123456"
+              className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400"
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={status === "submitting"}
+            className="w-full rounded-xl bg-blue-600 text-white font-semibold py-2.5 disabled:opacity-60"
+          >
+            {status === "submitting" ? "Verifying…" : "Verify"}
+          </button>
+        </form>
+
+        {msg ? (
+          <div
+            className={[
+              "mt-4 rounded-xl border px-3 py-2 text-sm",
+              status === "ok"
+                ? "border-green-200 bg-green-50 text-green-900"
+                : status === "err"
+                  ? "border-red-200 bg-red-50 text-red-900"
+                  : "border-zinc-200 bg-zinc-50 text-zinc-800",
+            ].join(" ")}
+          >
+            {msg}
+          </div>
+        ) : null}
+
+        <div className="mt-4 text-xs text-zinc-500">
+          <div>
+            <span className="font-medium">Challenge</span>:{" "}
+            <span className="font-mono break-all">{challenge || "(missing)"}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

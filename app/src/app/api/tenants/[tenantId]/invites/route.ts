@@ -1,0 +1,77 @@
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { verifySession } from "@/lib/auth/session";
+import { sendMemberAddedEmail } from "@/lib/email/memberInviteEmail";
+import { getTenantName, inviteMemberToTenant } from "@/lib/data/memberships";
+
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
+}
+
+type Body = {
+  email?: unknown;
+  role?: unknown;
+};
+
+export async function POST(req: Request, context: { params: Promise<{ tenantId: string }> }) {
+  const { tenantId } = await context.params;
+  if (!tenantId || !isUuid(tenantId)) {
+    return NextResponse.json({ error: "Invalid organisation id." }, { status: 400 });
+  }
+
+  const token = (await cookies()).get("rom_session")?.value || "";
+  const session = token ? verifySession(token) : null;
+  if (!session) {
+    return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  }
+
+  let body: Body;
+  try {
+    body = (await req.json()) as Body;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  }
+
+  const emailRaw = typeof body.email === "string" ? body.email : "";
+  const email = emailRaw.trim().toLowerCase();
+  const roleRaw = body.role === "department_head" ? "department_head" : body.role === "teacher" ? "teacher" : "";
+  if (!email || !email.includes("@")) {
+    return NextResponse.json({ error: "Please provide a valid email address." }, { status: 400 });
+  }
+  if (roleRaw !== "department_head" && roleRaw !== "teacher") {
+    return NextResponse.json({ error: "Role must be department_head or teacher." }, { status: 400 });
+  }
+
+  try {
+    const result = await inviteMemberToTenant({
+      tenantId,
+      inviteeEmail: email,
+      role: roleRaw,
+      inviterEmail: session.email,
+    });
+    if (!result.ok) {
+      return NextResponse.json({ error: result.message }, { status: result.status });
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Invite failed.";
+    console.error("[ROM invites]", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+
+  const schoolName = (await getTenantName(tenantId)) || "your school";
+  const roleLabel = roleRaw === "department_head" ? "a department head" : "a teacher";
+  const signInUrl = new URL("/landing.html", req.url).toString();
+  try {
+    await sendMemberAddedEmail({
+      to: email,
+      schoolName,
+      roleLabel,
+      signInUrl,
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.warn("[ROM invites] Member added, but invite email failed:", msg);
+  }
+
+  return NextResponse.json({ ok: true });
+}

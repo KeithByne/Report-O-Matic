@@ -1,0 +1,174 @@
+import { getServiceSupabase } from "@/lib/supabase/service";
+
+export type RomRole = "owner" | "department_head" | "teacher";
+
+export type MembershipWithTenant = {
+  membershipId: string;
+  tenantId: string;
+  tenantName: string;
+  role: RomRole;
+};
+
+function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
+  const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
+  return parts.join(" — ") || "Database error.";
+}
+
+export async function getMembershipsForEmail(email: string): Promise<MembershipWithTenant[]> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+
+  const normalized = email.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from("memberships")
+    .select("id, role, tenant_id, tenants ( name )")
+    .eq("user_email", normalized);
+
+  if (error) throw new Error(formatErr(error));
+
+  const rows = data ?? [];
+  const out: MembershipWithTenant[] = [];
+  for (const row of rows as {
+    id: string;
+    role: string;
+    tenant_id: string;
+    tenants: { name: string } | { name: string }[] | null;
+  }[]) {
+    const t = row.tenants;
+    const name =
+      Array.isArray(t) ? t[0]?.name : typeof t === "object" && t && "name" in t ? t.name : null;
+    if (!name) continue;
+    const role = row.role as RomRole;
+    if (role !== "owner" && role !== "department_head" && role !== "teacher") continue;
+    out.push({
+      membershipId: row.id,
+      tenantId: row.tenant_id,
+      tenantName: name,
+      role,
+    });
+  }
+  return out;
+}
+
+export async function getTenantName(tenantId: string): Promise<string | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("tenants").select("name").eq("id", tenantId).maybeSingle();
+  if (error || !data) return null;
+  return (data as { name: string }).name;
+}
+
+export async function hasAnyMembership(email: string): Promise<boolean> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return false;
+  const normalized = email.trim().toLowerCase();
+  const { count, error } = await supabase
+    .from("memberships")
+    .select("id", { count: "exact", head: true })
+    .eq("user_email", normalized);
+  if (error) throw new Error(formatErr(error));
+  return (count ?? 0) > 0;
+}
+
+/**
+ * First-time signup: create a school (tenant) and owner membership. No-op if the email already has any membership.
+ */
+function isUniqueViolation(e: { message: string; code?: string }): boolean {
+  return e.code === "23505" || /duplicate key|unique constraint/i.test(e.message);
+}
+
+/**
+ * Invite by email before first sign-in.
+ * - Owner: may add department heads or teachers.
+ * - Department head: may add teachers only.
+ */
+export async function inviteMemberToTenant(opts: {
+  tenantId: string;
+  inviteeEmail: string;
+  role: "department_head" | "teacher";
+  inviterEmail: string;
+}): Promise<{ ok: true } | { ok: false; message: string; status: number }> {
+  const supabase = getServiceSupabase();
+  if (!supabase) {
+    return { ok: false, message: "Database is not configured.", status: 503 };
+  }
+
+  const inviter = opts.inviterEmail.trim().toLowerCase();
+  const invitee = opts.inviteeEmail.trim().toLowerCase();
+  if (!invitee || !invitee.includes("@")) {
+    return { ok: false, message: "Please provide a valid invitee email.", status: 400 };
+  }
+  if (invitee === inviter) {
+    return { ok: false, message: "You cannot invite your own email.", status: 400 };
+  }
+
+  const { data: inviterRow, error: oErr } = await supabase
+    .from("memberships")
+    .select("role")
+    .eq("tenant_id", opts.tenantId)
+    .eq("user_email", inviter)
+    .maybeSingle();
+
+  if (oErr) throw new Error(formatErr(oErr));
+  if (!inviterRow) {
+    return { ok: false, message: "You are not a member of this organisation.", status: 403 };
+  }
+
+  const inviterRole = inviterRow.role as RomRole;
+  if (inviterRole === "teacher") {
+    return { ok: false, message: "Teachers cannot invite members.", status: 403 };
+  }
+  if (inviterRole === "department_head") {
+    if (opts.role !== "teacher") {
+      return { ok: false, message: "Department heads can only invite teachers.", status: 403 };
+    }
+  }
+
+  const { error: iErr } = await supabase.from("memberships").insert({
+    tenant_id: opts.tenantId,
+    user_email: invitee,
+    role: opts.role,
+  });
+
+  if (iErr) {
+    if (isUniqueViolation(iErr)) {
+      return {
+        ok: false,
+        message: "That email already has access to this school.",
+        status: 409,
+      };
+    }
+    throw new Error(formatErr(iErr));
+  }
+
+  return { ok: true };
+}
+
+export async function ensureOwnerTenantForSignup(opts: {
+  email: string;
+  schoolName: string;
+}): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return;
+
+  const email = opts.email.trim().toLowerCase();
+  const schoolName = opts.schoolName.trim();
+  if (!email || !schoolName) return;
+
+  const exists = await hasAnyMembership(email);
+  if (exists) return;
+
+  const { data: tenant, error: tErr } = await supabase.from("tenants").insert({ name: schoolName }).select("id").single();
+  if (tErr) throw new Error(formatErr(tErr));
+
+  const tenantId = tenant.id as string;
+  const { error: mErr } = await supabase.from("memberships").insert({
+    tenant_id: tenantId,
+    user_email: email,
+    role: "owner",
+  });
+  if (mErr) {
+    await supabase.from("tenants").delete().eq("id", tenantId);
+    throw new Error(formatErr(mErr));
+  }
+}

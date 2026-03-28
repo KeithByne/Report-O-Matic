@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Report-O-Matic — Sign in</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --card: rgba(255, 255, 255, 0.06);
+        --card2: rgba(255, 255, 255, 0.08);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.72);
+        --muted2: rgba(255, 255, 255, 0.60);
+        --danger: #ef4444;
+        --ok: #22c55e;
+        --accent: #60a5fa;
+        --border: rgba(255, 255, 255, 0.14);
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        --radius: 16px;
+        --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+          "Segoe UI Emoji";
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        color: var(--text);
+        background:
+          radial-gradient(1200px 600px at 25% 15%, rgba(96, 165, 250, 0.25), transparent 60%),
+          radial-gradient(900px 500px at 80% 20%, rgba(34, 197, 94, 0.18), transparent 55%),
+          radial-gradient(900px 700px at 60% 90%, rgba(239, 68, 68, 0.10), transparent 60%),
+          var(--bg);
+      }
+
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      .wrap {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 28px 16px;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 980px;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 18px;
+        align-items: start;
+      }
+
+      @media (max-width: 920px) {
+        .shell { grid-template-columns: 1fr; }
+      }
+
+      .hero, .card {
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.03));
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .hero {
+        padding: 24px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(96, 165, 250, 0.95), rgba(34, 197, 94, 0.85));
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        color: rgba(0,0,0,0.75);
+      }
+
+      .title {
+        font-size: 18px;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.1;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+        margin: 16px 0 10px;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+      .hero p {
+        margin: 0 0 14px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .pillRow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .pill {
+        font-size: 12px;
+        color: rgba(255,255,255,0.82);
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.12);
+        padding: 7px 10px;
+        border-radius: 999px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+      .tabBtn {
+        border: 0;
+        background: transparent;
+        color: rgba(255,255,255,0.78);
+        padding: 10px 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .tabBtn[aria-selected="true"] {
+        background: rgba(255,255,255,0.10);
+        color: rgba(255,255,255,0.95);
+      }
+
+      .row { display: grid; gap: 10px; }
+      .field { display: grid; gap: 6px; }
+      label { font-size: 12px; color: var(--muted); }
+      input {
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(0,0,0,0.25);
+        color: rgba(255,255,255,0.92);
+        outline: none;
+      }
+      input::placeholder { color: rgba(255,255,255,0.40); }
+      input:focus { border-color: rgba(96, 165, 250, 0.65); box-shadow: 0 0 0 4px rgba(96,165,250,0.12); }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 0;
+        border-radius: 12px;
+        padding: 11px 12px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .btnPrimary { background: rgba(96,165,250,0.95); color: rgba(0,0,0,0.78); }
+      .btnPrimary:disabled { opacity: 0.55; cursor: not-allowed; }
+      .btnGhost { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.88); border: 1px solid rgba(255,255,255,0.12); }
+
+      .small {
+        font-size: 12px;
+        color: var(--muted2);
+        line-height: 1.45;
+      }
+
+      .msg {
+        border-radius: 12px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.88);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .msg.ok { border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.10); }
+      .msg.err { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.10); }
+
+      .split {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .hide { display: none !important; }
+      .meta {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255,255,255,0.10);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="shell">
+        <section class="hero">
+          <div class="brand">
+            <div class="logo" aria-hidden="true">R</div>
+            <div>
+              <p class="title">Report-O-Matic</p>
+              <p class="subtitle">AI-assisted student reports • secure • printable A4 PDF</p>
+            </div>
+          </div>
+
+          <h1>Sign in to your school dashboard</h1>
+          <p>
+            Generate consistent, modern, academic reports in minutes. Purchases convert to <b>Report Credits</b>.
+            Reports only generate when your account is paid and in credit.
+          </p>
+
+          <div class="pillRow" aria-label="Highlights">
+            <span class="pill">Multi-tenant isolation</span>
+            <span class="pill">Role permissions</span>
+            <span class="pill">Credit billing</span>
+            <span class="pill">PDF (double-sided A4)</span>
+            <span class="pill">Affiliate/agent tracking</span>
+          </div>
+
+          <div class="meta">
+            <div class="small">
+              <div><b>Language</b>: <span id="langLabel" class="mono">en</span></div>
+              <div><b>Suggested input language</b>: <span id="inputLangLabel" class="mono">English</span></div>
+            </div>
+            <div class="small">
+              <div><b>Domain</b>: <span class="mono">report-o-matic.online</span></div>
+              <div><b>Mode</b>: <span class="mono">Public Landing</span></div>
+            </div>
+          </div>
+        </section>
+
+        <main class="card">
+          <div class="tabs" role="tablist" aria-label="Sign in or sign up">
+            <button id="tabSignIn" class="tabBtn" role="tab" aria-selected="true" aria-controls="panelSignIn" type="button">
+              Sign in
+            </button>
+            <button id="tabSignUp" class="tabBtn" role="tab" aria-selected="false" aria-controls="panelSignUp" type="button">
+              Sign up
+            </button>
+          </div>
+
+          <div id="message" class="msg hide" role="status" aria-live="polite"></div>
+
+          <!-- SIGN IN -->
+          <section id="panelSignIn" role="tabpanel" aria-labelledby="tabSignIn">
+            <form id="signInForm" class="row">
+              <div class="field">
+                <label for="signInEmail">Email</label>
+                <input
+                  id="signInEmail"
+                  name="signin_email"
+                  type="email"
+                  autocomplete="username"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  placeholder="name@school.com"
+                  required
+                />
+              </div>
+              <p class="small" style="margin-top: -6px; color: rgba(255,255,255,0.65);">
+                Use <strong>your</strong> invited address — not a colleague’s. The code is sent only to the email you type here.
+              </p>
+
+              <button id="signInBtn" class="btn btnPrimary" type="submit">
+                Send security code
+              </button>
+
+              <div class="split">
+                <span class="small">You’ll receive a 6–7 digit code by email.</span>
+                <a class="small" href="#" id="forgotPasswordLink">Forgot your password?</a>
+              </div>
+            </form>
+          </section>
+
+          <!-- SIGN UP -->
+          <section id="panelSignUp" role="tabpanel" aria-labelledby="tabSignUp" class="hide">
+            <form id="signUpForm" class="row">
+              <div class="field">
+                <label for="ownerName">Your name</label>
+                <input id="ownerName" name="ownerName" type="text" autocomplete="name" placeholder="Full name" required />
+              </div>
+              <div class="field">
+                <label for="schoolName">School name</label>
+                <input id="schoolName" name="schoolName" type="text" placeholder="School / organisation" required />
+              </div>
+              <div class="field">
+                <label for="signUpEmail">Owner email</label>
+                <input
+                  id="signUpEmail"
+                  name="signup_email"
+                  type="email"
+                  autocomplete="email"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  placeholder="name@school.com"
+                  required
+                />
+              </div>
+
+              <button id="signUpBtn" class="btn btnPrimary" type="submit">
+                Create account & send code
+              </button>
+
+              <p class="small">
+                By continuing, you agree to the Terms and Privacy Policy (links will be added).
+              </p>
+            </form>
+          </section>
+
+          <div class="meta">
+            <div class="small">
+              <b>Next step after code:</b> you’ll be redirected to the code verification page in the app.
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // IMPORTANT:
+        // This is a standalone landing page. It does NOT contain secrets.
+        // It will call your Vercel-hosted API once you implement it in Next.js.
+
+        // Use the same host/port as this page when served over http(s) so a custom Next port still works.
+        // file://: default http://localhost:3000; override with ?api=http://127.0.0.1:3001 or localStorage ROM_API_ORIGIN.
+        function apiBase() {
+          if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+            return window.location.origin;
+          }
+          var tryOrigin = function (raw) {
+            if (!raw || typeof raw !== "string") return null;
+            try {
+              var u = new URL(raw.trim());
+              if (u.protocol === "http:" || u.protocol === "https:") return u.origin;
+            } catch (e) {}
+            return null;
+          };
+          var q = new URLSearchParams(window.location.search).get("api");
+          var fromQs = tryOrigin(q);
+          if (fromQs) return fromQs;
+          var fromLs = tryOrigin(localStorage.getItem("ROM_API_ORIGIN"));
+          if (fromLs) return fromLs;
+          return "http://localhost:3000";
+        }
+
+        var els = {
+          tabSignIn: document.getElementById("tabSignIn"),
+          tabSignUp: document.getElementById("tabSignUp"),
+          panelSignIn: document.getElementById("panelSignIn"),
+          panelSignUp: document.getElementById("panelSignUp"),
+          msg: document.getElementById("message"),
+          signInForm: document.getElementById("signInForm"),
+          signUpForm: document.getElementById("signUpForm"),
+          signInBtn: document.getElementById("signInBtn"),
+          signUpBtn: document.getElementById("signUpBtn"),
+          forgotPasswordLink: document.getElementById("forgotPasswordLink"),
+          langLabel: document.getElementById("langLabel"),
+          inputLangLabel: document.getElementById("inputLangLabel"),
+        };
+
+        function setMsg(type, text) {
+          els.msg.classList.remove("hide", "ok", "err");
+          if (type === "ok") els.msg.classList.add("ok");
+          if (type === "err") els.msg.classList.add("err");
+          els.msg.textContent = text;
+        }
+
+        function clearMsg() {
+          els.msg.classList.add("hide");
+          els.msg.textContent = "";
+          els.msg.classList.remove("ok", "err");
+        }
+
+        function setTab(which) {
+          var signIn = which === "in";
+          els.tabSignIn.setAttribute("aria-selected", signIn ? "true" : "false");
+          els.tabSignUp.setAttribute("aria-selected", signIn ? "false" : "true");
+          els.panelSignIn.classList.toggle("hide", !signIn);
+          els.panelSignUp.classList.toggle("hide", signIn);
+          clearMsg();
+        }
+
+        function detectBrowserLanguage() {
+          var raw = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
+          var norm = String(raw).toLowerCase();
+          // Keep it simple for now: map a few common ones; default English.
+          var map = {
+            "en": "English",
+            "en-us": "English",
+            "en-gb": "English",
+            "es": "Español",
+            "es-es": "Español",
+            "fr": "Français",
+            "fr-fr": "Français",
+            "de": "Deutsch",
+            "de-de": "Deutsch",
+            "it": "Italiano",
+            "it-it": "Italiano",
+            "pt": "Português",
+            "pt-pt": "Português",
+            "pt-br": "Português (Brasil)",
+          };
+          var label = map[norm] || map[norm.split("-")[0]] || "English";
+          els.langLabel.textContent = norm;
+          els.inputLangLabel.textContent = label;
+          return { raw: raw, normalized: norm, label: label };
+        }
+
+        async function postJson(url, payload) {
+          var res;
+          try {
+            res = await fetch(url, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+          } catch (err) {
+            var detail = err && err.message ? String(err.message) : "network error";
+            throw new Error(
+              "Could not reach the app server (" +
+                detail +
+                "). Fix: 1) In report-o-matic-saas/app run: npm run dev  2) Open http://localhost:3000/landing.html in the browser (not a double-clicked file). " +
+                "If Next uses another port, use that port in the URL. From file:// you can add ?api=http://localhost:PORT to this page’s address, or set localStorage ROM_API_ORIGIN to that origin.",
+            );
+          }
+          var text = await res.text();
+          var data = null;
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch (ignore) {}
+          if (!res.ok) {
+            var fromJson = data && (data.error || data.message);
+            var snippet = text.replace(/\s+/g, " ").trim().slice(0, 280);
+            var msg = fromJson || snippet || ("Request failed (" + res.status + ")");
+            throw new Error(msg);
+          }
+          return data;
+        }
+
+        async function handleSendCode(email, mode, extra) {
+          // mode: "signin" | "signup"
+          // This endpoint will be implemented in Next.js:
+          // POST /api/auth/send-code
+          // It should:
+          // - rate limit
+          // - create OTP (6-7 digits) with 180s expiry
+          // - email it
+          // - return a short-lived "challenge_id"
+          els.signInBtn.disabled = true;
+          els.signUpBtn.disabled = true;
+          try {
+            clearMsg();
+            var lang = detectBrowserLanguage();
+            var payload = Object.assign({ email: email, mode: mode, browser_language: lang.normalized }, extra || {});
+            var base = apiBase();
+            var data = await postJson(base + "/api/auth/send-code", payload);
+            setMsg("ok", "Security code sent. Redirecting…");
+            // Redirect to your Next.js verify page with the challenge id
+            var challengeId = data && data.challenge_id ? String(data.challenge_id) : "";
+            var qp = new URLSearchParams();
+            if (challengeId) qp.set("challenge", challengeId);
+            qp.set("email", email);
+            window.location.href = base + "/verify?" + qp.toString();
+          } catch (e) {
+            setMsg("err", e && e.message ? e.message : "Could not send code.");
+          } finally {
+            els.signInBtn.disabled = false;
+            els.signUpBtn.disabled = false;
+          }
+        }
+
+        els.tabSignIn.addEventListener("click", function () { setTab("in"); });
+        els.tabSignUp.addEventListener("click", function () { setTab("up"); });
+
+        els.signInForm.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var email = String(document.getElementById("signInEmail").value || "").trim();
+          if (!email) return setMsg("err", "Please enter your email.");
+          handleSendCode(email, "signin");
+        });
+
+        els.signUpForm.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var ownerName = String(document.getElementById("ownerName").value || "").trim();
+          var schoolName = String(document.getElementById("schoolName").value || "").trim();
+          var email = String(document.getElementById("signUpEmail").value || "").trim();
+          if (!ownerName || !schoolName || !email) return setMsg("err", "Please complete all fields.");
+          handleSendCode(email, "signup", { owner_name: ownerName, school_name: schoolName });
+        });
+
+        els.forgotPasswordLink.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          // This will later become a real flow in the app.
+          setMsg("ok", "Password recovery will be available here shortly.");
+        });
+
+        if (window.location.protocol === "file:") {
+          setMsg(
+            "err",
+            "Opened from disk (file://). Start the app (npm run dev in report-o-matic-saas/app), then open http://localhost:3000/landing.html — or stay on this file and add ?api=http://localhost:3000 (change port if needed).",
+          );
+        }
+
+        detectBrowserLanguage();
+      })();
+    </script>
+  </body>
+</html>
