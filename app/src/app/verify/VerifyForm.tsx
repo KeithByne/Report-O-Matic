@@ -57,8 +57,8 @@ export function VerifyForm() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-950 flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white shadow-sm p-6">
+    <div className="min-h-screen bg-emerald-50/80 text-zinc-950 flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-2xl border border-emerald-200 bg-white shadow-sm p-6">
         <div className="mb-4">
           <h1 className="text-xl font-bold tracking-tight">Enter your security code</h1>
           <p className="text-sm text-zinc-600 mt-1">
@@ -81,14 +81,14 @@ export function VerifyForm() {
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="123456"
-              className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400"
+              className="mt-1 w-full rounded-xl border border-emerald-200 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
             />
           </label>
 
           <button
             type="submit"
             disabled={status === "submitting"}
-            className="w-full rounded-xl bg-blue-600 text-white font-semibold py-2.5 disabled:opacity-60"
+            className="w-full rounded-xl bg-emerald-700 text-white font-semibold py-2.5 shadow-sm hover:bg-emerald-800 disabled:opacity-60"
           >
             {status === "submitting" ? "Verifying…" : "Verify"}
           </button>
@@ -102,7 +102,7 @@ export function VerifyForm() {
                 ? "border-green-200 bg-green-50 text-green-900"
                 : status === "err"
                   ? "border-red-200 bg-red-50 text-red-900"
-                  : "border-zinc-200 bg-zinc-50 text-zinc-800",
+                  : "border-emerald-200 bg-emerald-50/80 text-emerald-950",
             ].join(" ")}
           >
             {msg}

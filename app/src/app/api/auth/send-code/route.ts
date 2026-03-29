@@ -44,6 +44,16 @@ function getPepper(): string {
   return process.env.ROM_OTP_PEPPER || "dev-change-me";
 }
 
+/** OTP lifetime. Set `ROM_OTP_TTL_SECONDS` in `.env.local` to override (e.g. `600` for 10 minutes while testing with `next start`). */
+function getOtpTtlMs(): number {
+  const raw = process.env.ROM_OTP_TTL_SECONDS?.trim();
+  if (raw) {
+    const n = Number.parseInt(raw, 10);
+    if (Number.isFinite(n) && n >= 60 && n <= 3600) return n * 1000;
+  }
+  return process.env.NODE_ENV === "production" ? 180_000 : 600_000;
+}
+
 function randomDigits(length: number): string {
   // cryptographically strong digits
   const bytes = new Uint8Array(length);
@@ -169,8 +179,7 @@ export async function POST(req: Request) {
 
   const challengeId = newChallengeId();
   const code = randomDigits(6);
-  // Dev usability: longer TTL locally when not using production NODE_ENV. Production remains 180 seconds.
-  const ttlMs = process.env.NODE_ENV === "production" ? 180_000 : 600_000;
+  const ttlMs = getOtpTtlMs();
   const expiresAtMs = nowMs + ttlMs;
   const codeHash = sha256Hex(`${getPepper()}:${challengeId}:${code}`);
 

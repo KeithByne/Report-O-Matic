@@ -50,6 +50,44 @@ export async function getMembershipsForEmail(email: string): Promise<MembershipW
   return out;
 }
 
+export async function getRoleForTenant(email: string, tenantId: string): Promise<RomRole | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const normalized = email.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from("memberships")
+    .select("role")
+    .eq("user_email", normalized)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+  if (error || !data) return null;
+  const r = data.role as string;
+  if (r !== "owner" && r !== "department_head" && r !== "teacher") return null;
+  return r as RomRole;
+}
+
+export type TenantMemberRow = { user_email: string; role: RomRole };
+
+/** All members of a school (for owner / department head dashboards). */
+export async function listMembersForTenant(tenantId: string): Promise<TenantMemberRow[]> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("memberships")
+    .select("user_email, role")
+    .eq("tenant_id", tenantId)
+    .order("role", { ascending: true })
+    .order("user_email", { ascending: true });
+  if (error) throw new Error(formatErr(error));
+  const out: TenantMemberRow[] = [];
+  for (const row of data ?? []) {
+    const r = (row as { user_email: string; role: string }).role as RomRole;
+    if (r !== "owner" && r !== "department_head" && r !== "teacher") continue;
+    out.push({ user_email: (row as { user_email: string }).user_email, role: r });
+  }
+  return out;
+}
+
 export async function getTenantName(tenantId: string): Promise<string | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;
@@ -144,6 +182,53 @@ export async function inviteMemberToTenant(opts: {
   return { ok: true };
 }
 
+/** True if this email is an owner of at least one school (can add additional schools). */
+export async function hasOwnerMembership(email: string): Promise<boolean> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return false;
+  const normalized = email.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from("memberships")
+    .select("id")
+    .eq("user_email", normalized)
+    .eq("role", "owner")
+    .limit(1)
+    .maybeSingle();
+  if (error) return false;
+  return Boolean(data);
+}
+
+/** Create a new school and add the user as owner. Caller must verify the user is already an owner somewhere. */
+export async function createAdditionalSchoolForOwner(opts: {
+  ownerEmail: string;
+  schoolName: string;
+}): Promise<{ tenantId: string }> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+
+  const email = opts.ownerEmail.trim().toLowerCase();
+  const schoolName = opts.schoolName.trim();
+  if (!schoolName) throw new Error("School name is required.");
+
+  const can = await hasOwnerMembership(email);
+  if (!can) throw new Error("Only organisation owners can add a new school.");
+
+  const { data: tenant, error: tErr } = await supabase.from("tenants").insert({ name: schoolName }).select("id").single();
+  if (tErr) throw new Error(formatErr(tErr));
+
+  const tenantId = tenant.id as string;
+  const { error: mErr } = await supabase.from("memberships").insert({
+    tenant_id: tenantId,
+    user_email: email,
+    role: "owner",
+  });
+  if (mErr) {
+    await supabase.from("tenants").delete().eq("id", tenantId);
+    throw new Error(formatErr(mErr));
+  }
+  return { tenantId };
+}
+
 export async function ensureOwnerTenantForSignup(opts: {
   email: string;
   schoolName: string;
@@ -171,4 +256,38 @@ export async function ensureOwnerTenantForSignup(opts: {
     await supabase.from("tenants").delete().eq("id", tenantId);
     throw new Error(formatErr(mErr));
   }
+}
+
+export async function getMembershipRoleForEmail(
+  tenantId: string,
+  userEmail: string,
+): Promise<RomRole | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const normalized = userEmail.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from("memberships")
+    .select("role")
+    .eq("tenant_id", tenantId)
+    .eq("user_email", normalized)
+    .maybeSingle();
+  if (error || !data) return null;
+  const r = (data as { role: string }).role as RomRole;
+  if (r !== "owner" && r !== "department_head" && r !== "teacher") return null;
+  return r;
+}
+
+export async function deleteMembershipForEmail(tenantId: string, userEmail: string): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const normalized = userEmail.trim().toLowerCase();
+  const { error } = await supabase.from("memberships").delete().eq("tenant_id", tenantId).eq("user_email", normalized);
+  if (error) throw new Error(formatErr(error));
+}
+
+export async function deleteTenantById(tenantId: string): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const { error } = await supabase.from("tenants").delete().eq("id", tenantId);
+  if (error) throw new Error(formatErr(error));
 }

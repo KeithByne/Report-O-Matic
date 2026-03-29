@@ -1,0 +1,124 @@
+import { getServiceSupabase } from "@/lib/supabase/service";
+import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import type { RomRole } from "@/lib/data/memberships";
+import type { SubjectCode } from "@/lib/subjects";
+import { isSubjectCode } from "@/lib/subjects";
+
+function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
+  const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
+  return parts.join(" — ") || "Database error.";
+}
+
+export type CefrLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+
+export type ClassRow = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  scholastic_year: string | null;
+  cefr_level: CefrLevel | null;
+  default_subject: SubjectCode;
+  default_output_language: ReportLanguageCode;
+  assigned_teacher_email: string | null;
+  created_at: string;
+};
+
+const classSelect =
+  "id, tenant_id, name, scholastic_year, cefr_level, default_subject, default_output_language, assigned_teacher_email, created_at";
+
+export async function listClasses(
+  tenantId: string,
+  opts?: { viewerRole?: RomRole; viewerEmail?: string },
+): Promise<ClassRow[]> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+  let q = supabase.from("classes").select(classSelect).eq("tenant_id", tenantId);
+  if (opts?.viewerRole === "teacher" && opts.viewerEmail?.trim()) {
+    const e = opts.viewerEmail.trim().toLowerCase();
+    q = q.eq("assigned_teacher_email", e);
+  }
+  const { data, error } = await q.order("name", { ascending: true });
+  if (error) throw new Error(formatErr(error));
+  return (data ?? []) as ClassRow[];
+}
+
+export async function insertClass(opts: {
+  tenantId: string;
+  name: string;
+  scholasticYear?: string | null;
+  cefrLevel?: CefrLevel | null;
+  defaultSubject?: SubjectCode;
+  defaultOutputLanguage?: ReportLanguageCode;
+  assignedTeacherEmail?: string | null;
+}): Promise<ClassRow> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const name = opts.name.trim();
+  if (!name) throw new Error("Class name is required.");
+  const row: Record<string, unknown> = {
+    tenant_id: opts.tenantId,
+    name,
+    scholastic_year: opts.scholasticYear?.trim() || null,
+    cefr_level: opts.cefrLevel ?? null,
+    default_subject: opts.defaultSubject && isSubjectCode(opts.defaultSubject) ? opts.defaultSubject : "efl",
+    default_output_language: opts.defaultOutputLanguage ?? "en",
+    assigned_teacher_email: opts.assignedTeacherEmail?.trim().toLowerCase() ?? null,
+  };
+  const { data, error } = await supabase.from("classes").insert(row).select(classSelect).single();
+  if (error) throw new Error(formatErr(error));
+  return data as ClassRow;
+}
+
+export async function getClassInTenant(tenantId: string, classId: string): Promise<ClassRow | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("classes")
+    .select(classSelect)
+    .eq("tenant_id", tenantId)
+    .eq("id", classId)
+    .maybeSingle();
+  if (error) throw new Error(formatErr(error));
+  return (data as ClassRow) ?? null;
+}
+
+export async function updateClass(
+  tenantId: string,
+  classId: string,
+  patch: {
+    name?: string;
+    scholastic_year?: string | null;
+    cefr_level?: CefrLevel | null;
+    default_subject?: SubjectCode;
+    default_output_language?: ReportLanguageCode;
+    assigned_teacher_email?: string | null;
+  },
+): Promise<ClassRow> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const row: Record<string, unknown> = {};
+  if (patch.name !== undefined) row.name = patch.name.trim();
+  if (patch.scholastic_year !== undefined) row.scholastic_year = patch.scholastic_year?.trim() || null;
+  if (patch.cefr_level !== undefined) row.cefr_level = patch.cefr_level;
+  if (patch.default_subject !== undefined) row.default_subject = patch.default_subject;
+  if (patch.default_output_language !== undefined) row.default_output_language = patch.default_output_language;
+  if (patch.assigned_teacher_email !== undefined) {
+    row.assigned_teacher_email = patch.assigned_teacher_email?.trim().toLowerCase() || null;
+  }
+  const { data, error } = await supabase
+    .from("classes")
+    .update(row)
+    .eq("tenant_id", tenantId)
+    .eq("id", classId)
+    .select(classSelect)
+    .single();
+  if (error) throw new Error(formatErr(error));
+  return data as ClassRow;
+}
+
+export async function deleteClassInTenant(tenantId: string, classId: string): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const { error } = await supabase.from("classes").delete().eq("tenant_id", tenantId).eq("id", classId);
+  if (error) throw new Error(formatErr(error));
+}

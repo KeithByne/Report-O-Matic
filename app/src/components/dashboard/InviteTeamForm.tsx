@@ -12,7 +12,7 @@ type Props = {
 export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"teacher" | "department_head">("teacher");
-  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string; warn?: string } | null>(null);
   const [pending, setPending] = useState(false);
 
   async function onSubmit(e: FormEvent) {
@@ -26,12 +26,27 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: email.trim(), role: inviteRole }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        invite_email_sent?: boolean;
+        invite_email_error?: string;
+      };
       if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+      const baseOk =
+        "Access added." +
+        (data.invite_email_sent === true
+          ? " They should receive an invite email at that address with the sign-in link."
+          : "") +
+        " They must type their own email on Sign in (not yours) to receive the one-time code.";
+
       setMsg({
         type: "ok",
-        text:
-          "Access added. If email is configured, they also get an invite message at that address with the sign-in link. They must type their own email on Sign in (not yours) to receive the code.",
+        text: baseOk,
+        warn:
+          data.invite_email_sent === false && data.invite_email_error
+            ? data.invite_email_error
+            : undefined,
       });
       setEmail("");
     } catch (err) {
@@ -52,7 +67,7 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
       : "Department heads can add teachers only. Same sign-in flow.";
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
       <h3 className="text-sm font-semibold text-zinc-900">{heading}</h3>
       <p className="mt-1 text-xs text-zinc-600">{description}</p>
       <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
@@ -65,7 +80,7 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-zinc-500"
+            className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500"
             placeholder="colleague@school.com"
           />
         </label>
@@ -76,7 +91,7 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
               name="role"
               value={role}
               onChange={(e) => setRole(e.target.value as "teacher" | "department_head")}
-              className="mt-1 w-full min-w-[10rem] rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-zinc-500"
+              className="mt-1 w-full min-w-[10rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500"
             >
               <option value="teacher">Teacher</option>
               <option value="department_head">Department head</option>
@@ -90,18 +105,25 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
+          className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-900 disabled:opacity-60"
         >
           {pending ? "Adding…" : variant === "department_head" ? "Add teacher" : "Add member"}
         </button>
       </form>
       {msg ? (
-        <p
-          className={`mt-3 text-sm ${msg.type === "ok" ? "text-emerald-700" : "text-red-700"}`}
-          role={msg.type === "err" ? "alert" : "status"}
-        >
-          {msg.text}
-        </p>
+        <div className="mt-3 space-y-2 text-sm">
+          <p
+            className={msg.type === "ok" ? "text-emerald-700" : "text-red-700"}
+            role={msg.type === "err" ? "alert" : "status"}
+          >
+            {msg.text}
+          </p>
+          {msg.warn ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-950" role="status">
+              {msg.warn}
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

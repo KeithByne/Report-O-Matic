@@ -65,7 +65,23 @@ ROM_SESSION_SECRET=dev-change-me-too
 2. Open **Project Settings → API** and copy:
    - **Project URL** → `SUPABASE_URL`
    - **service_role** key (secret) → `SUPABASE_SERVICE_ROLE_KEY` (server-only; never put this in client code)
-3. Open **SQL Editor**, paste the contents of `supabase/migrations/0001_init.sql`, and click **Run**.
+3. Open **SQL Editor** and run each file below **in order** (one paste + **Run** per file). If a migration was already applied, re-running is usually safe only when the file uses `if not exists` / idempotent patterns—when unsure, check the table/column list in the Dashboard first.
+
+   | Order | File |
+   |------|------|
+   | 1 | `supabase/migrations/0001_init.sql` |
+   | 2 | `0002_otp_signup_metadata.sql` |
+   | 3 | `0003_students_reports.sql` |
+   | 4 | `0004_classes_language_report_inputs.sql` |
+   | 5 | `0005_class_fields_student_identity.sql` |
+   | 6 | `0006_classes_assigned_teacher_email.sql` |
+   | 7 | `0007_reports_teacher_preview.sql` |
+   | 8 | `0008_students_class_cascade.sql` |
+   | 9 | `0009_class_scholastic_archives.sql` |
+   | 10 | `0010_tenant_pdf_letterhead.sql` |
+   | 11 | `0011_tenant_letterhead_logo.sql` |
+
+   **Deploy order:** apply the same migrations to the **production** Supabase project **before** or **with** your first Vercel deploy that expects those columns—Vercel does not run SQL migrations for you.
 4. Add to `app/.env.local`:
 
 ```env

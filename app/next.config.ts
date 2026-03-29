@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   logging: {
     incomingRequests: false,
   },
+  // Keep native packages out of webpack so runtime files resolve (Sharp binaries, PDFKit .afm fonts).
+  serverExternalPackages: ["sharp", "pdfkit"],
+  // Letterhead uploads: 4 MB cap + multipart overhead (Vercel-friendly).
+  experimental: {
+    proxyClientMaxBodySize: "5mb",
+  },
 };
 
 export default nextConfig;

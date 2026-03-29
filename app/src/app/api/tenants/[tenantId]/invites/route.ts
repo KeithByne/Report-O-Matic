@@ -61,17 +61,16 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const schoolName = (await getTenantName(tenantId)) || "your school";
   const roleLabel = roleRaw === "department_head" ? "a department head" : "a teacher";
   const signInUrl = new URL("/landing.html", req.url).toString();
-  try {
-    await sendMemberAddedEmail({
-      to: email,
-      schoolName,
-      roleLabel,
-      signInUrl,
-    });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.warn("[ROM invites] Member added, but invite email failed:", msg);
-  }
+  const inviteEmail = await sendMemberAddedEmail({
+    to: email,
+    schoolName,
+    roleLabel,
+    signInUrl,
+  });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    invite_email_sent: inviteEmail.sent,
+    ...(inviteEmail.sent ? {} : { invite_email_error: inviteEmail.error }),
+  });
 }

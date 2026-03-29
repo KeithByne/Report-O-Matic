@@ -1,0 +1,13 @@
+{
+  "name": "report-o-matic-saas",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix app",
+    "dev:turbo": "npm run dev:turbo --prefix app",
+    "dev:webpack": "npm run dev:webpack --prefix app",
+    "build": "npm run build --prefix app",
+    "start": "npm run start --prefix app",
+    "preview": "npm run preview --prefix app",
+    "lint": "npm run lint --prefix app"
+  }
+}

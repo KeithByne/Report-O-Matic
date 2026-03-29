@@ -6,18 +6,36 @@ function getFromEmail(): string | null {
   return v.trim();
 }
 
+export type MemberInviteEmailResult =
+  | { sent: true }
+  | { sent: false; error: string };
+
 /**
- * Not the OTP — tells the invitee which email to use on Sign in so they don’t use someone else’s autofill.
+ * Not the OTP — tells the invitee which email to use on Sign in.
+ * Returns whether Resend accepted the send; never throws (caller always gets a result).
  */
 export async function sendMemberAddedEmail(opts: {
   to: string;
   schoolName: string;
   roleLabel: string;
   signInUrl: string;
-}): Promise<void> {
+}): Promise<MemberInviteEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = getFromEmail();
-  if (!apiKey || !from) return;
+  if (!apiKey?.trim()) {
+    return {
+      sent: false,
+      error:
+        "Invite email was not sent: RESEND_API_KEY is missing in the server environment (check Vercel → Environment Variables).",
+    };
+  }
+  if (!from) {
+    return {
+      sent: false,
+      error:
+        "Invite email was not sent: ROM_FROM_EMAIL is missing (set it in Vercel to a verified sender, e.g. no-reply@report-o-matic.online).",
+    };
+  }
 
   const resend = new Resend(apiKey);
   const subject = `You're invited to ${opts.schoolName} — Report-O-Matic`;
@@ -53,8 +71,15 @@ export async function sendMemberAddedEmail(opts: {
   });
 
   if ("error" in result && result.error) {
-    throw new Error(result.error.message || "Invite email failed");
+    const msg = result.error.message || "Resend rejected the send.";
+    console.error("[ROM] sendMemberAddedEmail Resend error:", msg);
+    return {
+      sent: false,
+      error: `Invite email failed (${msg}). Check Resend → Logs and that your domain/sender is verified.`,
+    };
   }
+
+  return { sent: true };
 }
 
 function escapeHtml(s: string): string {

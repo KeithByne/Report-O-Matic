@@ -6,21 +6,28 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node --max-old-space-size=3072 node_modules/next/dist/bin/next dev --webpack",
+    "dev:turbo": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
+    "dev:webpack": "node --max-old-space-size=3072 node_modules/next/dist/bin/next dev --webpack",
+    "build": "node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
+    "start": "node node_modules/next/dist/bin/next start",
+    "preview": "npm run build && npm run start",
     "lint": "eslint"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",
     "next": "16.2.1",
+    "openai": "^6.33.0",
+    "pdfkit": "^0.18.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "resend": "^6.9.4"
+    "resend": "^6.9.4",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pdfkit": "^0.17.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
