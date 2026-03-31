@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>Report-O-Matic — Sign in</title>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
       :root {
         --bg: #0a1812;
@@ -292,6 +293,17 @@
                   required
                 />
               </div>
+              <div class="field">
+                <label for="signInPassword">Password</label>
+                <input
+                  id="signInPassword"
+                  name="signin_password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Your password"
+                  required
+                />
+              </div>
               <p class="small" style="margin-top: -6px; color: rgba(255,255,255,0.65);">
                 Use <strong>your</strong> invited address — not a colleague’s. The code is sent only to the email you type here.
               </p>
@@ -299,6 +311,15 @@
               <button id="signInBtn" class="btn btnPrimary" type="submit">
                 Send security code
               </button>
+
+              <div class="field" style="margin-top: 4px;">
+                <div
+                  id="turnstileWidget"
+                  class="cf-turnstile"
+                  data-sitekey="0x4AAAAAACyZzKE7jN8nu-J1"
+                  data-callback="onTurnstileSuccess"
+                ></div>
+              </div>
 
               <div class="split">
                 <span class="small">You’ll receive a 6–7 digit code by email.</span>
@@ -328,6 +349,17 @@
                   autocapitalize="none"
                   spellcheck="false"
                   placeholder="name@school.com"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="signUpPassword">Create a password</label>
+                <input
+                  id="signUpPassword"
+                  name="signup_password"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="At least 8 characters"
                   required
                 />
               </div>
@@ -379,6 +411,12 @@
           return "http://localhost:3000";
         }
 
+        var turnstileToken = null;
+
+        window.onTurnstileSuccess = function (token) {
+          turnstileToken = token;
+        };
+
         var els = {
           tabSignIn: document.getElementById("tabSignIn"),
           tabSignUp: document.getElementById("tabSignUp"),
@@ -405,6 +443,7 @@
           els.msg.classList.add("hide");
           els.msg.textContent = "";
           els.msg.classList.remove("ok", "err");
+          // do not reset turnstileToken here to avoid unnecessary re-validation
         }
 
         function setTab(which) {
@@ -511,8 +550,11 @@
         els.signInForm.addEventListener("submit", function (ev) {
           ev.preventDefault();
           var email = String(document.getElementById("signInEmail").value || "").trim();
+          var password = String(document.getElementById("signInPassword").value || "");
           if (!email) return setMsg("err", "Please enter your email.");
-          handleSendCode(email, "signin");
+          if (!password || String(password).trim().length < 8) return setMsg("err", "Please enter your password (min 8 chars).");
+          if (!turnstileToken) return setMsg("err", "Please complete the human verification.");
+          handleSendCode(email, "signin", { password: password, turnstile_token: turnstileToken });
         });
 
         els.signUpForm.addEventListener("submit", function (ev) {
@@ -520,8 +562,16 @@
           var ownerName = String(document.getElementById("ownerName").value || "").trim();
           var schoolName = String(document.getElementById("schoolName").value || "").trim();
           var email = String(document.getElementById("signUpEmail").value || "").trim();
+          var password = String(document.getElementById("signUpPassword").value || "");
           if (!ownerName || !schoolName || !email) return setMsg("err", "Please complete all fields.");
-          handleSendCode(email, "signup", { owner_name: ownerName, school_name: schoolName });
+          if (!password || String(password).trim().length < 8) return setMsg("err", "Please choose a password (min 8 chars).");
+          if (!turnstileToken) return setMsg("err", "Please complete the human verification.");
+          handleSendCode(email, "signup", {
+            owner_name: ownerName,
+            school_name: schoolName,
+            password: password,
+            turnstile_token: turnstileToken,
+          });
         });
 
         els.forgotPasswordLink.addEventListener("click", function (ev) {

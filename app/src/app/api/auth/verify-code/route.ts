@@ -5,6 +5,7 @@ import { signSession } from "@/lib/auth/session";
 import { ensureOwnerTenantForSignup } from "@/lib/data/memberships";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { checkRateLimit } from "@/lib/security/rateLimit";
+import { corsHeadersForRequest } from "@/lib/http/cors";
 
 type VerifyCodeBody = {
   email?: unknown;
@@ -12,15 +13,8 @@ type VerifyCodeBody = {
   code?: unknown;
 };
 
-const CORS_HEADERS: Record<string, string> = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "POST, OPTIONS",
-  "access-control-allow-headers": "content-type",
-  "access-control-max-age": "86400",
-};
-
 function jsonError(status: number, message: string) {
-  return NextResponse.json({ error: message }, { status, headers: CORS_HEADERS });
+  return NextResponse.json({ error: message }, { status });
 }
 
 function normalizeEmail(email: string): string {
@@ -43,18 +37,22 @@ function getClientIp(req: Request): string {
   return "unknown";
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+export async function OPTIONS(req: Request) {
+  const cors = corsHeadersForRequest(req);
+  if (!cors.ok) return new NextResponse(null, { status: 403, headers: cors.headers });
+  return new NextResponse(null, { status: 204, headers: cors.headers });
 }
 
 export async function POST(req: Request) {
+  const cors = corsHeadersForRequest(req);
+  if (!cors.ok) return NextResponse.json({ error: "Origin not allowed." }, { status: 403, headers: cors.headers });
   const nowMs = Date.now();
 
   let body: VerifyCodeBody;
   try {
     body = (await req.json()) as VerifyCodeBody;
   } catch {
-    return jsonError(400, "Invalid JSON body.");
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400, headers: cors.headers });
   }
 
   const emailRaw = typeof body.email === "string" ? body.email : "";
@@ -62,14 +60,18 @@ export async function POST(req: Request) {
   const code = typeof body.code === "string" ? body.code.trim() : "";
 
   const email = normalizeEmail(emailRaw);
-  if (!email || !challengeId || !code) return jsonError(400, "Missing email, challenge_id, or code.");
-  if (!isUuid(challengeId)) return jsonError(400, "Invalid challenge id.");
-  if (!/^\d{6,7}$/.test(code)) return jsonError(400, "Code must be 6 or 7 digits.");
+  if (!email || !challengeId || !code) {
+    return NextResponse.json({ error: "Missing email, challenge_id, or code." }, { status: 400, headers: cors.headers });
+  }
+  if (!isUuid(challengeId)) return NextResponse.json({ error: "Invalid challenge id." }, { status: 400, headers: cors.headers });
+  if (!/^\d{6,7}$/.test(code)) return NextResponse.json({ error: "Code must be 6 or 7 digits." }, { status: 400, headers: cors.headers });
 
   // Rate limit verification attempts.
   const ip = getClientIp(req);
   const rl = checkRateLimit({ key: `verify:${ip}:${email}`, limit: 12, windowMs: 60_000, nowMs });
-  if (!rl.ok) return jsonError(429, "Too many attempts. Please wait and try again.");
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many attempts. Please wait and try again." }, { status: 429, headers: cors.headers });
+  }
 
   const verified = await verifyOtpChallenge({
     challengeId,
@@ -78,7 +80,7 @@ export async function POST(req: Request) {
     pepper: getPepper(),
     nowMs,
   });
-  if (!verified.ok) return jsonError(verified.status, verified.message);
+  if (!verified.ok) return NextResponse.json({ error: verified.message }, { status: verified.status, headers: cors.headers });
 
   if (getServiceSupabase()) {
     try {
@@ -88,14 +90,14 @@ export async function POST(req: Request) {
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not finish signup.";
       console.error("[ROM verify-code] ensureOwnerTenantForSignup:", msg);
-      return jsonError(500, msg);
+      return NextResponse.json({ error: msg }, { status: 500, headers: cors.headers });
     }
   }
 
   const sessionExpMs = nowMs + 8 * 60 * 60 * 1000; // 8 hours
   const sessionId = crypto.randomUUID();
   const token = signSession({ sid: sessionId, email, exp: sessionExpMs });
-  const res = NextResponse.json({ ok: true }, { headers: CORS_HEADERS });
+  const res = NextResponse.json({ ok: true }, { headers: cors.headers });
   res.cookies.set("rom_session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

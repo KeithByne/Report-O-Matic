@@ -3,28 +3,23 @@ import { checkRateLimit } from "@/lib/security/rateLimit";
 import { sha256Hex } from "@/lib/auth/devStore";
 import { isSupabaseOtpEnabled, newChallengeId, saveOtpChallenge } from "@/lib/auth/otpChallenge";
 import { hasAnyMembership } from "@/lib/data/memberships";
+import { hashPassword, verifyPassword } from "@/lib/auth/passwordHash";
+import { getPasswordHashForEmail, setPasswordHashIfMissing } from "@/lib/auth/passwordStore";
+import { corsHeadersForRequest } from "@/lib/http/cors";
 import { Resend } from "resend";
 
 type SendCodeBody = {
   email?: unknown;
+  password?: unknown;
+  turnstile_token?: unknown;
   mode?: unknown;
   owner_name?: unknown;
   school_name?: unknown;
   browser_language?: unknown;
 };
 
-const CORS_HEADERS: Record<string, string> = {
-  // Allow calling from standalone file:// landing page during local dev.
-  // In production, your landing page should be served from the same origin (report-o-matic.online),
-  // and you can lock this down to that origin.
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "POST, OPTIONS",
-  "access-control-allow-headers": "content-type",
-  "access-control-max-age": "86400",
-};
-
-function jsonError(status: number, message: string) {
-  return NextResponse.json({ error: message }, { status, headers: CORS_HEADERS });
+function jsonError(status: number, message: string, headers: Record<string, string>) {
+  return NextResponse.json({ error: message }, { status, headers });
 }
 
 function getClientIp(req: Request): string {
@@ -124,23 +119,73 @@ async function sendOtpEmail(opts: {
   }
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+export async function OPTIONS(req: Request) {
+  const cors = corsHeadersForRequest(req);
+  if (!cors.ok) return new NextResponse(null, { status: 403, headers: cors.headers });
+  return new NextResponse(null, { status: 204, headers: cors.headers });
 }
 
 export async function POST(req: Request) {
+  const cors = corsHeadersForRequest(req);
+  if (!cors.ok) return NextResponse.json({ error: "Origin not allowed." }, { status: 403, headers: cors.headers });
   const nowMs = Date.now();
 
   let body: SendCodeBody;
   try {
     body = (await req.json()) as SendCodeBody;
   } catch {
-    return jsonError(400, "Invalid JSON body.");
+    return jsonError(400, "Invalid JSON body.", cors.headers);
   }
 
   const emailRaw = typeof body.email === "string" ? body.email : "";
   const email = normalizeEmail(emailRaw);
-  if (!email || !email.includes("@") || email.length > 320) return jsonError(400, "Please provide a valid email.");
+  if (!email || !email.includes("@") || email.length > 320) {
+    return jsonError(400, "Please provide a valid email.", cors.headers);
+  }
+
+   // Cloudflare Turnstile human check
+  const tsTokenRaw = body.turnstile_token;
+  const turnstileToken = typeof tsTokenRaw === "string" ? tsTokenRaw.trim() : "";
+  if (!turnstileToken) {
+    return jsonError(400, "Human verification required.", cors.headers);
+  }
+  const tsSecret = process.env.TURNSTILE_SECRET_KEY;
+  if (!tsSecret) {
+    return jsonError(500, "Human verification is not configured.", cors.headers);
+  }
+  try {
+    const ip = getClientIp(req);
+    const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        secret: tsSecret,
+        response: turnstileToken,
+        remoteip: ip,
+      }),
+    });
+    const verifyJson = (await verifyRes.json()) as { success?: boolean; ["error-codes"]?: string[] };
+    if (!verifyJson.success) {
+      console.warn("[ROM send-code] Turnstile failed:", verifyJson["error-codes"]);
+      return jsonError(403, "Human verification failed.", cors.headers);
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Could not verify human check.";
+    console.error("[ROM send-code] Turnstile error:", msg);
+    return jsonError(500, msg, cors.headers);
+  }
+
+  const password = typeof body.password === "string" ? body.password : "";
+  const pw = password.trim();
+  if (!pw) {
+    return NextResponse.json(
+      { error: "Password required.", password_required: true },
+      { status: 400, headers: cors.headers },
+    );
+  }
+  if (pw.length < 8 || pw.length > 200) {
+    return jsonError(400, "Password must be at least 8 characters.", cors.headers);
+  }
 
   const mode = body.mode === "signup" ? "signup" : "signin";
 
@@ -154,14 +199,14 @@ export async function POST(req: Request) {
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Could not verify account.";
         console.error("[ROM send-code] hasAnyMembership:", msg);
-        return jsonError(500, msg);
+        return jsonError(500, msg, cors.headers);
       }
     }
     if (!alreadyMember) {
       const owner = typeof body.owner_name === "string" ? body.owner_name.trim() : "";
       const school = typeof body.school_name === "string" ? body.school_name.trim() : "";
       if (!owner || !school) {
-        return jsonError(400, "Please provide your name and school name to create an account.");
+        return jsonError(400, "Please provide your name and school name to create an account.", cors.headers);
       }
       ownerName = owner;
       schoolName = school;
@@ -173,9 +218,32 @@ export async function POST(req: Request) {
   // Rate limit (dev-only in-memory).
   // Tight enough to prevent spam during testing; production will be stricter + durable.
   const rl1 = checkRateLimit({ key: `ip:${ip}`, limit: 10, windowMs: 60_000, nowMs });
-  if (!rl1.ok) return jsonError(429, "Too many requests. Please wait and try again.");
+  if (!rl1.ok) return jsonError(429, "Too many requests. Please wait and try again.", cors.headers);
   const rl2 = checkRateLimit({ key: `email:${email}`, limit: 5, windowMs: 60_000, nowMs });
-  if (!rl2.ok) return jsonError(429, "Too many requests for this email. Please wait and try again.");
+  if (!rl2.ok) return jsonError(429, "Too many requests for this email. Please wait and try again.", cors.headers);
+
+  // Password gate: set on first login, verify thereafter (before sending OTP).
+  try {
+    const existing = await getPasswordHashForEmail(email);
+    if (!existing) {
+      const created = await setPasswordHashIfMissing(email, hashPassword(pw));
+      if (!created) {
+        // Race: it was created between calls; re-fetch and verify.
+        const again = await getPasswordHashForEmail(email);
+        if (!again || !verifyPassword(pw, again)) {
+          return NextResponse.json({ error: "Incorrect password." }, { status: 401, headers: cors.headers });
+        }
+      }
+    } else {
+      if (!verifyPassword(pw, existing)) {
+        return NextResponse.json({ error: "Incorrect password." }, { status: 401, headers: cors.headers });
+      }
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Could not verify password.";
+    console.error("[ROM send-code] password gate:", msg);
+    return jsonError(500, msg, cors.headers);
+  }
 
   const challengeId = newChallengeId();
   const code = randomDigits(6);
@@ -196,7 +264,7 @@ export async function POST(req: Request) {
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Could not create challenge.";
     console.error("[ROM send-code] saveOtpChallenge failed:", msg);
-    return jsonError(500, msg);
+    return jsonError(500, msg, cors.headers);
   }
 
   const expiresInSeconds = Math.floor(ttlMs / 1000);
@@ -210,7 +278,7 @@ export async function POST(req: Request) {
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not send email.";
       // In production, fail closed (don’t claim “sent” if we didn’t send).
-      if (process.env.NODE_ENV === "production") return jsonError(500, msg);
+      if (process.env.NODE_ENV === "production") return jsonError(500, msg, cors.headers);
       console.warn("[ROM] Email send failed in dev:", msg);
       if (!isSupabaseOtpEnabled()) {
         console.log(
@@ -230,7 +298,7 @@ export async function POST(req: Request) {
       challenge_id: challengeId,
       expires_in_seconds: expiresInSeconds,
     },
-    { headers: CORS_HEADERS },
+    { headers: cors.headers },
   );
 }
 
