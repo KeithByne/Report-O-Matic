@@ -18,7 +18,9 @@ export async function GET() {
   if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
   const { data, error } = await supabase
     .from("agent_links")
-    .select("code, agent_email, display_name, active, commission_bps, inactive_after_days, last_active_at, created_at")
+    .select(
+      "code, agent_email, display_name, active, commission_bps, payout_wait_days, inactive_after_days, last_active_at, created_at",
+    )
     .order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ agents: data ?? [] });
@@ -54,6 +56,7 @@ export async function POST(req: Request) {
       display_name: display,
       active: true,
       commission_bps: Math.max(0, Math.min(10000, commissionBps)),
+      payout_wait_days: 21,
       inactive_after_days: Math.max(1, Math.min(5000, inactiveAfterDays)),
     });
     if (!error) break;
@@ -84,6 +87,8 @@ export async function PATCH(req: Request) {
   if (typeof body.active === "boolean") patch.active = body.active;
   if (typeof body.commission_bps === "number")
     patch.commission_bps = Math.max(0, Math.min(10000, Math.trunc(body.commission_bps)));
+  if (typeof body.payout_wait_days === "number")
+    patch.payout_wait_days = Math.max(0, Math.min(3650, Math.trunc(body.payout_wait_days)));
   if (typeof body.inactive_after_days === "number")
     patch.inactive_after_days = Math.max(1, Math.min(5000, Math.trunc(body.inactive_after_days)));
 
@@ -93,7 +98,9 @@ export async function PATCH(req: Request) {
     .from("agent_links")
     .update(patch)
     .eq("code", code)
-    .select("code, agent_email, display_name, active, commission_bps, inactive_after_days, last_active_at, created_at")
+    .select(
+      "code, agent_email, display_name, active, commission_bps, payout_wait_days, inactive_after_days, last_active_at, created_at",
+    )
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ agent: data });

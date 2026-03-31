@@ -24,6 +24,7 @@ type AgentLink = {
   display_name: string | null;
   active: boolean;
   commission_bps: number;
+  payout_wait_days?: number;
   inactive_after_days: number;
   last_active_at: string | null;
   created_at: string;
@@ -128,6 +129,12 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
   const [newAgentName, setNewAgentName] = useState("");
 
   const [earnings, setEarnings] = useState<ReferralEarning[]>([]);
+  const [packEdits, setPackEdits] = useState<Record<string, Partial<CreditPack>>>({});
+  const [packSaving, setPackSaving] = useState<Record<string, boolean>>({});
+
+  const [agentEdits, setAgentEdits] = useState<Record<string, Partial<AgentLink>>>({});
+  const [agentSaving, setAgentSaving] = useState<Record<string, boolean>>({});
+
   const [earnBusy, setEarnBusy] = useState(false);
   const [earnErr, setEarnErr] = useState<string | null>(null);
   const [earnAgentFilter, setEarnAgentFilter] = useState("");
@@ -213,7 +220,15 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
       const res = await fetch("/api/saas-owner/packs", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed");
-      setPacks((data.packs ?? []) as CreditPack[]);
+      const rows = (data.packs ?? []) as CreditPack[];
+      setPacks(rows);
+      setPackEdits((prev) => {
+        const next = { ...prev };
+        for (const p of rows) {
+          if (!next[p.id]) next[p.id] = {};
+        }
+        return next;
+      });
     } catch (e: unknown) {
       setPacksErr(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -228,7 +243,15 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
       const res = await fetch("/api/saas-owner/agents", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed");
-      setAgents((data.agents ?? []) as AgentLink[]);
+      const rows = (data.agents ?? []) as AgentLink[];
+      setAgents(rows);
+      setAgentEdits((prev) => {
+        const next = { ...prev };
+        for (const a of rows) {
+          if (!next[a.code]) next[a.code] = {};
+        }
+        return next;
+      });
     } catch (e: unknown) {
       setAgentsErr(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -300,21 +323,118 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
                   <th className="py-2 pr-3 font-medium">Currency</th>
                   <th className="py-2 pr-3 font-medium">Credits</th>
                   <th className="py-2 pr-3 font-medium">Active</th>
+                  <th className="py-2 pr-3 font-medium">Order</th>
+                  <th className="py-2 pr-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {packs.map((p) => (
+                {packs.map((p) => {
+                  const e = packEdits[p.id] || {};
+                  const v = { ...p, ...e };
+                  const saving = !!packSaving[p.id];
+                  return (
                   <tr key={p.id} className="border-b border-zinc-100">
                     <td className="py-2 pr-3 font-medium text-zinc-900">{p.name}</td>
-                    <td className="py-2 pr-3 font-mono text-xs">{p.price_cents}</td>
-                    <td className="py-2 pr-3 font-mono text-xs">{p.currency.toUpperCase()}</td>
-                    <td className="py-2 pr-3 font-mono text-xs">{p.report_credits}</td>
-                    <td className="py-2 pr-3 text-xs">{p.active ? "yes" : "no"}</td>
+                    <td className="py-2 pr-3">
+                      <input
+                        value={String(v.price_cents ?? 0)}
+                        onChange={(ev) =>
+                          setPackEdits((m) => ({ ...m, [p.id]: { ...(m[p.id] || {}), price_cents: Number(ev.target.value) } }))
+                        }
+                        className="w-28 rounded-lg border border-zinc-300 px-2 py-1 text-xs font-mono"
+                        inputMode="numeric"
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <input
+                        value={String(v.currency ?? "eur").toUpperCase()}
+                        onChange={(ev) =>
+                          setPackEdits((m) => ({
+                            ...m,
+                            [p.id]: { ...(m[p.id] || {}), currency: ev.target.value.trim().toLowerCase() },
+                          }))
+                        }
+                        className="w-20 rounded-lg border border-zinc-300 px-2 py-1 text-xs font-mono"
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <input
+                        value={String(v.report_credits ?? 0)}
+                        onChange={(ev) =>
+                          setPackEdits((m) => ({
+                            ...m,
+                            [p.id]: { ...(m[p.id] || {}), report_credits: Number(ev.target.value) },
+                          }))
+                        }
+                        className="w-24 rounded-lg border border-zinc-300 px-2 py-1 text-xs font-mono"
+                        inputMode="numeric"
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <input
+                        type="checkbox"
+                        checked={!!v.active}
+                        onChange={(ev) =>
+                          setPackEdits((m) => ({ ...m, [p.id]: { ...(m[p.id] || {}), active: ev.target.checked } }))
+                        }
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <input
+                        value={String(v.sort_order ?? 0)}
+                        onChange={(ev) =>
+                          setPackEdits((m) => ({
+                            ...m,
+                            [p.id]: { ...(m[p.id] || {}), sort_order: Number(ev.target.value) },
+                          }))
+                        }
+                        className="w-20 rounded-lg border border-zinc-300 px-2 py-1 text-xs font-mono"
+                        inputMode="numeric"
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() =>
+                          void (async () => {
+                            const patch = packEdits[p.id] || {};
+                            setPackSaving((s) => ({ ...s, [p.id]: true }));
+                            try {
+                              const res = await fetch("/api/saas-owner/packs", {
+                                method: "PATCH",
+                                headers: { "content-type": "application/json" },
+                                body: JSON.stringify({ id: p.id, ...patch }),
+                              });
+                              const data = await res.json().catch(() => ({}));
+                              if (!res.ok) throw new Error(data.error || "Failed");
+                              await refreshPacks();
+                              setPackEdits((m) => ({ ...m, [p.id]: {} }));
+                            } catch (err: unknown) {
+                              alert(err instanceof Error ? err.message : "Failed");
+                            } finally {
+                              setPackSaving((s) => ({ ...s, [p.id]: false }));
+                            }
+                          })()
+                        }
+                        className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        {saving ? "Saving…" : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => setPackEdits((m) => ({ ...m, [p.id]: {} }))}
+                        className="ml-2 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+                      >
+                        Reset
+                      </button>
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
-            <div className="mt-2 text-xs text-zinc-500">Editing UI comes next (safe-guarded).</div>
           </div>
         </section>
 
@@ -388,22 +508,114 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
                   <th className="py-2 pr-3 font-medium">Code</th>
                   <th className="py-2 pr-3 font-medium">Agent</th>
                   <th className="py-2 pr-3 font-medium">Active</th>
-                  <th className="py-2 pr-3 font-medium">Commission</th>
+                  <th className="py-2 pr-3 font-medium">Commission %</th>
+                  <th className="py-2 pr-3 font-medium">Payout wait (days)</th>
+                  <th className="py-2 pr-3 font-medium">Inactive after (days)</th>
                   <th className="py-2 pr-3 font-medium">Link</th>
+                  <th className="py-2 pr-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {agents.map((a) => (
+                {agents.map((a) => {
+                  const e = agentEdits[a.code] || {};
+                  const v = { ...a, ...e };
+                  const saving = !!agentSaving[a.code];
+                  const pct = ((Number(v.commission_bps ?? 0) || 0) / 100).toFixed(2);
+                  return (
                   <tr key={a.code} className="border-b border-zinc-100">
                     <td className="py-2 pr-3 font-mono text-xs">{a.code}</td>
                     <td className="py-2 pr-3 text-xs">{a.agent_email}</td>
-                    <td className="py-2 pr-3 text-xs">{a.active ? "yes" : "no"}</td>
-                    <td className="py-2 pr-3 text-xs">{(a.commission_bps / 100).toFixed(2)}%</td>
+                    <td className="py-2 pr-3">
+                      <input
+                        type="checkbox"
+                        checked={!!v.active}
+                        onChange={(ev) =>
+                          setAgentEdits((m) => ({ ...m, [a.code]: { ...(m[a.code] || {}), active: ev.target.checked } }))
+                        }
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <input
+                        value={pct}
+                        onChange={(ev) => {
+                          const n = Number(ev.target.value);
+                          const bps = Number.isFinite(n) ? Math.round(n * 100) : 0;
+                          setAgentEdits((m) => ({ ...m, [a.code]: { ...(m[a.code] || {}), commission_bps: bps } }));
+                        }}
+                        className="w-24 rounded-lg border border-zinc-300 px-2 py-1 text-xs font-mono"
+                        inputMode="decimal"
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <input
+                        value={String((v as any).payout_wait_days ?? 21)}
+                        onChange={(ev) =>
+                          setAgentEdits((m) => ({
+                            ...m,
+                            [a.code]: { ...(m[a.code] || {}), payout_wait_days: Number(ev.target.value) as any },
+                          }))
+                        }
+                        className="w-24 rounded-lg border border-zinc-300 px-2 py-1 text-xs font-mono"
+                        inputMode="numeric"
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <input
+                        value={String(v.inactive_after_days ?? 400)}
+                        onChange={(ev) =>
+                          setAgentEdits((m) => ({
+                            ...m,
+                            [a.code]: { ...(m[a.code] || {}), inactive_after_days: Number(ev.target.value) },
+                          }))
+                        }
+                        className="w-28 rounded-lg border border-zinc-300 px-2 py-1 text-xs font-mono"
+                        inputMode="numeric"
+                      />
+                    </td>
                     <td className="py-2 pr-3 text-xs">
                       <span className="font-mono">{`/landing.html?ref=${a.code}`}</span>
                     </td>
+                    <td className="py-2 pr-3">
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() =>
+                          void (async () => {
+                            const patch = agentEdits[a.code] || {};
+                            setAgentSaving((s) => ({ ...s, [a.code]: true }));
+                            try {
+                              const res = await fetch("/api/saas-owner/agents", {
+                                method: "PATCH",
+                                headers: { "content-type": "application/json" },
+                                body: JSON.stringify({ code: a.code, ...patch }),
+                              });
+                              const data = await res.json().catch(() => ({}));
+                              if (!res.ok) throw new Error(data.error || "Failed");
+                              await refreshAgents();
+                              setAgentEdits((m) => ({ ...m, [a.code]: {} }));
+                            } catch (err: unknown) {
+                              alert(err instanceof Error ? err.message : "Failed");
+                            } finally {
+                              setAgentSaving((s) => ({ ...s, [a.code]: false }));
+                            }
+                          })()
+                        }
+                        className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        {saving ? "Saving…" : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => setAgentEdits((m) => ({ ...m, [a.code]: {} }))}
+                        className="ml-2 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+                      >
+                        Reset
+                      </button>
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

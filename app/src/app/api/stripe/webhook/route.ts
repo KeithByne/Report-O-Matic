@@ -89,13 +89,15 @@ export async function POST(req: Request) {
           if (referralCode) {
             const { data: agent } = await supabase
               .from("agent_links")
-              .select("code, agent_email, commission_bps, active")
+              .select("code, agent_email, commission_bps, payout_wait_days, active")
               .eq("code", referralCode)
               .maybeSingle();
             if (agent && (agent as any).active) {
               const bps = Number((agent as any).commission_bps) || 0;
               const commission = Math.max(0, Math.floor((amount * bps) / 10_000));
-              const eligibleAt = new Date(new Date(created).getTime() + 21 * 24 * 60 * 60 * 1000).toISOString();
+              const waitDaysRaw = Number((agent as any).payout_wait_days);
+              const waitDays = Number.isFinite(waitDaysRaw) ? Math.max(0, Math.min(3650, Math.trunc(waitDaysRaw))) : 21;
+              const eligibleAt = new Date(new Date(created).getTime() + waitDays * 24 * 60 * 60 * 1000).toISOString();
               const { error: rErr } = await supabase.from("referral_earnings").insert({
                 agent_code: (agent as any).code,
                 agent_email: (agent as any).agent_email,
