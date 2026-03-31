@@ -121,11 +121,12 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       patch.body_teacher_preview = mergedBody;
     } else {
       try {
-        patch.body_teacher_preview = await translateReportComment({
+        const translated = await translateReportComment({
           text: mergedBody,
           fromLanguage: mergedOut,
           toLanguage: mergedTeacherLang,
         });
+        patch.body_teacher_preview = translated.text;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Translation failed.";
         return NextResponse.json({ error: msg }, { status: 500 });

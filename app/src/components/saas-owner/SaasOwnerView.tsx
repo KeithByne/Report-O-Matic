@@ -17,6 +17,10 @@ type FinanceSummary = {
   agent?: string;
 };
 
+type OpenAiBalanceResp =
+  | { ok: true; source: string; data: any }
+  | { ok: false; status?: number; error: string; detail?: string };
+
 function fmtMoney(cents: number, currency = "USD"): string {
   const v = (cents ?? 0) / 100;
   try {
@@ -37,6 +41,11 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
   const [finBusy, setFinBusy] = useState(false);
   const [finErr, setFinErr] = useState<string | null>(null);
   const [fin, setFin] = useState<FinanceSummary | null>(null);
+
+  const [balBusy, setBalBusy] = useState(false);
+  const [balErr, setBalErr] = useState<string | null>(null);
+  const [bal, setBal] = useState<OpenAiBalanceResp | null>(null);
+  const [balTick, setBalTick] = useState(0);
 
   const query = useMemo(() => q.trim(), [q]);
   const agent = useMemo(() => agentFilter.trim(), [agentFilter]);
@@ -88,6 +97,27 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
     };
   }, [range, agent]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      setBalBusy(true);
+      setBalErr(null);
+      try {
+        const res = await fetch("/api/saas-owner/openai/balance", { cache: "no-store" });
+        const data = (await res.json().catch(() => ({}))) as OpenAiBalanceResp;
+        if (!res.ok) throw new Error((data as any).error || "Failed");
+        if (!cancelled) setBal(data);
+      } catch (e: unknown) {
+        if (!cancelled) setBalErr(e instanceof Error ? e.message : "Failed");
+      } finally {
+        if (!cancelled) setBalBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [balTick]);
+
   return (
     <div className="min-h-screen bg-emerald-100/80 text-zinc-950">
       <header className="border-b border-emerald-200 bg-white/90 backdrop-blur">
@@ -103,6 +133,31 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-zinc-900">OpenAI</div>
+              <div className="mt-1 text-xs text-zinc-500">“Real-time” balance (best available) with manual refresh.</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBalTick((n) => n + 1)}
+              disabled={balBusy}
+              className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
+            >
+              {balBusy ? "Refreshing…" : "Refresh balance"}
+            </button>
+          </div>
+          {balErr ? <div className="mt-3 text-sm text-red-700">{balErr}</div> : null}
+          {bal ? (
+            <pre className="mt-3 max-h-56 overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-800">
+              {JSON.stringify(bal, null, 2)}
+            </pre>
+          ) : (
+            <div className="mt-3 text-sm text-zinc-600">{balBusy ? "Loading…" : "—"}</div>
+          )}
+        </section>
+
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="w-full">

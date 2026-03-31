@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { generateSchoolReportDraftPair } from "@/lib/ai/generateReportDraft";
+import { estimateOpenAiCostUsd } from "@/lib/ai/openaiCost";
 import { canAccessClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
+import { logOpenAiUsageEvent } from "@/lib/data/openaiUsageEvents";
 import { getReport, updateReport } from "@/lib/data/reportsDb";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isSubjectCode } from "@/lib/subjects";
@@ -74,7 +76,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const extraNotes = requestNotes || savedNotes || undefined;
 
   try {
-    const { pdfBody, teacherPreview } = await generateSchoolReportDraftPair({
+    const { pdfBody, teacherPreview, usage } = await generateSchoolReportDraftPair({
       studentFirstName: firstName,
       className,
       schoolName,
@@ -84,6 +86,32 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       inputs: report.inputs,
       extraNotes,
     });
+    if (usage.draft) {
+      await logOpenAiUsageEvent({
+        tenantId,
+        reportId,
+        actorEmail: gate.email,
+        kind: "draft",
+        model: usage.draft.model,
+        promptTokens: usage.draft.prompt_tokens,
+        completionTokens: usage.draft.completion_tokens,
+        totalTokens: usage.draft.total_tokens,
+        estCostUsd: estimateOpenAiCostUsd(usage.draft),
+      });
+    }
+    if (usage.translate) {
+      await logOpenAiUsageEvent({
+        tenantId,
+        reportId,
+        actorEmail: gate.email,
+        kind: "translate",
+        model: usage.translate.model,
+        promptTokens: usage.translate.prompt_tokens,
+        completionTokens: usage.translate.completion_tokens,
+        totalTokens: usage.translate.total_tokens,
+        estCostUsd: estimateOpenAiCostUsd(usage.translate),
+      });
+    }
     const updated = await updateReport(tenantId, reportId, {
       body: pdfBody,
       body_teacher_preview: teacherPreview,
