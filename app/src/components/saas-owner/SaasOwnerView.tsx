@@ -21,6 +21,24 @@ type OpenAiBalanceResp =
   | { ok: true; source: string; data: any }
   | { ok: false; status?: number; error: string; detail?: string };
 
+type OpenAiSpendSummary = {
+  range: string;
+  from: string | null;
+  to: string;
+  totals: {
+    requests: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+    est_cost_usd: number;
+    by_kind: {
+      draft: { requests: number; total_tokens: number; est_cost_usd: number };
+      translate: { requests: number; total_tokens: number; est_cost_usd: number };
+    };
+    by_model: Record<string, { requests: number; total_tokens: number; est_cost_usd: number }>;
+  };
+};
+
 function fmtMoney(cents: number, currency = "USD"): string {
   const v = (cents ?? 0) / 100;
   try {
@@ -46,6 +64,12 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
   const [balErr, setBalErr] = useState<string | null>(null);
   const [bal, setBal] = useState<OpenAiBalanceResp | null>(null);
   const [balTick, setBalTick] = useState(0);
+
+  const [spendRange, setSpendRange] = useState<"day" | "week" | "month" | "year" | "ytd" | "all">("month");
+  const [spendBusy, setSpendBusy] = useState(false);
+  const [spendErr, setSpendErr] = useState<string | null>(null);
+  const [spend, setSpend] = useState<OpenAiSpendSummary | null>(null);
+  const [spendTick, setSpendTick] = useState(0);
 
   const query = useMemo(() => q.trim(), [q]);
   const agent = useMemo(() => agentFilter.trim(), [agentFilter]);
@@ -125,6 +149,29 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
     };
   }, [balTick]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      setSpendBusy(true);
+      setSpendErr(null);
+      try {
+        const u = new URL(window.location.origin + "/api/saas-owner/openai/spend/summary");
+        u.searchParams.set("range", spendRange);
+        const res = await fetch(u.toString(), { cache: "no-store" });
+        const data = (await res.json().catch(() => ({}))) as OpenAiSpendSummary & { error?: string };
+        if (!res.ok) throw new Error(data.error || "Failed");
+        if (!cancelled) setSpend(data as OpenAiSpendSummary);
+      } catch (e: unknown) {
+        if (!cancelled) setSpendErr(e instanceof Error ? e.message : "Failed");
+      } finally {
+        if (!cancelled) setSpendBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [spendRange, spendTick]);
+
   return (
     <div className="min-h-screen bg-emerald-100/80 text-zinc-950">
       <header className="border-b border-emerald-200 bg-white/90 backdrop-blur">
@@ -144,25 +191,93 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-sm font-semibold text-zinc-900">OpenAI</div>
-              <div className="mt-1 text-xs text-zinc-500">“Real-time” balance (best available) with manual refresh.</div>
+              <div className="mt-1 text-xs text-zinc-500">
+                Balance cannot be fetched via secret API keys; this shows real-time spend based on logged usage.
+              </div>
             </div>
             <button
               type="button"
-              onClick={() => setBalTick((n) => n + 1)}
-              disabled={balBusy}
+              onClick={() => {
+                setBalTick((n) => n + 1);
+                setSpendTick((n) => n + 1);
+              }}
+              disabled={balBusy || spendBusy}
               className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
             >
-              {balBusy ? "Refreshing…" : "Refresh balance"}
+              {balBusy || spendBusy ? "Refreshing…" : "Refresh OpenAI data"}
             </button>
           </div>
-          {balErr ? <div className="mt-3 text-sm text-red-700">{balErr}</div> : null}
-          {bal ? (
-            <pre className="mt-3 max-h-56 overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-800">
-              {JSON.stringify(bal, null, 2)}
-            </pre>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+            <label className="text-sm">
+              <span className="text-zinc-600">Range</span>
+              <select
+                value={spendRange}
+                onChange={(e) => setSpendRange(e.target.value as typeof spendRange)}
+                className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
+              >
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+                <option value="ytd">To date (YTD)</option>
+                <option value="all">All time</option>
+              </select>
+            </label>
+            <a
+              href="https://platform.openai.com/settings/organization/billing/overview"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-semibold text-emerald-700 hover:underline"
+            >
+              OpenAI billing (balance)
+            </a>
+          </div>
+
+          {spendErr ? <div className="mt-3 text-sm text-red-700">{spendErr}</div> : null}
+          {spend ? (
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Estimated spend</div>
+                <div className="mt-1 text-lg font-semibold text-zinc-900">
+                  {new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(spend.totals.est_cost_usd)}
+                </div>
+                <div className="mt-1 text-xs text-zinc-500">{spend.totals.requests} request(s)</div>
+              </div>
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Tokens</div>
+                <div className="mt-1 text-sm font-semibold text-zinc-900">{spend.totals.total_tokens.toLocaleString()}</div>
+                <div className="mt-1 text-xs text-zinc-500">
+                  prompt {spend.totals.prompt_tokens.toLocaleString()} • completion {spend.totals.completion_tokens.toLocaleString()}
+                </div>
+              </div>
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">By kind</div>
+                <div className="mt-1 text-xs text-zinc-700">
+                  Draft: {spend.totals.by_kind.draft.requests} req •{" "}
+                  {new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(spend.totals.by_kind.draft.est_cost_usd)}
+                </div>
+                <div className="mt-1 text-xs text-zinc-700">
+                  Translate: {spend.totals.by_kind.translate.requests} req •{" "}
+                  {new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(
+                    spend.totals.by_kind.translate.est_cost_usd,
+                  )}
+                </div>
+              </div>
+            </div>
           ) : (
-            <div className="mt-3 text-sm text-zinc-600">{balBusy ? "Loading…" : "—"}</div>
+            <div className="mt-3 text-sm text-zinc-600">{spendBusy ? "Loading…" : "—"}</div>
           )}
+
+          {/* Keep the old balance response available for debugging (it will be 501). */}
+          {balErr ? <div className="mt-3 text-xs text-zinc-500">{balErr}</div> : null}
+          {bal && bal.ok === false ? (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs font-semibold text-zinc-600">Why balance isn’t available</summary>
+              <pre className="mt-2 max-h-40 overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-800">
+                {JSON.stringify(bal, null, 2)}
+              </pre>
+            </details>
+          ) : null}
         </section>
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">

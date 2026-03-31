@@ -7,38 +7,16 @@ export async function GET() {
   const gate = await requireSaasOwner();
   if (!gate.ok) return gate.res;
 
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) return NextResponse.json({ error: "OPENAI_API_KEY not set." }, { status: 503 });
-
-  // Best available: the legacy billing dashboard endpoint for credit grants.
-  // Not guaranteed long-term; if it fails we return a clear error.
-  try {
-    const res = await fetch("https://api.openai.com/dashboard/billing/credit_grants", {
-      headers: { authorization: `Bearer ${apiKey}` },
-      cache: "no-store",
-    });
-    const text = await res.text();
-    if (!res.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          status: res.status,
-          error: "OpenAI balance endpoint returned an error.",
-          detail: text.slice(0, 500),
-        },
-        { status: 502 },
-      );
-    }
-    let json: unknown = null;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = { raw: text };
-    }
-    return NextResponse.json({ ok: true, source: "credit_grants", data: json });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Failed.";
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
-  }
+  return NextResponse.json(
+    {
+      ok: false,
+      status: 501,
+      error: "OpenAI credit balance is not available via API secret keys.",
+      detail:
+        "OpenAI blocks credit grant/balance endpoints for secret keys (requires a browser session key). Use usage-based spend tracking in this dashboard instead, and check the OpenAI billing UI for the live balance.",
+      billing_ui: "https://platform.openai.com/settings/organization/billing/overview",
+    },
+    { status: 501 },
+  );
 }
 
