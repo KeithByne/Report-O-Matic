@@ -12,6 +12,7 @@ import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/p
 import { resolvedSubjectCode } from "@/lib/reportInputs";
 import { isSubjectCode } from "@/lib/subjects";
 import { getServiceSupabase } from "@/lib/supabase/service";
+import { getTenantCreditBalance } from "@/lib/data/credits";
 
 export const runtime = "nodejs";
 
@@ -34,6 +35,11 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!role) return NextResponse.json({ error: "No access." }, { status: 403 });
+
+  const credits = await getTenantCreditBalance(tenantId);
+  if (credits <= 0) {
+    return NextResponse.json({ error: "No report credits. Please ask the owner to purchase a pack." }, { status: 402 });
+  }
 
   const report = await getReport(tenantId, reportId);
   if (!report) return NextResponse.json({ error: "Report not found." }, { status: 404 });

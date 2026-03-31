@@ -38,6 +38,7 @@ export async function saveOtpChallenge(opts: {
   mode: "signin" | "signup";
   ownerName?: string | null;
   schoolName?: string | null;
+  referralCode?: string | null;
 }): Promise<void> {
   const supabase = getServiceSupabase();
   if (supabase) {
@@ -51,6 +52,7 @@ export async function saveOtpChallenge(opts: {
       attempts: 0,
       owner_name: opts.ownerName ?? null,
       school_name: opts.schoolName ?? null,
+      referral_code: opts.referralCode ?? null,
     });
     if (error) throw new Error(formatPostgrestError(error));
     return;
@@ -67,12 +69,13 @@ export async function saveOtpChallenge(opts: {
     mode: opts.mode,
     ownerName: opts.ownerName ?? null,
     schoolName: opts.schoolName ?? null,
+    referralCode: opts.referralCode ?? null,
     attempts: 0,
   });
 }
 
 export type VerifyOtpResult =
-  | { ok: true; mode: "signin" | "signup"; ownerName: string | null; schoolName: string | null }
+  | { ok: true; mode: "signin" | "signup"; ownerName: string | null; schoolName: string | null; referralCode: string | null }
   | { ok: false; status: number; message: string };
 
 export async function verifyOtpChallenge(opts: {
@@ -87,7 +90,7 @@ export async function verifyOtpChallenge(opts: {
   if (supabase) {
     const { data: row, error: fetchError } = await supabase
       .from("otp_challenges")
-      .select("id, email, code_hash, expires_at, attempts, mode, owner_name, school_name")
+      .select("id, email, code_hash, expires_at, attempts, mode, owner_name, school_name, referral_code")
       .eq("id", opts.challengeId)
       .maybeSingle();
 
@@ -124,9 +127,11 @@ export async function verifyOtpChallenge(opts: {
       typeof row.owner_name === "string" && row.owner_name.trim() ? row.owner_name.trim() : null;
     const schoolName =
       typeof row.school_name === "string" && row.school_name.trim() ? row.school_name.trim() : null;
+    const referralCode =
+      typeof row.referral_code === "string" && row.referral_code.trim() ? row.referral_code.trim() : null;
 
     await supabase.from("otp_challenges").delete().eq("id", opts.challengeId);
-    return { ok: true, mode, ownerName, schoolName };
+    return { ok: true, mode, ownerName, schoolName, referralCode };
   }
 
   const store = getDevStore();
@@ -157,6 +162,7 @@ export async function verifyOtpChallenge(opts: {
   const mode = rec.mode;
   const ownerName = rec.ownerName;
   const schoolName = rec.schoolName;
+  const referralCode = rec.referralCode ?? null;
   store.otps.delete(opts.challengeId);
-  return { ok: true, mode, ownerName, schoolName };
+  return { ok: true, mode, ownerName, schoolName, referralCode };
 }

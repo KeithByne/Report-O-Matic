@@ -9,6 +9,7 @@ type OtpRecord = {
   mode: "signin" | "signup";
   ownerName: string | null;
   schoolName: string | null;
+  referralCode: string | null;
   attempts: number;
 };
 

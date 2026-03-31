@@ -15,6 +15,7 @@ type SendCodeBody = {
   mode?: unknown;
   owner_name?: unknown;
   school_name?: unknown;
+  referral_code?: unknown;
   browser_language?: unknown;
 };
 
@@ -191,6 +192,7 @@ export async function POST(req: Request) {
 
   let ownerName: string | null = null;
   let schoolName: string | null = null;
+  let referralCode: string | null = null;
   if (mode === "signup") {
     let alreadyMember = false;
     if (isSupabaseOtpEnabled()) {
@@ -210,6 +212,8 @@ export async function POST(req: Request) {
       }
       ownerName = owner;
       schoolName = school;
+      const ref = typeof body.referral_code === "string" ? body.referral_code.trim() : "";
+      referralCode = ref || null;
     }
   }
 
@@ -260,6 +264,7 @@ export async function POST(req: Request) {
       mode,
       ownerName,
       schoolName,
+      referralCode,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Could not create challenge.";

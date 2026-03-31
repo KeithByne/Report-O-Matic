@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { getStripe } from "@/lib/stripe/server";
+import { creditTenantForPurchase } from "@/lib/data/credits";
 
 export const runtime = "nodejs";
 
@@ -43,6 +44,9 @@ export async function POST(req: Request) {
         (typeof (pi.metadata?.customer_email) === "string" ? pi.metadata.customer_email : "") ||
         "";
       const desc = typeof pi.description === "string" ? pi.description : "";
+      const tenantId = typeof pi.metadata?.tenant_id === "string" ? pi.metadata.tenant_id.trim() : "";
+      const packId = typeof pi.metadata?.pack_id === "string" ? pi.metadata.pack_id.trim() : "";
+      const referralCode = typeof pi.metadata?.referral_code === "string" ? pi.metadata.referral_code.trim() : "";
 
       // Optional: if you later attach tenant/agent IDs in metadata, we can store them too.
       const { error } = await supabase.from("platform_payments").insert({
@@ -56,6 +60,58 @@ export async function POST(req: Request) {
         created_at: created,
       });
       if (error && error.code !== "23505") throw new Error(error.message);
+
+      // Credit tenant if this payment came from a pack checkout.
+      if (tenantId && packId) {
+        const { data: pack, error: pErr } = await supabase
+          .from("credit_packs")
+          .select("report_credits, currency, price_cents")
+          .eq("id", packId)
+          .maybeSingle();
+        if (!pErr && pack) {
+          await creditTenantForPurchase({
+            tenantId,
+            credits: Number((pack as any).report_credits) || 0,
+            stripeEventId: event.id,
+          });
+          await supabase.from("tenant_billing").upsert(
+            {
+              tenant_id: tenantId,
+              status: "active",
+              stripe_customer_id: typeof pi.customer === "string" ? pi.customer : null,
+              updated_at: new Date().toISOString(),
+              active_since: created,
+            },
+            { onConflict: "tenant_id" },
+          );
+
+          // Referral earning (default 20% commission if agent link exists and active).
+          if (referralCode) {
+            const { data: agent } = await supabase
+              .from("agent_links")
+              .select("code, agent_email, commission_bps, active")
+              .eq("code", referralCode)
+              .maybeSingle();
+            if (agent && (agent as any).active) {
+              const bps = Number((agent as any).commission_bps) || 0;
+              const commission = Math.max(0, Math.floor((amount * bps) / 10_000));
+              const eligibleAt = new Date(new Date(created).getTime() + 21 * 24 * 60 * 60 * 1000).toISOString();
+              const { error: rErr } = await supabase.from("referral_earnings").insert({
+                agent_code: (agent as any).code,
+                agent_email: (agent as any).agent_email,
+                tenant_id: tenantId,
+                stripe_event_id: event.id,
+                amount_cents: amount,
+                currency,
+                commission_cents: commission,
+                eligible_at: eligibleAt,
+                status: "pending",
+              });
+              if (rErr && (rErr as any).code !== "23505") throw new Error((rErr as any).message);
+            }
+          }
+        }
+      }
     }
 
     // Payouts OUT to agents (record transfers)

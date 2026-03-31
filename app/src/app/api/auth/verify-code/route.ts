@@ -85,7 +85,11 @@ export async function POST(req: Request) {
   if (getServiceSupabase()) {
     try {
       if (verified.mode === "signup" && verified.schoolName) {
-        await ensureOwnerTenantForSignup({ email, schoolName: verified.schoolName });
+        await ensureOwnerTenantForSignup({
+          email,
+          schoolName: verified.schoolName,
+          referralCode: verified.referralCode,
+        });
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not finish signup.";

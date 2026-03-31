@@ -579,6 +579,14 @@
           handleSendCode(email, "signup", {
             owner_name: ownerName,
             school_name: schoolName,
+            referral_code: (function () {
+              try {
+                var u = new URL(window.location.href);
+                return String(u.searchParams.get("ref") || "").trim();
+              } catch (e) {
+                return "";
+              }
+            })(),
             password: password,
             turnstile_token: turnstileToken,
           });

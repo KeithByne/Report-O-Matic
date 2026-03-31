@@ -52,6 +52,7 @@ export async function savePasswordResetChallenge(opts: {
     mode: "signin",
     ownerName: null,
     schoolName: null,
+    referralCode: null,
     attempts: 0,
   });
 }

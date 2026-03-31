@@ -232,6 +232,7 @@ export async function createAdditionalSchoolForOwner(opts: {
 export async function ensureOwnerTenantForSignup(opts: {
   email: string;
   schoolName: string;
+  referralCode?: string | null;
 }): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) return;
@@ -243,7 +244,20 @@ export async function ensureOwnerTenantForSignup(opts: {
   const exists = await hasAnyMembership(email);
   if (exists) return;
 
-  const { data: tenant, error: tErr } = await supabase.from("tenants").insert({ name: schoolName }).select("id").single();
+  let referredByEmail: string | null = null;
+  const code = (opts.referralCode ?? "").trim();
+  if (code) {
+    const { data: agent } = await supabase.from("agent_links").select("agent_email, active").eq("code", code).maybeSingle();
+    if (agent && (agent as any).active) {
+      referredByEmail = String((agent as any).agent_email || "").trim().toLowerCase() || null;
+    }
+  }
+
+  const { data: tenant, error: tErr } = await supabase
+    .from("tenants")
+    .insert({ name: schoolName, referral_code: code || null, referred_by_email: referredByEmail })
+    .select("id")
+    .single();
   if (tErr) throw new Error(formatErr(tErr));
 
   const tenantId = tenant.id as string;

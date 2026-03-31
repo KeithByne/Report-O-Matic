@@ -8,6 +8,7 @@ import { insertReport, listReportsForTenant } from "@/lib/data/reportsDb";
 import { getStudentInTenant, listStudents } from "@/lib/data/students";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { emptyReportInputs, parseReportInputs } from "@/lib/reportInputs";
+import { getTenantCreditBalance } from "@/lib/data/credits";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -48,6 +49,11 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!role) return NextResponse.json({ error: "No access." }, { status: 403 });
+
+  const credits = await getTenantCreditBalance(tenantId);
+  if (credits <= 0) {
+    return NextResponse.json({ error: "No report credits. Please ask the owner to purchase a pack." }, { status: 402 });
+  }
 
   let body: { student_id?: unknown; title?: unknown; body?: unknown; output_language?: unknown; inputs?: unknown };
   try {

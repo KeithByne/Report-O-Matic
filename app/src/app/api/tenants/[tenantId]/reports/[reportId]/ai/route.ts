@@ -4,6 +4,7 @@ import { estimateOpenAiCostUsd } from "@/lib/ai/openaiCost";
 import { canAccessClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
+import { getTenantCreditBalance, consumeCreditForReport } from "@/lib/data/credits";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { logOpenAiUsageEvent } from "@/lib/data/openaiUsageEvents";
 import { getReport, updateReport } from "@/lib/data/reportsDb";
@@ -76,6 +77,10 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const extraNotes = requestNotes || savedNotes || undefined;
 
   try {
+    const bal = await getTenantCreditBalance(tenantId);
+    if (bal <= 0) {
+      return NextResponse.json({ error: "No report credits. Please ask the owner to purchase a pack." }, { status: 402 });
+    }
     const { pdfBody, teacherPreview, usage } = await generateSchoolReportDraftPair({
       studentFirstName: firstName,
       className,
@@ -117,6 +122,9 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       body_teacher_preview: teacherPreview,
       teacher_preview_language: teacherLang,
     });
+
+    // Consume 1 report credit once per report (idempotent).
+    await consumeCreditForReport({ tenantId, reportId });
     return NextResponse.json({ report: updated });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "AI generation failed.";

@@ -8,6 +8,41 @@ type TenantHit = {
   owner_emails: string[];
 };
 
+type CreditPack = {
+  id: string;
+  name: string;
+  price_cents: number;
+  currency: string;
+  report_credits: number;
+  active: boolean;
+  sort_order: number;
+};
+
+type AgentLink = {
+  code: string;
+  agent_email: string;
+  display_name: string | null;
+  active: boolean;
+  commission_bps: number;
+  inactive_after_days: number;
+  last_active_at: string | null;
+  created_at: string;
+};
+
+type ReferralEarning = {
+  id: string;
+  agent_code: string | null;
+  agent_email: string;
+  tenant_id: string | null;
+  amount_cents: number;
+  currency: string;
+  commission_cents: number;
+  eligible_at: string;
+  status: string;
+  computed_status?: string;
+  created_at: string;
+};
+
 type FinanceSummary = {
   range: string;
   from: string | null;
@@ -76,16 +111,27 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
   const [finErr, setFinErr] = useState<string | null>(null);
   const [fin, setFin] = useState<FinanceSummary | null>(null);
 
-  const [balBusy, setBalBusy] = useState(false);
-  const [balErr, setBalErr] = useState<string | null>(null);
-  const [bal, setBal] = useState<OpenAiBalanceResp | null>(null);
-  const [balTick, setBalTick] = useState(0);
-
   const [spendRange, setSpendRange] = useState<"day" | "week" | "month" | "year" | "ytd" | "all">("month");
   const [spendBusy, setSpendBusy] = useState(false);
   const [spendErr, setSpendErr] = useState<string | null>(null);
   const [spend, setSpend] = useState<OpenAiSpendSummary | null>(null);
   const [spendTick, setSpendTick] = useState(0);
+
+  const [packs, setPacks] = useState<CreditPack[]>([]);
+  const [packsBusy, setPacksBusy] = useState(false);
+  const [packsErr, setPacksErr] = useState<string | null>(null);
+
+  const [agents, setAgents] = useState<AgentLink[]>([]);
+  const [agentsBusy, setAgentsBusy] = useState(false);
+  const [agentsErr, setAgentsErr] = useState<string | null>(null);
+  const [newAgentEmail, setNewAgentEmail] = useState("");
+  const [newAgentName, setNewAgentName] = useState("");
+
+  const [earnings, setEarnings] = useState<ReferralEarning[]>([]);
+  const [earnBusy, setEarnBusy] = useState(false);
+  const [earnErr, setEarnErr] = useState<string | null>(null);
+  const [earnAgentFilter, setEarnAgentFilter] = useState("");
+  const [earnStatus, setEarnStatus] = useState<"" | "pending" | "eligible" | "paid" | "void">("");
 
   const query = useMemo(() => q.trim(), [q]);
   const agent = useMemo(() => agentFilter.trim(), [agentFilter]);
@@ -140,34 +186,6 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      setBalBusy(true);
-      setBalErr(null);
-      try {
-        const res = await fetch("/api/saas-owner/openai/balance", { cache: "no-store" });
-        const data = (await res.json().catch(() => ({}))) as OpenAiBalanceResp;
-        if (!cancelled) setBal(data);
-        if (!res.ok) {
-          const status = "status" in data && typeof data.status === "number" ? data.status : res.status;
-          const detail = "detail" in data && typeof data.detail === "string" ? data.detail : "";
-          const msg = `${("error" in data && typeof data.error === "string" ? data.error : "OpenAI balance failed.")} (${status})${
-            detail ? ` — ${detail}` : ""
-          }`;
-          throw new Error(msg);
-        }
-      } catch (e: unknown) {
-        if (!cancelled) setBalErr(e instanceof Error ? e.message : "Failed");
-      } finally {
-        if (!cancelled) setBalBusy(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [balTick]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
       setSpendBusy(true);
       setSpendErr(null);
       try {
@@ -188,6 +206,61 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
     };
   }, [spendRange, spendTick]);
 
+  async function refreshPacks() {
+    setPacksBusy(true);
+    setPacksErr(null);
+    try {
+      const res = await fetch("/api/saas-owner/packs", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setPacks((data.packs ?? []) as CreditPack[]);
+    } catch (e: unknown) {
+      setPacksErr(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setPacksBusy(false);
+    }
+  }
+
+  async function refreshAgents() {
+    setAgentsBusy(true);
+    setAgentsErr(null);
+    try {
+      const res = await fetch("/api/saas-owner/agents", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setAgents((data.agents ?? []) as AgentLink[]);
+    } catch (e: unknown) {
+      setAgentsErr(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setAgentsBusy(false);
+    }
+  }
+
+  async function refreshEarnings() {
+    setEarnBusy(true);
+    setEarnErr(null);
+    try {
+      const u = new URL(window.location.origin + "/api/saas-owner/referrals/earnings");
+      if (earnAgentFilter.trim()) u.searchParams.set("agent", earnAgentFilter.trim().toLowerCase());
+      if (earnStatus) u.searchParams.set("status", earnStatus);
+      const res = await fetch(u.toString(), { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setEarnings((data.earnings ?? []) as ReferralEarning[]);
+    } catch (e: unknown) {
+      setEarnErr(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setEarnBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    void refreshPacks();
+    void refreshAgents();
+    void refreshEarnings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="min-h-screen bg-emerald-100/80 text-zinc-950">
       <header className="border-b border-emerald-200 bg-white/90 backdrop-blur">
@@ -204,31 +277,270 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-zinc-900">Credit packs</div>
+              <div className="mt-1 text-xs text-zinc-500">Manage pricing and how many reports each pack includes.</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void refreshPacks()}
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+            >
+              {packsBusy ? "Refreshing…" : "Refresh packs"}
+            </button>
+          </div>
+          {packsErr ? <div className="mt-3 text-sm text-red-700">{packsErr}</div> : null}
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[820px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-zinc-200 text-xs text-zinc-500">
+                  <th className="py-2 pr-3 font-medium">Pack</th>
+                  <th className="py-2 pr-3 font-medium">Price (cents)</th>
+                  <th className="py-2 pr-3 font-medium">Currency</th>
+                  <th className="py-2 pr-3 font-medium">Credits</th>
+                  <th className="py-2 pr-3 font-medium">Active</th>
+                </tr>
+              </thead>
+              <tbody>
+                {packs.map((p) => (
+                  <tr key={p.id} className="border-b border-zinc-100">
+                    <td className="py-2 pr-3 font-medium text-zinc-900">{p.name}</td>
+                    <td className="py-2 pr-3 font-mono text-xs">{p.price_cents}</td>
+                    <td className="py-2 pr-3 font-mono text-xs">{p.currency.toUpperCase()}</td>
+                    <td className="py-2 pr-3 font-mono text-xs">{p.report_credits}</td>
+                    <td className="py-2 pr-3 text-xs">{p.active ? "yes" : "no"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-2 text-xs text-zinc-500">Editing UI comes next (safe-guarded).</div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-zinc-900">Agents</div>
+              <div className="mt-1 text-xs text-zinc-500">Create unique agent links and control commission + active status.</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void refreshAgents()}
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+            >
+              {agentsBusy ? "Refreshing…" : "Refresh agents"}
+            </button>
+          </div>
+          {agentsErr ? <div className="mt-3 text-sm text-red-700">{agentsErr}</div> : null}
+
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <label className="text-sm">
+              <span className="text-zinc-600">Agent email</span>
+              <input
+                value={newAgentEmail}
+                onChange={(e) => setNewAgentEmail(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                placeholder="agent@example.com"
+              />
+            </label>
+            <label className="text-sm">
+              <span className="text-zinc-600">Display name</span>
+              <input
+                value={newAgentName}
+                onChange={(e) => setNewAgentName(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                placeholder="Optional"
+              />
+            </label>
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={() =>
+                  void (async () => {
+                    try {
+                      const res = await fetch("/api/saas-owner/agents", {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({ agent_email: newAgentEmail, display_name: newAgentName }),
+                      });
+                      const data = await res.json().catch(() => ({}));
+                      if (!res.ok) throw new Error(data.error || "Failed");
+                      setNewAgentEmail("");
+                      setNewAgentName("");
+                      await refreshAgents();
+                    } catch (e: unknown) {
+                      alert(e instanceof Error ? e.message : "Failed");
+                    }
+                  })()
+                }
+                className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Create agent link
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[820px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-zinc-200 text-xs text-zinc-500">
+                  <th className="py-2 pr-3 font-medium">Code</th>
+                  <th className="py-2 pr-3 font-medium">Agent</th>
+                  <th className="py-2 pr-3 font-medium">Active</th>
+                  <th className="py-2 pr-3 font-medium">Commission</th>
+                  <th className="py-2 pr-3 font-medium">Link</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agents.map((a) => (
+                  <tr key={a.code} className="border-b border-zinc-100">
+                    <td className="py-2 pr-3 font-mono text-xs">{a.code}</td>
+                    <td className="py-2 pr-3 text-xs">{a.agent_email}</td>
+                    <td className="py-2 pr-3 text-xs">{a.active ? "yes" : "no"}</td>
+                    <td className="py-2 pr-3 text-xs">{(a.commission_bps / 100).toFixed(2)}%</td>
+                    <td className="py-2 pr-3 text-xs">
+                      <span className="font-mono">{`/landing.html?ref=${a.code}`}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-zinc-900">Referral earnings</div>
+              <div className="mt-1 text-xs text-zinc-500">View pending/eligible/paid referral commission and control payouts.</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void refreshEarnings()}
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+            >
+              {earnBusy ? "Refreshing…" : "Refresh earnings"}
+            </button>
+          </div>
+          {earnErr ? <div className="mt-3 text-sm text-red-700">{earnErr}</div> : null}
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+            <label className="text-sm">
+              <span className="text-zinc-600">Agent email (optional)</span>
+              <input
+                value={earnAgentFilter}
+                onChange={(e) => setEarnAgentFilter(e.target.value)}
+                className="mt-1 rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                placeholder="agent@example.com"
+              />
+            </label>
+            <label className="text-sm">
+              <span className="text-zinc-600">Status</span>
+              <select
+                value={earnStatus}
+                onChange={(e) => setEarnStatus(e.target.value as any)}
+                className="mt-1 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="eligible">Eligible</option>
+                <option value="paid">Paid</option>
+                <option value="void">Void</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => void refreshEarnings()}
+              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Apply filters
+            </button>
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-zinc-200 text-xs text-zinc-500">
+                  <th className="py-2 pr-3 font-medium">Agent</th>
+                  <th className="py-2 pr-3 font-medium">Tenant</th>
+                  <th className="py-2 pr-3 font-medium">Amount</th>
+                  <th className="py-2 pr-3 font-medium">Commission</th>
+                  <th className="py-2 pr-3 font-medium">Eligible at</th>
+                  <th className="py-2 pr-3 font-medium">Status</th>
+                  <th className="py-2 pr-3 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {earnings.map((e) => (
+                  <tr key={e.id} className="border-b border-zinc-100">
+                    <td className="py-2 pr-3 text-xs">{e.agent_email}</td>
+                    <td className="py-2 pr-3 font-mono text-xs">{e.tenant_id ?? "—"}</td>
+                    <td className="py-2 pr-3 text-xs">{fmtMoney(e.amount_cents, (e.currency || "eur").toUpperCase())}</td>
+                    <td className="py-2 pr-3 text-xs">{fmtMoney(e.commission_cents, (e.currency || "eur").toUpperCase())}</td>
+                    <td className="py-2 pr-3 text-xs">{new Date(e.eligible_at).toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-xs">{String(e.computed_status || e.status)}</td>
+                    <td className="py-2 pr-3 text-xs">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void (async () => {
+                            const next = prompt("Set status: pending | eligible | paid | void", String(e.status)) || "";
+                            if (!next) return;
+                            try {
+                              const res = await fetch("/api/saas-owner/referrals/earnings", {
+                                method: "PATCH",
+                                headers: { "content-type": "application/json" },
+                                body: JSON.stringify({ id: e.id, status: next }),
+                              });
+                              const data = await res.json().catch(() => ({}));
+                              if (!res.ok) throw new Error(data.error || "Failed");
+                              await refreshEarnings();
+                            } catch (err: unknown) {
+                              alert(err instanceof Error ? err.message : "Failed");
+                            }
+                          })()
+                        }
+                        className="text-xs font-semibold text-emerald-700 hover:underline"
+                      >
+                        Change status
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {earnings.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-4 text-sm text-zinc-500">
+                      No earnings yet.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-sm font-semibold text-zinc-900">OpenAI</div>
               <div className="mt-1 text-xs text-zinc-500">
-                Balance cannot be fetched via secret API keys; this shows real-time spend based on logged usage.
+                Real-time balance isn’t available via API secret keys; this shows spend based on logged usage events.
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => {
-                  setBalTick((n) => n + 1);
                   setSpendTick((n) => n + 1);
                 }}
-                disabled={balBusy || spendBusy}
+                disabled={spendBusy}
                 className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
               >
-                {balBusy || spendBusy ? "Refreshing…" : "Refresh OpenAI data"}
+                {spendBusy ? "Refreshing…" : "Refresh OpenAI data"}
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setBalErr(null);
                   setSpendErr(null);
-                  setBal(null);
                 }}
                 className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
               >
@@ -294,17 +606,6 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
           ) : (
             <div className="mt-3 text-sm text-zinc-600">{spendBusy ? "Loading…" : "—"}</div>
           )}
-
-          {/* Keep the old balance response available for debugging (it will be 501). */}
-          {balErr ? <div className="mt-3 text-xs text-zinc-500">{balErr}</div> : null}
-          {bal && bal.ok === false ? (
-            <details className="mt-3">
-              <summary className="cursor-pointer text-xs font-semibold text-zinc-600">Why balance isn’t available</summary>
-              <pre className="mt-2 max-h-40 overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-800">
-                {JSON.stringify(bal, null, 2)}
-              </pre>
-            </details>
-          ) : null}
         </section>
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
