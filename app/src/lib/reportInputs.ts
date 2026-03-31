@@ -167,6 +167,17 @@ export function nextReportStatusFromContent(args: {
     : "draft";
 }
 
+/** Query `term=` for class PDF batch: merge all ready rows, or only rows for one report period. */
+export type ClassBulkPdfTermFilter = "all" | ReportPeriod;
+
+export function parseClassBulkPdfTermFilter(raw: string | null | undefined): ClassBulkPdfTermFilter {
+  const s = (raw ?? "").trim().toLowerCase();
+  if (s === "first" || s === "1") return "first";
+  if (s === "second" || s === "2") return "second";
+  if (s === "third" || s === "3") return "third";
+  return "all";
+}
+
 /** Flatten 0–10 grid for OpenAI (grades only). Optional teacher context is passed separately in the AI prompt — not here. */
 export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved: string): string {
   const lines: string[] = [];

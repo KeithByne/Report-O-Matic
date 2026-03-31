@@ -6,7 +6,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ClassScholasticArchives } from "@/components/reports/ClassScholasticArchives";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { parseReportInputs, reportReadyForClassBulkPdf } from "@/lib/reportInputs";
+import {
+  type ClassBulkPdfTermFilter,
+  parseReportInputs,
+  reportReadyForClassBulkPdf,
+} from "@/lib/reportInputs";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 
 function normalizeScholasticYearLabel(s: string | null | undefined): string {
@@ -62,6 +66,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
   const [batchOrder, setBatchOrder] = useState<"roster" | "student" | "updated_desc" | "updated_asc">("roster");
+  const [batchTermFilter, setBatchTermFilter] = useState<ClassBulkPdfTermFilter>("all");
 
   const [detail, setDetail] = useState<ClassDetail | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -69,6 +74,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
 
   const classBulkPdfGate = useMemo(() => {
     const notFinishedMsg = "You can't download all the class reports until they are all finished.";
+    const notFinishedTermMsg = "Every pupil needs a finished report for the selected term.";
     if (students.length === 0) {
       return { canDownload: false as const, message: "Add pupils to this class before downloading a combined PDF." };
     }
@@ -82,27 +88,45 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       const rs = byStudent.get(s.id);
       if (!rs?.length) return { canDownload: false as const, message: notFinishedMsg };
     }
-    if (
-      reports.some(
-        (r) =>
-          !reportReadyForClassBulkPdf({
-            status: r.status,
-            body: r.body ?? "",
-            inputs: parseReportInputs(r.inputs),
-          }),
-      )
-    ) {
-      return { canDownload: false as const, message: notFinishedMsg };
+    if (batchTermFilter === "all") {
+      if (
+        reports.some(
+          (r) =>
+            !reportReadyForClassBulkPdf({
+              status: r.status,
+              body: r.body ?? "",
+              inputs: parseReportInputs(r.inputs),
+            }),
+        )
+      ) {
+        return { canDownload: false as const, message: notFinishedMsg };
+      }
+      return { canDownload: true as const, message: null as string | null };
+    }
+    const period = batchTermFilter;
+    for (const s of students) {
+      const ok = reports.some((r) => {
+        if (r.student_id !== s.id) return false;
+        const inputs = parseReportInputs(r.inputs);
+        if (inputs.report_period !== period) return false;
+        return reportReadyForClassBulkPdf({
+          status: r.status,
+          body: r.body ?? "",
+          inputs,
+        });
+      });
+      if (!ok) return { canDownload: false as const, message: notFinishedTermMsg };
     }
     return { canDownload: true as const, message: null as string | null };
-  }, [students, reports]);
+  }, [students, reports, batchTermFilter]);
 
-  const batchHref = (() => {
+  const batchHref = useMemo(() => {
     const qp = new URLSearchParams();
+    if (batchTermFilter !== "all") qp.set("term", batchTermFilter);
     if (batchOrder !== "roster") qp.set("order", batchOrder);
     const s = qp.toString();
     return s ? `${batchBase}?${s}` : batchBase;
-  })();
+  }, [batchBase, batchTermFilter, batchOrder]);
 
   const [cName, setCName] = useState(initialClassName);
   const [scholasticYear, setScholasticYear] = useState("");
@@ -508,6 +532,19 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
         <h3 className="text-sm font-semibold text-zinc-900">Students in this class</h3>
         <p className="mt-1 text-xs text-zinc-500">{t("class.studentsHint")}</p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+          <label className="text-sm">
+            <span className="text-zinc-600">{t("class.bulkPdfWhichReports")}</span>
+            <select
+              value={batchTermFilter}
+              onChange={(e) => setBatchTermFilter(e.target.value as ClassBulkPdfTermFilter)}
+              className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="all">{t("class.bulkPdfAllReady")}</option>
+              <option value="first">{t("archive.term1")}</option>
+              <option value="second">{t("archive.term2")}</option>
+              <option value="third">{t("archive.term3")}</option>
+            </select>
+          </label>
           <label className="text-sm">
             <span className="text-zinc-600">Order</span>
             <select

@@ -11,7 +11,12 @@ import { languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
-import { reportReadyForClassBulkPdf, resolvedSubjectCode } from "@/lib/reportInputs";
+import {
+  parseClassBulkPdfTermFilter,
+  reportReadyForClassBulkPdf,
+  resolvedSubjectCode,
+  type ReportPeriod,
+} from "@/lib/reportInputs";
 import { isSubjectCode } from "@/lib/subjects";
 
 export const runtime = "nodejs";
@@ -42,9 +47,11 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const url = new URL(req.url);
   const inline = url.searchParams.get("inline") === "1";
   const order = (url.searchParams.get("order") || "").trim().toLowerCase();
+  const termFilter = parseClassBulkPdfTermFilter(url.searchParams.get("term"));
 
   const classNotFinishedMsg =
     "You can't download all the class reports until they are all finished.";
+  const classTermNotReadyMsg = "Every pupil needs a finished report for the selected term.";
 
   const students = await listStudents(tenantId, classId);
   if (students.length === 0) {
@@ -55,6 +62,9 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const reportsAll = await listReportsForTenant(tenantId);
   const allowedStudents = new Set(students.map((s) => s.id));
   const reports = reportsAll.filter((r) => allowedStudents.has(r.student_id));
+
+  const rowReady = (r: (typeof reports)[number]) =>
+    reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
 
   const byStudent = new Map<string, typeof reports>();
   for (const r of reports) {
@@ -68,12 +78,26 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
     }
   }
-  if (reports.some((r) => !reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs }))) {
-    return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
+
+  let toMerge: typeof reports;
+  if (termFilter === "all") {
+    if (reports.some((r) => !rowReady(r))) {
+      return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
+    }
+    toMerge = reports;
+  } else {
+    const period: ReportPeriod = termFilter;
+    toMerge = reports.filter((r) => rowReady(r) && r.inputs.report_period === period);
+    for (const s of students) {
+      const has = toMerge.some((r) => r.student_id === s.id);
+      if (!has) {
+        return NextResponse.json({ error: classTermNotReadyMsg }, { status: 409 });
+      }
+    }
   }
 
   const nameOf = (rid: string) => (studentById.get(rid)?.display_name || "").toLowerCase();
-  reports.sort((a, b) => {
+  toMerge.sort((a, b) => {
     if (order === "updated_desc") return String(b.updated_at).localeCompare(String(a.updated_at));
     if (order === "updated_asc") return String(a.updated_at).localeCompare(String(b.updated_at));
     if (order === "student") return nameOf(a.student_id).localeCompare(nameOf(b.student_id));
@@ -92,7 +116,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const classDefault = klass.default_subject && isSubjectCode(klass.default_subject) ? klass.default_subject : "efl";
 
   const pdfs: Buffer[] = [];
-  for (const r of reports) {
+  for (const r of toMerge) {
     const st = studentById.get(r.student_id);
     const studentName = st?.display_name ?? "Student";
     const outputLanguageCode = r.output_language;
@@ -125,7 +149,11 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   }
 
   const merged = await mergePdfBuffers(pdfs);
-  const fname = safeFilename(`${klass.name || "class"}-reports`) + ".pdf";
+  const fileStem =
+    termFilter === "all"
+      ? `${klass.name || "class"}-reports`
+      : `${klass.name || "class"}-reports-${termFilter}`;
+  const fname = safeFilename(fileStem) + ".pdf";
   return new NextResponse(new Uint8Array(merged), {
     status: 200,
     headers: {

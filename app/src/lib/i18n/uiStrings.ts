@@ -271,6 +271,8 @@ const EN: UiMessages = {
   "tenant.noClassesTeacher": "No classes assigned to you yet. A lead must assign your email on the class.",
   "class.studentsHint":
     "Term selection, the 0–10 grade grid, and AI comments are on each pupil's Report page (not on this class screen).",
+  "class.bulkPdfWhichReports": "Bulk download includes",
+  "class.bulkPdfAllReady": "All ready reports",
   "archive.title": "Scholastic year archives",
   "archive.emptyExpl":
     "When an owner or department head changes the class scholastic year, the previous year's reports are saved here as read-only history. Pupils stay in the class; reports start fresh for the new year.",
@@ -546,6 +548,8 @@ const FR: UiMessages = {
   "tenant.noClassesTeacher": "Aucune classe assignée. Un responsable doit assigner votre e-mail.",
   "class.studentsHint":
     "Choix du trimestre, grille 0–10 et commentaires IA sont sur la page Rapport de chaque élève.",
+  "class.bulkPdfWhichReports": "Le PDF groupé inclut",
+  "class.bulkPdfAllReady": "Tous les rapports prêts",
   "archive.title": "Archives d’année scolaire",
   "archive.emptyExpl":
     "Quand l’année scolaire change, les rapports de l’année terminée sont archivés ici. Les élèves restent ; les rapports repartent à zéro.",
@@ -821,6 +825,8 @@ const ES: UiMessages = {
   "tenant.noClassesTeacher": "Sin clases asignadas. Un responsable debe asignar su correo.",
   "class.studentsHint":
     "Trimestre, cuadrícula 0–10 e IA están en la página Informe de cada alumno.",
+  "class.bulkPdfWhichReports": "La descarga incluye",
+  "class.bulkPdfAllReady": "Todos los informes listos",
   "archive.title": "Archivos del año escolar",
   "archive.emptyExpl":
     "Al cambiar el año escolar, los informes del año anterior se guardan aquí. Los alumnos permanecen; los informes se reinician.",
