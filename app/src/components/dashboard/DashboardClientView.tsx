@@ -10,10 +10,18 @@ import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { AppHeaderBrand } from "@/components/layout/AppHeaderBrand";
+import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, UI_LOCALE_BCP47, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { TeacherStats, TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
+
+type MyAgentLink = {
+  code: string;
+  agent_email: string;
+  display_name: string | null;
+  // Note: owners should not control commission/wait/active; those are SaaS-owner controls.
+  payout_stripe_account_id?: string | null;
+};
 
 export type DashboardClientViewProps = {
   email: string;
@@ -45,6 +53,11 @@ export function DashboardClientView({
   const locale = UI_LOCALE_BCP47[lang];
 
   const [reportLangByTenant, setReportLangByTenant] = useState<Record<string, ReportLanguageCode>>({});
+  const [myAgent, setMyAgent] = useState<MyAgentLink | null>(null);
+  const [myAgentBusy, setMyAgentBusy] = useState(false);
+  const [myAgentErr, setMyAgentErr] = useState<string | null>(null);
+  const [myAgentEdit, setMyAgentEdit] = useState<Partial<MyAgentLink>>({});
+  const [myAgentSaving, setMyAgentSaving] = useState(false);
 
   const refreshReportLangs = useCallback(async () => {
     if (memberships.length === 0) {
@@ -78,6 +91,27 @@ export function DashboardClientView({
   const hasDeptHead = memberships.some((m) => m.role === "department_head");
   const hasTeacherOnly = memberships.length > 0 && memberships.every((m) => m.role === "teacher");
 
+  const refreshMyAgent = useCallback(async () => {
+    if (!hasOwner) return;
+    setMyAgentBusy(true);
+    setMyAgentErr(null);
+    try {
+      const res = await fetch("/api/agent-link/me", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setMyAgent((data.agent ?? null) as MyAgentLink | null);
+      setMyAgentEdit({});
+    } catch (e: unknown) {
+      setMyAgentErr(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setMyAgentBusy(false);
+    }
+  }, [hasOwner]);
+
+  useEffect(() => {
+    void refreshMyAgent();
+  }, [refreshMyAgent]);
+
   function roleLabel(role: RomRole): string {
     switch (role) {
       case "owner":
@@ -108,10 +142,13 @@ export function DashboardClientView({
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <header className="border-b border-emerald-200/80 bg-white">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <div>
-            <AppHeaderBrand />
+          <div className="flex items-start gap-3">
+            <AppHeaderLogo />
+            <div>
+              <AppHeaderWordmark />
             <p className="mt-2 text-xs font-medium uppercase tracking-wide text-zinc-500">{t("brand.subtitle")}</p>
             <h1 className="mt-1 text-lg font-semibold tracking-tight">{t("dash.title")}</h1>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <GlobeLanguageSwitcher />
@@ -179,6 +216,105 @@ export function DashboardClientView({
             ) : null}
 
             {hasOwner ? <AddSchoolForm /> : null}
+
+            {hasOwner ? (
+              <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-sm font-semibold text-zinc-900">Owner / Agent</h2>
+                    <p className="mt-1 text-sm text-zinc-600">
+                      Your unique referral link for tracking signups and agent earnings. Set the Stripe account to pay when ready.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void refreshMyAgent()}
+                    className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-100"
+                  >
+                    {myAgentBusy ? "Refreshing…" : "Refresh"}
+                  </button>
+                </div>
+
+                <p className="mt-3 rounded-lg border border-amber-100 bg-amber-50/70 px-3 py-2 text-xs leading-relaxed text-zinc-700">
+                  <span className="font-semibold text-zinc-800">Payments.</span> Your agent account must be{" "}
+                  <span className="font-semibold">active</span> for us to pay referral earnings to the Stripe account you
+                  provide below. If your account stays dormant for about <span className="font-semibold">one year</span>,
+                  it may be <span className="font-semibold">cancelled</span> and you will no longer receive payments through
+                  this programme.
+                </p>
+
+                {myAgentErr ? <div className="mt-3 text-sm text-red-700">{myAgentErr}</div> : null}
+
+                {myAgent ? (
+                  <div className="mt-4 space-y-3">
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Your agent link</div>
+                      <div className="mt-1 font-mono text-sm text-zinc-900">{`/landing.html?ref=${myAgent.code}`}</div>
+                      <div className="mt-1 text-xs text-zinc-600">Share this link with new school owners.</div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="text-sm text-zinc-600 sm:col-span-1">
+                        <span className="font-semibold text-zinc-800">Note:</span> commission %, payout timing, and activation are controlled by the SaaS owner.
+                      </div>
+                      <div />
+
+                      <label className="text-sm sm:col-span-2">
+                        <span className="text-zinc-600">Stripe Connect account id (the account to pay)</span>
+                        <input
+                          value={String((myAgentEdit.payout_stripe_account_id ?? myAgent.payout_stripe_account_id) ?? "")}
+                          onChange={(e) =>
+                            setMyAgentEdit((p) => ({ ...p, payout_stripe_account_id: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm font-mono"
+                          placeholder="acct_..."
+                        />
+                      </label>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={myAgentSaving}
+                        onClick={() =>
+                          void (async () => {
+                            setMyAgentSaving(true);
+                            try {
+                              const res = await fetch("/api/agent-link/me", {
+                                method: "PATCH",
+                                headers: { "content-type": "application/json" },
+                                body: JSON.stringify(myAgentEdit),
+                              });
+                              const data = await res.json().catch(() => ({}));
+                              if (!res.ok) throw new Error(data.error || "Failed");
+                              setMyAgent((data.agent ?? null) as MyAgentLink | null);
+                              setMyAgentEdit({});
+                            } catch (e: unknown) {
+                              alert(e instanceof Error ? e.message : "Failed");
+                            } finally {
+                              setMyAgentSaving(false);
+                            }
+                          })()
+                        }
+                        className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                      >
+                        {myAgentSaving ? "Saving…" : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={myAgentSaving}
+                        onClick={() => setMyAgentEdit({})}
+                        className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50 disabled:opacity-50"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-3 text-sm text-zinc-600">{myAgentBusy ? "Loading…" : "—"}</div>
+                )}
+              </section>
+            ) : null}
 
             <DashboardTenantLanguage
               tenants={memberships.map((m) => ({

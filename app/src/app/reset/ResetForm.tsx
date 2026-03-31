@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AppHeaderBrand } from "@/components/layout/AppHeaderBrand";
+import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
 
 type Status = "idle" | "submitting" | "ok" | "err";
 
@@ -79,7 +79,12 @@ export function ResetForm() {
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950 flex items-center justify-center p-6">
       <div className="w-full max-w-md rounded-2xl border border-emerald-200 bg-white shadow-sm p-6">
         <div className="mb-4 flex justify-center border-b border-emerald-100 pb-4">
-          <AppHeaderBrand />
+          <div className="flex items-start gap-3">
+            <AppHeaderLogo size="sm" />
+            <div>
+              <AppHeaderWordmark />
+            </div>
+          </div>
         </div>
         <div className="mb-4">
           <h1 className="text-xl font-bold tracking-tight">Reset your password</h1>

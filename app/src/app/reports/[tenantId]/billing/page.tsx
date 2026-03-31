@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { AppHeaderBrand } from "@/components/layout/AppHeaderBrand";
+import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
 import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { getServiceSupabase } from "@/lib/supabase/service";
@@ -36,7 +36,12 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <header className="border-b border-emerald-200/80 bg-white">
         <div className="mx-auto flex max-w-3xl items-center px-5 py-4">
-          <AppHeaderBrand />
+          <div className="flex items-start gap-3">
+            <AppHeaderLogo />
+            <div>
+              <AppHeaderWordmark />
+            </div>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-10">

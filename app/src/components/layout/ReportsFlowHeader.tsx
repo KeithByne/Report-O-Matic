@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { AppHeaderBrand } from "@/components/layout/AppHeaderBrand";
+import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
 
 type Mode = "index" | "tenant" | "class" | "report";
 
@@ -47,10 +47,13 @@ export function ReportsFlowHeader({ mode, title, tenantId, classId }: Props) {
   return (
     <header className="border-b border-emerald-200/80 bg-white">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-        <div>
-          <AppHeaderBrand />
+        <div className="flex items-start gap-3">
+          <AppHeaderLogo />
+          <div>
+            <AppHeaderWordmark />
           <p className="mt-2 text-xs font-medium uppercase tracking-wide text-zinc-500">{t("brand.subtitle")}</p>
           <h1 className="mt-1 text-lg font-semibold tracking-tight">{title}</h1>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <GlobeLanguageSwitcher />
