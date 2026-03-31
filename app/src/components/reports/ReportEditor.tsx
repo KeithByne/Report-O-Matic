@@ -11,6 +11,7 @@ import {
   type ReportPeriod,
   type TermGrades,
   emptyReportInputs,
+  nextReportStatusFromContent,
   parseReportInputs,
   termAveragePercent,
 } from "@/lib/reportInputs";
@@ -194,7 +195,11 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          status: report?.status || "draft",
+          status: nextReportStatusFromContent({
+            prev: report?.status || "draft",
+            body: report?.body ?? "",
+            inputs,
+          }),
           output_language: outputLanguage,
           teacher_preview_language: teacherPreviewLanguage,
           inputs,
@@ -237,7 +242,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
       const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ body: "", body_teacher_preview: "" }),
+        body: JSON.stringify({ body: "", body_teacher_preview: "", status: "draft" }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed");
@@ -256,7 +261,11 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          status: report?.status || "draft",
+          status: nextReportStatusFromContent({
+            prev: report?.status || "draft",
+            body: report?.body ?? "",
+            inputs,
+          }),
           output_language: outputLanguage,
           teacher_preview_language: teacherPreviewLanguage,
           inputs,

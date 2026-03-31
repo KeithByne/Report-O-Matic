@@ -11,7 +11,7 @@ import { languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
-import { resolvedSubjectCode } from "@/lib/reportInputs";
+import { reportReadyForClassBulkPdf, resolvedSubjectCode } from "@/lib/reportInputs";
 import { isSubjectCode } from "@/lib/subjects";
 
 export const runtime = "nodejs";
@@ -68,7 +68,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
     }
   }
-  if (reports.some((r) => r.status !== "final")) {
+  if (reports.some((r) => !reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs }))) {
     return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
   }
 

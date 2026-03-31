@@ -9,6 +9,7 @@ import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { logOpenAiUsageEvent } from "@/lib/data/openaiUsageEvents";
 import { getReport, updateReport } from "@/lib/data/reportsDb";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { focusTermComplete, parseReportInputs } from "@/lib/reportInputs";
 import { isSubjectCode } from "@/lib/subjects";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
@@ -117,10 +118,13 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
         estCostUsd: estimateOpenAiCostUsd(usage.translate),
       });
     }
+    const inputsParsed = parseReportInputs(report.inputs);
+    const markFinal = focusTermComplete(inputsParsed) && pdfBody.trim().length > 0;
     const updated = await updateReport(tenantId, reportId, {
       body: pdfBody,
       body_teacher_preview: teacherPreview,
       teacher_preview_language: teacherLang,
+      ...(markFinal ? { status: "final" as const } : {}),
     });
 
     // Consume 1 report credit once per report (idempotent).

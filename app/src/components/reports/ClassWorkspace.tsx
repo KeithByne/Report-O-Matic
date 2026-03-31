@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ClassScholasticArchives } from "@/components/reports/ClassScholasticArchives";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { parseReportInputs, reportReadyForClassBulkPdf } from "@/lib/reportInputs";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 
 function normalizeScholasticYearLabel(s: string | null | undefined): string {
@@ -26,6 +27,8 @@ type Report = {
   student_id: string;
   title: string | null;
   status: "draft" | "final";
+  body?: string;
+  inputs?: unknown;
   updated_at: string;
 };
 
@@ -79,7 +82,16 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       const rs = byStudent.get(s.id);
       if (!rs?.length) return { canDownload: false as const, message: notFinishedMsg };
     }
-    if (reports.some((r) => r.status !== "final")) {
+    if (
+      reports.some(
+        (r) =>
+          !reportReadyForClassBulkPdf({
+            status: r.status,
+            body: r.body ?? "",
+            inputs: parseReportInputs(r.inputs),
+          }),
+      )
+    ) {
       return { canDownload: false as const, message: notFinishedMsg };
     }
     return { canDownload: true as const, message: null as string | null };

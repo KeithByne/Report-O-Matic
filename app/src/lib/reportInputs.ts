@@ -123,6 +123,50 @@ export function allTermsComplete(inputs: ReportInputs): boolean {
   return true;
 }
 
+export function focusTermIndex(reportPeriod: ReportPeriod): 0 | 1 | 2 {
+  if (reportPeriod === "first") return 0;
+  if (reportPeriod === "second") return 1;
+  return 2;
+}
+
+/** All rubric cells filled for the term selected as report period (Term 1 / 2 / 3). */
+export function focusTermComplete(inputs: ReportInputs): boolean {
+  const t = inputs.terms[focusTermIndex(inputs.report_period)];
+  for (const k of KEYS) {
+    if (t[k] === null || t[k] === undefined) return false;
+  }
+  return true;
+}
+
+/**
+ * Class bulk PDF: include when the report has parent-facing text and is either marked final,
+ * or (draft) has a complete grade grid for the report period.
+ */
+export function reportReadyForClassBulkPdf(args: {
+  status: "draft" | "final";
+  body: string;
+  inputs: ReportInputs;
+}): boolean {
+  if (!args.body.trim()) return false;
+  if (args.status === "final") return true;
+  return focusTermComplete(args.inputs);
+}
+
+/** Keeps status aligned with whether the report has PDF text and (if draft) a complete rubric for the report period. */
+export function nextReportStatusFromContent(args: {
+  prev: "draft" | "final";
+  body: string;
+  inputs: ReportInputs;
+}): "draft" | "final" {
+  return reportReadyForClassBulkPdf({
+    status: args.prev,
+    body: args.body,
+    inputs: args.inputs,
+  })
+    ? "final"
+    : "draft";
+}
+
 /** Flatten 0–10 grid for OpenAI (grades only). Optional teacher context is passed separately in the AI prompt — not here. */
 export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved: string): string {
   const lines: string[] = [];
