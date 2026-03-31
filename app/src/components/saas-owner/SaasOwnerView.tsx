@@ -105,8 +105,15 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
       try {
         const res = await fetch("/api/saas-owner/openai/balance", { cache: "no-store" });
         const data = (await res.json().catch(() => ({}))) as OpenAiBalanceResp;
-        if (!res.ok) throw new Error((data as any).error || "Failed");
         if (!cancelled) setBal(data);
+        if (!res.ok) {
+          const status = "status" in data && typeof data.status === "number" ? data.status : res.status;
+          const detail = "detail" in data && typeof data.detail === "string" ? data.detail : "";
+          const msg = `${("error" in data && typeof data.error === "string" ? data.error : "OpenAI balance failed.")} (${status})${
+            detail ? ` — ${detail}` : ""
+          }`;
+          throw new Error(msg);
+        }
       } catch (e: unknown) {
         if (!cancelled) setBalErr(e instanceof Error ? e.message : "Failed");
       } finally {
