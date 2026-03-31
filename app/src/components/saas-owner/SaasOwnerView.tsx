@@ -211,17 +211,30 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
                 Balance cannot be fetched via secret API keys; this shows real-time spend based on logged usage.
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setBalTick((n) => n + 1);
-                setSpendTick((n) => n + 1);
-              }}
-              disabled={balBusy || spendBusy}
-              className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
-            >
-              {balBusy || spendBusy ? "Refreshing…" : "Refresh OpenAI data"}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setBalTick((n) => n + 1);
+                  setSpendTick((n) => n + 1);
+                }}
+                disabled={balBusy || spendBusy}
+                className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
+              >
+                {balBusy || spendBusy ? "Refreshing…" : "Refresh OpenAI data"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setBalErr(null);
+                  setSpendErr(null);
+                  setBal(null);
+                }}
+                className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+              >
+                Clear errors
+              </button>
+            </div>
           </div>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="text-sm">
@@ -405,14 +418,6 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
                 ) : null}
               </tbody>
             </table>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <div className="text-sm font-semibold text-zinc-900">OpenAI + Stripe (next)</div>
-          <div className="mt-2 text-sm text-zinc-600">
-            Next I’ll add: real-time OpenAI balance (best available), per-report token/cost logs, then Stripe Connect onboarding
-            and payout controls.
           </div>
         </section>
       </main>
