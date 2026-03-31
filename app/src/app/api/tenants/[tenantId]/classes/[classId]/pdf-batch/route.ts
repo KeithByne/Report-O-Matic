@@ -41,16 +41,36 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   const url = new URL(req.url);
   const inline = url.searchParams.get("inline") === "1";
-  const onlyFinal = url.searchParams.get("onlyFinal") === "1";
   const order = (url.searchParams.get("order") || "").trim().toLowerCase();
 
+  const classNotFinishedMsg =
+    "You can't download all the class reports until they are all finished.";
+
   const students = await listStudents(tenantId, classId);
+  if (students.length === 0) {
+    return NextResponse.json({ error: "No pupils in this class." }, { status: 404 });
+  }
   const studentById = new Map(students.map((s) => [s.id, s] as const));
   const studentOrder = new Map(students.map((s, i) => [s.id, i] as const));
   const reportsAll = await listReportsForTenant(tenantId);
   const allowedStudents = new Set(students.map((s) => s.id));
-  let reports = reportsAll.filter((r) => allowedStudents.has(r.student_id));
-  if (onlyFinal) reports = reports.filter((r) => r.status === "final");
+  const reports = reportsAll.filter((r) => allowedStudents.has(r.student_id));
+
+  const byStudent = new Map<string, typeof reports>();
+  for (const r of reports) {
+    const arr = byStudent.get(r.student_id) ?? [];
+    arr.push(r);
+    byStudent.set(r.student_id, arr);
+  }
+  for (const s of students) {
+    const rs = byStudent.get(s.id);
+    if (!rs?.length) {
+      return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
+    }
+  }
+  if (reports.some((r) => r.status !== "final")) {
+    return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
+  }
 
   const nameOf = (rid: string) => (studentById.get(rid)?.display_name || "").toLowerCase();
   reports.sort((a, b) => {

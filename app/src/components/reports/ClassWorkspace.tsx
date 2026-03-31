@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ClassScholasticArchives } from "@/components/reports/ClassScholasticArchives";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -58,20 +58,39 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const router = useRouter();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
-  const [batchOnlyFinal, setBatchOnlyFinal] = useState(false);
   const [batchOrder, setBatchOrder] = useState<"roster" | "student" | "updated_desc" | "updated_asc">("roster");
-
-  const batchHref = (() => {
-    const qp = new URLSearchParams();
-    if (batchOnlyFinal) qp.set("onlyFinal", "1");
-    if (batchOrder !== "roster") qp.set("order", batchOrder);
-    const s = qp.toString();
-    return s ? `${batchBase}?${s}` : batchBase;
-  })();
 
   const [detail, setDetail] = useState<ClassDetail | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
+
+  const classBulkPdfGate = useMemo(() => {
+    const notFinishedMsg = "You can't download all the class reports until they are all finished.";
+    if (students.length === 0) {
+      return { canDownload: false as const, message: "Add pupils to this class before downloading a combined PDF." };
+    }
+    const byStudent = new Map<string, Report[]>();
+    for (const r of reports) {
+      const arr = byStudent.get(r.student_id) ?? [];
+      arr.push(r);
+      byStudent.set(r.student_id, arr);
+    }
+    for (const s of students) {
+      const rs = byStudent.get(s.id);
+      if (!rs?.length) return { canDownload: false as const, message: notFinishedMsg };
+    }
+    if (reports.some((r) => r.status !== "final")) {
+      return { canDownload: false as const, message: notFinishedMsg };
+    }
+    return { canDownload: true as const, message: null as string | null };
+  }, [students, reports]);
+
+  const batchHref = (() => {
+    const qp = new URLSearchParams();
+    if (batchOrder !== "roster") qp.set("order", batchOrder);
+    const s = qp.toString();
+    return s ? `${batchBase}?${s}` : batchBase;
+  })();
 
   const [cName, setCName] = useState(initialClassName);
   const [scholasticYear, setScholasticYear] = useState("");
@@ -477,15 +496,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
         <h3 className="text-sm font-semibold text-zinc-900">Students in this class</h3>
         <p className="mt-1 text-xs text-zinc-500">{t("class.studentsHint")}</p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-          <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
-            <input
-              type="checkbox"
-              checked={batchOnlyFinal}
-              onChange={(e) => setBatchOnlyFinal(e.target.checked)}
-              className="h-4 w-4"
-            />
-            Final only
-          </label>
           <label className="text-sm">
             <span className="text-zinc-600">Order</span>
             <select
@@ -499,12 +509,24 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
               <option value="updated_asc">Last updated (oldest first)</option>
             </select>
           </label>
-          <a
-            href={batchHref}
-            className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
-          >
-            Download class PDFs (one file)
-          </a>
+          {classBulkPdfGate.canDownload ? (
+            <a
+              href={batchHref}
+              className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+            >
+              Download class PDFs (one file)
+            </a>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <span
+                className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
+                title={classBulkPdfGate.message}
+              >
+                Download class PDFs (one file)
+              </span>
+              <p className="max-w-md text-xs text-amber-800">{classBulkPdfGate.message}</p>
+            </div>
+          )}
         </div>
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm">
