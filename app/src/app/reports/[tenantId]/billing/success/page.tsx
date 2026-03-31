@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { AppHeaderBrand } from "@/components/layout/AppHeaderBrand";
 import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 
@@ -23,6 +24,11 @@ export default async function BillingSuccessPage({ params }: { params: Promise<{
 
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
+      <header className="border-b border-emerald-200/80 bg-white">
+        <div className="mx-auto flex max-w-2xl items-center px-5 py-4">
+          <AppHeaderBrand />
+        </div>
+      </header>
       <main className="mx-auto max-w-2xl px-5 py-12">
         <div className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
           <h1 className="text-xl font-semibold text-zinc-900">Payment received</h1>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AppHeaderBrand } from "@/components/layout/AppHeaderBrand";
 
 type TenantHit = {
   tenant_id: string;
@@ -289,8 +290,9 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
       <header className="border-b border-emerald-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-4">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Platform</div>
-            <div className="text-lg font-semibold tracking-tight">SaaS Owner Dashboard</div>
+            <AppHeaderBrand />
+            <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Platform</div>
+            <div className="mt-1 text-lg font-semibold tracking-tight">SaaS Owner Dashboard</div>
           </div>
           <div className="text-xs text-zinc-500">
             Signed in as <span className="font-mono text-zinc-800">{viewerEmail}</span>

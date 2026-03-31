@@ -10,6 +10,7 @@ import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { AppHeaderBrand } from "@/components/layout/AppHeaderBrand";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, UI_LOCALE_BCP47, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { TeacherStats, TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
@@ -108,8 +109,9 @@ export function DashboardClientView({
       <header className="border-b border-emerald-200/80 bg-white">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t("brand.subtitle")}</p>
-            <h1 className="text-lg font-semibold tracking-tight">{t("dash.title")}</h1>
+            <AppHeaderBrand />
+            <p className="mt-2 text-xs font-medium uppercase tracking-wide text-zinc-500">{t("brand.subtitle")}</p>
+            <h1 className="mt-1 text-lg font-semibold tracking-tight">{t("dash.title")}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <GlobeLanguageSwitcher />

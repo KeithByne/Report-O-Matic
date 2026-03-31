@@ -11,19 +11,29 @@ function newCode(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+function missingPayoutWaitColumn(err: unknown): boolean {
+  const msg = String((err as { message?: string })?.message ?? err ?? "");
+  return msg.includes("payout_wait_days");
+}
+
+function normalizeAgents(rows: unknown[]): unknown[] {
+  return rows.map((r) => {
+    const row = r as Record<string, unknown>;
+    return {
+      ...row,
+      payout_wait_days: typeof row.payout_wait_days === "number" ? row.payout_wait_days : 21,
+    };
+  });
+}
+
 export async function GET() {
   const gate = await requireSaasOwner();
   if (!gate.ok) return gate.res;
   const supabase = getServiceSupabase();
   if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
-  const { data, error } = await supabase
-    .from("agent_links")
-    .select(
-      "code, agent_email, display_name, active, commission_bps, payout_wait_days, inactive_after_days, last_active_at, created_at",
-    )
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("agent_links").select("*").order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ agents: data ?? [] });
+  return NextResponse.json({ agents: normalizeAgents(data ?? []) });
 }
 
 export async function POST(req: Request) {
@@ -50,7 +60,7 @@ export async function POST(req: Request) {
   let code = "";
   for (let i = 0; i < 6; i++) {
     code = newCode();
-    const { error } = await supabase.from("agent_links").insert({
+    const row = {
       code,
       agent_email: email,
       display_name: display,
@@ -58,7 +68,12 @@ export async function POST(req: Request) {
       commission_bps: Math.max(0, Math.min(10000, commissionBps)),
       payout_wait_days: 21,
       inactive_after_days: Math.max(1, Math.min(5000, inactiveAfterDays)),
-    });
+    };
+    let { error } = await supabase.from("agent_links").insert(row);
+    if (error && missingPayoutWaitColumn(error)) {
+      const { payout_wait_days: _p, ...withoutWait } = row;
+      ({ error } = await supabase.from("agent_links").insert(withoutWait));
+    }
     if (!error) break;
     if ((error as any).code !== "23505") return NextResponse.json({ error: error.message }, { status: 500 });
     code = "";
@@ -94,15 +109,22 @@ export async function PATCH(req: Request) {
 
   if (Object.keys(patch).length === 0) return NextResponse.json({ error: "No changes." }, { status: 400 });
 
-  const { data, error } = await supabase
-    .from("agent_links")
-    .update(patch)
-    .eq("code", code)
-    .select(
-      "code, agent_email, display_name, active, commission_bps, payout_wait_days, inactive_after_days, last_active_at, created_at",
-    )
-    .single();
+  let { data, error } = await supabase.from("agent_links").update(patch).eq("code", code).select("*").single();
+  if (error && missingPayoutWaitColumn(error) && "payout_wait_days" in patch) {
+    const { payout_wait_days: _w, ...rest } = patch;
+    if (Object.keys(rest).length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Database is missing column agent_links.payout_wait_days. Run migration supabase/migrations/0020_agent_payout_wait_days.sql, then retry.",
+        },
+        { status: 503 },
+      );
+    }
+    ({ data, error } = await supabase.from("agent_links").update(rest).eq("code", code).select("*").single());
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ agent: data });
+  const agent = data;
+  return NextResponse.json({ agent: normalizeAgents(agent ? [agent] : [])[0] });
 }
 
