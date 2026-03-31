@@ -39,6 +39,22 @@ type OpenAiSpendSummary = {
   };
 };
 
+function fmtUsdPrecise(v: number): string {
+  const n = Number(v ?? 0);
+  const abs = Math.abs(n);
+  const frac = abs < 0.01 ? 4 : 2; // show tenths-of-cents for small values
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: frac,
+      maximumFractionDigits: 6,
+    }).format(n);
+  } catch {
+    return `USD ${n.toFixed(Math.max(2, frac))}`;
+  }
+}
+
 function fmtMoney(cents: number, currency = "USD"): string {
   const v = (cents ?? 0) / 100;
   try {
@@ -239,7 +255,7 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
               <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Estimated spend</div>
                 <div className="mt-1 text-lg font-semibold text-zinc-900">
-                  {new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(spend.totals.est_cost_usd)}
+                  {fmtUsdPrecise(spend.totals.est_cost_usd)}
                 </div>
                 <div className="mt-1 text-xs text-zinc-500">{spend.totals.requests} request(s)</div>
               </div>
@@ -254,13 +270,11 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
                 <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">By kind</div>
                 <div className="mt-1 text-xs text-zinc-700">
                   Draft: {spend.totals.by_kind.draft.requests} req •{" "}
-                  {new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(spend.totals.by_kind.draft.est_cost_usd)}
+                  {fmtUsdPrecise(spend.totals.by_kind.draft.est_cost_usd)}
                 </div>
                 <div className="mt-1 text-xs text-zinc-700">
                   Translate: {spend.totals.by_kind.translate.requests} req •{" "}
-                  {new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(
-                    spend.totals.by_kind.translate.est_cost_usd,
-                  )}
+                  {fmtUsdPrecise(spend.totals.by_kind.translate.est_cost_usd)}
                 </div>
               </div>
             </div>
