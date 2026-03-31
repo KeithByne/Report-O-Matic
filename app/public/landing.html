@@ -89,6 +89,14 @@
         font-weight: 800;
         letter-spacing: 0.5px;
         color: rgba(0,0,0,0.75);
+        overflow: hidden;
+      }
+
+      .logoImg {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: contain;
       }
 
       .title {
@@ -232,7 +240,9 @@
       <div class="shell">
         <section class="hero">
           <div class="brand">
-            <div class="logo" aria-hidden="true">R</div>
+            <div class="logo" aria-label="Report-O-Matic">
+              <img class="logoImg" src="/rom-logo.webp" alt="Report-O-Matic logo" onerror="this.remove(); this.parentElement.textContent='R'; this.parentElement.setAttribute('aria-hidden','true');" />
+            </div>
             <div>
               <p class="title">Report-O-Matic</p>
               <p class="subtitle">AI-assisted student reports • secure • printable A4 PDF</p>
@@ -576,8 +586,34 @@
 
         els.forgotPasswordLink.addEventListener("click", function (ev) {
           ev.preventDefault();
-          // This will later become a real flow in the app.
-          setMsg("ok", "Password recovery will be available here shortly.");
+          try {
+            clearMsg();
+            var email = String(document.getElementById("signInEmail").value || "").trim();
+            if (!email) return setMsg("err", "Enter your email first, then click Forgot your password.");
+            if (!turnstileToken) return setMsg("err", "Please complete the human verification first.");
+            var base = apiBase();
+            els.signInBtn.disabled = true;
+            els.signUpBtn.disabled = true;
+            postJson(base + "/api/auth/request-password-reset", { email: email, turnstile_token: turnstileToken })
+              .then(function (data) {
+                // Always redirect to reset page (API intentionally does not reveal account existence).
+                var challengeId = data && data.challenge_id ? String(data.challenge_id) : "";
+                setMsg("ok", "If the account exists, a reset code has been sent. Redirecting…");
+                var qp = new URLSearchParams();
+                if (challengeId) qp.set("challenge", challengeId);
+                qp.set("email", email);
+                window.location.href = base + "/reset?" + qp.toString();
+              })
+              .catch(function (e) {
+                setMsg("err", e && e.message ? e.message : "Could not start password reset.");
+              })
+              .finally(function () {
+                els.signInBtn.disabled = false;
+                els.signUpBtn.disabled = false;
+              });
+          } catch (e) {
+            setMsg("err", e && e.message ? e.message : "Could not start password reset.");
+          }
         });
 
         if (window.location.protocol === "file:") {
