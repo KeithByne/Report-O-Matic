@@ -21,6 +21,9 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [lang, setLang] = useState<ReportLanguageCode>("en");
   const [newClassName, setNewClassName] = useState("");
+  const [teacherEmail, setTeacherEmail] = useState("");
+  const [teacherOnlyFinal, setTeacherOnlyFinal] = useState(false);
+  const [teacherOrder, setTeacherOrder] = useState<"updated_desc" | "updated_asc" | "student">("updated_desc");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -89,6 +92,13 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
   }
 
   const isLead = viewerRole === "owner" || viewerRole === "department_head";
+  const teacherBatchHref = (() => {
+    const qp = new URLSearchParams();
+    qp.set("author", (teacherEmail || "").trim().toLowerCase());
+    if (teacherOnlyFinal) qp.set("onlyFinal", "1");
+    if (teacherOrder) qp.set("order", teacherOrder);
+    return `${base}/reports/pdf-batch?${qp.toString()}`;
+  })();
 
   async function deleteClass(classId: string, name: string) {
     if (!confirm(`Delete class "${name}"?`)) return;
@@ -157,6 +167,55 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
           {busy === "lang" ? <span className="text-xs text-zinc-500">{t("tenant.saving")}</span> : null}
         </div>
       </section>
+
+      {isLead ? (
+        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-zinc-900">Bulk downloads</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Download many reports as one combined PDF for faster printing.
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+            <label className="text-sm">
+              <span className="text-zinc-600">Teacher email</span>
+              <input
+                value={teacherEmail}
+                onChange={(e) => setTeacherEmail(e.target.value)}
+                className="mt-1 block min-w-[16rem] rounded-lg border border-emerald-200 px-3 py-2"
+                placeholder="teacher@school.com"
+              />
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
+              <input
+                type="checkbox"
+                checked={teacherOnlyFinal}
+                onChange={(e) => setTeacherOnlyFinal(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Final only
+            </label>
+            <label className="text-sm">
+              <span className="text-zinc-600">Order</span>
+              <select
+                value={teacherOrder}
+                onChange={(e) => setTeacherOrder(e.target.value as typeof teacherOrder)}
+                className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="updated_desc">Last updated (newest first)</option>
+                <option value="updated_asc">Last updated (oldest first)</option>
+                <option value="student">Student name</option>
+              </select>
+            </label>
+            <a
+              href={teacherBatchHref}
+              className={`rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100 ${
+                teacherEmail.trim() ? "" : "pointer-events-none opacity-50"
+              }`}
+            >
+              Download teacher PDFs (one file)
+            </a>
+          </div>
+        </section>
+      ) : null}
 
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-zinc-900">{t("tenant.classesTitle")}</h2>

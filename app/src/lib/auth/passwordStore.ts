@@ -65,3 +65,19 @@ export async function setPasswordHashIfMissing(email: string, passwordHash: stri
   return true;
 }
 
+/** Overwrite (or create) password hash for password reset. */
+export async function setPasswordHash(email: string, passwordHash: string): Promise<void> {
+  const normalized = normalizeEmail(email);
+  const supabase = getServiceSupabase();
+  if (supabase) {
+    const { error } = await supabase
+      .from("auth_passwords")
+      .upsert({ email: normalized, password_hash: passwordHash }, { onConflict: "email" });
+    if (error) throw new Error(formatPostgrestError(error));
+    return;
+  }
+
+  getDevStore();
+  devPasswords().set(normalized, passwordHash);
+}
+

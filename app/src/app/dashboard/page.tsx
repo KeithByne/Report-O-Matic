@@ -8,6 +8,7 @@ import {
   type MembershipWithTenant,
   type TenantMemberRow,
 } from "@/lib/data/memberships";
+import { getTeacherStatsForTenant, getTenantSummaryStats, type TeacherStats, type TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
 
 export default async function DashboardPage() {
   const token = (await cookies()).get("rom_session")?.value || "";
@@ -44,6 +45,26 @@ export default async function DashboardPage() {
     }
   }
 
+  let summaryByTenant: Record<string, TenantSummaryStats> = {};
+  let teacherStatsByTenant: Record<string, TeacherStats[]> = {};
+  try {
+    const entries = await Promise.all(
+      rosterTenantIds.map(async (tid) => {
+        const roster = rosterByTenant[tid] ?? [];
+        const [summary, teacherStats] = await Promise.all([
+          getTenantSummaryStats(tid),
+          getTeacherStatsForTenant({ tenantId: tid, roster }),
+        ]);
+        return [tid, { summary, teacherStats }] as const;
+      }),
+    );
+    summaryByTenant = Object.fromEntries(entries.map(([tid, x]) => [tid, x.summary]));
+    teacherStatsByTenant = Object.fromEntries(entries.map(([tid, x]) => [tid, x.teacherStats]));
+  } catch {
+    summaryByTenant = {};
+    teacherStatsByTenant = {};
+  }
+
   return (
     <DashboardClientView
       email={session.email}
@@ -51,6 +72,8 @@ export default async function DashboardPage() {
       loadError={loadError}
       memberships={memberships}
       rosterByTenant={rosterByTenant}
+      summaryByTenant={summaryByTenant}
+      teacherStatsByTenant={teacherStatsByTenant}
     />
   );
 }

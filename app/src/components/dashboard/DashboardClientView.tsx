@@ -12,6 +12,7 @@ import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, UI_LOCALE_BCP47, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import type { TeacherStats, TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
 
 export type DashboardClientViewProps = {
   email: string;
@@ -19,6 +20,8 @@ export type DashboardClientViewProps = {
   loadError: string | null;
   memberships: MembershipWithTenant[];
   rosterByTenant: Record<string, TenantMemberRow[]>;
+  summaryByTenant: Record<string, TenantSummaryStats>;
+  teacherStatsByTenant: Record<string, TeacherStats[]>;
 };
 
 function formatSessionEnds(expMs: number, locale: string): string {
@@ -34,6 +37,8 @@ export function DashboardClientView({
   loadError,
   memberships,
   rosterByTenant,
+  summaryByTenant,
+  teacherStatsByTenant,
 }: DashboardClientViewProps) {
   const { lang, t } = useUiLanguage();
   const locale = UI_LOCALE_BCP47[lang];
@@ -199,6 +204,8 @@ export function DashboardClientView({
                 {memberships.map((m) => {
                   const roster = rosterByTenant[m.tenantId] ?? [];
                   const showRoster = m.role === "owner" || m.role === "department_head";
+                  const summary = summaryByTenant[m.tenantId];
+                  const teacherStats = teacherStatsByTenant[m.tenantId] ?? [];
                   return (
                     <li key={m.membershipId} className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -218,6 +225,36 @@ export function DashboardClientView({
                           </Link>
                         </div>
                       </div>
+                      {m.role === "owner" && summary ? (
+                        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                          <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Teachers</div>
+                            <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.teachers}</div>
+                          </div>
+                          <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Classes</div>
+                            <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.classes}</div>
+                          </div>
+                          <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Students</div>
+                            <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.students}</div>
+                          </div>
+                          <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Reports rendered</div>
+                            <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.reportsRendered}</div>
+                          </div>
+                        </div>
+                      ) : null}
+                      {m.role === "owner" ? (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <a
+                            href={`/api/tenants/${encodeURIComponent(m.tenantId)}/export`}
+                            className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-emerald-100"
+                          >
+                            Download school data (Excel)
+                          </a>
+                        </div>
+                      ) : null}
                       {showRoster && roster.length > 0 ? (
                         <div className="mt-4 border-t border-emerald-100 pt-3">
                           <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -229,6 +266,7 @@ export function DashboardClientView({
                               viewerRole={m.role}
                               viewerEmail={email}
                               roster={roster}
+                              teacherStats={teacherStats}
                             />
                           </div>
                         </div>

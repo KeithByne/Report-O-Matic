@@ -39,6 +39,8 @@ type ClassDetail = {
   assigned_teacher_email: string | null;
 };
 
+type ClassListRow = { id: string; name: string };
+
 type ViewerRole = "owner" | "department_head" | "teacher";
 
 type Props = {
@@ -55,6 +57,17 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const { t } = useUiLanguage();
   const router = useRouter();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
+  const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
+  const [batchOnlyFinal, setBatchOnlyFinal] = useState(false);
+  const [batchOrder, setBatchOrder] = useState<"roster" | "student" | "updated_desc" | "updated_asc">("roster");
+
+  const batchHref = (() => {
+    const qp = new URLSearchParams();
+    if (batchOnlyFinal) qp.set("onlyFinal", "1");
+    if (batchOrder !== "roster") qp.set("order", batchOrder);
+    const s = qp.toString();
+    return s ? `${batchBase}?${s}` : batchBase;
+  })();
 
   const [detail, setDetail] = useState<ClassDetail | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -67,6 +80,9 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [assignTeacher, setAssignTeacher] = useState("");
   const [teacherEmails, setTeacherEmails] = useState<string[]>([]);
+  const [allClasses, setAllClasses] = useState<ClassListRow[]>([]);
+  const [moveStudentId, setMoveStudentId] = useState("");
+  const [moveToClassId, setMoveToClassId] = useState("");
 
   const [newFirst, setNewFirst] = useState("");
   const [newLast, setNewLast] = useState("");
@@ -125,6 +141,21 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
         const res = await fetch(`${base}/members`);
         const data = await res.json().catch(() => ({}));
         if (res.ok && Array.isArray(data.teachers)) setTeacherEmails(data.teachers as string[]);
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, [base, viewerRole]);
+
+  useEffect(() => {
+    if (viewerRole !== "owner" && viewerRole !== "department_head") return;
+    void (async () => {
+      try {
+        const res = await fetch(`${base}/classes`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+        const rows = Array.isArray(data.classes) ? (data.classes as ClassListRow[]) : [];
+        setAllClasses(rows.map((c) => ({ id: c.id, name: c.name })));
       } catch {
         /* ignore */
       }
@@ -243,6 +274,35 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       const res = await fetch(`${base}/students/${encodeURIComponent(studentId)}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed");
+      await refreshStudents();
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function moveStudent() {
+    if (!moveStudentId || !moveToClassId) return;
+    if (moveToClassId === classId) {
+      alert("Pick a different destination class.");
+      return;
+    }
+    const who = students.find((s) => s.id === moveStudentId)?.display_name ?? "this pupil";
+    const dest = allClasses.find((c) => c.id === moveToClassId)?.name ?? "the destination class";
+    if (!confirm(`Move ${who} to ${dest}? Their reports will move with them.`)) return;
+    setBusy("move-stu");
+    try {
+      const res = await fetch(`${base}/students/${encodeURIComponent(moveStudentId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ class_id: moveToClassId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setMoveStudentId("");
+      setMoveToClassId("");
       await refreshStudents();
       router.refresh();
     } catch (e: unknown) {
@@ -416,6 +476,36 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">Students in this class</h3>
         <p className="mt-1 text-xs text-zinc-500">{t("class.studentsHint")}</p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+          <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
+            <input
+              type="checkbox"
+              checked={batchOnlyFinal}
+              onChange={(e) => setBatchOnlyFinal(e.target.checked)}
+              className="h-4 w-4"
+            />
+            Final only
+          </label>
+          <label className="text-sm">
+            <span className="text-zinc-600">Order</span>
+            <select
+              value={batchOrder}
+              onChange={(e) => setBatchOrder(e.target.value as typeof batchOrder)}
+              className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="roster">Class roster</option>
+              <option value="student">Student name</option>
+              <option value="updated_desc">Last updated (newest first)</option>
+              <option value="updated_asc">Last updated (oldest first)</option>
+            </select>
+          </label>
+          <a
+            href={batchHref}
+            className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+          >
+            Download class PDFs (one file)
+          </a>
+        </div>
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm">
             <span className="text-zinc-600">First name(s)</span>
@@ -458,6 +548,59 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </button>
           </div>
         </form>
+
+        {viewerRole === "owner" || viewerRole === "department_head" ? (
+          <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Move pupil to another class</div>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              <label className="text-sm">
+                <span className="text-zinc-600">Pupil</span>
+                <select
+                  value={moveStudentId}
+                  onChange={(e) => setMoveStudentId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">—</option>
+                  {students.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.display_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm">
+                <span className="text-zinc-600">Destination class</span>
+                <select
+                  value={moveToClassId}
+                  onChange={(e) => setMoveToClassId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">—</option>
+                  {allClasses
+                    .filter((c) => c.id !== classId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  disabled={busy !== null || !moveStudentId || !moveToClassId}
+                  onClick={() => void moveStudent()}
+                  className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
+                >
+                  Move pupil
+                </button>
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-zinc-500">
+              This keeps the pupil’s reports and data intact, and logs a “moved” event for dashboard stats.
+            </p>
+          </div>
+        ) : null}
 
         <ul className="mt-4 divide-y divide-emerald-100">
           {students.map((s) => (

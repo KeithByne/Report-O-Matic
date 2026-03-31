@@ -1,0 +1,15 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { verifySession } from "@/lib/auth/session";
+import { isSaasOwnerEmail } from "@/lib/auth/saasOwner";
+import { SaasOwnerView } from "@/components/saas-owner/SaasOwnerView";
+
+export default async function SaasOwnerPage() {
+  const token = (await cookies()).get("rom_session")?.value || "";
+  const session = token ? verifySession(token) : null;
+  if (!session) redirect("/landing.html");
+  if (!isSaasOwnerEmail(session.email)) redirect("/dashboard");
+
+  return <SaasOwnerView viewerEmail={session.email} />;
+}
+

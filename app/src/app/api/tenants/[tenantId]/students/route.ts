@@ -4,6 +4,7 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant, listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { insertStudent, listStudents } from "@/lib/data/students";
+import { logStudentEvent } from "@/lib/data/studentEvents";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -91,6 +92,14 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       firstName: firstName,
       lastName: lastName,
       gender,
+    });
+    await logStudentEvent({
+      tenantId,
+      actorEmail: gate.email,
+      type: "added",
+      studentId: student.id,
+      fromClassId: null,
+      toClassId: cid,
     });
     return NextResponse.json({ student });
   } catch (e: unknown) {

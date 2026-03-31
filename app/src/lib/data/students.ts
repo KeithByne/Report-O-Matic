@@ -174,3 +174,33 @@ export async function deleteStudentInTenant(tenantId: string, studentId: string)
   const { error } = await supabase.from("students").delete().eq("tenant_id", tenantId).eq("id", studentId);
   if (error) throw new Error(formatErr(error));
 }
+
+export async function moveStudentToClass(opts: {
+  tenantId: string;
+  studentId: string;
+  toClassId: string;
+}): Promise<StudentWithClass> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const { data, error } = await supabase
+    .from("students")
+    .update({ class_id: opts.toClassId })
+    .eq("tenant_id", opts.tenantId)
+    .eq("id", opts.studentId)
+    .select("id, tenant_id, class_id, display_name, first_name, last_name, gender, created_at, classes ( name )")
+    .single();
+  if (error) throw new Error(formatErr(error));
+  const r = data as Record<string, unknown>;
+  const cls = r.classes as { name: string } | null;
+  return {
+    id: r.id as string,
+    tenant_id: r.tenant_id as string,
+    class_id: r.class_id as string,
+    display_name: r.display_name as string,
+    first_name: r.first_name as string | null,
+    last_name: r.last_name as string | null,
+    gender: r.gender as Gender | null,
+    created_at: r.created_at as string,
+    class_name: cls?.name ?? "",
+  };
+}
