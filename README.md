@@ -124,7 +124,7 @@ If your Git repo is only the inner `app` folder, you can push that alone; if the
    - Repo is only `app` → leave **Root Directory** empty or `.`
    - Repo is `report-o-matic-saas` → set **`app`**
    - Repo is the whole `REPORT-O-MATIC` tree → set **`report-o-matic-saas/app`**
-3. **Framework Preset**: Next.js (should auto-detect). **Build Command** `npm run build`, **Output** default.
+3. **Framework Preset**: **Next.js** (not “Other”). If Vercel shows “Production overrides differ” or deployments stay stuck on an old commit, this setting was wrong — fix it and deploy **`main`** again. **Build Command** `npm run build`, **Output** default.
 4. **Environment Variables** (Production — and Preview if you want previews to work with real APIs):
 
    | Name | Notes |
