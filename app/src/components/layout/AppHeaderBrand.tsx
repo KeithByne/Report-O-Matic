@@ -15,7 +15,8 @@ export function AppHeaderLogo({ size = "md" }: { size?: "sm" | "md" }) {
   const [logoIx, setLogoIx] = useState(0);
 
   return (
-    <div className={size === "sm" ? "h-9 w-9" : "h-10 w-10"}>
+    // Target: logo occupies ~80% of common header height.
+    <div className={size === "sm" ? "h-11 w-11" : "h-12 w-12"}>
       {logoIx < LOGO_CANDIDATES.length ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img

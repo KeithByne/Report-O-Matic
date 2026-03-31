@@ -919,6 +919,13 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
                     </td>
                     <td className="py-2 pr-3">
                       <a
+                        href={`/saas-owner/tenants/${encodeURIComponent(t.tenant_id)}`}
+                        className="text-xs font-semibold text-emerald-700 hover:underline"
+                      >
+                        View school
+                      </a>
+                      <span className="mx-2 text-xs text-zinc-300">|</span>
+                      <a
                         href={`/api/tenants/${encodeURIComponent(t.tenant_id)}/export`}
                         className="text-xs font-semibold text-emerald-700 hover:underline"
                       >
