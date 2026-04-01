@@ -12,7 +12,7 @@ import {
   reportReadyForClassBulkPdf,
 } from "@/lib/reportInputs";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
-import { WEEKDAY_KEYS, type WeekdayKey } from "@/lib/activeWeekdays";
+import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 
 function normalizeScholasticYearLabel(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -184,7 +184,10 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setAssignTeacher(c.assigned_teacher_email?.trim() ?? "");
       const aw = Array.isArray(c.active_weekdays) ? c.active_weekdays : [];
-      setActiveDays(new Set(aw.filter((x): x is WeekdayKey => WEEKDAY_KEYS.includes(x as WeekdayKey))));
+      const keys = aw
+        .map((x) => (typeof x === "string" ? x.trim().toLowerCase() : ""))
+        .filter(isWeekdayKey);
+      setActiveDays(new Set(keys));
     } catch (e: unknown) {
       setLoadError(e instanceof Error ? e.message : "Failed to load class");
     }
@@ -522,25 +525,35 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           </label>
           <div className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.activeDaysLabel")}</span>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
-              {WEEKDAY_KEYS.map((k) => (
-                <label key={k} className="flex cursor-pointer items-center gap-2 text-sm text-zinc-800">
-                  <input
-                    type="checkbox"
-                    checked={activeDays.has(k)}
-                    onChange={() => {
-                      setActiveDays((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(k)) next.delete(k);
-                        else next.add(k);
-                        return next;
-                      });
-                    }}
-                    className="rounded border-emerald-300 text-emerald-800 focus:ring-emerald-600"
-                  />
-                  {t(`weekday.${k}`)}
-                </label>
-              ))}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {WEEKDAY_KEYS.map((k) => {
+                const selected = activeDays.has(k);
+                return (
+                  <label
+                    key={k}
+                    className={`inline-flex cursor-pointer select-none items-center rounded-lg border px-3 py-2 text-sm transition-colors focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2 ${
+                      selected
+                        ? "border-emerald-600 bg-emerald-100 font-semibold text-emerald-950 shadow-sm"
+                        : "border-zinc-200 bg-white font-normal text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={() => {
+                        setActiveDays((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(k)) next.delete(k);
+                          else next.add(k);
+                          return next;
+                        });
+                      }}
+                      className="sr-only"
+                    />
+                    {t(`weekday.${k}`)}
+                  </label>
+                );
+              })}
             </div>
             <p className="mt-2 text-sm text-zinc-700">
               <span className="font-medium text-zinc-800">{t("class.activeDaysDisplay")}: </span>
