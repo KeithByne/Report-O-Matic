@@ -550,36 +550,41 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </p>
           </div>
           {viewerRole === "owner" || viewerRole === "department_head" ? (
-            <label className="text-sm sm:col-span-2">
-              <span className="text-zinc-600">Assigned teacher (must match invited teacher email)</span>
+            <div className="sm:col-span-2">
+              <h4 id="class-teacher-heading" className="text-sm font-semibold text-zinc-900">
+                {t("class.teacherHeading")}
+              </h4>
               <select
                 value={assignTeacher}
                 onChange={(e) => setAssignTeacher(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                aria-labelledby="class-teacher-heading"
               >
-                <option value="">— Not assigned —</option>
-                {assignTeacher && !teachers.some((t) => t.email === assignTeacher) ? (
-                  <option value={assignTeacher}>{assignTeacher} (current)</option>
+                <option value="">{t("class.notAssigned")}</option>
+                {assignTeacher && !teachers.some((x) => x.email === assignTeacher) ? (
+                  <option value={assignTeacher}>
+                    {assignTeacher} {t("class.currentSuffix")}
+                  </option>
                 ) : null}
-                {teachers.map((t) => (
-                  <option key={t.email} value={t.email}>
-                    {teacherLabel(t)}
+                {teachers.map((x) => (
+                  <option key={x.email} value={x.email}>
+                    {teacherLabel(x)}
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-xs text-zinc-500">
-                Teachers only see classes assigned to them here. Invite teachers from the dashboard first.
-              </p>
-            </label>
+              <p className="mt-1 text-xs text-zinc-500">{t("class.assignedTeacherHint")}</p>
+            </div>
           ) : detail?.assigned_teacher_email ? (
-            <p className="text-sm text-zinc-600 sm:col-span-2">
-              <span className="font-medium text-zinc-800">Class assignment: </span>
-              {(() => {
-                const em = detail.assigned_teacher_email?.trim().toLowerCase() || "";
-                const t = teachers.find((x) => x.email === em);
-                return t ? teacherLabel(t) : detail.assigned_teacher_email;
-              })()}
-            </p>
+            <div className="sm:col-span-2">
+              <h4 className="text-sm font-semibold text-zinc-900">{t("class.teacherHeading")}</h4>
+              <p className="mt-1 text-sm text-zinc-700">
+                {(() => {
+                  const em = detail.assigned_teacher_email?.trim().toLowerCase() || "";
+                  const teach = teachers.find((x) => x.email === em);
+                  return teach ? teacherLabel(teach) : detail.assigned_teacher_email;
+                })()}
+              </p>
+            </div>
           ) : null}
           <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
             <button
