@@ -80,16 +80,31 @@ export async function getTeacherStatsForTenant(opts: {
   const studentsAll = await listStudents(opts.tenantId);
   const studentsByClass = new Map<string, number>();
   for (const s of studentsAll) studentsByClass.set(s.class_id, (studentsByClass.get(s.class_id) ?? 0) + 1);
+  const classIdByStudent = new Map(studentsAll.map((s) => [s.id, s.class_id] as const));
+  const assignedTeacherByClass = new Map(
+    classes
+      .map((c) => [c.id, (c.assigned_teacher_email || "").trim().toLowerCase()] as const)
+      .filter(([, em]) => Boolean(em)),
+  );
 
   // Reports by term: pull once and aggregate in code.
   const reportsAll = await listReportsForTenant(opts.tenantId);
   const reportsByTeacher: Record<string, { first: number; second: number; third: number }> = {};
   for (const em of teacherEmails) reportsByTeacher[em] = { first: 0, second: 0, third: 0 };
   for (const r of reportsAll) {
-    const em = r.author_email.trim().toLowerCase();
-    if (!reportsByTeacher[em]) continue;
     // "rendered" = has non-empty body
     if (!String(r.body || "").trim()) continue;
+
+    // Prefer `author_email` attribution. If that isn't a teacher (e.g. owner created the report),
+    // fall back to the assigned teacher for the student's class.
+    const author = r.author_email.trim().toLowerCase();
+    let em = reportsByTeacher[author] ? author : "";
+    if (!em) {
+      const classId = classIdByStudent.get(r.student_id);
+      const assigned = classId ? assignedTeacherByClass.get(classId) : "";
+      if (assigned && reportsByTeacher[assigned]) em = assigned;
+    }
+    if (!em) continue;
     const term = r.inputs?.report_period;
     if (term === "first" || term === "second" || term === "third") reportsByTeacher[em][term] += 1;
   }
