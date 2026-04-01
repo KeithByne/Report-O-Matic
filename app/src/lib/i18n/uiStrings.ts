@@ -182,6 +182,11 @@ const EN: UiMessages = {
   "dash.lessThanHour": "less than an hour",
   "dash.aboutOneHour": "about 1 hour",
   "dash.aboutHours": "about {n} hours",
+  "dash.ownerCreditsTitle": "Report credits (your account)",
+  "dash.ownerCreditsRemaining": "{n} reports remaining",
+  "dash.ownerCreditsHint":
+    "When you buy a pack, credits are added to your owner account and shared by every school you own — not per school.",
+  "dash.ownerCreditsBuy": "Buy report credits",
   "dash.loadOrgsError": "Could not load organisations",
   "dash.noSchoolTitle": "No school linked yet",
   "dash.noSchoolBody":
@@ -270,7 +275,13 @@ const EN: UiMessages = {
   "tenant.noClassesLead": "No classes yet — create one above before adding students.",
   "tenant.noClassesTeacher": "No classes assigned to you yet. A lead must assign your email on the class.",
   "class.studentsHint":
-    "Term selection, the 0–10 grade grid, and AI comments are on each pupil's Report page (not on this class screen).",
+    "Term selection, the 0–10 grade grid, and AI comments are on each pupil’s report page (not on this screen). Use Add report on a pupil row to create a standard report (three terms) or a short course report (single period).",
+  "class.studentsReportTypesCallout":
+    "Short course reports: on each pupil row, open Add report and choose Short course (single-period PDF and rubric). Standard is the usual three-term report.",
+  "class.addReportLabel": "Add report",
+  "class.addReportPlaceholder": "Choose type…",
+  "class.addReportStandard": "Standard (three terms)",
+  "class.addReportShortCourse": "Short course (one period)",
   "class.bulkPdfWhichReports": "Bulk download includes",
   "class.bulkPdfAllReady": "All ready reports",
   "archive.title": "Scholastic year archives",
@@ -287,6 +298,8 @@ const EN: UiMessages = {
   "archive.noReports": "No reports.",
   "archive.reportN": "Saved report {n}",
   "archive.termFocus": "Term focus (report period)",
+  "archive.termFocusShortCourse": "Short course report (single period)",
+  "archive.gradesTitleShortCourse": "Grades (0–10) — short course",
   "archive.term1": "Term 1",
   "archive.term2": "Term 2",
   "archive.term3": "Term 3",
@@ -344,6 +357,16 @@ const EN: UiMessages = {
   "report.pageTitle": "Individual student report",
   "report.pageIntro":
     "Class, subject, and year are set on the class screen; adjust here only when you need an override. Grades use your Prompt A1 titles (0–10) per term.",
+  "report.pageIntroShort":
+    "Short course end-of-course report: one 0–10 rubric for the short period and a single parent-facing comment. Term 2 and Term 3 grids are not used.",
+  "report.shortCourseBadge": "Short course report",
+  "report.shortCourseGradesTitle": "Short course grades (0–10)",
+  "report.shortCourseGradesHint":
+    "Enter grades for the short course only. AI and PDF use this single block. There is no term selector — the report covers one short period.",
+  "report.shortCourseTermHeading": "Short course period",
+  "report.generatedHintShort":
+    "End-of-short-course comment. PDF text is canonical; teacher text is its translation. Remove clears both.",
+  "report.aiFillHintShort": "Fill all 16 grade cells (0–10) for this short course for the most reliable draft.",
   "report.loading": "Loading…",
   "report.genderMale": "Male",
   "report.genderFemale": "Female",
@@ -359,9 +382,14 @@ const EN: UiMessages = {
   "pdf.gradesTerm1": "Term 1",
   "pdf.gradesTerm2": "Term 2",
   "pdf.gradesTerm3": "Term 3",
+  "pdf.gradesShortCourseCol": "Short course",
   "pdf.gradesSectionTitle": "Academic record (structured)",
   "pdf.gradesSectionIntro": "Numerical ratings use a 0–10 scale across three terms.",
+  "pdf.gradesSectionIntroShortCourse":
+    "Numerical ratings use a 0–10 scale for this short course period only (single observation).",
   "pdf.gradesTermAverage": "{term} average (when all 16 cells filled): {value}",
+  "pdf.gradesShortCourseAverage": "{term} average (when all 16 cells filled): {value}",
+  "pdf.shortCourseReportFocus": "Short course",
   "pdf.metaReportFocus": "Report focus",
   "pdf.defaultReportTitleSuffix": "Report",
   "pdf.studentLine": "Student: {name}",
@@ -446,6 +474,8 @@ const EN: UiMessages = {
   "class.addPupil": "Add pupil",
   "class.report": "Report",
   "class.newReport": "+ New report",
+  "class.newShortCourseReport": "+ Short course report",
+  "class.shortCourseReportLink": "Short course",
   "class.deletePupil": "Delete pupil",
   "class.noPupils": "No pupils yet — add one above.",
   "class.confirmYearChange":
@@ -568,7 +598,13 @@ const FR: UiMessages = {
   "tenant.noClassesLead": "Pas encore de classe — créez-en une ci-dessus.",
   "tenant.noClassesTeacher": "Aucune classe assignée. Un responsable doit assigner votre e-mail.",
   "class.studentsHint":
-    "Choix du trimestre, grille 0–10 et commentaires IA sont sur la page Rapport de chaque élève.",
+    "Choix du trimestre, grille 0–10 et commentaires IA sont sur la page rapport de chaque élève (pas ici). Utilisez Ajouter un rapport sur la ligne : standard (trois trimestres) ou cours court (une période).",
+  "class.studentsReportTypesCallout":
+    "Rapports cours court : sur chaque ligne, ouvrez Ajouter un rapport et choisissez Cours court (une seule période). Standard = trois trimestres.",
+  "class.addReportLabel": "Ajouter un rapport",
+  "class.addReportPlaceholder": "Choisir le type…",
+  "class.addReportStandard": "Standard (trois trimestres)",
+  "class.addReportShortCourse": "Cours court (une période)",
   "class.bulkPdfWhichReports": "Le PDF groupé inclut",
   "class.bulkPdfAllReady": "Tous les rapports prêts",
   "archive.title": "Archives d’année scolaire",
@@ -585,6 +621,8 @@ const FR: UiMessages = {
   "archive.noReports": "Aucun rapport.",
   "archive.reportN": "Rapport enregistré {n}",
   "archive.termFocus": "Trimestre du rapport",
+  "archive.termFocusShortCourse": "Rapport de stage court (période unique)",
+  "archive.gradesTitleShortCourse": "Notes (0–10) — cours court",
   "archive.term1": "Trimestre 1",
   "archive.term2": "Trimestre 2",
   "archive.term3": "Trimestre 3",
@@ -643,6 +681,17 @@ const FR: UiMessages = {
   "report.pageTitle": "Rapport individuel",
   "report.pageIntro":
     "Classe, matière et année se règlent sur l’écran Classe ; ajustez ici seulement si besoin.",
+  "report.pageIntroShort":
+    "Rapport de fin de cours court : une grille 0–10 pour la période et un seul commentaire pour les familles. Les trimestres 2 et 3 ne s’appliquent pas.",
+  "report.shortCourseBadge": "Rapport cours court",
+  "report.shortCourseGradesTitle": "Notes cours court (0–10)",
+  "report.shortCourseGradesHint":
+    "Saisissez les notes pour le cours court uniquement. L’IA et le PDF n’utilisent que ce bloc. Pas de sélecteur de trimestre : une seule période courte.",
+  "report.shortCourseTermHeading": "Période du cours court",
+  "report.generatedHintShort":
+    "Commentaire de fin de cours court. Le PDF est canonique ; l’enseignant en est la traduction. Supprimer efface les deux.",
+  "report.aiFillHintShort":
+    "Remplissez les 16 notes (0–10) pour ce cours court pour un brouillon plus fiable.",
   "report.loading": "Chargement…",
   "report.genderMale": "Homme",
   "report.genderFemale": "Femme",
@@ -658,9 +707,14 @@ const FR: UiMessages = {
   "pdf.gradesTerm1": "Trim. 1",
   "pdf.gradesTerm2": "Trim. 2",
   "pdf.gradesTerm3": "Trim. 3",
+  "pdf.gradesShortCourseCol": "Cours court",
   "pdf.gradesSectionTitle": "Relevé de notes (structuré)",
   "pdf.gradesSectionIntro": "Les notes chiffrées vont de 0 à 10 sur les trois trimestres.",
+  "pdf.gradesSectionIntroShortCourse":
+    "Notes chiffrées sur une échelle 0 à 10 pour cette période de cours court uniquement (observation unique).",
   "pdf.gradesTermAverage": "Moyenne du {term} (si les 16 cases sont remplies) : {value}",
+  "pdf.gradesShortCourseAverage": "Moyenne du {term} (si les 16 cases sont remplies) : {value}",
+  "pdf.shortCourseReportFocus": "Cours court",
   "pdf.metaReportFocus": "Période du rapport",
   "pdf.defaultReportTitleSuffix": "Rapport",
   "pdf.studentLine": "Élève : {name}",
@@ -745,6 +799,8 @@ const FR: UiMessages = {
   "class.addPupil": "Ajouter un élève",
   "class.report": "Rapport",
   "class.newReport": "+ Nouveau rapport",
+  "class.newShortCourseReport": "+ Rapport cours court",
+  "class.shortCourseReportLink": "Cours court",
   "class.deletePupil": "Supprimer l’élève",
   "class.noPupils": "Pas encore d’élèves — ajoutez-en un ci-dessus.",
   "class.confirmYearChange":
@@ -866,7 +922,13 @@ const ES: UiMessages = {
   "tenant.noClassesLead": "Aún no hay clases — cree una arriba.",
   "tenant.noClassesTeacher": "Sin clases asignadas. Un responsable debe asignar su correo.",
   "class.studentsHint":
-    "Trimestre, cuadrícula 0–10 e IA están en la página Informe de cada alumno.",
+    "Trimestre, cuadrícula 0–10 e IA están en el informe de cada alumno (no aquí). Use Añadir informe en la fila: estándar (tres trimestres) o curso corto (un periodo).",
+  "class.studentsReportTypesCallout":
+    "Informes de curso corto: en cada fila, abra Añadir informe y elija Curso corto (un solo periodo). Estándar = tres trimestres.",
+  "class.addReportLabel": "Añadir informe",
+  "class.addReportPlaceholder": "Elija el tipo…",
+  "class.addReportStandard": "Estándar (tres trimestres)",
+  "class.addReportShortCourse": "Curso corto (un periodo)",
   "class.bulkPdfWhichReports": "La descarga incluye",
   "class.bulkPdfAllReady": "Todos los informes listos",
   "archive.title": "Archivos del año escolar",
@@ -883,6 +945,8 @@ const ES: UiMessages = {
   "archive.noReports": "Sin informes.",
   "archive.reportN": "Informe guardado {n}",
   "archive.termFocus": "Trimestre del informe",
+  "archive.termFocusShortCourse": "Informe de curso corto (único periodo)",
+  "archive.gradesTitleShortCourse": "Notas (0–10) — curso corto",
   "archive.term1": "Trimestre 1",
   "archive.term2": "Trimestre 2",
   "archive.term3": "Trimestre 3",
@@ -940,6 +1004,17 @@ const ES: UiMessages = {
   "report.pageTitle": "Informe individual",
   "report.pageIntro":
     "Clase, materia y año se configuran en la pantalla Clase; ajuste aquí solo si hace falta.",
+  "report.pageIntroShort":
+    "Informe final de curso corto: una rejilla 0–10 para el periodo y un solo comentario para las familias. No se usan los trimestres 2 y 3.",
+  "report.shortCourseBadge": "Informe de curso corto",
+  "report.shortCourseGradesTitle": "Notas del curso corto (0–10)",
+  "report.shortCourseGradesHint":
+    "Introduzca las notas solo del curso corto. La IA y el PDF usan este único bloque. Sin selector de trimestre: cubre un solo periodo breve.",
+  "report.shortCourseTermHeading": "Periodo del curso corto",
+  "report.generatedHintShort":
+    "Comentario de fin de curso corto. El PDF es canónico; la vista profesor es su traducción. Eliminar borra ambos.",
+  "report.aiFillHintShort":
+    "Rellene las 16 celdas (0–10) de este curso corto para un borrador más fiable.",
   "report.loading": "Cargando…",
   "report.genderMale": "Hombre",
   "report.genderFemale": "Mujer",
@@ -955,9 +1030,14 @@ const ES: UiMessages = {
   "pdf.gradesTerm1": "Trim. 1",
   "pdf.gradesTerm2": "Trim. 2",
   "pdf.gradesTerm3": "Trim. 3",
+  "pdf.gradesShortCourseCol": "Curso corto",
   "pdf.gradesSectionTitle": "Historial académico (estructurado)",
   "pdf.gradesSectionIntro": "Las calificaciones numéricas usan una escala de 0 a 10 en tres trimestres.",
+  "pdf.gradesSectionIntroShortCourse":
+    "Calificaciones numéricas en escala 0–10 solo para este periodo de curso corto (una observación).",
   "pdf.gradesTermAverage": "Media del {term} (si las 16 casillas están completas): {value}",
+  "pdf.gradesShortCourseAverage": "Media del {term} (si las 16 casillas están completas): {value}",
+  "pdf.shortCourseReportFocus": "Curso corto",
   "pdf.metaReportFocus": "Periodo del informe",
   "pdf.defaultReportTitleSuffix": "Informe",
   "pdf.studentLine": "Alumno: {name}",
@@ -1042,6 +1122,8 @@ const ES: UiMessages = {
   "class.addPupil": "Añadir alumno",
   "class.report": "Informe",
   "class.newReport": "+ Nuevo informe",
+  "class.newShortCourseReport": "+ Informe curso corto",
+  "class.shortCourseReportLink": "Curso corto",
   "class.deletePupil": "Eliminar alumno",
   "class.noPupils": "Aún no hay alumnos — añada uno arriba.",
   "class.confirmYearChange":

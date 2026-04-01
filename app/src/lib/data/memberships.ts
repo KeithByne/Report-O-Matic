@@ -50,6 +50,24 @@ export async function getMembershipsForEmail(email: string): Promise<MembershipW
   return out;
 }
 
+/** Primary owner email for a school (first owner if several). Used for shared credit pool. */
+export async function getOwnerEmailForTenant(tenantId: string): Promise<string | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("memberships")
+    .select("user_email")
+    .eq("tenant_id", tenantId)
+    .eq("role", "owner")
+    .order("user_email", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  const e = typeof (data as { user_email?: string }).user_email === "string" ? (data as { user_email: string }).user_email : "";
+  const n = e.trim().toLowerCase();
+  return n || null;
+}
+
 export async function getRoleForTenant(email: string, tenantId: string): Promise<RomRole | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;

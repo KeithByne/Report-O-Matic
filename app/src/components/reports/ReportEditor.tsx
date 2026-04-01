@@ -4,15 +4,16 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import {
-  allTermsComplete,
   DATASET4_METRICS,
   type Dataset4MetricKey,
   type ReportInputs,
   type ReportPeriod,
   type TermGrades,
   emptyReportInputs,
+  isShortCourseReport,
   nextReportStatusFromContent,
   parseReportInputs,
+  rubricCompleteForAi,
   termAveragePercent,
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -304,8 +305,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
     });
   }
 
-  const datasetComplete = allTermsComplete(inputs);
-  const focusTermIndex = reportPeriodToTermIndex(inputs.report_period);
+  const shortCourse = isShortCourseReport(inputs);
+  const gridCompleteForAi = rubricCompleteForAi(inputs);
+  const focusTermIndex = shortCourse ? 0 : reportPeriodToTermIndex(inputs.report_period);
   const focusTermAvg = termAveragePercent(inputs.terms[focusTermIndex]);
 
   if (loadError) {
@@ -328,8 +330,15 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{schoolName}</p>
-          <h2 className="text-xl font-semibold text-zinc-900">{t("report.pageTitle")}</h2>
-          <p className="mt-1 text-sm text-zinc-600">{t("report.pageIntro")}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold text-zinc-900">{t("report.pageTitle")}</h2>
+            {shortCourse ? (
+              <span className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-900">
+                {t("report.shortCourseBadge")}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm text-zinc-600">{shortCourse ? t("report.pageIntroShort") : t("report.pageIntro")}</p>
         </div>
         <Link href={`/reports/${tenantId}/classes/${classId}`} className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline">
           {t("report.backClass")}
@@ -471,27 +480,33 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
       </section>
 
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-zinc-900">{t("report.termGradesTitle")}</h3>
-        <p className="mt-1 text-xs text-zinc-500">{t("report.termGradesHint")}</p>
+        <h3 className="text-sm font-semibold text-zinc-900">
+          {shortCourse ? t("report.shortCourseGradesTitle") : t("report.termGradesTitle")}
+        </h3>
+        <p className="mt-1 text-xs text-zinc-500">
+          {shortCourse ? t("report.shortCourseGradesHint") : t("report.termGradesHint")}
+        </p>
         <div className="mt-4 max-w-md">
-          <label className="block text-sm font-medium text-zinc-800">
-            {t("report.termForReport")}
-            <select
-              value={inputs.report_period}
-              onChange={(e) =>
-                setInputs((prev) => ({
-                  ...prev,
-                  report_period: e.target.value as ReportInputs["report_period"],
-                }))
-              }
-              className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 shadow-sm"
-            >
-              <option value="first">{t("report.termFirst")}</option>
-              <option value="second">{t("report.termSecond")}</option>
-              <option value="third">{t("report.termThird")}</option>
-            </select>
-          </label>
-          <p className="mt-2 text-xs text-zinc-500">
+          {shortCourse ? null : (
+            <label className="block text-sm font-medium text-zinc-800">
+              {t("report.termForReport")}
+              <select
+                value={inputs.report_period}
+                onChange={(e) =>
+                  setInputs((prev) => ({
+                    ...prev,
+                    report_period: e.target.value as ReportInputs["report_period"],
+                  }))
+                }
+                className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 shadow-sm"
+              >
+                <option value="first">{t("report.termFirst")}</option>
+                <option value="second">{t("report.termSecond")}</option>
+                <option value="third">{t("report.termThird")}</option>
+              </select>
+            </label>
+          )}
+          <p className={`mt-2 text-xs text-zinc-500 ${shortCourse ? "mt-0" : ""}`}>
             {t("report.termTotal")}{" "}
             <span className="font-semibold text-zinc-800">
               {focusTermAvg === null ? "—" : `${focusTermAvg.toFixed(2)}%`}
@@ -501,8 +516,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
 
         <div className="mt-6 space-y-4 border-t border-emerald-100 pt-6">
           <p className="text-sm font-semibold text-zinc-900">
-            {termHeading(focusTermIndex)}
-            {t("report.termInputs")}
+            {shortCourse ? t("report.shortCourseTermHeading") : `${termHeading(focusTermIndex)}${t("report.termInputs")}`}
           </p>
           <div className="space-y-4">
             {([0, 1, 2, 3] as const).map((rowIdx) => {
@@ -540,7 +554,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
 
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">{t("report.generatedTitle")}</h3>
-        <p className="mt-1 text-xs text-zinc-500">{t("report.generatedHint", { term: termHeading(focusTermIndex) })}</p>
+        <p className="mt-1 text-xs text-zinc-500">
+          {shortCourse ? t("report.generatedHintShort") : t("report.generatedHint", { term: termHeading(focusTermIndex) })}
+        </p>
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -626,7 +642,8 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
       <section className="rounded-2xl border border-amber-100 bg-amber-50/80 p-5">
         <h3 className="text-sm font-semibold text-amber-950">{t("report.aiTitle")}</h3>
         <p className="mt-1 text-xs text-amber-900/80">
-          {t("report.aiHint")} {!datasetComplete ? t("report.aiFillHint") : null}
+          {t("report.aiHint")}{" "}
+          {!gridCompleteForAi ? (shortCourse ? t("report.aiFillHintShort") : t("report.aiFillHint")) : null}
         </p>
         <button
           type="button"

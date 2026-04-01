@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
 import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
+import { getOwnerCreditBalance, getTenantCreditBalance } from "@/lib/data/credits";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
@@ -22,6 +23,9 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
   if (!role) redirect("/reports");
 
   const schoolName = (await getTenantName(tenantId)) || "School";
+
+  const accountCreditsRemaining =
+    role === "owner" ? await getOwnerCreditBalance(session.email) : await getTenantCreditBalance(tenantId);
 
   const supabase = getServiceSupabase();
   const { data: packs } = supabase
@@ -48,7 +52,18 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
         <div className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
           <h1 className="text-xl font-semibold tracking-tight text-zinc-900">Buy report credits</h1>
           <p className="mt-2 text-sm text-zinc-600">
-            {schoolName} needs report credits before you can start creating reports.
+            {role === "owner" ? (
+              <>
+                Credits are added to <strong>your owner account</strong> and shared by every school you own (including{" "}
+                {schoolName}). Buying here still helps keep payment history with this school in Stripe.
+              </>
+            ) : (
+              <>{schoolName} needs report credits before you can create reports.</>
+            )}
+          </p>
+          <p className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800">
+            <span className="font-semibold">Current balance (this account):</span>{" "}
+            <span className="tabular-nums font-bold text-zinc-900">{accountCreditsRemaining}</span> reports remaining
           </p>
           {role !== "owner" ? (
             <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">

@@ -6,7 +6,7 @@ import { isUiLang, metricDivisionLabel, metricLabel, translate, type UiLang } fr
 
 import type { MetricDivisionKey, ReportInputs, ReportPeriod } from "@/lib/reportInputs";
 
-import { DATASET4_METRICS, termAveragePercent } from "@/lib/reportInputs";
+import { DATASET4_METRICS, isShortCourseReport, termAveragePercent } from "@/lib/reportInputs";
 
 import { pdfTeacherSignatureLabel } from "@/lib/pdf/pdfTeacherSignature";
 
@@ -144,6 +144,11 @@ function periodLabel(p: ReportPeriod, lang: UiLang): string {
   if (p === "first") return translate(lang, "report.termFirst");
   if (p === "second") return translate(lang, "report.termSecond");
   return translate(lang, "report.termThird");
+}
+
+function reportFocusLabel(inputs: ReportInputs, lang: UiLang): string {
+  if (isShortCourseReport(inputs)) return translate(lang, "pdf.shortCourseReportFocus");
+  return periodLabel(inputs.report_period, lang);
 }
 
 
@@ -355,17 +360,19 @@ function drawTeacherSignatureFoot(doc: PdfDoc, label: string): void {
 function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang: UiLang): number {
   const usableW = widthPt - marginPt * 2;
   const colLabelW = usableW * tableSpec.colLabelRatio;
-  const colTermW = (usableW - colLabelW) / 3;
+  const shortCourse = isShortCourseReport(inputs);
+  const colTermW = shortCourse ? usableW - colLabelW : (usableW - colLabelW) / 3;
   const x0 = marginPt;
   const x1 = x0 + colLabelW;
   const x2 = x1 + colTermW;
-  const x3 = x2 + colTermW;
+  const x3 = shortCourse ? x2 : x2 + colTermW;
 
   const termHeaders = [
     translate(lang, "pdf.gradesTerm1"),
     translate(lang, "pdf.gradesTerm2"),
     translate(lang, "pdf.gradesTerm3"),
   ] as const;
+  const shortHeader = translate(lang, "pdf.gradesShortCourseCol");
 
   let y = startY;
   const rowH = tableSpec.rowHeight;
@@ -373,9 +380,13 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
 
   applyTypo(doc, typo.gradesHeader);
   doc.text(translate(lang, "pdf.gradesColDimension"), x0, y, { width: colLabelW });
-  doc.text(termHeaders[0], x1, y, { width: colTermW, align: "center" });
-  doc.text(termHeaders[1], x2, y, { width: colTermW, align: "center" });
-  doc.text(termHeaders[2], x3, y, { width: colTermW, align: "center" });
+  if (shortCourse) {
+    doc.text(shortHeader, x1, y, { width: colTermW, align: "center" });
+  } else {
+    doc.text(termHeaders[0], x1, y, { width: colTermW, align: "center" });
+    doc.text(termHeaders[1], x2, y, { width: colTermW, align: "center" });
+    doc.text(termHeaders[2], x3, y, { width: colTermW, align: "center" });
+  }
   y += headerH;
 
   doc.font("Helvetica");
@@ -390,10 +401,12 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
     }
     doc.fontSize(typo.gradesCellLabel.fontSize);
     doc.text(metricLabel(lang, m.key), x0, y, { width: colLabelW - 4 });
-    for (let t = 0; t < 3; t++) {
+    const termCount = shortCourse ? 1 : 3;
+    for (let ti = 0; ti < termCount; ti++) {
+      const t = shortCourse ? 0 : ti;
       const v = inputs.terms[t][m.key];
       const cell = v === null || v === undefined ? "—" : String(v);
-      const xi = t === 0 ? x1 : t === 1 ? x2 : x3;
+      const xi = shortCourse ? x1 : ti === 0 ? x1 : ti === 1 ? x2 : x3;
       doc.text(cell, xi, y, { width: colTermW, align: "center" });
     }
     y += rowH;
@@ -406,10 +419,18 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
   doc.x = marginPt;
   doc.y = y + 10;
   applyTypo(doc, typo.gradesFooter);
-  for (let t = 0; t < 3; t++) {
-    const pct = termAveragePercent(inputs.terms[t]);
+  if (shortCourse) {
+    const pct = termAveragePercent(inputs.terms[0]);
     const valueStr = pct === null ? "—" : `${pct.toFixed(2)}%`;
-    doc.text(translate(lang, "pdf.gradesTermAverage", { term: termHeaders[t], value: valueStr }));
+    doc.text(
+      translate(lang, "pdf.gradesShortCourseAverage", { term: shortHeader, value: valueStr }),
+    );
+  } else {
+    for (let t = 0; t < 3; t++) {
+      const pct = termAveragePercent(inputs.terms[t]);
+      const valueStr = pct === null ? "—" : `${pct.toFixed(2)}%`;
+      doc.text(translate(lang, "pdf.gradesTermAverage", { term: termHeaders[t], value: valueStr }));
+    }
   }
 
   return doc.y;
@@ -418,7 +439,7 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
 
 
 export function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 7) {
+  if (REPORT_PDF_LAYOUT_VERSION !== 8) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
   return renderReportPdfLayoutV4(ctx);
@@ -508,7 +529,7 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
 
     metaLines.push(translate(lang, "pdf.metaSubject", { subject: ctx.subjectLabel }));
 
-    metaLines.push(`${translate(lang, "pdf.metaReportFocus")}: ${periodLabel(ctx.reportPeriod, lang)}`);
+    metaLines.push(`${translate(lang, "pdf.metaReportFocus")}: ${reportFocusLabel(ctx.inputs, lang)}`);
 
     metaLines.push(
       translate(lang, "pdf.metaReportLanguage", { label: ctx.outputLanguageLabel }),
@@ -544,10 +565,16 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
 
     applyTypo(doc, typo.gradesSectionIntro);
 
-    doc.text(translate(lang, "pdf.gradesSectionIntro"), {
-      align: "left",
-      lineGap: typo.gradesSectionIntro.lineGap,
-    });
+    doc.text(
+      translate(
+        lang,
+        isShortCourseReport(ctx.inputs) ? "pdf.gradesSectionIntroShortCourse" : "pdf.gradesSectionIntro",
+      ),
+      {
+        align: "left",
+        lineGap: typo.gradesSectionIntro.lineGap,
+      },
+    );
 
     doc.moveDown(0.65);
 

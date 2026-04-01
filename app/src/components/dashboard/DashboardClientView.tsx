@@ -32,6 +32,10 @@ export type DashboardClientViewProps = {
   rosterByTenant: Record<string, TenantMemberRow[]>;
   summaryByTenant: Record<string, TenantSummaryStats>;
   teacherStatsByTenant: Record<string, TeacherStats[]>;
+  /** Shared pool for this signed-in email when they own at least one school. */
+  ownerReportCredits: number | null;
+  /** Billing checkout is per-URL; use first owned school for “buy credits”. */
+  firstOwnerTenantId: string | null;
 };
 
 function formatSessionEnds(expMs: number, locale: string): string {
@@ -49,6 +53,8 @@ export function DashboardClientView({
   rosterByTenant,
   summaryByTenant,
   teacherStatsByTenant,
+  ownerReportCredits,
+  firstOwnerTenantId,
 }: DashboardClientViewProps) {
   const { lang, t } = useUiLanguage();
   const locale = UI_LOCALE_BCP47[lang];
@@ -183,6 +189,23 @@ export function DashboardClientView({
               ({hoursLabel} {t("dash.left")})
             </span>
           </p>
+          {hasOwner && ownerReportCredits !== null ? (
+            <div className="mt-4 rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-900">{t("dash.ownerCreditsTitle")}</h3>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-teal-950">
+                {t("dash.ownerCreditsRemaining", { n: ownerReportCredits })}
+              </p>
+              <p className="mt-2 text-xs text-teal-900/85">{t("dash.ownerCreditsHint")}</p>
+              {firstOwnerTenantId ? (
+                <Link
+                  href={`/reports/${encodeURIComponent(firstOwnerTenantId)}/billing`}
+                  className="mt-3 inline-flex rounded-lg bg-teal-800 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-900"
+                >
+                  {t("dash.ownerCreditsBuy")}
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
         </section>
 
         {loadError ? (

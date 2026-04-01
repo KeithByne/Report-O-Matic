@@ -79,7 +79,13 @@ export const IT_LABELS: Record<string, string> = {
   "tenant.noClassesLead": "Ancora nessuna classe — creane una sopra.",
   "tenant.noClassesTeacher": "Nessuna classe assegnata. Un responsabile deve assegnare la tua email.",
   "class.studentsHint":
-    "Trimestre, griglia 0–10 e commenti IA sono nella pagina Rapporto di ogni studente.",
+    "Trimestre, griglia 0–10 e IA sono nel rapporto di ogni studente (non qui). Usa Aggiungi rapporto sulla riga: standard (tre trimestri) o corso breve (un periodo).",
+  "class.studentsReportTypesCallout":
+    "Rapporti corso breve: sulla riga, apri Aggiungi rapporto e scegli Corso breve (un solo periodo). Standard = tre trimestri.",
+  "class.addReportLabel": "Aggiungi rapporto",
+  "class.addReportPlaceholder": "Scegli il tipo…",
+  "class.addReportStandard": "Standard (tre trimestri)",
+  "class.addReportShortCourse": "Corso breve (un periodo)",
   "archive.title": "Archivi anno scolastico",
   "archive.emptyExpl":
     "Quando cambia l’anno scolare, i rapporti dell’anno precedente restano qui. Gli studenti restano; i rapporti ripartono da zero.",
@@ -255,6 +261,8 @@ export const IT_LABELS: Record<string, string> = {
   "class.addPupil": "Aggiungi studente",
   "class.report": "Rapporto",
   "class.newReport": "+ Nuovo rapporto",
+  "class.newShortCourseReport": "+ Rapporto corso breve",
+  "class.shortCourseReportLink": "Corso breve",
   "class.deletePupil": "Elimina studente",
   "class.noPupils": "Ancora nessuno studente — aggiungine uno sopra.",
   "class.confirmYearChange":
@@ -355,7 +363,13 @@ export const PT_LABELS: Record<string, string> = {
   "tenant.noClassesLead": "Ainda sem turmas — crie uma acima.",
   "tenant.noClassesTeacher": "Sem turmas atribuídas. Um responsável deve atribuir o seu email.",
   "class.studentsHint":
-    "Trimestre, grelha 0–10 e comentários IA estão na página Relatório de cada aluno.",
+    "Trimestre, grelha 0–10 e IA estão no relatório de cada aluno (não aqui). Use Adicionar relatório na linha: padrão (três trimestres) ou curso curto (um período).",
+  "class.studentsReportTypesCallout":
+    "Relatórios curso curto: na linha, abra Adicionar relatório e escolha Curso curto (um período). Padrão = três trimestres.",
+  "class.addReportLabel": "Adicionar relatório",
+  "class.addReportPlaceholder": "Escolha o tipo…",
+  "class.addReportStandard": "Padrão (três trimestres)",
+  "class.addReportShortCourse": "Curso curto (um período)",
   "archive.title": "Arquivos do ano letivo",
   "archive.emptyExpl":
     "Quando o ano letivo muda, os relatórios do ano anterior ficam aqui. Os alunos permanecem; os relatórios recomeçam.",
@@ -531,6 +545,8 @@ export const PT_LABELS: Record<string, string> = {
   "class.addPupil": "Adicionar aluno",
   "class.report": "Relatório",
   "class.newReport": "+ Novo relatório",
+  "class.newShortCourseReport": "+ Relatório curso curto",
+  "class.shortCourseReportLink": "Curso curto",
   "class.deletePupil": "Eliminar aluno",
   "class.noPupils": "Ainda sem alunos — adicione um acima.",
   "class.confirmYearChange":
@@ -631,7 +647,13 @@ export const DE_LABELS: Record<string, string> = {
   "tenant.noClassesLead": "Noch keine Klassen — legen Sie oben eine an.",
   "tenant.noClassesTeacher": "Ihnen sind noch keine Klassen zugewiesen. Eine Leitung muss Ihre E-Mail in der Klasse eintragen.",
   "class.studentsHint":
-    "Trimesterauswahl, 0–10-Raster und KI-Kommentare finden Sie auf der Berichtsseite jedes Schülers (nicht auf dieser Klassenansicht).",
+    "Trimester, 0–10-Raster und KI: auf der Berichtsseite jedes Schülers (nicht hier). „Bericht hinzufügen“ in der Zeile: Standard (drei Trimester) oder Kurzkurs (ein Zeitraum).",
+  "class.studentsReportTypesCallout":
+    "Kurzkursberichte: In der Zeile „Bericht hinzufügen“ öffnen und Kurzkurs wählen (ein Zeitraum). Standard = drei Trimester.",
+  "class.addReportLabel": "Bericht hinzufügen",
+  "class.addReportPlaceholder": "Art wählen…",
+  "class.addReportStandard": "Standard (drei Trimester)",
+  "class.addReportShortCourse": "Kurzkurs (ein Zeitraum)",
   "archive.title": "Archiv Schuljahre",
   "archive.emptyExpl":
     "Wenn ein Inhaber oder die Abteilungsleitung das Schuljahr der Klasse wechselt, werden die Berichte des vorherigen Jahrs hier schreibgeschützt abgelegt. Schüler bleiben in der Klasse; Berichte starten für das neue Jahr neu.",
@@ -808,6 +830,8 @@ export const DE_LABELS: Record<string, string> = {
   "class.addPupil": "Schüler hinzufügen",
   "class.report": "Bericht",
   "class.newReport": "+ Neuer Bericht",
+  "class.newShortCourseReport": "+ Kurzkurs-Bericht",
+  "class.shortCourseReportLink": "Kurzkurs",
   "class.deletePupil": "Schüler löschen",
   "class.noPupils": "Noch keine Schüler — fügen Sie oben einen hinzu.",
   "class.confirmYearChange":

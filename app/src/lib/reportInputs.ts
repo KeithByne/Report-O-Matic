@@ -42,8 +42,12 @@ export type TermGrades = Record<Dataset4MetricKey, number | null>;
 
 export type ReportPeriod = "first" | "second" | "third";
 
+export type ReportKind = "standard" | "short_course";
+
 export type ReportInputs = {
-  schema_version: 2;
+  /** v2 legacy standard; v3 may be standard or short_course. */
+  schema_version: 2 | 3;
+  report_kind: ReportKind;
   /** Index 0 = Term 1, 1 = Term 2, 2 = Term 3 */
   terms: [TermGrades, TermGrades, TermGrades];
   /** Which term this report cycle refers to (dropdown on form). */
@@ -52,6 +56,10 @@ export type ReportInputs = {
   subject_code: SubjectCode | null;
   optional_teacher_notes: string;
 };
+
+export function isShortCourseReport(inputs: ReportInputs): boolean {
+  return inputs.report_kind === "short_course";
+}
 
 const KEYS = DATASET4_METRICS.map((m) => m.key) as Dataset4MetricKey[];
 
@@ -64,6 +72,19 @@ function emptyTerm(): TermGrades {
 export function emptyReportInputs(): ReportInputs {
   return {
     schema_version: 2,
+    report_kind: "standard",
+    terms: [emptyTerm(), emptyTerm(), emptyTerm()],
+    report_period: "first",
+    subject_code: null,
+    optional_teacher_notes: "",
+  };
+}
+
+/** End-of-short-course report: one rubric block (stored as term 1), single field narrative. */
+export function emptyShortCourseReportInputs(): ReportInputs {
+  return {
+    schema_version: 3,
+    report_kind: "short_course",
     terms: [emptyTerm(), emptyTerm(), emptyTerm()],
     report_period: "first",
     subject_code: null,
@@ -75,9 +96,15 @@ export function parseReportInputs(raw: unknown): ReportInputs {
   const base = emptyReportInputs();
   if (!raw || typeof raw !== "object") return base;
   const o = raw as Record<string, unknown>;
-  if (o.schema_version !== 2) return base;
+  const sv = o.schema_version;
+  if (sv !== 2 && sv !== 3) return base;
 
-  if (o.report_period === "first" || o.report_period === "second" || o.report_period === "third") {
+  base.schema_version = sv === 3 ? 3 : 2;
+  base.report_kind = o.report_kind === "short_course" ? "short_course" : "standard";
+  if (base.report_kind === "short_course") {
+    base.schema_version = 3;
+    base.report_period = "first";
+  } else if (o.report_period === "first" || o.report_period === "second" || o.report_period === "third") {
     base.report_period = o.report_period;
   }
   if (o.subject_code === null) base.subject_code = null;
@@ -104,6 +131,11 @@ export function parseReportInputs(raw: unknown): ReportInputs {
   }
 
   return base;
+}
+
+/** AI reliability hint: standard uses full grid; short course uses the focused term only (16 cells). */
+export function rubricCompleteForAi(inputs: ReportInputs): boolean {
+  return isShortCourseReport(inputs) ? focusTermComplete(inputs) : allTermsComplete(inputs);
 }
 
 export function termAveragePercent(term: TermGrades): number | null {
@@ -182,6 +214,23 @@ export function parseClassBulkPdfTermFilter(raw: string | null | undefined): Cla
 export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved: string): string {
   const lines: string[] = [];
   lines.push(`Subject context: ${subjectResolved}`);
+  if (isShortCourseReport(inputs)) {
+    lines.push(`Report type: Short course (single short period; grades describe this stretch only).`);
+    lines.push(`--- Short course period ---`);
+    let currentDiv: MetricDivisionKey | "" = "";
+    const t = 0;
+    for (const m of DATASET4_METRICS) {
+      if (m.divisionKey !== currentDiv) {
+        currentDiv = m.divisionKey;
+        lines.push(`[${METRIC_DIVISION_LABEL_EN[m.divisionKey]}]`);
+      }
+      const v = inputs.terms[t][m.key];
+      lines.push(`- ${m.label}: ${v === null || v === undefined ? "—" : String(v)} (0–10)`);
+    }
+    const pct = termAveragePercent(inputs.terms[t]);
+    lines.push(`Short course aggregate (if complete): ${pct === null ? "—" : `${pct.toFixed(2)}%`}`);
+    return lines.join("\n");
+  }
   lines.push(`Report period (term focus): ${inputs.report_period}`);
   const termLabel = ["Term 1", "Term 2", "Term 3"];
   for (let t = 0; t < 3; t++) {

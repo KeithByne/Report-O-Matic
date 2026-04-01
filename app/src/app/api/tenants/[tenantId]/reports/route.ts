@@ -7,7 +7,7 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import { insertReport, listReportsForTenant } from "@/lib/data/reportsDb";
 import { getStudentInTenant, listStudents } from "@/lib/data/students";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { emptyReportInputs, parseReportInputs } from "@/lib/reportInputs";
+import { emptyReportInputs, emptyShortCourseReportInputs, parseReportInputs } from "@/lib/reportInputs";
 import { getTenantCreditBalance } from "@/lib/data/credits";
 
 function isUuid(s: string): boolean {
@@ -55,7 +55,14 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     return NextResponse.json({ error: "No report credits. Please ask the owner to purchase a pack." }, { status: 402 });
   }
 
-  let body: { student_id?: unknown; title?: unknown; body?: unknown; output_language?: unknown; inputs?: unknown };
+  let body: {
+    student_id?: unknown;
+    title?: unknown;
+    body?: unknown;
+    output_language?: unknown;
+    inputs?: unknown;
+    report_kind?: unknown;
+  };
   try {
     body = (await req.json()) as {
       student_id?: unknown;
@@ -63,6 +70,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       body?: unknown;
       output_language?: unknown;
       inputs?: unknown;
+      report_kind?: unknown;
     };
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
@@ -86,7 +94,12 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const classLang = isReportLanguageCode(klass.default_output_language) ? klass.default_output_language : tenantLang;
   const langRaw = typeof body.output_language === "string" ? body.output_language.trim() : "";
   const outputLanguage = langRaw && isReportLanguageCode(langRaw) ? langRaw : classLang;
-  const inputs = body.inputs !== undefined ? parseReportInputs(body.inputs) : emptyReportInputs();
+  const wantShort = body.report_kind === "short_course";
+  const inputs = wantShort
+    ? emptyShortCourseReportInputs()
+    : body.inputs !== undefined
+      ? parseReportInputs(body.inputs)
+      : emptyReportInputs();
 
   try {
     const report = await insertReport({

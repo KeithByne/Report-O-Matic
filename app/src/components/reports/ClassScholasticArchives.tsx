@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import type { ArchivedReportSnapshot, ClassScholasticArchivePayload } from "@/lib/data/classArchives";
-import { DATASET4_METRICS, parseReportInputs, termAveragePercent, type ReportPeriod } from "@/lib/reportInputs";
+import {
+  DATASET4_METRICS,
+  isShortCourseReport,
+  parseReportInputs,
+  termAveragePercent,
+  type ReportPeriod,
+} from "@/lib/reportInputs";
 import { UI_LOCALE_BCP47 } from "@/lib/i18n/reportLanguages";
 import { metricLabel } from "@/lib/i18n/uiStrings";
 
@@ -20,16 +26,18 @@ function periodLabel(rp: ReportPeriod): "archive.term1" | "archive.term2" | "arc
 function ArchiveReadonlyGrades({ inputsRaw, reportN }: { inputsRaw: unknown; reportN: number }) {
   const { lang, t } = useUiLanguage();
   const inputs = parseReportInputs(inputsRaw);
-  const terms: (0 | 1 | 2)[] = [0, 1, 2];
-  const termTitle = (i: 0 | 1 | 2) => [t("archive.term1"), t("archive.term2"), t("archive.term3")][i];
+  const short = isShortCourseReport(inputs);
+  const terms: (0 | 1 | 2)[] = short ? [0] : [0, 1, 2];
+  const termTitle = (i: 0 | 1 | 2) =>
+    short ? t("report.shortCourseTermHeading") : [t("archive.term1"), t("archive.term2"), t("archive.term3")][i];
 
   return (
     <div className="mt-3 rounded-lg border border-emerald-200 bg-white p-3">
       <p className="text-xs font-semibold text-zinc-700">
-        {t("archive.gradesTitle")} — {t("archive.reportN", { n: reportN })}
+        {(short ? t("archive.gradesTitleShortCourse") : t("archive.gradesTitle"))} — {t("archive.reportN", { n: reportN })}
       </p>
       <p className="mt-1 text-xs text-zinc-500">
-        {t("archive.termFocus")}: {t(periodLabel(inputs.report_period))}
+        {short ? t("archive.termFocusShortCourse") : `${t("archive.termFocus")}: ${t(periodLabel(inputs.report_period))}`}
       </p>
       <div className="mt-3 space-y-4">
         {terms.map((ti) => {

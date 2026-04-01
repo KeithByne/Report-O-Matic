@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { languageLabel } from "@/lib/i18n/reportLanguages";
 import type { ReportInputs } from "@/lib/reportInputs";
-import { reportInputsToTeacherNotes, resolvedSubjectLabel } from "@/lib/reportInputs";
+import { isShortCourseReport, reportInputsToTeacherNotes, resolvedSubjectLabel } from "@/lib/reportInputs";
 import type { SubjectCode } from "@/lib/subjects";
 import type { OpenAiUsage } from "@/lib/ai/openaiCost";
 
@@ -14,6 +14,9 @@ const LANGUAGE_INSTRUCTION: Record<ReportLanguageCode, string> = {
   it: "Italian",
   pt: "Portuguese",
 };
+
+/** Appended to the model prompt for short-course reports only (instructional, English). */
+export const SHORT_COURSE_AI_CONTEXT_EN = `The context for this report is that the student has attended a course of short duration. The aim of the report is to suggest the student's evolution over a short time. By this we must recognise that high grades refer to a large or strong evolution over the short course. A notable progress during the course. Whereas a low grade would suggest little progress or a small evolution during the course.`;
 
 /**
  * Generates report comment text. Per spec: do not send student surname to the model;
@@ -51,6 +54,7 @@ Base the appraisal on the numerical 0–10 dataset supplied; be fair and specifi
     opts.className ? `Class: ${opts.className}` : "",
     `Student first name (only name to use in text): ${opts.studentFirstName}`,
     `Subject: ${subjectLine}`,
+    isShortCourseReport(opts.inputs) ? `Short course report — follow this guidance when interpreting the grades:\n${SHORT_COURSE_AI_CONTEXT_EN}` : "",
     `Structured numerical data and term labels:\n${datasetBlock}`,
     opts.extraNotes
       ? `Teacher context (use when shaping the comment for parents; do not quote or label this block; weave in fairly if relevant):\n${opts.extraNotes}`

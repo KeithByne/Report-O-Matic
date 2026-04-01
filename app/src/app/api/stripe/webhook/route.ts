@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { getStripe } from "@/lib/stripe/server";
-import { creditTenantForPurchase } from "@/lib/data/credits";
+import { creditOwnerForPurchase } from "@/lib/data/credits";
+import { getOwnerEmailForTenant } from "@/lib/data/memberships";
 
 export const runtime = "nodejs";
 
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
         "";
       const desc = typeof pi.description === "string" ? pi.description : "";
       const tenantId = typeof pi.metadata?.tenant_id === "string" ? pi.metadata.tenant_id.trim() : "";
+      const buyerEmail = String(pi.metadata?.buyer_email ?? "").trim().toLowerCase();
       const packId = typeof pi.metadata?.pack_id === "string" ? pi.metadata.pack_id.trim() : "";
       const referralCode = typeof pi.metadata?.referral_code === "string" ? pi.metadata.referral_code.trim() : "";
 
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
       });
       if (error && error.code !== "23505") throw new Error(error.message);
 
-      // Credit tenant if this payment came from a pack checkout.
+      // Credit account owner (shared pool) if this payment came from a pack checkout.
       if (tenantId && packId) {
         const { data: pack, error: pErr } = await supabase
           .from("credit_packs")
@@ -69,11 +71,18 @@ export async function POST(req: Request) {
           .eq("id", packId)
           .maybeSingle();
         if (!pErr && pack) {
-          await creditTenantForPurchase({
-            tenantId,
-            credits: Number((pack as any).report_credits) || 0,
-            stripeEventId: event.id,
-          });
+          let ownerEmail = buyerEmail;
+          if (!ownerEmail) {
+            ownerEmail = (await getOwnerEmailForTenant(tenantId)) ?? "";
+          }
+          if (ownerEmail) {
+            await creditOwnerForPurchase({
+              ownerEmail,
+              credits: Number((pack as any).report_credits) || 0,
+              stripeEventId: event.id,
+              sourceTenantId: tenantId,
+            });
+          }
           await supabase.from("tenant_billing").upsert(
             {
               tenant_id: tenantId,

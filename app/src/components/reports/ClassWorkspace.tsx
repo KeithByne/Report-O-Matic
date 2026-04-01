@@ -8,6 +8,7 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import {
   type ClassBulkPdfTermFilter,
+  isShortCourseReport,
   parseReportInputs,
   reportReadyForClassBulkPdf,
 } from "@/lib/reportInputs";
@@ -349,13 +350,18 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     }
   }
 
-  async function createReport(studentId: string) {
+  async function createReport(studentId: string, kind: "standard" | "short_course" = "standard") {
     setBusy("create");
     try {
       const res = await fetch(`${base}/reports`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ student_id: studentId, title: "", body: "" }),
+        body: JSON.stringify({
+          student_id: studentId,
+          title: "",
+          body: "",
+          ...(kind === "short_course" ? { report_kind: "short_course" as const } : {}),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed");
@@ -631,6 +637,9 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <p className="mt-1 text-xs text-zinc-500">{t("class.studentsHint")}</p>
+        <p className="mt-2 rounded-lg border border-teal-200 bg-teal-50/90 px-3 py-2 text-xs font-medium text-teal-950">
+          {t("class.studentsReportTypesCallout")}
+        </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.bulkPdfWhichReports")}</span>
@@ -802,17 +811,31 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                     href={`/reports/${tenantId}/classes/${classId}/reports/${r.id}`}
                     className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm text-zinc-800 hover:bg-emerald-100"
                   >
-                    Report
+                    {isShortCourseReport(parseReportInputs(r.inputs)) ? t("class.shortCourseReportLink") : t("class.report")}
                   </Link>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => void createReport(s.id)}
-                  disabled={busy !== null}
-                  className="rounded-lg border border-dashed border-emerald-200 px-3 py-1.5 text-sm text-zinc-700 hover:bg-emerald-50/70"
-                >
-                  + New report
-                </button>
+                <label className="flex min-w-[11rem] flex-col gap-0.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-teal-900">
+                    {t("class.addReportLabel")}
+                  </span>
+                  <select
+                    className="rounded-lg border-2 border-teal-400 bg-white px-2 py-2 text-sm font-medium text-zinc-900 shadow-sm disabled:opacity-50"
+                    defaultValue=""
+                    disabled={busy !== null}
+                    aria-label={t("class.addReportLabel")}
+                    onChange={(e) => {
+                      const sel = e.currentTarget;
+                      const v = sel.value;
+                      if (v === "standard") void createReport(s.id, "standard");
+                      else if (v === "short_course") void createReport(s.id, "short_course");
+                      sel.selectedIndex = 0;
+                    }}
+                  >
+                    <option value="">{t("class.addReportPlaceholder")}</option>
+                    <option value="standard">{t("class.addReportStandard")}</option>
+                    <option value="short_course">{t("class.addReportShortCourse")}</option>
+                  </select>
+                </label>
                 {canDeleteStudent ? (
                   <button
                     type="button"
