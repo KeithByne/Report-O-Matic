@@ -73,6 +73,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       className: klass.name,
       students: studentRows,
       sessionColumnCount: sessionCount,
+      activeWeekdays: klass.active_weekdays,
       uiLang,
     });
     const fname = `${safeFilename(klass.name || "class")}-register.pdf`;

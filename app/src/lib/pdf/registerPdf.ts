@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import type { WeekdayKey } from "@/lib/activeWeekdays";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { PDF_PAGE_SPEC } from "@/lib/pdf/reportPdfLayoutModel";
 import { drawReportLetterhead, type ReportPdfLetterhead } from "@/lib/pdf/reportPdf";
@@ -24,6 +25,8 @@ export type RegisterPdfContext = {
   className: string;
   students: RegisterPdfStudentRow[];
   sessionColumnCount: number;
+  /** Class meeting days in Mon→Sun order; each session column cycles this list across five weeks. */
+  activeWeekdays: WeekdayKey[];
   uiLang: string;
 };
 
@@ -42,6 +45,10 @@ function clipName(s: string, maxLen: number): string {
   return `${t.slice(0, Math.max(0, maxLen - 1))}…`;
 }
 
+function registerSessionAbbr(lang: UiLang, day: WeekdayKey): string {
+  return translate(lang, `pdf.registerAbbr.${day}`);
+}
+
 function drawRegisterPage(
   doc: PdfDoc,
   opts: {
@@ -50,6 +57,7 @@ function drawRegisterPage(
     className: string;
     studentsPage: RegisterPdfStudentRow[];
     sessionColumnCount: number;
+    activeWeekdays: WeekdayKey[];
     lang: UiLang;
   },
 ): void {
@@ -108,13 +116,16 @@ function drawRegisterPage(
     align: "left",
   });
 
+  const cycle = opts.activeWeekdays;
   doc.font("Helvetica").fontSize(hdrNumSize).fillColor("#475569");
   for (let c = 0; c < sessionCount; c++) {
     const cx = x2 + c * sessionW;
-    doc.text(String(c + 1), cx, tableTop + 6, { width: sessionW, align: "center" });
+    const dayKey = cycle[c % cycle.length]!;
+    const label = registerSessionAbbr(opts.lang, dayKey);
+    doc.text(label, cx, tableTop + 6, { width: sessionW, align: "center" });
   }
 
-  // Regular Helvetica 14pt only — reset so class title / header styles cannot leak (e.g. bold or larger size).
+  // Regular body size — reset so class title / header styles cannot leak (e.g. bold or larger size).
   doc.font("Helvetica");
   doc.fontSize(NAME_FONT_PT);
   doc.fillColor("#0f172a");
@@ -162,6 +173,9 @@ function drawRegisterPage(
 
 export function buildRegisterPdfBuffer(ctx: RegisterPdfContext): Promise<Buffer> {
   const lang: UiLang = isUiLang(ctx.uiLang) ? ctx.uiLang : "en";
+  if (!ctx.activeWeekdays.length) {
+    return Promise.reject(new Error("Register PDF requires at least one active weekday."));
+  }
   const pages = chunkPages(ctx.students, ROWS_PER_PAGE);
 
   return new Promise((resolve, reject) => {
@@ -188,6 +202,7 @@ export function buildRegisterPdfBuffer(ctx: RegisterPdfContext): Promise<Buffer>
         className: ctx.className,
         studentsPage: pages[i] ?? [],
         sessionColumnCount: ctx.sessionColumnCount,
+        activeWeekdays: ctx.activeWeekdays,
         lang,
       });
     }
