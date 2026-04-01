@@ -6,7 +6,7 @@ import { drawReportLetterhead, type ReportPdfLetterhead } from "@/lib/pdf/report
 const REGISTER_MARGIN_PT = 28;
 const ROWS_PER_PAGE = 16;
 /** Body: first / last name columns (PDF points, 1 pt = 1/72 in). */
-const NAME_FONT_PT = 14;
+const NAME_FONT_PT = 12;
 const CLASS_TITLE_FONT_PT = 18;
 
 const { widthPt, heightPt } = PDF_PAGE_SPEC;
