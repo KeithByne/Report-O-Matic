@@ -1,14 +1,18 @@
 @import "tailwindcss";
 
-/* Restful light theme: soft mint page, dark text. Login-style app shell is light + green accents. */
+/* Restful light theme: soft mint page, dark text. Login-style app shell is light + green accents.
+   Page wash is ~15% darker (85% base + 15% black) for base mint and emerald-50/100 surfaces. */
 :root {
-  --background: #f0f7f4;
+  --background: color-mix(in srgb, #f0f7f4 85%, black);
   --foreground: #0c1a14;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  /* Shell / panel tints used across dashboard & reports (was default emerald-50 / emerald-100). */
+  --color-emerald-50: color-mix(in srgb, #ecfdf5 85%, black);
+  --color-emerald-100: color-mix(in srgb, #d1fae5 85%, black);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
