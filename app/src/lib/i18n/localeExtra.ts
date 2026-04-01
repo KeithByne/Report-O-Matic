@@ -252,8 +252,6 @@ export const IT_LABELS: Record<string, string> = {
     "Cambiando l’anno scolastico si archivia in sola lettura l’anno in corso (tutti i rapporti), poi si rimuovono quei rapporti per ricominciare. Gli studenti restano nella classe. Continuare?",
   "class.confirmRemoveStudent": "Rimuovere {name} da questa classe? Tutti i suoi rapporti verranno eliminati.",
   "class.activeDaysLabel": "Giorni di lezione",
-  "class.activeDaysHint":
-    "Usato per il PDF «Stampa registro» (cinque settimane di colonne). Salvare le impostazioni dopo le modifiche.",
   "class.activeDaysDisplay": "Giorni attivi (registro)",
   "class.printRegister": "Stampa registro",
   "class.printRegisterNeedDays": "Scegliere prima i giorni di lezione nelle impostazioni della classe.",
@@ -521,8 +519,6 @@ export const PT_LABELS: Record<string, string> = {
     "Alterar o ano letivo arquiva em só leitura o ano atual (todos os relatórios dos alunos) e remove esses relatórios para recomeçar. Os alunos permanecem na turma. Continuar?",
   "class.confirmRemoveStudent": "Remover {name} desta turma? Todos os relatórios desse aluno serão eliminados.",
   "class.activeDaysLabel": "Dias de aula",
-  "class.activeDaysHint":
-    "Usado no PDF «Imprimir registo» (cinco semanas de colunas). Guarde as definições da turma após alterar.",
   "class.activeDaysDisplay": "Dias ativos (registo)",
   "class.printRegister": "Imprimir registo",
   "class.printRegisterNeedDays": "Escolha primeiro os dias de aula nas definições da turma.",
@@ -792,8 +788,6 @@ export const DE_LABELS: Record<string, string> = {
   "class.confirmRemoveStudent":
     "{name} aus dieser Klasse entfernen? Alle Berichte dieses Schülers werden gelöscht.",
   "class.activeDaysLabel": "Unterrichtstage",
-  "class.activeDaysHint":
-    "Wird für das PDF «Anwesenheitsliste drucken» genutzt (fünf Wochen Spalten). Klasseneinstellungen danach speichern.",
   "class.activeDaysDisplay": "Aktive Tage (Liste)",
   "class.printRegister": "Anwesenheitsliste drucken",
   "class.printRegisterNeedDays": "Wählen Sie zuerst die Unterrichtstage in den Klasseneinstellungen.",

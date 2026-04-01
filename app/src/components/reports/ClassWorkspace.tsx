@@ -522,7 +522,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           </label>
           <div className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.activeDaysLabel")}</span>
-            <p className="mt-1 text-xs text-zinc-500">{t("class.activeDaysHint")}</p>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
               {WEEKDAY_KEYS.map((k) => (
                 <label key={k} className="flex cursor-pointer items-center gap-2 text-sm text-zinc-800">

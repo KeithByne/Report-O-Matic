@@ -443,7 +443,6 @@ const EN: UiMessages = {
     "Changing the scholastic year saves a read-only archive of the current year (all pupil reports), then removes those reports so you can start fresh for the new year. Pupils stay in the class. Continue?",
   "class.confirmRemoveStudent": "Remove {name} from this class? All their reports will be deleted.",
   "class.activeDaysLabel": "Days this class meets",
-  "class.activeDaysHint": "Used for the Print Register PDF (five weeks of session columns). Save class settings after changing.",
   "class.activeDaysDisplay": "Register uses",
   "class.printRegister": "Print Register",
   "class.printRegisterNeedDays": "Choose which days the class meets in Class settings first.",
@@ -734,8 +733,6 @@ const FR: UiMessages = {
     "Changer l’année scolaire enregistre un archive en lecture seule de l’année en cours (tous les rapports des élèves), puis supprime ces rapports pour repartir à zéro. Les élèves restent dans la classe. Continuer ?",
   "class.confirmRemoveStudent": "Retirer {name} de cette classe ? Tous ses rapports seront supprimés.",
   "class.activeDaysLabel": "Jours de cours",
-  "class.activeDaysHint":
-    "Sert pour le PDF « Imprimer le registre » (cinq semaines de colonnes). Enregistrez les paramètres après modification.",
   "class.activeDaysDisplay": "Jours pour le registre",
   "class.printRegister": "Imprimer le registre",
   "class.printRegisterNeedDays": "Choisissez d’abord les jours de cours dans les paramètres de la classe.",
@@ -1024,8 +1021,6 @@ const ES: UiMessages = {
     "Al cambiar el año escolar se archiva en solo lectura el año actual (todos los informes de los alumnos) y luego se eliminan esos informes para empezar de cero. Los alumnos permanecen en la clase. ¿Continuar?",
   "class.confirmRemoveStudent": "¿Quitar a {name} de esta clase? Se eliminarán todos sus informes.",
   "class.activeDaysLabel": "Días de clase",
-  "class.activeDaysHint":
-    "Se usa para el PDF «Imprimir registro» (cinco semanas de columnas). Guarde los ajustes de la clase tras cambiar.",
   "class.activeDaysDisplay": "Días activos (registro)",
   "class.printRegister": "Imprimir registro",
   "class.printRegisterNeedDays": "Elija primero los días de clase en Ajustes de la clase.",
