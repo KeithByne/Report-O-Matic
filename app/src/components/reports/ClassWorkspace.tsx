@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ClassScholasticArchives } from "@/components/reports/ClassScholasticArchives";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -160,7 +160,9 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [moveStudentId, setMoveStudentId] = useState("");
   const [moveToClassId, setMoveToClassId] = useState("");
 
-  const [activeDays, setActiveDays] = useState<Set<WeekdayKey>>(() => new Set());
+  /** Mon→Sun order; avoids Set + ensures PATCH/GET stay aligned. */
+  const [activeDays, setActiveDays] = useState<WeekdayKey[]>([]);
+  const loadClassRequestId = useRef(0);
 
   const [newFirst, setNewFirst] = useState("");
   const [newLast, setNewLast] = useState("");
@@ -171,9 +173,11 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [archiveRefresh, setArchiveRefresh] = useState(0);
 
   const loadClass = useCallback(async () => {
+    const reqId = ++loadClassRequestId.current;
     try {
       const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`);
       const data = await res.json().catch(() => ({}));
+      if (reqId !== loadClassRequestId.current) return;
       if (!res.ok) throw new Error(data.error || "Failed to load class");
       const c = data.class as ClassDetail;
       setDetail(c);
@@ -184,11 +188,12 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setAssignTeacher(c.assigned_teacher_email?.trim() ?? "");
       const aw = Array.isArray(c.active_weekdays) ? c.active_weekdays : [];
-      const keys = aw
-        .map((x) => (typeof x === "string" ? x.trim().toLowerCase() : ""))
-        .filter(isWeekdayKey);
-      setActiveDays(new Set(keys));
+      const keySet = new Set(
+        aw.map((x) => (typeof x === "string" ? x.trim().toLowerCase() : "")).filter(isWeekdayKey),
+      );
+      setActiveDays(WEEKDAY_KEYS.filter((k) => keySet.has(k)));
     } catch (e: unknown) {
+      if (reqId !== loadClassRequestId.current) return;
       setLoadError(e instanceof Error ? e.message : "Failed to load class");
     }
   }, [base, classId]);
@@ -291,6 +296,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           cefr_level: cefr.trim() || null,
           default_subject: defSubject,
           default_output_language: defLang,
+          active_weekdays: activeDays,
           ...(viewerRole === "owner" || viewerRole === "department_head"
             ? {
                 assigned_teacher_email: assignTeacher.trim() ? assignTeacher.trim().toLowerCase() : null,
@@ -527,7 +533,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             <span className="text-zinc-600">{t("class.activeDaysLabel")}</span>
             <div className="mt-2 flex flex-wrap gap-2">
               {WEEKDAY_KEYS.map((k) => {
-                const selected = activeDays.has(k);
+                const selected = activeDays.includes(k);
                 return (
                   <label
                     key={k}
@@ -542,10 +548,9 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                       checked={selected}
                       onChange={() => {
                         setActiveDays((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(k)) next.delete(k);
-                          else next.add(k);
-                          return next;
+                          const on = prev.includes(k);
+                          const raw = on ? prev.filter((d) => d !== k) : [...prev, k];
+                          return WEEKDAY_KEYS.filter((d) => raw.includes(d));
                         });
                       }}
                       className="sr-only"
@@ -557,7 +562,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </div>
             <p className="mt-2 text-sm text-zinc-700">
               <span className="font-medium text-zinc-800">{t("class.activeDaysDisplay")}: </span>
-              {WEEKDAY_KEYS.filter((k) => activeDays.has(k))
+              {WEEKDAY_KEYS.filter((k) => activeDays.includes(k))
                 .map((k) => t(`weekday.${k}`))
                 .join(", ") || "—"}
             </p>
