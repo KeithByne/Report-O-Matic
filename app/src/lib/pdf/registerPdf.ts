@@ -5,6 +5,7 @@ import { drawReportLetterhead, type ReportPdfLetterhead } from "@/lib/pdf/report
 
 const REGISTER_MARGIN_PT = 28;
 const ROWS_PER_PAGE = 16;
+/** Body: first / last name columns (PDF points, 1 pt = 1/72 in). */
 const NAME_FONT_PT = 14;
 const CLASS_TITLE_FONT_PT = 18;
 
@@ -113,15 +114,31 @@ function drawRegisterPage(
     doc.text(String(c + 1), cx, tableTop + 6, { width: sessionW, align: "center" });
   }
 
+  // Regular Helvetica 14pt only — reset so class title / header styles cannot leak (e.g. bold or larger size).
+  doc.font("Helvetica");
+  doc.fontSize(NAME_FONT_PT);
+  doc.fillColor("#0f172a");
   for (let r = 0; r < ROWS_PER_PAGE; r++) {
     const st = opts.studentsPage[r];
     const rowY = tableTop + headerH + r * rowH;
     if (st) {
-      const first = clipName(st.firstName, Math.max(8, Math.floor(firstColW / 6)));
-      const last = clipName(st.lastName, Math.max(8, Math.floor(lastColW / 6)));
-      doc.font("Helvetica").fontSize(NAME_FONT_PT).fillColor("#0f172a");
-      doc.text(first, x0 + 4, rowY + 5, { width: firstColW - 8, align: "left" });
-      doc.text(last, x1 + 4, rowY + 5, { width: lastColW - 8, align: "left" });
+      const first = clipName(st.firstName, Math.max(8, Math.floor(firstColW / 7)));
+      const last = clipName(st.lastName, Math.max(8, Math.floor(lastColW / 7)));
+      const textY = rowY + Math.max(2, (rowH - NAME_FONT_PT) / 2);
+      doc.text(first, x0 + 4, textY, {
+        width: firstColW - 8,
+        align: "left",
+        lineGap: 0,
+        height: rowH - 4,
+        ellipsis: true,
+      });
+      doc.text(last, x1 + 4, textY, {
+        width: lastColW - 8,
+        align: "left",
+        lineGap: 0,
+        height: rowH - 4,
+        ellipsis: true,
+      });
     }
   }
 
