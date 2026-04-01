@@ -1,29 +1,52 @@
-/** Supported report output languages (ISO 639-1). */
+/** Supported report output / PDF / OpenAI parent-comment languages (single ordered list for UI + API). */
 export const REPORT_LANGUAGES = [
   { code: "en", label: "English" },
-  { code: "fr", label: "French" },
   { code: "es", label: "Spanish" },
-  { code: "de", label: "German" },
+  { code: "fr", label: "French" },
   { code: "it", label: "Italian" },
+  { code: "de", label: "German" },
   { code: "pt", label: "Portuguese" },
+  { code: "nl", label: "Dutch" },
+  { code: "pl", label: "Polish" },
+  { code: "ro", label: "Romanian" },
+  { code: "ru", label: "Russian" },
+  { code: "uk", label: "Ukrainian" },
+  { code: "ar", label: "Arabic" },
 ] as const;
 
-/** Interface (UI) language options — aligned with supported report output codes. */
-export const UI_LOCALE_CODES = ["en", "fr", "es", "de", "it", "pt"] as const;
+/** Interface language codes — same set and order as report/PDF languages. */
+export const UI_LOCALE_CODES = [
+  "en",
+  "es",
+  "fr",
+  "it",
+  "de",
+  "pt",
+  "nl",
+  "pl",
+  "ro",
+  "ru",
+  "uk",
+  "ar",
+] as const;
 export type UiLocaleCode = (typeof UI_LOCALE_CODES)[number];
 
-export const UI_LOCALE_LANGUAGES = REPORT_LANGUAGES.filter((x) =>
-  (UI_LOCALE_CODES as readonly string[]).includes(x.code),
-) as readonly { code: UiLocaleCode; label: string }[];
+export const UI_LOCALE_LANGUAGES = REPORT_LANGUAGES;
 
-/** BCP-47 tags for `Date#toLocaleString` etc., aligned with UI locale codes. */
+/** BCP-47 tags for `Date#toLocaleString` etc. */
 export const UI_LOCALE_BCP47: Record<UiLocaleCode, string> = {
   en: "en-GB",
-  fr: "fr-FR",
   es: "es-ES",
-  de: "de-DE",
+  fr: "fr-FR",
   it: "it-IT",
+  de: "de-DE",
   pt: "pt-PT",
+  nl: "nl-NL",
+  pl: "pl-PL",
+  ro: "ro-RO",
+  ru: "ru-RU",
+  uk: "uk-UA",
+  ar: "ar",
 };
 
 export type ReportLanguageCode = (typeof REPORT_LANGUAGES)[number]["code"];

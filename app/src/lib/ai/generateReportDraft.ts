@@ -23,11 +23,17 @@ import {
 
 const LANGUAGE_INSTRUCTION: Record<ReportLanguageCode, string> = {
   en: "British English",
-  fr: "French",
   es: "Spanish",
-  de: "German",
+  fr: "French",
   it: "Italian",
+  de: "German",
   pt: "Portuguese",
+  nl: "Dutch",
+  pl: "Polish",
+  ro: "Romanian",
+  ru: "Russian",
+  uk: "Ukrainian",
+  ar: "Arabic",
 };
 
 /**

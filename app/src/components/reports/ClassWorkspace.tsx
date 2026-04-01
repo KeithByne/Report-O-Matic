@@ -80,10 +80,10 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [reports, setReports] = useState<Report[]>([]);
 
   const classBulkPdfGate = useMemo(() => {
-    const notFinishedMsg = "You can't download all the class reports until they are all finished.";
-    const notFinishedTermMsg = "Every pupil needs a finished report for the selected term.";
+    const notFinishedMsg = t("class.bulkPdfNotFinished");
+    const notFinishedTermMsg = t("class.bulkPdfNotFinishedTerm");
     if (students.length === 0) {
-      return { canDownload: false as const, message: "Add pupils to this class before downloading a combined PDF." };
+      return { canDownload: false as const, message: t("class.bulkPdfNeedStudents") };
     }
     const byStudent = new Map<string, Report[]>();
     for (const r of reports) {
@@ -125,7 +125,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       if (!ok) return { canDownload: false as const, message: notFinishedTermMsg };
     }
     return { canDownload: true as const, message: null as string | null };
-  }, [students, reports, batchTermFilter]);
+  }, [students, reports, batchTermFilter, t]);
 
   const batchHref = useMemo(() => {
     const qp = new URLSearchParams();
@@ -285,9 +285,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       isLead &&
       normalizeScholasticYearLabel(scholasticYear) !== normalizeScholasticYearLabel(detail?.scholastic_year ?? null)
     ) {
-      const ok = window.confirm(
-        "Changing the scholastic year saves a read-only archive of the current year (all pupil reports), then removes those reports so you can start fresh for the new year. Pupils stay in the class. Continue?",
-      );
+      const ok = window.confirm(t("class.confirmYearChange"));
       if (!ok) return;
     }
     setBusy("class-save");
@@ -327,7 +325,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     const fn = newFirst.trim();
     const ln = newLast.trim();
     if (!fn || !ln) {
-      alert("First name and last name are required.");
+      alert(t("class.firstLastRequired"));
       return;
     }
     setBusy("add");
@@ -388,7 +386,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const canDeleteClass = viewerRole === "owner" || viewerRole === "department_head";
 
   async function deleteStudentRow(studentId: string, displayName: string) {
-    if (!confirm(`Remove ${displayName} from this class? All their reports will be deleted.`)) return;
+    if (!confirm(t("class.confirmRemoveStudent", { name: displayName }))) return;
     setBusy("del-stu");
     try {
       const res = await fetch(`${base}/students/${encodeURIComponent(studentId)}`, { method: "DELETE" });
@@ -406,12 +404,12 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   async function moveStudent() {
     if (!moveStudentId || !moveToClassId) return;
     if (moveToClassId === classId) {
-      alert("Pick a different destination class.");
+      alert(t("class.movePickOtherClass"));
       return;
     }
     const who = students.find((s) => s.id === moveStudentId)?.display_name ?? "this pupil";
     const dest = allClasses.find((c) => c.id === moveToClassId)?.name ?? "the destination class";
-    if (!confirm(`Move ${who} to ${dest}? Their reports will move with them.`)) return;
+    if (!confirm(t("class.moveConfirm", { who, dest }))) return;
     setBusy("move-stu");
     try {
       const res = await fetch(`${base}/students/${encodeURIComponent(moveStudentId)}`, {
@@ -433,7 +431,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   }
 
   async function deleteWholeClass() {
-    if (!confirm(`Delete class "${cName || initialClassName}" and all pupils and reports in it?`)) return;
+    if (!confirm(t("tenant.confirmDeleteClass", { name: cName || initialClassName }))) return;
     setBusy("del-class");
     try {
       const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, { method: "DELETE" });
@@ -453,10 +451,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{schoolName}</p>
         <h2 className="text-xl font-semibold text-zinc-900">{cName || initialClassName}</h2>
-        <p className="mt-1 text-sm text-zinc-600">
-          Set <strong>class name</strong>, <strong>year</strong>, <strong>CEFR</strong>, <strong>subject</strong>, and{" "}
-          <strong>default output language</strong> here. The individual report page only overrides when needed.
-        </p>
+        <p className="mt-1 text-sm text-zinc-600">{t("class.intro")}</p>
       </div>
 
       {loadError ? (
@@ -468,11 +463,11 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           <span className="mr-1" aria-hidden>
             🌐
           </span>
-          Class settings
+          {t("class.settingsTitle")}
         </h3>
         <form onSubmit={saveClassSettings} className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="text-sm sm:col-span-2">
-            <span className="text-zinc-600">Class name</span>
+            <span className="text-zinc-600">{t("class.className")}</span>
             <input
               value={cName}
               onChange={(e) => setCName(e.target.value)}
@@ -481,7 +476,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             />
           </label>
           <label className="text-sm">
-            <span className="text-zinc-600">Scholastic year (yyyy – yyyy)</span>
+            <span className="text-zinc-600">{t("class.scholasticYear")}</span>
             {viewerRole === "teacher" ? (
               <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {scholasticYear.trim() || "—"}
@@ -491,15 +486,15 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                 value={scholasticYear}
                 onChange={(e) => setScholasticYear(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
-                placeholder="e.g. 2024 – 2025"
+                placeholder={t("class.scholasticPlaceholder")}
               />
             )}
             {viewerRole === "teacher" ? (
-              <p className="mt-1 text-xs text-zinc-500">Only owners and department heads can change the scholastic year.</p>
+              <p className="mt-1 text-xs text-zinc-500">{t("class.yearReadonlyHint")}</p>
             ) : null}
           </label>
           <label className="text-sm">
-            <span className="text-zinc-600">Class level (CEFR)</span>
+            <span className="text-zinc-600">{t("class.cefr")}</span>
             <select
               value={cefr}
               onChange={(e) => setCefr(e.target.value)}
@@ -514,7 +509,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </select>
           </label>
           <label className="text-sm">
-            <span className="text-zinc-600">Default subject</span>
+            <span className="text-zinc-600">{t("class.defaultSubject")}</span>
             <select
               value={defSubject}
               onChange={(e) => setDefSubject(e.target.value as SubjectCode)}
@@ -528,7 +523,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </select>
           </label>
           <label className="text-sm">
-            <span className="text-zinc-600">Default output language</span>
+            <span className="text-zinc-600">{t("class.defaultOutputLang")}</span>
             <select
               value={defLang}
               onChange={(e) => setDefLang(e.target.value as ReportLanguageCode)}
@@ -643,7 +638,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                 onClick={() => void deleteWholeClass()}
                 className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
               >
-                Delete class
+                {t("class.deleteClass")}
               </button>
             ) : null}
           </div>
@@ -670,16 +665,16 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </select>
           </label>
           <label className="text-sm">
-            <span className="text-zinc-600">Order</span>
+            <span className="text-zinc-600">{t("class.bulkPdfOrderLabel")}</span>
             <select
               value={batchOrder}
               onChange={(e) => setBatchOrder(e.target.value as typeof batchOrder)}
               className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
             >
-              <option value="roster">Class roster</option>
-              <option value="student">Student name</option>
-              <option value="updated_desc">Last updated (newest first)</option>
-              <option value="updated_asc">Last updated (oldest first)</option>
+              <option value="roster">{t("class.orderClassRoster")}</option>
+              <option value="student">{t("class.orderStudentName")}</option>
+              <option value="updated_desc">{t("class.orderUpdatedDesc")}</option>
+              <option value="updated_asc">{t("class.orderUpdatedAsc")}</option>
             </select>
           </label>
           {classBulkPdfGate.canDownload ? (
@@ -687,7 +682,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
               href={batchHref}
               className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
             >
-              Download class PDFs (one file)
+              {t("class.downloadClassPdfsOneFile")}
             </a>
           ) : (
             <div className="flex flex-col gap-1">
@@ -695,7 +690,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                 className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
                 title={classBulkPdfGate.message}
               >
-                Download class PDFs (one file)
+                {t("class.downloadClassPdfsOneFile")}
               </span>
               <p className="max-w-md text-xs text-amber-800">{classBulkPdfGate.message}</p>
             </div>
@@ -721,7 +716,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
         </div>
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm">
-            <span className="text-zinc-600">First name(s)</span>
+            <span className="text-zinc-600">{t("class.firstName")}</span>
             <input
               value={newFirst}
               onChange={(e) => setNewFirst(e.target.value)}
@@ -730,7 +725,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             />
           </label>
           <label className="text-sm">
-            <span className="text-zinc-600">Last name(s)</span>
+            <span className="text-zinc-600">{t("class.lastName")}</span>
             <input
               value={newLast}
               onChange={(e) => setNewLast(e.target.value)}
@@ -739,16 +734,16 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             />
           </label>
           <label className="text-sm">
-            <span className="text-zinc-600">Gender (optional)</span>
+            <span className="text-zinc-600">{t("class.genderOptional")}</span>
             <select
               value={newGender}
               onChange={(e) => setNewGender(e.target.value as typeof newGender)}
               className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
             >
               <option value="">—</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="non_binary">Non-binary</option>
+              <option value="male">{t("class.genderMale")}</option>
+              <option value="female">{t("class.genderFemale")}</option>
+              <option value="non_binary">{t("class.genderNonBinaryOpt")}</option>
             </select>
           </label>
           <div className="flex items-end">
@@ -757,17 +752,19 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
               disabled={busy !== null}
               className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
             >
-              Add pupil
+              {t("class.addPupil")}
             </button>
           </div>
         </form>
 
         {viewerRole === "owner" || viewerRole === "department_head" ? (
           <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Move pupil to another class</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              {t("class.movePupilSectionTitle")}
+            </div>
             <div className="mt-2 grid gap-3 sm:grid-cols-3">
               <label className="text-sm">
-                <span className="text-zinc-600">Pupil</span>
+                <span className="text-zinc-600">{t("class.movePupilLabel")}</span>
                 <select
                   value={moveStudentId}
                   onChange={(e) => setMoveStudentId(e.target.value)}
@@ -782,7 +779,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                 </select>
               </label>
               <label className="text-sm">
-                <span className="text-zinc-600">Destination class</span>
+                <span className="text-zinc-600">{t("class.moveDestinationLabel")}</span>
                 <select
                   value={moveToClassId}
                   onChange={(e) => setMoveToClassId(e.target.value)}
@@ -805,13 +802,11 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                   onClick={() => void moveStudent()}
                   className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
                 >
-                  Move pupil
+                  {t("class.movePupilButton")}
                 </button>
               </div>
             </div>
-            <p className="mt-2 text-xs text-zinc-500">
-              This keeps the pupil’s reports and data intact, and logs a “moved” event for dashboard stats.
-            </p>
+            <p className="mt-2 text-xs text-zinc-500">{t("class.movePupilFootnote")}</p>
           </div>
         ) : null}
 
@@ -844,14 +839,14 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                     onClick={() => void deleteStudentRow(s.id, s.display_name)}
                     className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-900 hover:bg-red-100 disabled:opacity-50"
                   >
-                    Delete pupil
+                    {t("class.deletePupil")}
                   </button>
                 ) : null}
               </div>
             </li>
           ))}
         </ul>
-        {students.length === 0 ? <p className="mt-2 text-sm text-zinc-500">No pupils yet — add one above.</p> : null}
+        {students.length === 0 ? <p className="mt-2 text-sm text-zinc-500">{t("class.noPupils")}</p> : null}
       </section>
     </div>
   );

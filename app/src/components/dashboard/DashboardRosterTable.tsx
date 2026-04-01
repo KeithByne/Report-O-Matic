@@ -2,22 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { canRemoveMember } from "@/lib/auth/memberDeletePolicy";
 import type { RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import type { TeacherStats } from "@/lib/data/tenantDashboardStats";
-
-function memberRoleLabel(role: RomRole): string {
-  switch (role) {
-    case "owner":
-      return "Owner";
-    case "department_head":
-      return "Dept. head";
-    case "teacher":
-      return "Teacher";
-    default:
-      return role;
-  }
-}
 
 type Props = {
   tenantId: string;
@@ -35,12 +23,26 @@ function fullName(row: TenantMemberRow): string {
 }
 
 export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster, teacherStats }: Props) {
+  const { t } = useUiLanguage();
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const statsByTeacher = new Map(teacherStats.map((s) => [s.email.trim().toLowerCase(), s] as const));
 
+  function memberRoleLabel(role: RomRole): string {
+    switch (role) {
+      case "owner":
+        return t("roster.roleOwner");
+      case "department_head":
+        return t("roster.roleDeptShort");
+      case "teacher":
+        return t("roster.roleTeacher");
+      default:
+        return role;
+    }
+  }
+
   async function removeMember(email: string) {
-    if (!confirm(`Remove ${email} from this school? They will lose access until invited again.`)) return;
+    if (!confirm(t("roster.confirmRemove", { email }))) return;
     setBusy(email);
     try {
       const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}/members`, {
@@ -62,13 +64,13 @@ export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster
     <table className="w-full min-w-[320px] text-left text-sm">
       <thead>
         <tr className="border-b border-emerald-100 text-xs text-zinc-500">
-          <th className="py-1.5 pr-3 font-medium">Email</th>
-          <th className="py-1.5 pr-3 font-medium">Role</th>
-          <th className="py-1.5 pr-3 font-medium">Classes</th>
-          <th className="py-1.5 pr-3 font-medium">Students</th>
-          <th className="py-1.5 pr-3 font-medium">Reports (T1/T2/T3)</th>
-          <th className="py-1.5 pr-3 font-medium">Students (A/D/M)</th>
-          <th className="py-1.5 font-medium w-24">Actions</th>
+          <th className="py-1.5 pr-3 font-medium">{t("roster.thEmail")}</th>
+          <th className="py-1.5 pr-3 font-medium">{t("roster.thRole")}</th>
+          <th className="py-1.5 pr-3 font-medium">{t("roster.thClasses")}</th>
+          <th className="py-1.5 pr-3 font-medium">{t("roster.thStudents")}</th>
+          <th className="py-1.5 pr-3 font-medium">{t("roster.thReportsTerms")}</th>
+          <th className="py-1.5 pr-3 font-medium">{t("roster.thStudentsMove")}</th>
+          <th className="py-1.5 w-24 font-medium">{t("roster.thActions")}</th>
         </tr>
       </thead>
       <tbody>
@@ -100,7 +102,7 @@ export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster
                     onClick={() => void removeMember(row.user_email)}
                     className="text-xs font-medium text-red-700 hover:underline disabled:opacity-50"
                   >
-                    {busy === row.user_email ? "…" : "Remove"}
+                    {busy === row.user_email ? t("roster.removing") : t("roster.remove")}
                   </button>
                 ) : (
                   <span className="text-xs text-zinc-400">—</span>

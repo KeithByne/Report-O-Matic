@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 
 /** Match static landing brand assets (`public/landing.html`). */
 const LOGO_CANDIDATES = ["/rom-logo.webp", "/rom-logo.png"] as const;
@@ -31,7 +32,10 @@ export function AppHeaderLogo({ size = "md" }: { size?: "sm" | "md" }) {
 }
 
 export function AppHeaderWordmark() {
-  return <div className="text-lg font-semibold leading-none tracking-tight text-zinc-900">Report-O-Matic</div>;
+  const { t } = useUiLanguage();
+  return (
+    <div className="text-lg font-semibold leading-none tracking-tight text-zinc-900">{t("brand.subtitle")}</div>
+  );
 }
 
 export function AppHeaderBrand() {

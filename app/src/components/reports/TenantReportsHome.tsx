@@ -136,7 +136,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
   })();
 
   async function deleteClass(classId: string, name: string) {
-    if (!confirm(`Delete class "${name}"?`)) return;
+    if (!confirm(t("tenant.confirmDeleteClass", { name }))) return;
     setBusy("del-class");
     try {
       const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, { method: "DELETE" });
@@ -205,13 +205,11 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
 
       {isLead ? (
         <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-zinc-900">Bulk downloads</h2>
-          <p className="mt-1 text-xs text-zinc-500">
-            Download many reports as one combined PDF for faster printing.
-          </p>
+          <h2 className="text-sm font-semibold text-zinc-900">{t("tenant.bulkDownloadsTitle")}</h2>
+          <p className="mt-1 text-xs text-zinc-500">{t("tenant.bulkDownloadsLead")}</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="text-sm">
-              <span className="text-zinc-600">Teacher</span>
+              <span className="text-zinc-600">{t("tenant.bulkTeacherLabel")}</span>
               <select
                 value={teacherEmail}
                 onChange={(e) => setTeacherEmail(e.target.value)}
@@ -232,18 +230,18 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
                 onChange={(e) => setTeacherOnlyFinal(e.target.checked)}
                 className="h-4 w-4"
               />
-              Final only
+              {t("tenant.finalOnly")}
             </label>
             <label className="text-sm">
-              <span className="text-zinc-600">Order</span>
+              <span className="text-zinc-600">{t("class.bulkPdfOrderLabel")}</span>
               <select
                 value={teacherOrder}
                 onChange={(e) => setTeacherOrder(e.target.value as typeof teacherOrder)}
                 className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
-                <option value="updated_desc">Last updated (newest first)</option>
-                <option value="updated_asc">Last updated (oldest first)</option>
-                <option value="student">Student name</option>
+                <option value="updated_desc">{t("class.orderUpdatedDesc")}</option>
+                <option value="updated_asc">{t("class.orderUpdatedAsc")}</option>
+                <option value="student">{t("class.orderStudentName")}</option>
               </select>
             </label>
             <a
@@ -252,7 +250,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
                 teacherEmail.trim() ? "" : "pointer-events-none opacity-50"
               }`}
             >
-              Download teacher PDFs (one file)
+              {t("tenant.downloadTeacherPdfsOneFile")}
             </a>
           </div>
         </section>
@@ -268,7 +266,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
                 value={newClassName}
                 onChange={(e) => setNewClassName(e.target.value)}
                 className="mt-1 block min-w-[14rem] rounded-lg border border-emerald-200 px-3 py-2"
-                placeholder="e.g. Year 7A"
+                placeholder={t("tenant.newClassPlaceholder")}
               />
             </label>
             <button

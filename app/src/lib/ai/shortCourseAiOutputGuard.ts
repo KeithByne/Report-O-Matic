@@ -103,6 +103,12 @@ const RULES: Record<ReportLanguageCode, ReplaceRule[]> = {
   de: [...DE_SANITIZE, ...EN_SANITIZE],
   it: [...IT_SANITIZE, ...EN_SANITIZE],
   pt: [...PT_SANITIZE, ...EN_SANITIZE],
+  nl: EN_SANITIZE,
+  pl: EN_SANITIZE,
+  ro: EN_SANITIZE,
+  ru: EN_SANITIZE,
+  uk: EN_SANITIZE,
+  ar: EN_SANITIZE,
 };
 
 export function sanitizeShortCourseAiComment(text: string, lang: ReportLanguageCode): string {
@@ -120,17 +126,21 @@ export function shortCourseCommentStillContainsPeriodVocabulary(
   lang: ReportLanguageCode,
 ): boolean {
   const masked = stripLongShortTermPhrases(text);
-  const checks: Record<ReportLanguageCode, RegExp> = {
+  const checks: Partial<Record<ReportLanguageCode, RegExp>> = {
     en: /\bterms?\b/i,
     fr: /\b(trimestre|semestre)s?\b/i,
     es: /\b(trimestre|semestre)s?\b/i,
     de: /\b(trimester|semester)s?\b/i,
     it: /\b(trimestre|semestre)s?\b/i,
     pt: /\b(trimestre|semestre)s?\b/i,
+    nl: /\b(trimester|semester)\b/i,
+    pl: /\bsemestr\w*\b/i,
+    ro: /\b(semestr|trimestr)(e|ul|u)?\b/i,
   };
-  if (checks.en.test(masked)) return true;
+  if (checks.en?.test(masked)) return true;
   const local = checks[lang];
   if (local && local !== checks.en && local.test(masked)) return true;
+  if ((lang === "ru" || lang === "uk" || lang === "ar") && /\bterms?\b/i.test(masked)) return true;
   return false;
 }
 

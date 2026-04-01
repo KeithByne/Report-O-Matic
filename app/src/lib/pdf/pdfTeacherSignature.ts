@@ -2,11 +2,17 @@ import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/report
 
 const LABELS: Record<ReportLanguageCode, string> = {
   en: "Teacher signature",
-  fr: "Signature de l'enseignant",
   es: "Firma del profesor o de la profesora",
-  de: "Unterschrift der Lehrkraft",
+  fr: "Signature de l'enseignant",
   it: "Firma dell’insegnante",
+  de: "Unterschrift der Lehrkraft",
   pt: "Assinatura do professor ou da professora",
+  nl: "Handtekening docent",
+  pl: "Podpis nauczyciela",
+  ro: "Semnătura profesorului",
+  ru: "Подпись преподавателя",
+  uk: "Підпис викладача",
+  ar: "توقيع المعلم",
 };
 
 export function pdfTeacherSignatureLabel(code: string): string {

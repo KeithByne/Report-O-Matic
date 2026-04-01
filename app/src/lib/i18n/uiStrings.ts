@@ -14,15 +14,29 @@ export function isUiLang(s: string): s is UiLang {
 /** Flat message map per locale. Keys use dot notation. */
 export type UiMessages = Record<string, string>;
 
-function m(en: string, fr: string, es: string, de: string, it: string, pt: string): Record<UiLang, string> {
-  return { en, fr, es, de, it, pt };
+/** Legacy 6-language row; new UI/report codes reuse English until translated. */
+function m6(en: string, fr: string, es: string, de: string, it: string, pt: string): Record<UiLang, string> {
+  return {
+    en,
+    es,
+    fr,
+    it,
+    de,
+    pt,
+    nl: en,
+    pl: en,
+    ro: en,
+    ru: en,
+    uk: en,
+    ar: en,
+  };
 }
 
 /** Labels for Prompt A1 metrics (report form). */
 export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string>> = {
-  attendance: m("Attendance", "Assiduité", "Asistencia", "Anwesenheit", "Presenza", "Assiduidade"),
-  punctuality: m("Punctuality", "Ponctualité", "Puntualidad", "Pünktlichkeit", "Puntualità", "Pontualidade"),
-  completes_homework: m(
+  attendance: m6("Attendance", "Assiduité", "Asistencia", "Anwesenheit", "Presenza", "Assiduidade"),
+  punctuality: m6("Punctuality", "Ponctualité", "Puntualidad", "Pünktlichkeit", "Puntualità", "Pontualidade"),
+  completes_homework: m6(
     "Completes homework",
     "Fait ses devoirs",
     "Completa los deberes",
@@ -30,7 +44,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Completa i compiti",
     "Faz o trabalho de casa",
   ),
-  submits_homework_on_time: m(
+  submits_homework_on_time: m6(
     "Submits homework on time",
     "Rend les devoirs à temps",
     "Entrega los deberes a tiempo",
@@ -38,7 +52,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Consegna i compiti in tempo",
     "Entrega o trabalho de casa a tempo",
   ),
-  pays_attention_to_teacher: m(
+  pays_attention_to_teacher: m6(
     "Pays attention to the teacher",
     "Écoute l’enseignant·e",
     "Presta atención al profesor",
@@ -46,7 +60,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Presta attenzione all’insegnante",
     "Presta atenção ao professor",
   ),
-  avoids_distraction: m(
+  avoids_distraction: m6(
     "Avoids distraction from classmates",
     "Évite de se laisser distraire",
     "Evita distracciones",
@@ -54,7 +68,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Evita le distrazioni",
     "Evita distrações",
   ),
-  takes_part_in_activities: m(
+  takes_part_in_activities: m6(
     "Takes part in classroom activities",
     "Participe aux activités",
     "Participa en las actividades",
@@ -62,7 +76,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Partecipa alle attività",
     "Participa nas atividades",
   ),
-  interacts_with_peers: m(
+  interacts_with_peers: m6(
     "Interacts well with the other students",
     "Bonne interaction avec les autres élèves",
     "Interactúa bien con los compañeros",
@@ -70,13 +84,13 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Interagisce bene con i compagni",
     "Interage bem com os colegas",
   ),
-  reading: m("Reading", "Lecture", "Lectura", "Lesen", "Lettura", "Leitura"),
-  writing: m("Writing", "Écriture", "Escritura", "Schreiben", "Scrittura", "Escrita"),
-  listening: m("Listening", "Compréhension orale", "Comprensión oral", "Zuhören", "Ascolto", "Compreensão oral"),
-  speaking: m("Speaking", "Expression orale", "Expresión oral", "Sprechen", "Parlato", "Expressão oral"),
-  pronunciation: m("Pronunciation", "Prononciation", "Pronunciación", "Aussprache", "Pronuncia", "Pronúncia"),
-  handwriting: m("Handwriting", "Écriture manuscrite", "Caligrafía", "Handschrift", "Calligrafia", "Caligrafia"),
-  audio_comprehension: m(
+  reading: m6("Reading", "Lecture", "Lectura", "Lesen", "Lettura", "Leitura"),
+  writing: m6("Writing", "Écriture", "Escritura", "Schreiben", "Scrittura", "Escrita"),
+  listening: m6("Listening", "Compréhension orale", "Comprensión oral", "Zuhören", "Ascolto", "Compreensão oral"),
+  speaking: m6("Speaking", "Expression orale", "Expresión oral", "Sprechen", "Parlato", "Expressão oral"),
+  pronunciation: m6("Pronunciation", "Prononciation", "Pronunciación", "Aussprache", "Pronuncia", "Pronúncia"),
+  handwriting: m6("Handwriting", "Écriture manuscrite", "Caligrafía", "Handschrift", "Calligrafia", "Caligrafia"),
+  audio_comprehension: m6(
     "Audio Comprehension",
     "Compréhension audio",
     "Comprensión auditiva",
@@ -84,7 +98,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Comprensione orale",
     "Compreensão auditiva",
   ),
-  reading_comprehension: m(
+  reading_comprehension: m6(
     "Reading Comprehension",
     "Compréhension écrite",
     "Comprensión lectora",
@@ -96,7 +110,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
 
 /** Grade table section headings on the report PDF (parent output language). */
 export const REPORT_METRIC_DIVISION_I18N: Record<MetricDivisionKey, Record<UiLang, string>> = {
-  classroom_behaviour: m(
+  classroom_behaviour: m6(
     "Classroom behaviour",
     "Comportement en classe",
     "Comportamiento en clase",
@@ -104,7 +118,7 @@ export const REPORT_METRIC_DIVISION_I18N: Record<MetricDivisionKey, Record<UiLan
     "Comportamento in classe",
     "Comportamento na sala de aula",
   ),
-  direct_skills: m(
+  direct_skills: m6(
     "Direct skills",
     "Compétences directes",
     "Destrezas directas",
@@ -112,7 +126,7 @@ export const REPORT_METRIC_DIVISION_I18N: Record<MetricDivisionKey, Record<UiLan
     "Abilità dirette",
     "Competências diretas",
   ),
-  indirect_skills: m(
+  indirect_skills: m6(
     "Indirect skills",
     "Compétences indirectes",
     "Destrezas indirectas",
@@ -123,7 +137,7 @@ export const REPORT_METRIC_DIVISION_I18N: Record<MetricDivisionKey, Record<UiLan
 };
 
 export const REPORT_SUBJECT_I18N: Record<SubjectCode, Record<UiLang, string>> = {
-  efl: m(
+  efl: m6(
     "English as a Foreign Language",
     "Anglais langue étrangère",
     "Inglés como lengua extranjera",
@@ -131,7 +145,7 @@ export const REPORT_SUBJECT_I18N: Record<SubjectCode, Record<UiLang, string>> = 
     "Inglese come lingua straniera",
     "Inglês língua estrangeira",
   ),
-  ffl: m(
+  ffl: m6(
     "French as a Foreign Language",
     "Français langue étrangère",
     "Francés como lengua extranjera",
@@ -139,7 +153,7 @@ export const REPORT_SUBJECT_I18N: Record<SubjectCode, Record<UiLang, string>> = 
     "Francese come lingua straniera",
     "Francês língua estrangeira",
   ),
-  sfl: m(
+  sfl: m6(
     "Spanish as a Foreign Language",
     "Espagnol langue étrangère",
     "Español como lengua extranjera",
@@ -147,7 +161,7 @@ export const REPORT_SUBJECT_I18N: Record<SubjectCode, Record<UiLang, string>> = 
     "Spagnolo come lingua straniera",
     "Espanhol língua estrangeira",
   ),
-  ifl: m(
+  ifl: m6(
     "Italian as a Foreign Language",
     "Italien langue étrangère",
     "Italiano como lengua extranjera",
@@ -155,7 +169,7 @@ export const REPORT_SUBJECT_I18N: Record<SubjectCode, Record<UiLang, string>> = 
     "Italiano come lingua straniera",
     "Italiano língua estrangeira",
   ),
-  pfl: m(
+  pfl: m6(
     "Portuguese as a Foreign Language",
     "Portugais langue étrangère",
     "Portugués como lengua extranjera",
@@ -215,6 +229,26 @@ const EN: UiMessages = {
   "dash.inviteTeam": "Invite team",
   "dash.inviteTeamHint":
     "Owners can add department heads or teachers. Department heads can add teachers only. Everyone signs in with the invited email and a one-time code.",
+  "dash.agentSectionTitle": "Owner / Agent",
+  "dash.agentSectionLead":
+    "Your unique referral link for tracking signups and agent earnings. Set the Stripe account to pay when ready.",
+  "dash.agentRefresh": "Refresh",
+  "dash.agentRefreshing": "Refreshing…",
+  "dash.agentPaymentsBlurb":
+    "Payments. Your agent account must be active for us to pay referral earnings to the Stripe account you provide below. If your account stays dormant for about one year, it may be cancelled and you will no longer receive payments through this programme.",
+  "dash.agentLinkLabel": "Your agent link",
+  "dash.agentLinkShareHint": "Share this link with new school owners.",
+  "dash.agentCommissionLabel": "Commission rate:",
+  "dash.agentStripeLabel": "Stripe Connect account id (the account to pay)",
+  "dash.agentSave": "Save",
+  "dash.agentSaving": "Saving…",
+  "dash.agentReset": "Reset",
+  "dash.agentLoading": "Loading…",
+  "dash.statTeachers": "Teachers",
+  "dash.statClasses": "Classes",
+  "dash.statStudents": "Students",
+  "dash.statReportsRendered": "Reports rendered",
+  "dash.downloadSchoolDataExcel": "Download school data (Excel)",
   "dash.addSchoolTitle": "Add another school",
   "dash.addSchoolHint": "Create an additional organisation you own. You will be the owner of the new school.",
   "dash.addSchoolPlaceholder": "New school name",
@@ -264,6 +298,12 @@ const EN: UiMessages = {
   "tenant.schoolLangReadonly":
     "Read-only here — leads change this on their dashboard or this page when signed in as owner or department head.",
   "tenant.saving": "Saving…",
+  "tenant.bulkDownloadsTitle": "Bulk downloads",
+  "tenant.bulkDownloadsLead": "Download many reports as one combined PDF for faster printing.",
+  "tenant.bulkTeacherLabel": "Teacher",
+  "tenant.finalOnly": "Final only",
+  "tenant.downloadTeacherPdfsOneFile": "Download teacher PDFs (one file)",
+  "tenant.newClassPlaceholder": "e.g. Year 7A",
   "tenant.classesTitle": "Classes",
   "tenant.newClassName": "New class name",
   "tenant.createClass": "Create class",
@@ -430,6 +470,10 @@ const EN: UiMessages = {
     " They should receive an invite email at that address with the sign-in link.",
   "invite.okSignInPart":
     " They must sign in using their own email (not yours) to receive the one-time code.",
+  "invite.firstName": "Teacher first name(s)",
+  "invite.lastName": "Teacher surname(s)",
+  "invite.firstNamePlaceholder": "e.g. Alex",
+  "invite.lastNamePlaceholder": "e.g. Smith",
   "deleteSchool.prompt":
     "Delete the school \"{name}\" and ALL classes, students, and reports? Type DELETE to confirm.",
   "deleteSchool.confirmToken": "DELETE",
@@ -438,9 +482,15 @@ const EN: UiMessages = {
   "roster.thEmail": "Email",
   "roster.thRole": "Role",
   "roster.thActions": "Actions",
+  "roster.thClasses": "Classes",
+  "roster.thStudents": "Students",
+  "roster.thReportsTerms": "Reports (T1/T2/T3)",
+  "roster.thStudentsMove": "Students (A/D/M)",
   "roster.remove": "Remove",
   "roster.removing": "…",
   "roster.confirmRemove": "Remove {email} from this school? They will lose access until invited again.",
+  "roster.roleOwner": "Owner",
+  "roster.roleTeacher": "Teacher",
   "roster.roleDeptShort": "Dept. head",
   "tenant.confirmDeleteClass": "Delete class \"{name}\" and all pupils and reports in it?",
   "class.intro":
@@ -484,6 +534,132 @@ const EN: UiMessages = {
   "class.printRegister": "Print Register",
   "class.printRegisterNeedDays": "Choose which days the class meets in Class settings first.",
   "class.printRegisterNeedStudents": "Add pupils before printing the register.",
+  "class.bulkPdfOrderLabel": "Order",
+  "class.orderClassRoster": "Class roster",
+  "class.orderStudentName": "Student name",
+  "class.orderUpdatedDesc": "Last updated (newest first)",
+  "class.orderUpdatedAsc": "Last updated (oldest first)",
+  "class.downloadClassPdfsOneFile": "Download class PDFs (one file)",
+  "class.genderMale": "Male",
+  "class.genderFemale": "Female",
+  "class.genderNonBinaryOpt": "Non-binary",
+  "class.movePupilSectionTitle": "Move pupil to another class",
+  "class.movePupilLabel": "Pupil",
+  "class.moveDestinationLabel": "Destination class",
+  "class.movePupilButton": "Move pupil",
+  "class.movePupilFootnote":
+    "This keeps the pupil’s reports and data intact, and logs a “moved” event for dashboard stats.",
+  "class.bulkPdfNotFinished": "You can't download all the class reports until they are all finished.",
+  "class.bulkPdfNotFinishedTerm": "Every pupil needs a finished report for the selected term.",
+  "class.bulkPdfNeedStudents": "Add pupils to this class before downloading a combined PDF.",
+  "class.firstLastRequired": "First name and last name are required.",
+  "class.movePickOtherClass": "Pick a different destination class.",
+  "class.moveConfirm": "Move {who} to {dest}? Their reports will move with them.",
+  "saas.platformBadge": "Platform",
+  "saas.ownerDashboardTitle": "SaaS Owner Dashboard",
+  "saas.schoolDetailsTitle": "School details",
+  "saas.backToOwner": "← Back to SaaS owner",
+  "saas.creditPacksTitle": "Credit packs",
+  "saas.creditPacksLead": "Manage pricing and how many reports each pack includes.",
+  "saas.refreshPacks": "Refresh packs",
+  "saas.thPack": "Pack",
+  "saas.thPriceCents": "Price (cents)",
+  "saas.thCurrency": "Currency",
+  "saas.thCredits": "Credits",
+  "saas.thActive": "Active",
+  "saas.thSortOrder": "Order",
+  "saas.agentsTitle": "Agents",
+  "saas.agentsLead": "Create unique agent links and control commission + active status.",
+  "saas.refreshAgents": "Refresh agents",
+  "saas.agentEmailLabel": "Agent email",
+  "saas.displayNameLabel": "Display name",
+  "saas.placeholderAgentEmail": "agent@example.com",
+  "saas.optionalPlaceholder": "Optional",
+  "saas.createAgentLink": "Create agent link",
+  "saas.thCode": "Code",
+  "saas.thAgent": "Agent",
+  "saas.thCommissionPct": "Commission %",
+  "saas.thPayoutWaitDays": "Payout wait (days)",
+  "saas.thInactiveAfterDays": "Inactive after (days)",
+  "saas.thLink": "Link",
+  "saas.referralEarningsTitle": "Referral earnings",
+  "saas.referralEarningsLead": "View pending/eligible/paid referral commission and control payouts.",
+  "saas.refreshEarnings": "Refresh earnings",
+  "saas.agentEmailOptional": "Agent email (optional)",
+  "saas.statusLabel": "Status",
+  "saas.statusAll": "All",
+  "saas.statusPending": "Pending",
+  "saas.statusEligible": "Eligible",
+  "saas.statusPaid": "Paid",
+  "saas.statusVoid": "Void",
+  "saas.applyFilters": "Apply filters",
+  "saas.thTenant": "Tenant",
+  "saas.thAmount": "Amount",
+  "saas.thCommission": "Commission",
+  "saas.thEligibleAt": "Eligible at",
+  "saas.changeStatus": "Change status",
+  "saas.promptSetStatus": "Set status: pending | eligible | paid | void",
+  "saas.noEarningsYet": "No earnings yet.",
+  "saas.openAiTitle": "OpenAI",
+  "saas.openAiLead":
+    "Real-time balance isn’t available via API secret keys; this shows spend based on logged usage events.",
+  "saas.refreshOpenAi": "Refresh OpenAI data",
+  "saas.clearErrors": "Clear errors",
+  "saas.rangeLabel": "Range",
+  "saas.rangeDay": "Day",
+  "saas.rangeWeek": "Week",
+  "saas.rangeMonth": "Month",
+  "saas.rangeYear": "Year",
+  "saas.rangeYtd": "To date (YTD)",
+  "saas.rangeAll": "All time",
+  "saas.openAiBillingLink": "OpenAI billing (balance)",
+  "saas.estimatedSpend": "Estimated spend",
+  "saas.requestsCount": "{n} request(s)",
+  "saas.tokens": "Tokens",
+  "saas.tokensPromptCompletion": "prompt {prompt} • completion {completion}",
+  "saas.byKind": "By kind",
+  "saas.kindDraft": "Draft: {req} req • {cost}",
+  "saas.kindTranslate": "Translate: {req} req • {cost}",
+  "saas.financeTitle": "Finance",
+  "saas.financeLead":
+    "Payments in (Stripe) and agent payouts out, with day/week/month/year/YTD filters.",
+  "saas.agentOptional": "Agent (optional)",
+  "saas.agentFilterPlaceholder": "agent email/account…",
+  "saas.paidToSaaS": "Paid to SaaS",
+  "saas.paidToAgents": "Paid to agents",
+  "saas.paymentsCount": "{n} payment(s)",
+  "saas.payoutsCount": "{n} payout(s)",
+  "saas.searchSchoolsLabel": "Search schools / owners",
+  "saas.searchPlaceholder": "Type a keyword (school name or owner email)…",
+  "saas.searchHint": "Results update as you type. (Searches tenant name + owner emails.)",
+  "saas.resultsCount": "{n} result(s)",
+  "saas.schoolsTitle": "Schools",
+  "saas.thTenantId": "Tenant ID",
+  "saas.thOwners": "Owners",
+  "saas.viewSchool": "View school",
+  "saas.exportExcel": "Export Excel",
+  "saas.noSearchResults": "No results.",
+  "saas.createdAt": "Created {datetime}",
+  "saas.referralCode": "Referral code:",
+  "saas.referredBy": "Referred by:",
+  "saas.membersTitle": "Members",
+  "saas.roleOwner": "Owner",
+  "saas.roleDeptHead": "Department head",
+  "saas.roleTeacher": "Teacher",
+  "saas.classesFirst500": "Classes (first 500)",
+  "saas.thName": "Name",
+  "saas.thTeacher": "Teacher",
+  "saas.thYear": "Year",
+  "saas.thCefr": "CEFR",
+  "saas.thId": "ID",
+  "saas.thReports": "Reports",
+  "saas.studentsFirst200": "Students (first 200)",
+  "saas.thClassId": "Class ID",
+  "saas.reportsRecent50": "Recent reports (last 50)",
+  "saas.thUpdated": "Updated",
+  "saas.thReportAuthor": "Author",
+  "saas.thTitle": "Title",
+  "saas.thReportId": "Report ID",
   "weekday.mon": "Monday",
   "weekday.tue": "Tuesday",
   "weekday.wed": "Wednesday",
@@ -585,6 +761,12 @@ const FR: UiMessages = {
   "tenant.schoolLangLead": "S’applique aux nouveaux rapports ; surcharge possible par classe ou rapport.",
   "tenant.schoolLangReadonly": "Lecture seule — modifiable par un responsable.",
   "tenant.saving": "Enregistrement…",
+  "tenant.bulkDownloadsTitle": "Téléchargements groupés",
+  "tenant.bulkDownloadsLead": "Téléchargez plusieurs rapports en un seul PDF pour imprimer plus vite.",
+  "tenant.bulkTeacherLabel": "Enseignant·e",
+  "tenant.finalOnly": "Versions finales seulement",
+  "tenant.downloadTeacherPdfsOneFile": "Télécharger les PDF enseignant (un fichier)",
+  "tenant.newClassPlaceholder": "ex. 5e A",
   "tenant.classesTitle": "Classes",
   "tenant.newClassName": "Nom de la nouvelle classe",
   "tenant.createClass": "Créer la classe",
@@ -637,8 +819,8 @@ const FR: UiMessages = {
   "report.subjectOverride": "Matière (surcharge)",
   "report.useClassDefault": "Utiliser la classe ({subject})",
   "report.studentTitle": "Élève (pour le PDF ; le nom de famille n’est pas envoyé à l’IA)",
-  "report.firstName": "Prénom(s)",
-  "report.lastName": "Nom(s)",
+  "report.firstName": "Prénom6(s)",
+  "report.lastName": "Nom6(s)",
   "report.gender": "Identité de genre",
   "report.saveStudent": "Enregistrer l’élève",
   "report.termGradesTitle": "Notes du trimestre (0–10)",
@@ -785,8 +967,8 @@ const FR: UiMessages = {
   "class.saveSettings": "Enregistrer les paramètres",
   "class.deleteClass": "Supprimer la classe",
   "class.studentsTitle": "Élèves de cette classe",
-  "class.firstName": "Prénom(s)",
-  "class.lastName": "Nom(s)",
+  "class.firstName": "Prénom6(s)",
+  "class.lastName": "Nom6(s)",
   "class.genderOptional": "Genre (optionnel)",
   "class.addPupil": "Ajouter un élève",
   "class.report": "Rapport",
@@ -907,6 +1089,12 @@ const ES: UiMessages = {
   "tenant.schoolLangLead": "Aplica a informes nuevos; la clase o el informe pueden cambiarlo.",
   "tenant.schoolLangReadonly": "Solo lectura — lo cambian los responsables.",
   "tenant.saving": "Guardando…",
+  "tenant.bulkDownloadsTitle": "Descargas masivas",
+  "tenant.bulkDownloadsLead": "Descargue muchos informes en un solo PDF para imprimir más rápido.",
+  "tenant.bulkTeacherLabel": "Profesor",
+  "tenant.finalOnly": "Solo finales",
+  "tenant.downloadTeacherPdfsOneFile": "Descargar PDF del profesor (un archivo)",
+  "tenant.newClassPlaceholder": "ej. 1º A",
   "tenant.classesTitle": "Clases",
   "tenant.newClassName": "Nombre de la nueva clase",
   "tenant.createClass": "Crear clase",
@@ -1140,6 +1328,13 @@ const ES: UiMessages = {
 const DE: UiMessages = { ...EN, ...DE_LABELS };
 const IT: UiMessages = { ...EN, ...IT_LABELS };
 const PT: UiMessages = { ...EN, ...PT_LABELS };
+/** New locales: English copy until dedicated bundles are added (translate() falls back to EN per key). */
+const NL: UiMessages = { ...EN };
+const PL: UiMessages = { ...EN };
+const RO: UiMessages = { ...EN };
+const RU: UiMessages = { ...EN };
+const UK: UiMessages = { ...EN };
+const AR: UiMessages = { ...EN };
 
 export const UI_STRINGS: Record<UiLang, UiMessages> = {
   en: EN,
@@ -1148,6 +1343,12 @@ export const UI_STRINGS: Record<UiLang, UiMessages> = {
   de: DE,
   it: IT,
   pt: PT,
+  nl: NL,
+  pl: PL,
+  ro: RO,
+  ru: RU,
+  uk: UK,
+  ar: AR,
 };
 
 export function translate(lang: UiLang, key: string, vars?: Record<string, string | number>): string {

@@ -42,12 +42,16 @@ export function UiLanguageProvider({ children }: { children: ReactNode }) {
     }
     if (typeof document !== "undefined") {
       document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
     }
   }, []);
 
   useEffect(() => {
     if (!ready) return;
-    if (typeof document !== "undefined") document.documentElement.lang = lang;
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    }
   }, [lang, ready]);
 
   const t = useCallback(

@@ -245,26 +245,20 @@ export function DashboardClientView({
               <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-sm font-semibold text-zinc-900">Owner / Agent</h2>
-                    <p className="mt-1 text-sm text-zinc-600">
-                      Your unique referral link for tracking signups and agent earnings. Set the Stripe account to pay when ready.
-                    </p>
+                    <h2 className="text-sm font-semibold text-zinc-900">{t("dash.agentSectionTitle")}</h2>
+                    <p className="mt-1 text-sm text-zinc-600">{t("dash.agentSectionLead")}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => void refreshMyAgent()}
                     className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-100"
                   >
-                    {myAgentBusy ? "Refreshing…" : "Refresh"}
+                    {myAgentBusy ? t("dash.agentRefreshing") : t("dash.agentRefresh")}
                   </button>
                 </div>
 
                 <p className="mt-3 rounded-lg border border-amber-100 bg-amber-50/70 px-3 py-2 text-xs leading-relaxed text-zinc-700">
-                  <span className="font-semibold text-zinc-800">Payments.</span> Your agent account must be{" "}
-                  <span className="font-semibold">active</span> for us to pay referral earnings to the Stripe account you
-                  provide below. If your account stays dormant for about <span className="font-semibold">one year</span>,
-                  it may be <span className="font-semibold">cancelled</span> and you will no longer receive payments through
-                  this programme.
+                  {t("dash.agentPaymentsBlurb")}
                 </p>
 
                 {myAgentErr ? <div className="mt-3 text-sm text-red-700">{myAgentErr}</div> : null}
@@ -272,20 +266,22 @@ export function DashboardClientView({
                 {myAgent ? (
                   <div className="mt-4 space-y-3">
                     <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Your agent link</div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                        {t("dash.agentLinkLabel")}
+                      </div>
                       <div className="mt-1 font-mono text-sm text-zinc-900">{`/landing.html?ref=${myAgent.code}`}</div>
-                      <div className="mt-1 text-xs text-zinc-600">Share this link with new school owners.</div>
+                      <div className="mt-1 text-xs text-zinc-600">{t("dash.agentLinkShareHint")}</div>
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="text-sm text-zinc-600 sm:col-span-1">
-                        <span className="font-semibold text-zinc-800">Commission rate:</span>{" "}
+                        <span className="font-semibold text-zinc-800">{t("dash.agentCommissionLabel")}</span>{" "}
                         {`${(((Number(myAgent.commission_bps ?? 0) || 0) / 100) as number).toFixed(2)}%`}
                       </div>
                       <div />
 
                       <label className="text-sm sm:col-span-2">
-                        <span className="text-zinc-600">Stripe Connect account id (the account to pay)</span>
+                        <span className="text-zinc-600">{t("dash.agentStripeLabel")}</span>
                         <input
                           value={String((myAgentEdit.payout_stripe_account_id ?? myAgent.payout_stripe_account_id) ?? "")}
                           onChange={(e) =>
@@ -323,7 +319,7 @@ export function DashboardClientView({
                         }
                         className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                       >
-                        {myAgentSaving ? "Saving…" : "Save"}
+                        {myAgentSaving ? t("dash.agentSaving") : t("dash.agentSave")}
                       </button>
                       <button
                         type="button"
@@ -331,12 +327,12 @@ export function DashboardClientView({
                         onClick={() => setMyAgentEdit({})}
                         className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50 disabled:opacity-50"
                       >
-                        Reset
+                        {t("dash.agentReset")}
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-3 text-sm text-zinc-600">{myAgentBusy ? "Loading…" : "—"}</div>
+                  <div className="mt-3 text-sm text-zinc-600">{myAgentBusy ? t("dash.agentLoading") : "—"}</div>
                 )}
               </section>
             ) : null}
@@ -391,19 +387,27 @@ export function DashboardClientView({
                       {m.role === "owner" && summary ? (
                         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                           <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Teachers</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                              {t("dash.statTeachers")}
+                            </div>
                             <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.teachers}</div>
                           </div>
                           <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Classes</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                              {t("dash.statClasses")}
+                            </div>
                             <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.classes}</div>
                           </div>
                           <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Students</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                              {t("dash.statStudents")}
+                            </div>
                             <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.students}</div>
                           </div>
                           <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Reports rendered</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                              {t("dash.statReportsRendered")}
+                            </div>
                             <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.reportsRendered}</div>
                           </div>
                         </div>
@@ -414,7 +418,7 @@ export function DashboardClientView({
                             href={`/api/tenants/${encodeURIComponent(m.tenantId)}/export`}
                             className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-emerald-100"
                           >
-                            Download school data (Excel)
+                            {t("dash.downloadSchoolDataExcel")}
                           </a>
                         </div>
                       ) : null}
