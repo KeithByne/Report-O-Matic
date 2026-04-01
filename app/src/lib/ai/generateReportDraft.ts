@@ -15,6 +15,11 @@ import {
   resolveShortCourseReportDraftPrompts,
   resolveStandardReportDraftPrompts,
 } from "@/lib/ai/reportCommentPromptRegistry";
+import {
+  repairShortCourseCommentRemovingPeriodVocabulary,
+  sanitizeShortCourseAiComment,
+  shortCourseCommentStillContainsPeriodVocabulary,
+} from "@/lib/ai/shortCourseAiOutputGuard";
 
 const LANGUAGE_INSTRUCTION: Record<ReportLanguageCode, string> = {
   en: "British English",
@@ -81,8 +86,8 @@ export async function generateSchoolReportDraft(opts: {
   });
   let text = completion.choices[0]?.message?.content?.trim();
   if (!text) throw new Error("The model returned no text.");
-  if (text.length > 1400) text = text.slice(0, 1400);
-  const usage = completion.usage
+
+  let usage: OpenAiUsage | null = completion.usage
     ? {
         model,
         prompt_tokens: completion.usage.prompt_tokens ?? 0,
@@ -90,6 +95,36 @@ export async function generateSchoolReportDraft(opts: {
         total_tokens: completion.usage.total_tokens ?? 0,
       }
     : null;
+
+  if (isShortCourseReport(inputs)) {
+    text = sanitizeShortCourseAiComment(text, opts.outputLanguage);
+    for (
+      let pass = 0;
+      pass < 2 && shortCourseCommentStillContainsPeriodVocabulary(text, opts.outputLanguage);
+      pass++
+    ) {
+      const rep = await repairShortCourseCommentRemovingPeriodVocabulary({
+        openai,
+        model,
+        text,
+        langName,
+        maxLen: 1400,
+      });
+      text = sanitizeShortCourseAiComment(rep.text, opts.outputLanguage);
+      if (rep.usage) {
+        usage = usage
+          ? {
+              model,
+              prompt_tokens: usage.prompt_tokens + rep.usage.prompt_tokens,
+              completion_tokens: usage.completion_tokens + rep.usage.completion_tokens,
+              total_tokens: usage.total_tokens + rep.usage.total_tokens,
+            }
+          : rep.usage;
+      }
+    }
+  }
+
+  if (text.length > 1400) text = text.slice(0, 1400);
   return { text, usage };
 }
 
@@ -159,6 +194,9 @@ export async function generateSchoolReportDraftPair(opts: {
   teacherPreview: string;
   usage: { draft: OpenAiUsage | null; translate: OpenAiUsage | null };
 }> {
+  const pairInputs = parseReportInputs(opts.inputs as unknown);
+  const pairShortCourse = isShortCourseReport(pairInputs);
+
   const common = {
     studentFirstName: opts.studentFirstName,
     className: opts.className,
@@ -185,6 +223,9 @@ export async function generateSchoolReportDraftPair(opts: {
     });
     teacherPreview = translated.text;
     translateUsage = translated.usage;
+  }
+  if (pairShortCourse) {
+    teacherPreview = sanitizeShortCourseAiComment(teacherPreview, opts.teacherLanguage);
   }
   return { pdfBody, teacherPreview, usage: { draft: draft.usage, translate: translateUsage } };
 }
