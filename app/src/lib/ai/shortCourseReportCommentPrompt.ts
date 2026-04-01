@@ -21,20 +21,21 @@ Any comments about what the student can do to improve are made in the context of
 The report narrative must be written entirely in ${ctx.langName}. Do not use another language for the main text.
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
 Use only the student's first name (${ctx.studentFirstName}) — do not use or invent a surname.
-Base the appraisal on the numerical 0–10 dataset supplied; be fair and specific.`;
+Base the appraisal on the numerical 0–10 dataset supplied; be fair and specific.
+In the comment text itself, never use the English word "term" or calendar labels for school reporting slices (e.g. trimester, trimestre, semester, Schultrimester, "marking period"). Refer only to the course or the programme. Write in ${ctx.langName} without importing phrasing from year-long school reports.`;
 
   const user = [
     `School: ${ctx.schoolName}`,
     ctx.className ? `Class: ${ctx.className}` : "",
     `Student first name (only name to use in text): ${ctx.studentFirstName}`,
     `Subject: ${ctx.subjectLine}`,
-    `Structured numerical data and term labels:\n${ctx.datasetBlock}`,
+    `Course rubric data — single 0–10 snapshot for this short course only. Your comment must stay in that frame (not a full-year school timeline):\n${ctx.datasetBlock}`,
     ctx.extraNotes
       ? `Teacher context (use when shaping the comment for parents; do not quote or label this block; weave in fairly if relevant):\n${ctx.extraNotes}`
       : "",
     ctx.existingBody
       ? `Revise or replace this draft (keep facts consistent with the dataset):\n${ctx.existingBody}`
-      : "Write a complete comment: opening strength, honest middle where grades are low, end positive with next steps.",
+      : "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and ideas the student can use going forward — no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher.",
   ]
     .filter(Boolean)
     .join("\n\n");

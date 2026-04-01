@@ -4,6 +4,7 @@ import { languageLabel } from "@/lib/i18n/reportLanguages";
 import type { ReportInputs } from "@/lib/reportInputs";
 import {
   isShortCourseReport,
+  parseReportInputs,
   reportInputsToTeacherNotes,
   resolvedSubjectCode,
   resolvedSubjectLabel,
@@ -45,10 +46,13 @@ export async function generateSchoolReportDraft(opts: {
   const model = process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
   const openai = new OpenAI({ apiKey });
 
+  /** Re-parse so report_kind / schema from DB cannot silently drift to "standard" in edge cases. */
+  const inputs = parseReportInputs(opts.inputs as unknown);
+
   const langName = LANGUAGE_INSTRUCTION[opts.outputLanguage] ?? languageLabel(opts.outputLanguage);
-  const subjectCode = resolvedSubjectCode(opts.inputs, opts.classDefaultSubject);
-  const subjectLine = resolvedSubjectLabel(opts.inputs, opts.classDefaultSubject);
-  const datasetBlock = reportInputsToTeacherNotes(opts.inputs, subjectLine);
+  const subjectCode = resolvedSubjectCode(inputs, opts.classDefaultSubject);
+  const subjectLine = resolvedSubjectLabel(inputs, opts.classDefaultSubject);
+  const datasetBlock = reportInputsToTeacherNotes(inputs, subjectLine);
 
   const ctx = {
     subjectCode,
@@ -62,7 +66,7 @@ export async function generateSchoolReportDraft(opts: {
     existingBody: opts.existingBody,
   };
 
-  const { system, user, temperature } = isShortCourseReport(opts.inputs)
+  const { system, user, temperature } = isShortCourseReport(inputs)
     ? resolveShortCourseReportDraftPrompts(subjectCode, ctx)
     : resolveStandardReportDraftPrompts(subjectCode, ctx);
 
