@@ -215,8 +215,8 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
   const lines: string[] = [];
   lines.push(`Subject context: ${subjectResolved}`);
   if (isShortCourseReport(inputs)) {
-    lines.push(`Report type: Short course (single short period; grades describe this stretch only).`);
-    lines.push(`--- Short course period ---`);
+    lines.push(`Report type: Short course (one condensed course; 0–10 grades describe this course only).`);
+    lines.push(`--- This course (0–10 rubric) ---`);
     let currentDiv: MetricDivisionKey | "" = "";
     const t = 0;
     for (const m of DATASET4_METRICS) {
@@ -228,7 +228,7 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
       lines.push(`- ${m.label}: ${v === null || v === undefined ? "—" : String(v)} (0–10)`);
     }
     const pct = termAveragePercent(inputs.terms[t]);
-    lines.push(`Short course aggregate (if complete): ${pct === null ? "—" : `${pct.toFixed(2)}%`}`);
+    lines.push(`Course aggregate (if complete): ${pct === null ? "—" : `${pct.toFixed(2)}%`}`);
     return lines.join("\n");
   }
   lines.push(`Report period (term focus): ${inputs.report_period}`);

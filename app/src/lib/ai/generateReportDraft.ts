@@ -15,8 +15,13 @@ const LANGUAGE_INSTRUCTION: Record<ReportLanguageCode, string> = {
   pt: "Portuguese",
 };
 
-/** Appended to the model prompt for short-course reports only (instructional, English). */
-export const SHORT_COURSE_AI_CONTEXT_EN = `The context for this report is that the student has attended a course of short duration. The aim of the report is to suggest the student's evolution over a short time. By this we must recognise that high grades refer to a large or strong evolution over the short course. A notable progress during the course. Whereas a low grade would suggest little progress or a small evolution during the course.`;
+/**
+ * Appended to the model prompt for short-course reports only (instructional, English).
+ * Keeps the model in a single-course frame: no school “terms” or multi-period narrative.
+ */
+export const SHORT_COURSE_AI_CONTEXT_EN = `The student has completed a short standalone course (not a slice of a three-term year). High grades indicate strong progress or development across this course; low grades suggest limited progress within this course.
+The comment must stay entirely in that frame. Do not mention terms, trimesters, semesters, reporting periods, or "next"/"previous" periods — there are none in this context. Use only "course" (or natural paraphrases like "this programme" / "during the course") when situating performance.
+For any forward-looking encouragement or advice, phrase it as suggestions for going forward, continuing to learn, or next steps in a general sense — never as improvement "next term" or similar.`;
 
 /**
  * Generates report comment text. Per spec: do not send student surname to the model;
@@ -39,6 +44,7 @@ export async function generateSchoolReportDraft(opts: {
   const model = process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
   const openai = new OpenAI({ apiKey });
 
+  const shortCourse = isShortCourseReport(opts.inputs);
   const langName = LANGUAGE_INSTRUCTION[opts.outputLanguage] ?? languageLabel(opts.outputLanguage);
   const subjectLine = resolvedSubjectLabel(opts.inputs, opts.classDefaultSubject);
   const datasetBlock = reportInputsToTeacherNotes(opts.inputs, subjectLine);
@@ -47,21 +53,31 @@ export async function generateSchoolReportDraft(opts: {
 The report narrative must be written entirely in ${langName}. Do not use another language for the main text.
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
 Use only the student's first name (${opts.studentFirstName}) — do not use or invent a surname.
-Base the appraisal on the numerical 0–10 dataset supplied; be fair and specific.`;
+Base the appraisal on the numerical 0–10 dataset supplied; be fair and specific.${
+    shortCourse
+      ? `
+
+Short-course mode: The output language is ${langName} — apply the course-only framing below in that language. Do not use the word "term" nor equivalent school-period words (e.g. trimestre, trimester, Semester). Do not refer to a next or previous reporting period. Future-oriented advice should sound like encouragement or practical suggestions for going forward / continuing to learn, not "next term".`
+      : ""
+  }`;
 
   const user = [
     `School: ${opts.schoolName}`,
     opts.className ? `Class: ${opts.className}` : "",
     `Student first name (only name to use in text): ${opts.studentFirstName}`,
     `Subject: ${subjectLine}`,
-    isShortCourseReport(opts.inputs) ? `Short course report — follow this guidance when interpreting the grades:\n${SHORT_COURSE_AI_CONTEXT_EN}` : "",
-    `Structured numerical data and term labels:\n${datasetBlock}`,
+    shortCourse ? `Short course report — follow this guidance when interpreting the grades:\n${SHORT_COURSE_AI_CONTEXT_EN}` : "",
+    shortCourse
+      ? `Structured numerical data for this course:\n${datasetBlock}`
+      : `Structured numerical data and term labels:\n${datasetBlock}`,
     opts.extraNotes
       ? `Teacher context (use when shaping the comment for parents; do not quote or label this block; weave in fairly if relevant):\n${opts.extraNotes}`
       : "",
     opts.existingBody
       ? `Revise or replace this draft (keep facts consistent with the dataset):\n${opts.existingBody}`
-      : "Write a complete comment: opening strength, honest middle where grades are low, end positive with next steps.",
+      : shortCourse
+        ? "Write a complete comment: opening strength, honest middle where grades are low, end with warm encouragement and practical suggestions for going forward. Do not refer to terms, trimesters, semesters, or future school reporting periods — only this course."
+        : "Write a complete comment: opening strength, honest middle where grades are low, end positive with next steps.",
   ]
     .filter(Boolean)
     .join("\n\n");
