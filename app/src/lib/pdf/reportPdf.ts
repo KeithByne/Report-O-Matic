@@ -196,11 +196,16 @@ function applyTypo(
 
 
 
-function drawLetterheadBlock(doc: PdfDoc, lh: ReportPdfLetterhead, logo: Buffer | null): void {
+function drawLetterheadBlock(
+  doc: PdfDoc,
+  lh: ReportPdfLetterhead,
+  logo: Buffer | null,
+  pageMarginPt: number = marginPt,
+): void {
 
   const startY = doc.y;
 
-  const leftX = marginPt;
+  const leftX = pageMarginPt;
 
   const slotW = lhSpec.logoSlotWidthPt;
 
@@ -208,7 +213,7 @@ function drawLetterheadBlock(doc: PdfDoc, lh: ReportPdfLetterhead, logo: Buffer 
 
   const textX = leftX + slotW + lhSpec.columnGapPt;
 
-  const textW = widthPt - marginPt - textX;
+  const textW = widthPt - pageMarginPt - textX;
 
 
 
@@ -296,8 +301,21 @@ function drawLetterheadBlock(doc: PdfDoc, lh: ReportPdfLetterhead, logo: Buffer 
 
   doc.y = blockEnd;
 
-  doc.x = marginPt;
+  doc.x = pageMarginPt;
 
+}
+
+
+
+/** Same letterhead block as report PDFs; optional tighter horizontal margin for other documents (e.g. register). */
+
+export function drawReportLetterhead(
+  doc: PdfDoc,
+  lh: ReportPdfLetterhead,
+  logo: Buffer | null,
+  opts?: { pageMarginPt?: number },
+): void {
+  drawLetterheadBlock(doc, lh, logo, opts?.pageMarginPt ?? marginPt);
 }
 
 

@@ -251,6 +251,20 @@ export const IT_LABELS: Record<string, string> = {
   "class.confirmYearChange":
     "Cambiando l’anno scolastico si archivia in sola lettura l’anno in corso (tutti i rapporti), poi si rimuovono quei rapporti per ricominciare. Gli studenti restano nella classe. Continuare?",
   "class.confirmRemoveStudent": "Rimuovere {name} da questa classe? Tutti i suoi rapporti verranno eliminati.",
+  "class.activeDaysLabel": "Giorni di lezione",
+  "class.activeDaysHint":
+    "Usato per il PDF «Stampa registro» (cinque settimane di colonne). Salvare le impostazioni dopo le modifiche.",
+  "class.activeDaysDisplay": "Giorni attivi (registro)",
+  "class.printRegister": "Stampa registro",
+  "class.printRegisterNeedDays": "Scegliere prima i giorni di lezione nelle impostazioni della classe.",
+  "class.printRegisterNeedStudents": "Aggiungere studenti prima di stampare il registro.",
+  "weekday.mon": "lunedì",
+  "weekday.tue": "martedì",
+  "weekday.wed": "mercoledì",
+  "weekday.thu": "giovedì",
+  "weekday.fri": "venerdì",
+  "weekday.sat": "sabato",
+  "weekday.sun": "domenica",
 };
 
 /** Portuguese UI strings (European Portuguese; merged over EN in uiStrings). */
@@ -506,6 +520,20 @@ export const PT_LABELS: Record<string, string> = {
   "class.confirmYearChange":
     "Alterar o ano letivo arquiva em só leitura o ano atual (todos os relatórios dos alunos) e remove esses relatórios para recomeçar. Os alunos permanecem na turma. Continuar?",
   "class.confirmRemoveStudent": "Remover {name} desta turma? Todos os relatórios desse aluno serão eliminados.",
+  "class.activeDaysLabel": "Dias de aula",
+  "class.activeDaysHint":
+    "Usado no PDF «Imprimir registo» (cinco semanas de colunas). Guarde as definições da turma após alterar.",
+  "class.activeDaysDisplay": "Dias ativos (registo)",
+  "class.printRegister": "Imprimir registo",
+  "class.printRegisterNeedDays": "Escolha primeiro os dias de aula nas definições da turma.",
+  "class.printRegisterNeedStudents": "Adicione alunos antes de imprimir o registo.",
+  "weekday.mon": "segunda-feira",
+  "weekday.tue": "terça-feira",
+  "weekday.wed": "quarta-feira",
+  "weekday.thu": "quinta-feira",
+  "weekday.fri": "sexta-feira",
+  "weekday.sat": "sábado",
+  "weekday.sun": "domingo",
 };
 
 /** German UI strings (merged over EN in uiStrings). */
@@ -763,4 +791,18 @@ export const DE_LABELS: Record<string, string> = {
     "Ein Wechsel des Schuljahrs speichert das laufende Jahr schreibgeschützt (alle Schülerberichte), entfernt diese Berichte danach, damit Sie für das neue Jahr neu starten können. Schüler bleiben in der Klasse. Fortfahren?",
   "class.confirmRemoveStudent":
     "{name} aus dieser Klasse entfernen? Alle Berichte dieses Schülers werden gelöscht.",
+  "class.activeDaysLabel": "Unterrichtstage",
+  "class.activeDaysHint":
+    "Wird für das PDF «Anwesenheitsliste drucken» genutzt (fünf Wochen Spalten). Klasseneinstellungen danach speichern.",
+  "class.activeDaysDisplay": "Aktive Tage (Liste)",
+  "class.printRegister": "Anwesenheitsliste drucken",
+  "class.printRegisterNeedDays": "Wählen Sie zuerst die Unterrichtstage in den Klasseneinstellungen.",
+  "class.printRegisterNeedStudents": "Fügen Sie Schüler hinzu, bevor Sie die Liste drucken.",
+  "weekday.mon": "Montag",
+  "weekday.tue": "Dienstag",
+  "weekday.wed": "Mittwoch",
+  "weekday.thu": "Donnerstag",
+  "weekday.fri": "Freitag",
+  "weekday.sat": "Samstag",
+  "weekday.sun": "Sonntag",
 };

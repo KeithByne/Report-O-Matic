@@ -9,6 +9,7 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isSubjectCode } from "@/lib/subjects";
+import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -87,6 +88,17 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     else if (typeof body.assigned_teacher_email === "string") {
       patch.assigned_teacher_email = body.assigned_teacher_email.trim().toLowerCase() || null;
     }
+  }
+
+  if (body.active_weekdays !== undefined) {
+    if (!Array.isArray(body.active_weekdays)) {
+      return NextResponse.json({ error: "active_weekdays must be an array of weekday keys." }, { status: 400 });
+    }
+    const keys = body.active_weekdays
+      .filter((x): x is string => typeof x === "string")
+      .map((x) => x.trim().toLowerCase())
+      .filter(isWeekdayKey);
+    patch.active_weekdays = normalizeActiveWeekdays(keys);
   }
 
   if (Object.keys(patch).length === 0) {

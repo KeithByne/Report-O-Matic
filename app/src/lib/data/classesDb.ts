@@ -1,4 +1,6 @@
 import { getServiceSupabase } from "@/lib/supabase/service";
+import type { WeekdayKey } from "@/lib/activeWeekdays";
+import { normalizeActiveWeekdays, parseActiveWeekdaysFromDb } from "@/lib/activeWeekdays";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { RomRole } from "@/lib/data/memberships";
 import type { SubjectCode } from "@/lib/subjects";
@@ -20,11 +22,27 @@ export type ClassRow = {
   default_subject: SubjectCode;
   default_output_language: ReportLanguageCode;
   assigned_teacher_email: string | null;
+  active_weekdays: WeekdayKey[];
   created_at: string;
 };
 
 const classSelect =
-  "id, tenant_id, name, scholastic_year, cefr_level, default_subject, default_output_language, assigned_teacher_email, created_at";
+  "id, tenant_id, name, scholastic_year, cefr_level, default_subject, default_output_language, assigned_teacher_email, active_weekdays, created_at";
+
+function mapClassRow(raw: Record<string, unknown>): ClassRow {
+  return {
+    id: raw.id as string,
+    tenant_id: raw.tenant_id as string,
+    name: raw.name as string,
+    scholastic_year: (raw.scholastic_year as string | null) ?? null,
+    cefr_level: (raw.cefr_level as CefrLevel | null) ?? null,
+    default_subject: raw.default_subject as SubjectCode,
+    default_output_language: raw.default_output_language as ReportLanguageCode,
+    assigned_teacher_email: (raw.assigned_teacher_email as string | null) ?? null,
+    active_weekdays: parseActiveWeekdaysFromDb(raw.active_weekdays),
+    created_at: raw.created_at as string,
+  };
+}
 
 export async function listClasses(
   tenantId: string,
@@ -39,7 +57,7 @@ export async function listClasses(
   }
   const { data, error } = await q.order("name", { ascending: true });
   if (error) throw new Error(formatErr(error));
-  return (data ?? []) as ClassRow[];
+  return (data ?? []).map((row) => mapClassRow(row as Record<string, unknown>));
 }
 
 export async function insertClass(opts: {
@@ -63,10 +81,11 @@ export async function insertClass(opts: {
     default_subject: opts.defaultSubject && isSubjectCode(opts.defaultSubject) ? opts.defaultSubject : "efl",
     default_output_language: opts.defaultOutputLanguage ?? "en",
     assigned_teacher_email: opts.assignedTeacherEmail?.trim().toLowerCase() ?? null,
+    active_weekdays: [],
   };
   const { data, error } = await supabase.from("classes").insert(row).select(classSelect).single();
   if (error) throw new Error(formatErr(error));
-  return data as ClassRow;
+  return mapClassRow(data as Record<string, unknown>);
 }
 
 export async function getClassInTenant(tenantId: string, classId: string): Promise<ClassRow | null> {
@@ -79,7 +98,7 @@ export async function getClassInTenant(tenantId: string, classId: string): Promi
     .eq("id", classId)
     .maybeSingle();
   if (error) throw new Error(formatErr(error));
-  return (data as ClassRow) ?? null;
+  return data ? mapClassRow(data as Record<string, unknown>) : null;
 }
 
 export async function updateClass(
@@ -92,6 +111,7 @@ export async function updateClass(
     default_subject?: SubjectCode;
     default_output_language?: ReportLanguageCode;
     assigned_teacher_email?: string | null;
+    active_weekdays?: WeekdayKey[];
   },
 ): Promise<ClassRow> {
   const supabase = getServiceSupabase();
@@ -105,6 +125,9 @@ export async function updateClass(
   if (patch.assigned_teacher_email !== undefined) {
     row.assigned_teacher_email = patch.assigned_teacher_email?.trim().toLowerCase() || null;
   }
+  if (patch.active_weekdays !== undefined) {
+    row.active_weekdays = normalizeActiveWeekdays(patch.active_weekdays);
+  }
   const { data, error } = await supabase
     .from("classes")
     .update(row)
@@ -113,7 +136,7 @@ export async function updateClass(
     .select(classSelect)
     .single();
   if (error) throw new Error(formatErr(error));
-  return data as ClassRow;
+  return mapClassRow(data as Record<string, unknown>);
 }
 
 export async function deleteClassInTenant(tenantId: string, classId: string): Promise<void> {

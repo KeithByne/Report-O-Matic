@@ -442,6 +442,19 @@ const EN: UiMessages = {
   "class.confirmYearChange":
     "Changing the scholastic year saves a read-only archive of the current year (all pupil reports), then removes those reports so you can start fresh for the new year. Pupils stay in the class. Continue?",
   "class.confirmRemoveStudent": "Remove {name} from this class? All their reports will be deleted.",
+  "class.activeDaysLabel": "Days this class meets",
+  "class.activeDaysHint": "Used for the Print Register PDF (five weeks of session columns). Save class settings after changing.",
+  "class.activeDaysDisplay": "Register uses",
+  "class.printRegister": "Print Register",
+  "class.printRegisterNeedDays": "Choose which days the class meets in Class settings first.",
+  "class.printRegisterNeedStudents": "Add pupils before printing the register.",
+  "weekday.mon": "Monday",
+  "weekday.tue": "Tuesday",
+  "weekday.wed": "Wednesday",
+  "weekday.thu": "Thursday",
+  "weekday.fri": "Friday",
+  "weekday.sat": "Saturday",
+  "weekday.sun": "Sunday",
 };
 
 const FR: UiMessages = {
@@ -720,6 +733,20 @@ const FR: UiMessages = {
   "class.confirmYearChange":
     "Changer l’année scolaire enregistre un archive en lecture seule de l’année en cours (tous les rapports des élèves), puis supprime ces rapports pour repartir à zéro. Les élèves restent dans la classe. Continuer ?",
   "class.confirmRemoveStudent": "Retirer {name} de cette classe ? Tous ses rapports seront supprimés.",
+  "class.activeDaysLabel": "Jours de cours",
+  "class.activeDaysHint":
+    "Sert pour le PDF « Imprimer le registre » (cinq semaines de colonnes). Enregistrez les paramètres après modification.",
+  "class.activeDaysDisplay": "Jours pour le registre",
+  "class.printRegister": "Imprimer le registre",
+  "class.printRegisterNeedDays": "Choisissez d’abord les jours de cours dans les paramètres de la classe.",
+  "class.printRegisterNeedStudents": "Ajoutez des élèves avant d’imprimer le registre.",
+  "weekday.mon": "lundi",
+  "weekday.tue": "mardi",
+  "weekday.wed": "mercredi",
+  "weekday.thu": "jeudi",
+  "weekday.fri": "vendredi",
+  "weekday.sat": "samedi",
+  "weekday.sun": "dimanche",
 };
 
 const ES: UiMessages = {
@@ -996,6 +1023,20 @@ const ES: UiMessages = {
   "class.confirmYearChange":
     "Al cambiar el año escolar se archiva en solo lectura el año actual (todos los informes de los alumnos) y luego se eliminan esos informes para empezar de cero. Los alumnos permanecen en la clase. ¿Continuar?",
   "class.confirmRemoveStudent": "¿Quitar a {name} de esta clase? Se eliminarán todos sus informes.",
+  "class.activeDaysLabel": "Días de clase",
+  "class.activeDaysHint":
+    "Se usa para el PDF «Imprimir registro» (cinco semanas de columnas). Guarde los ajustes de la clase tras cambiar.",
+  "class.activeDaysDisplay": "Días activos (registro)",
+  "class.printRegister": "Imprimir registro",
+  "class.printRegisterNeedDays": "Elija primero los días de clase en Ajustes de la clase.",
+  "class.printRegisterNeedStudents": "Añada alumnos antes de imprimir el registro.",
+  "weekday.mon": "lunes",
+  "weekday.tue": "martes",
+  "weekday.wed": "miércoles",
+  "weekday.thu": "jueves",
+  "weekday.fri": "viernes",
+  "weekday.sat": "sábado",
+  "weekday.sun": "domingo",
 };
 
 const DE: UiMessages = { ...EN, ...DE_LABELS };

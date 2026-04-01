@@ -12,6 +12,7 @@ import {
   reportReadyForClassBulkPdf,
 } from "@/lib/reportInputs";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
+import { WEEKDAY_KEYS, type WeekdayKey } from "@/lib/activeWeekdays";
 
 function normalizeScholasticYearLabel(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -44,6 +45,7 @@ type ClassDetail = {
   default_subject: string;
   default_output_language: string;
   assigned_teacher_email: string | null;
+  active_weekdays: WeekdayKey[];
 };
 
 type ClassListRow = { id: string; name: string };
@@ -63,7 +65,7 @@ type Props = {
 const CEFR = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 
 export function ClassWorkspace({ tenantId, classId, schoolName, className: initialClassName, viewerRole }: Props) {
-  const { t } = useUiLanguage();
+  const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
@@ -130,6 +132,23 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     return s ? `${batchBase}?${s}` : batchBase;
   }, [batchBase, batchTermFilter, batchOrder]);
 
+  const registerPdfHref = useMemo(() => {
+    const qp = new URLSearchParams();
+    qp.set("lang", uiLang);
+    return `${base}/classes/${encodeURIComponent(classId)}/register-pdf?${qp.toString()}`;
+  }, [base, classId, uiLang]);
+
+  const registerPdfGate = useMemo(() => {
+    if (students.length === 0) {
+      return { canPrint: false as const, message: t("class.printRegisterNeedStudents") };
+    }
+    const days = detail?.active_weekdays ?? [];
+    if (days.length === 0) {
+      return { canPrint: false as const, message: t("class.printRegisterNeedDays") };
+    }
+    return { canPrint: true as const, message: null as string | null };
+  }, [students.length, detail?.active_weekdays, t]);
+
   const [cName, setCName] = useState(initialClassName);
   const [scholasticYear, setScholasticYear] = useState("");
   const [cefr, setCefr] = useState("");
@@ -140,6 +159,8 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [allClasses, setAllClasses] = useState<ClassListRow[]>([]);
   const [moveStudentId, setMoveStudentId] = useState("");
   const [moveToClassId, setMoveToClassId] = useState("");
+
+  const [activeDays, setActiveDays] = useState<Set<WeekdayKey>>(() => new Set());
 
   const [newFirst, setNewFirst] = useState("");
   const [newLast, setNewLast] = useState("");
@@ -162,6 +183,8 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       setDefSubject((c.default_subject as SubjectCode) || "efl");
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setAssignTeacher(c.assigned_teacher_email?.trim() ?? "");
+      const aw = Array.isArray(c.active_weekdays) ? c.active_weekdays : [];
+      setActiveDays(new Set(aw.filter((x): x is WeekdayKey => WEEKDAY_KEYS.includes(x as WeekdayKey))));
     } catch (e: unknown) {
       setLoadError(e instanceof Error ? e.message : "Failed to load class");
     }
@@ -497,6 +520,36 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
               ))}
             </select>
           </label>
+          <div className="text-sm sm:col-span-2">
+            <span className="text-zinc-600">{t("class.activeDaysLabel")}</span>
+            <p className="mt-1 text-xs text-zinc-500">{t("class.activeDaysHint")}</p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+              {WEEKDAY_KEYS.map((k) => (
+                <label key={k} className="flex cursor-pointer items-center gap-2 text-sm text-zinc-800">
+                  <input
+                    type="checkbox"
+                    checked={activeDays.has(k)}
+                    onChange={() => {
+                      setActiveDays((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(k)) next.delete(k);
+                        else next.add(k);
+                        return next;
+                      });
+                    }}
+                    className="rounded border-emerald-300 text-emerald-800 focus:ring-emerald-600"
+                  />
+                  {t(`weekday.${k}`)}
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-zinc-700">
+              <span className="font-medium text-zinc-800">{t("class.activeDaysDisplay")}: </span>
+              {WEEKDAY_KEYS.filter((k) => activeDays.has(k))
+                .map((k) => t(`weekday.${k}`))
+                .join(", ") || "—"}
+            </p>
+          </div>
           {viewerRole === "owner" || viewerRole === "department_head" ? (
             <label className="text-sm sm:col-span-2">
               <span className="text-zinc-600">Assigned teacher (must match invited teacher email)</span>
@@ -554,7 +607,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       <ClassScholasticArchives key={archiveRefresh} classId={classId} apiBase={base} />
 
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-zinc-900">Students in this class</h3>
+        <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <p className="mt-1 text-xs text-zinc-500">{t("class.studentsHint")}</p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
           <label className="text-sm">
@@ -599,6 +652,24 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                 Download class PDFs (one file)
               </span>
               <p className="max-w-md text-xs text-amber-800">{classBulkPdfGate.message}</p>
+            </div>
+          )}
+          {registerPdfGate.canPrint ? (
+            <a
+              href={registerPdfHref}
+              className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
+            >
+              {t("class.printRegister")}
+            </a>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <span
+                className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
+                title={registerPdfGate.message}
+              >
+                {t("class.printRegister")}
+              </span>
+              <p className="max-w-md text-xs text-amber-800">{registerPdfGate.message}</p>
             </div>
           )}
         </div>
