@@ -16,12 +16,34 @@ const LANGUAGE_INSTRUCTION: Record<ReportLanguageCode, string> = {
 };
 
 /**
- * Appended to the model prompt for short-course reports only (instructional, English).
- * Keeps the model in a single-course frame: no school “terms” or multi-period narrative.
+ * Rubric interpretation (English); sent in the user message for short-course generation only.
+ * Standard reports use a separate system + user path.
  */
-export const SHORT_COURSE_AI_CONTEXT_EN = `The student has completed a short standalone course (not a slice of a three-term year). High grades indicate strong progress or development across this course; low grades suggest limited progress within this course.
-The comment must stay entirely in that frame. Do not mention terms, trimesters, semesters, reporting periods, or "next"/"previous" periods — there are none in this context. Use only "course" (or natural paraphrases like "this programme" / "during the course") when situating performance.
-For any forward-looking encouragement or advice, phrase it as suggestions for going forward, continuing to learn, or next steps in a general sense — never as improvement "next term" or similar.`;
+export const SHORT_COURSE_AI_CONTEXT_EN = `How to read the rubric: This is a finished short course. Higher 0–10 scores generally reflect stronger engagement or development during this course; lower scores reflect areas that were weaker during this course. Comment only on what this single course shows—do not place it inside a longer school year or reporting-cycle story.`;
+
+function shortCourseSystemPrompt(studentFirstName: string, langName: string): string {
+  return `You write one end-of-course comment for parents or guardians after a short standalone course (not part of a three-part school year).
+
+OUTPUT: Entirely in ${langName}. Max 1400 characters. Plain paragraphs only (no markdown, no headings).
+NAME: Use only the first name "${studentFirstName}". Do not use or invent a surname.
+GROUNDING: Base the comment only on the 0–10 rubric supplied; be fair and specific.
+
+MANDATORY CONSTRAINTS — if you break any of these, the output is wrong:
+1) Never use the word "term" or any direct equivalent for a school reporting period in any language (e.g. trimester, trimestre, semester, "reporting period", "next marking period", "prochain trimestre"). Talk only about "the course", "this course", or close paraphrases like "this programme" or "during the course".
+
+2) This course is over. Do not imply that the writer will teach this pupil again or that they will meet again. Forbidden patterns include: looking forward to seeing them, see you next…, when we meet again, in our next lesson or class, back in my class, I will work with… next…, we will continue… together, or similar in any language.
+
+3) For any forward-looking encouragement or advice, use only general, non-relationship framing: e.g. going forward, moving forward, in future learning, as they continue to study, ways they might build on what they have learned — without tying the future to this same teacher, class, or any school term structure.`;
+
+}
+
+/** User-side checklist for short course (English; model writes the comment in the output language). */
+const SHORT_COURSE_USER_RULES_EN = `Before you write, satisfy every MANDATORY CONSTRAINT in the system message.
+
+Then write the full comment:
+• Open with strengths suggested by the data.
+• Middle: honest, constructive reflection where scores are lower.
+• Close: warm encouragement plus concrete, parent-friendly suggestions phrased with going forward / moving forward / in their future learning — never school "terms", never implying the teacher will see the student again.`;
 
 /**
  * Generates report comment text. Per spec: do not send student surname to the model;
@@ -49,38 +71,51 @@ export async function generateSchoolReportDraft(opts: {
   const subjectLine = resolvedSubjectLabel(opts.inputs, opts.classDefaultSubject);
   const datasetBlock = reportInputsToTeacherNotes(opts.inputs, subjectLine);
 
-  const system = `You write school report comments for parents (English as a foreign language / similar contexts). 
+  let system: string;
+  let user: string;
+  let temperature: number;
+
+  if (shortCourse) {
+    system = shortCourseSystemPrompt(opts.studentFirstName, langName);
+    const userParts = [
+      `School: ${opts.schoolName}`,
+      opts.className ? `Class: ${opts.className}` : "",
+      `Student first name (only name to use in text): ${opts.studentFirstName}`,
+      `Subject: ${subjectLine}`,
+      `Short course — interpretation:\n${SHORT_COURSE_AI_CONTEXT_EN}`,
+      `Structured numerical data for this course:\n${datasetBlock}`,
+      opts.extraNotes
+        ? `Teacher background (use only if it fits an end-of-course summary; never use it to imply future lessons with this teacher, future terms, or that you will see the student again):\n${opts.extraNotes}`
+        : "",
+      opts.existingBody
+        ? `Revise or replace this draft. Facts must match the rubric. Strip any mention of terms/trimesters/semesters, any school-period timeline, and any suggestion the teacher will meet or teach this pupil again.\n${opts.existingBody}`
+        : SHORT_COURSE_USER_RULES_EN,
+    ];
+    user = userParts.filter(Boolean).join("\n\n");
+    temperature = 0.42;
+  } else {
+    system = `You write school report comments for parents (English as a foreign language / similar contexts). 
 The report narrative must be written entirely in ${langName}. Do not use another language for the main text.
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
 Use only the student's first name (${opts.studentFirstName}) — do not use or invent a surname.
-Base the appraisal on the numerical 0–10 dataset supplied; be fair and specific.${
-    shortCourse
-      ? `
-
-Short-course mode: The output language is ${langName} — apply the course-only framing below in that language. Do not use the word "term" nor equivalent school-period words (e.g. trimestre, trimester, Semester). Do not refer to a next or previous reporting period. Future-oriented advice should sound like encouragement or practical suggestions for going forward / continuing to learn, not "next term".`
-      : ""
-  }`;
-
-  const user = [
-    `School: ${opts.schoolName}`,
-    opts.className ? `Class: ${opts.className}` : "",
-    `Student first name (only name to use in text): ${opts.studentFirstName}`,
-    `Subject: ${subjectLine}`,
-    shortCourse ? `Short course report — follow this guidance when interpreting the grades:\n${SHORT_COURSE_AI_CONTEXT_EN}` : "",
-    shortCourse
-      ? `Structured numerical data for this course:\n${datasetBlock}`
-      : `Structured numerical data and term labels:\n${datasetBlock}`,
-    opts.extraNotes
-      ? `Teacher context (use when shaping the comment for parents; do not quote or label this block; weave in fairly if relevant):\n${opts.extraNotes}`
-      : "",
-    opts.existingBody
-      ? `Revise or replace this draft (keep facts consistent with the dataset):\n${opts.existingBody}`
-      : shortCourse
-        ? "Write a complete comment: opening strength, honest middle where grades are low, end with warm encouragement and practical suggestions for going forward. Do not refer to terms, trimesters, semesters, or future school reporting periods — only this course."
+Base the appraisal on the numerical 0–10 dataset supplied; be fair and specific.`;
+    user = [
+      `School: ${opts.schoolName}`,
+      opts.className ? `Class: ${opts.className}` : "",
+      `Student first name (only name to use in text): ${opts.studentFirstName}`,
+      `Subject: ${subjectLine}`,
+      `Structured numerical data and term labels:\n${datasetBlock}`,
+      opts.extraNotes
+        ? `Teacher context (use when shaping the comment for parents; do not quote or label this block; weave in fairly if relevant):\n${opts.extraNotes}`
+        : "",
+      opts.existingBody
+        ? `Revise or replace this draft (keep facts consistent with the dataset):\n${opts.existingBody}`
         : "Write a complete comment: opening strength, honest middle where grades are low, end positive with next steps.",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+    temperature = 0.55;
+  }
 
   const completion = await openai.chat.completions.create({
     model,
@@ -89,7 +124,7 @@ Short-course mode: The output language is ${langName} — apply the course-only 
       { role: "user", content: user },
     ],
     max_tokens: 900,
-    temperature: 0.55,
+    temperature,
   });
   let text = completion.choices[0]?.message?.content?.trim();
   if (!text) throw new Error("The model returned no text.");
