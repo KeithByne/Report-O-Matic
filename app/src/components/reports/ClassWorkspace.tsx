@@ -8,6 +8,7 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import {
   type ClassBulkPdfTermFilter,
+  type ReportKind,
   isShortCourseReport,
   parseReportInputs,
   reportReadyForClassBulkPdf,
@@ -45,6 +46,7 @@ type ClassDetail = {
   cefr_level: string | null;
   default_subject: string;
   default_output_language: string;
+  default_new_report_kind?: ReportKind;
   assigned_teacher_email: string | null;
   active_weekdays: WeekdayKey[];
 };
@@ -155,6 +157,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [cefr, setCefr] = useState("");
   const [defSubject, setDefSubject] = useState<SubjectCode>("efl");
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
+  const [defNewReportKind, setDefNewReportKind] = useState<ReportKind>("standard");
   const [assignTeacher, setAssignTeacher] = useState("");
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [allClasses, setAllClasses] = useState<ClassListRow[]>([]);
@@ -187,6 +190,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       setCefr(c.cefr_level ?? "");
       setDefSubject((c.default_subject as SubjectCode) || "efl");
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
+      setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
       setAssignTeacher(c.assigned_teacher_email?.trim() ?? "");
       const aw = Array.isArray(c.active_weekdays) ? c.active_weekdays : [];
       const keySet = new Set(
@@ -297,6 +301,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           cefr_level: cefr.trim() || null,
           default_subject: defSubject,
           default_output_language: defLang,
+          default_new_report_kind: defNewReportKind,
           active_weekdays: activeDays,
           ...(viewerRole === "owner" || viewerRole === "department_head"
             ? {
@@ -350,7 +355,8 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     }
   }
 
-  async function createReport(studentId: string, kind: "standard" | "short_course" = "standard") {
+  async function createReport(studentId: string) {
+    const kind = defNewReportKind;
     setBusy("create");
     try {
       const res = await fetch(`${base}/reports`, {
@@ -535,6 +541,18 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
               ))}
             </select>
           </label>
+          <label className="text-sm sm:col-span-2">
+            <span className="text-zinc-600">{t("class.defaultNewReportKind")}</span>
+            <select
+              value={defNewReportKind}
+              onChange={(e) => setDefNewReportKind(e.target.value as ReportKind)}
+              className="mt-1 w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="standard">{t("class.reportKindStandard")}</option>
+              <option value="short_course">{t("class.reportKindShortCourse")}</option>
+            </select>
+            <p className="mt-1 text-xs text-zinc-500">{t("class.defaultNewReportKindHint")}</p>
+          </label>
           <div className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.activeDaysLabel")}</span>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -637,9 +655,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <p className="mt-1 text-xs text-zinc-500">{t("class.studentsHint")}</p>
-        <p className="mt-2 rounded-lg border border-teal-200 bg-teal-50/90 px-3 py-2 text-xs font-medium text-teal-950">
-          {t("class.studentsReportTypesCallout")}
-        </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.bulkPdfWhichReports")}</span>
@@ -814,28 +829,14 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                     {isShortCourseReport(parseReportInputs(r.inputs)) ? t("class.shortCourseReportLink") : t("class.report")}
                   </Link>
                 ))}
-                <label className="flex min-w-[11rem] flex-col gap-0.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-teal-900">
-                    {t("class.addReportLabel")}
-                  </span>
-                  <select
-                    className="rounded-lg border-2 border-teal-400 bg-white px-2 py-2 text-sm font-medium text-zinc-900 shadow-sm disabled:opacity-50"
-                    defaultValue=""
-                    disabled={busy !== null}
-                    aria-label={t("class.addReportLabel")}
-                    onChange={(e) => {
-                      const sel = e.currentTarget;
-                      const v = sel.value;
-                      if (v === "standard") void createReport(s.id, "standard");
-                      else if (v === "short_course") void createReport(s.id, "short_course");
-                      sel.selectedIndex = 0;
-                    }}
-                  >
-                    <option value="">{t("class.addReportPlaceholder")}</option>
-                    <option value="standard">{t("class.addReportStandard")}</option>
-                    <option value="short_course">{t("class.addReportShortCourse")}</option>
-                  </select>
-                </label>
+                <button
+                  type="button"
+                  onClick={() => void createReport(s.id)}
+                  disabled={busy !== null}
+                  className="rounded-lg border border-dashed border-emerald-200 px-3 py-1.5 text-sm text-zinc-700 hover:bg-emerald-50/70 disabled:opacity-50"
+                >
+                  {t("class.newReport")}
+                </button>
                 {canDeleteStudent ? (
                   <button
                     type="button"
