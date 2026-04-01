@@ -20,6 +20,7 @@ type MyAgentLink = {
   agent_email: string;
   display_name: string | null;
   // Note: owners should not control commission/wait/active; those are SaaS-owner controls.
+  commission_bps?: number;
   payout_stripe_account_id?: string | null;
 };
 
@@ -255,7 +256,8 @@ export function DashboardClientView({
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="text-sm text-zinc-600 sm:col-span-1">
-                        <span className="font-semibold text-zinc-800">Note:</span> commission %, payout timing, and activation are controlled by the SaaS owner.
+                        <span className="font-semibold text-zinc-800">Commission rate:</span>{" "}
+                        {`${(((Number(myAgent.commission_bps ?? 0) || 0) / 100) as number).toFixed(2)}%`}
                       </div>
                       <div />
 
