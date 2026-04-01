@@ -210,13 +210,12 @@ export function parseClassBulkPdfTermFilter(raw: string | null | undefined): Cla
   return "all";
 }
 
-/** Flatten 0–10 grid for OpenAI (grades only). Optional teacher context is passed separately in the AI prompt — not here. */
+/** Flatten 0–10 grid into plaintext for OpenAI (rubric + headers only; teacher prose notes are in the prompt separately). */
 export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved: string): string {
   const lines: string[] = [];
-  lines.push(`Subject context: ${subjectResolved}`);
+  lines.push(`Subject: ${subjectResolved}`);
   if (isShortCourseReport(inputs)) {
-    lines.push(`Report type: Short course (one condensed course; 0–10 grades describe this course only).`);
-    lines.push(`--- This course (0–10 rubric) ---`);
+    lines.push(`Short course — single 0–10 rubric below (all scores describe this course only).`);
     let currentDiv: MetricDivisionKey | "" = "";
     const t = 0;
     for (const m of DATASET4_METRICS) {

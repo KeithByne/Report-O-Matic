@@ -15,7 +15,7 @@ export type ReportDraftPromptContext = {
   className: string | null;
   /** Human-readable subject label (e.g. "English as a Foreign Language"). */
   subjectLine: string;
-  /** From reportInputsToTeacherNotes (includes term labels for standard reports). */
+  /** From reportInputsToTeacherNotes (term sections for standard; single rubric block for short course). */
   datasetBlock: string;
   extraNotes?: string;
   existingBody?: string;
