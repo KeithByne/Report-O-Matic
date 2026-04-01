@@ -9,6 +9,9 @@ const ROWS_PER_PAGE = 16;
 /** Body: first / last name columns (PDF points, 1 pt = 1/72 in). */
 const NAME_FONT_PT = 12;
 const CLASS_TITLE_FONT_PT = 18;
+const MONTH_BOX_W_PT = 118;
+const MONTH_BOX_H_PT = 16;
+const TITLE_ROW_GAP_AFTER_PT = 10;
 
 const { widthPt, heightPt } = PDF_PAGE_SPEC;
 
@@ -67,13 +70,37 @@ function drawRegisterPage(
 
   drawReportLetterhead(doc, opts.letterhead, opts.letterheadLogo, { pageMarginPt: M });
 
-  let y = doc.y + 12;
+  const titleRowTop = doc.y + 12;
+  const fullTitleRowW = widthPt - M * 2;
+  const monthLabel = translate(opts.lang, "pdf.registerMonth");
+  doc.font("Helvetica").fontSize(9).fillColor("#64748b");
+  const monthLabelW = doc.widthOfString(monthLabel);
+  const monthBlockW = 8 + monthLabelW + 6 + MONTH_BOX_W_PT;
+  const classNameWidth = Math.max(80, fullTitleRowW - monthBlockW);
+
   doc.font("Helvetica-Bold").fontSize(CLASS_TITLE_FONT_PT).fillColor("#0f172a");
-  doc.text(opts.className.trim() || "—", M, y, {
-    width: widthPt - M * 2,
+  const classTitle = opts.className.trim() || "—";
+  const titleRowH = Math.max(22, MONTH_BOX_H_PT + 8);
+  doc.text(classTitle, M, titleRowTop, {
+    width: classNameWidth,
     align: "left",
+    lineGap: 0,
+    height: titleRowH,
+    ellipsis: true,
   });
-  y = doc.y + 10;
+
+  const boxX = widthPt - M - MONTH_BOX_W_PT;
+  const boxY = titleRowTop + 4;
+  doc.font("Helvetica").fontSize(9).fillColor("#64748b");
+  doc.text(monthLabel, boxX - monthLabelW - 6, titleRowTop + 5, {
+    width: monthLabelW + 2,
+    align: "right",
+  });
+  doc.strokeColor("#94a3b8").lineWidth(0.65).rect(boxX, boxY, MONTH_BOX_W_PT, MONTH_BOX_H_PT).stroke();
+
+  let y = titleRowTop + titleRowH + TITLE_ROW_GAP_AFTER_PT;
+  doc.y = y;
+  doc.x = M;
 
   const usableW = widthPt - M * 2;
   const bottomY = heightPt - M;
