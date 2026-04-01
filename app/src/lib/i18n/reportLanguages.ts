@@ -1,9 +1,10 @@
 /**
  * Supported report output / PDF / OpenAI parent-comment languages (single ordered list for UI + API).
  *
- * Note: Full UI copy lives in `uiStrings.ts`. Locales `nl`, `pl`, `ro`, `ru`, `uk`, `ar` intentionally
- * mirror English strings until dedicated bundles exist. `fr`/`es` override many keys; anything not listed
- * there stays English. Language *names* in dropdowns use `reportLanguageOptionLabel` (Intl / CLDR).
+ * Full UI copy lives in `uiStrings.ts`. Locales `nl`, `pl`, `ro`, `ru`, `uk`, `ar` use `localePatches6`
+ * (plus `localePatches6Extra`) merged over English; keys not in those patches fall back to English.
+ * `fr`/`es`/`de`/`it`/`pt` have larger dedicated bundles. Language *names* use `reportLanguageOptionLabel`
+ * (Intl / CLDR).
  */
 export const REPORT_LANGUAGES = [
   { code: "en", label: "English" },

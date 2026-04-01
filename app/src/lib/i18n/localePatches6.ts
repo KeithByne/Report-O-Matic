@@ -1,5 +1,7 @@
 /** Core UI strings for locales without full hand-built bundles (merged over EN in uiStrings). */
 
+import { AR_EXTRA, NL_EXTRA, PL_EXTRA, RO_EXTRA, RU_EXTRA, UK_EXTRA } from "@/lib/i18n/localePatches6Extra";
+
 function patch(base: Record<string, string>): Record<string, string> {
   return base;
 }
@@ -77,6 +79,7 @@ export const NL_PATCH: Record<string, string> = patch({
   "weekday.fri": "vrijdag",
   "weekday.sat": "zaterdag",
   "weekday.sun": "zondag",
+  ...NL_EXTRA,
 });
 
 /** Polish */
@@ -152,6 +155,7 @@ export const PL_PATCH: Record<string, string> = patch({
   "weekday.fri": "piątek",
   "weekday.sat": "sobota",
   "weekday.sun": "niedziela",
+  ...PL_EXTRA,
 });
 
 /** Romanian */
@@ -227,6 +231,7 @@ export const RO_PATCH: Record<string, string> = patch({
   "weekday.fri": "vineri",
   "weekday.sat": "sâmbătă",
   "weekday.sun": "duminică",
+  ...RO_EXTRA,
 });
 
 /** Russian */
@@ -302,6 +307,7 @@ export const RU_PATCH: Record<string, string> = patch({
   "weekday.fri": "пятница",
   "weekday.sat": "суббота",
   "weekday.sun": "воскресенье",
+  ...RU_EXTRA,
 });
 
 /** Ukrainian */
@@ -377,6 +383,7 @@ export const UK_PATCH: Record<string, string> = patch({
   "weekday.fri": "п’ятниця",
   "weekday.sat": "субота",
   "weekday.sun": "неділя",
+  ...UK_EXTRA,
 });
 
 /** Arabic */
@@ -452,4 +459,5 @@ export const AR_PATCH: Record<string, string> = patch({
   "weekday.fri": "الجمعة",
   "weekday.sat": "السبت",
   "weekday.sun": "الأحد",
+  ...AR_EXTRA,
 });
