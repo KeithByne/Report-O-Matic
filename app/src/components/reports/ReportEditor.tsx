@@ -17,8 +17,8 @@ import {
   termAveragePercent,
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { metricLabel } from "@/lib/i18n/uiStrings";
-import { REPORT_SUBJECTS, subjectLabel, type SubjectCode } from "@/lib/subjects";
+import { metricLabel, reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
+import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 
 type Student = {
   id: string;
@@ -364,7 +364,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
               </tr>
               <tr>
                 <td className="py-2 pr-4 text-zinc-500">{t("report.defaultSubject")}</td>
-                <td className="py-2">{subjectLabel(classDefaultSubject)}</td>
+                <td className="py-2">{subjectLabelLocalized(lang, classDefaultSubject)}</td>
               </tr>
               <tr>
                 <td className="py-2 pr-4 text-zinc-500">{t("report.teacherSignedIn")}</td>
@@ -387,7 +387,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
             >
               {REPORT_LANGUAGES.map((o) => (
                 <option key={o.code} value={o.code}>
-                  {o.label}
+                  {reportLanguageOptionLabel(lang, o.code)}
                 </option>
               ))}
             </select>
@@ -423,10 +423,12 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
               }}
               className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
             >
-              <option value="">{t("report.useClassDefault", { subject: subjectLabel(classDefaultSubject) })}</option>
+              <option value="">
+                {t("report.useClassDefault", { subject: subjectLabelLocalized(lang, classDefaultSubject) })}
+              </option>
               {REPORT_SUBJECTS.map((s) => (
                 <option key={s.code} value={s.code}>
-                  {s.label}
+                  {subjectLabelLocalized(lang, s.code)}
                 </option>
               ))}
             </select>

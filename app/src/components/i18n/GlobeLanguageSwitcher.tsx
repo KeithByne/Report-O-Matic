@@ -1,6 +1,7 @@
 "use client";
 
 import type { UiLang } from "@/lib/i18n/uiStrings";
+import { reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 
 export function GlobeLanguageSwitcher() {
@@ -20,7 +21,7 @@ export function GlobeLanguageSwitcher() {
       >
         {options.map((o) => (
           <option key={o.code} value={o.code}>
-            {o.label}
+            {reportLanguageOptionLabel(lang, o.code)}
           </option>
         ))}
       </select>

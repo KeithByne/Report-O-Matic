@@ -1,5 +1,13 @@
 import type { Dataset4MetricKey, MetricDivisionKey } from "@/lib/reportInputs";
-import { UI_LOCALE_CODES, UI_LOCALE_LANGUAGES, type UiLocaleCode } from "@/lib/i18n/reportLanguages";
+import {
+  UI_LOCALE_BCP47,
+  UI_LOCALE_CODES,
+  UI_LOCALE_LANGUAGES,
+  languageLabel,
+  type ReportLanguageCode,
+  type UiLocaleCode,
+} from "@/lib/i18n/reportLanguages";
+import { AR_PATCH, NL_PATCH, PL_PATCH, RO_PATCH, RU_PATCH, UK_PATCH } from "@/lib/i18n/localePatches6";
 import type { SubjectCode } from "@/lib/subjects";
 import { DE_LABELS, IT_LABELS, PT_LABELS } from "@/lib/i18n/localeExtra";
 
@@ -9,6 +17,19 @@ export const UI_LANG_OPTIONS = [...UI_LOCALE_LANGUAGES];
 
 export function isUiLang(s: string): s is UiLang {
   return (UI_LOCALE_CODES as readonly string[]).includes(s);
+}
+
+/** `<option>` text for report/output languages, spelled in the active UI locale (CLDR via Intl). */
+export function reportLanguageOptionLabel(lang: UiLang, code: ReportLanguageCode): string {
+  try {
+    const chain = [UI_LOCALE_BCP47[lang], "en"];
+    const dn = new Intl.DisplayNames(chain, { type: "language" });
+    const name = dn.of(code);
+    if (name) return name;
+  } catch {
+    /* ignore */
+  }
+  return languageLabel(code);
 }
 
 /** Flat message map per locale. Keys use dot notation. */
@@ -448,6 +469,23 @@ const EN: UiMessages = {
   "pdf.registerMonth": "Month",
   "common.failed": "Failed",
   "common.genericError": "Something went wrong.",
+  "billing.title": "Buy report credits",
+  "billing.leadOwnerLine1": "Credits are added to",
+  "billing.leadOwnerAccount": "your owner account",
+  "billing.leadOwnerLine2":
+    "and shared by every school you own (including {school}). Buying here still helps keep payment history with this school in Stripe.",
+  "billing.leadNonOwner": "{school} needs report credits before you can create reports.",
+  "billing.currentBalanceLabel": "Current balance (this account):",
+  "billing.reportsRemaining": "{n} reports remaining",
+  "billing.ownerOnly": "Only school owners can purchase credits. Ask your owner to buy a pack.",
+  "billing.continuePayment": "Continue to payment",
+  "billing.packLine": "{credits} reports • {price} {currency}",
+  "billing.backReports": "Back to reports",
+  "billing.successTitle": "Payment received",
+  "billing.successBody":
+    "Thanks. If your credits don't appear immediately, give it a moment for Stripe to confirm the payment.",
+  "billing.continueToSchool": "Continue to {school}",
+  "billing.backBilling": "Back to billing",
   "dash.tenantLangTitle": "Default report language (per school)",
   "dash.tenantLangHint":
     "Applies to new classes and reports unless overridden on the class or individual report. Owners and department heads can change this; teachers see the current default read-only.",
@@ -913,6 +951,23 @@ const FR: UiMessages = {
   "pdf.registerMonth": "Mois",
   "common.failed": "Échec",
   "common.genericError": "Une erreur s’est produite.",
+  "billing.title": "Acheter des crédits de rapports",
+  "billing.leadOwnerLine1": "Les crédits sont ajoutés à",
+  "billing.leadOwnerAccount": "votre compte propriétaire",
+  "billing.leadOwnerLine2":
+    "et partagés par toutes vos écoles (y compris {school}). Acheter ici conserve l’historique des paiements Stripe avec cette école.",
+  "billing.leadNonOwner": "{school} a besoin de crédits de rapports avant de pouvoir créer des rapports.",
+  "billing.currentBalanceLabel": "Solde actuel (ce compte) :",
+  "billing.reportsRemaining": "{n} rapports restants",
+  "billing.ownerOnly": "Seuls les propriétaires peuvent acheter des crédits. Demandez à votre propriétaire d’acheter un pack.",
+  "billing.continuePayment": "Continuer vers le paiement",
+  "billing.packLine": "{credits} rapports • {price} {currency}",
+  "billing.backReports": "Retour aux rapports",
+  "billing.successTitle": "Paiement reçu",
+  "billing.successBody":
+    "Merci. Si les crédits n’apparaissent pas tout de suite, attendez la confirmation Stripe.",
+  "billing.continueToSchool": "Continuer vers {school}",
+  "billing.backBilling": "Retour à la facturation",
   "dash.tenantLangTitle": "Langue des rapports par défaut (par école)",
   "dash.tenantLangHint":
     "S’applique aux nouvelles classes et rapports sauf changement sur la classe ou le rapport. Modifiable par les responsables ; lecture seule pour les enseignants.",
@@ -1240,6 +1295,23 @@ const ES: UiMessages = {
   "pdf.registerMonth": "Mes",
   "common.failed": "Error",
   "common.genericError": "Algo salió mal.",
+  "billing.title": "Comprar créditos de informes",
+  "billing.leadOwnerLine1": "Los créditos se añaden a",
+  "billing.leadOwnerAccount": "su cuenta de propietario",
+  "billing.leadOwnerLine2":
+    "y los comparten todas sus escuelas (incluida {school}). Comprar aquí mantiene el historial de pagos en Stripe con este centro.",
+  "billing.leadNonOwner": "{school} necesita créditos de informes antes de poder crearlos.",
+  "billing.currentBalanceLabel": "Saldo actual (esta cuenta):",
+  "billing.reportsRemaining": "{n} informes restantes",
+  "billing.ownerOnly": "Solo los propietarios pueden comprar créditos. Pida al propietario que compre un pack.",
+  "billing.continuePayment": "Continuar al pago",
+  "billing.packLine": "{credits} informes • {price} {currency}",
+  "billing.backReports": "Volver a informes",
+  "billing.successTitle": "Pago recibido",
+  "billing.successBody":
+    "Gracias. Si los créditos no aparecen al instante, espere la confirmación de Stripe.",
+  "billing.continueToSchool": "Continuar a {school}",
+  "billing.backBilling": "Volver a facturación",
   "dash.tenantLangTitle": "Idioma de informes por defecto (por centro)",
   "dash.tenantLangHint":
     "Se aplica a clases e informes nuevos salvo cambio en la clase o el informe. Los responsables pueden cambiarlo; los profesores solo lectura.",
@@ -1328,13 +1400,13 @@ const ES: UiMessages = {
 const DE: UiMessages = { ...EN, ...DE_LABELS };
 const IT: UiMessages = { ...EN, ...IT_LABELS };
 const PT: UiMessages = { ...EN, ...PT_LABELS };
-/** New locales: English copy until dedicated bundles are added (translate() falls back to EN per key). */
-const NL: UiMessages = { ...EN };
-const PL: UiMessages = { ...EN };
-const RO: UiMessages = { ...EN };
-const RU: UiMessages = { ...EN };
-const UK: UiMessages = { ...EN };
-const AR: UiMessages = { ...EN };
+/** nl / pl / ro / ru / uk / ar: English base + `localePatches6` overlays (extend patches for fuller coverage). */
+const NL: UiMessages = { ...EN, ...NL_PATCH };
+const PL: UiMessages = { ...EN, ...PL_PATCH };
+const RO: UiMessages = { ...EN, ...RO_PATCH };
+const RU: UiMessages = { ...EN, ...RU_PATCH };
+const UK: UiMessages = { ...EN, ...UK_PATCH };
+const AR: UiMessages = { ...EN, ...AR_PATCH };
 
 export const UI_STRINGS: Record<UiLang, UiMessages> = {
   en: EN,

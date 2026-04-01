@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ClassScholasticArchives } from "@/components/reports/ClassScholasticArchives";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import {
   type ClassBulkPdfTermFilter,
@@ -517,7 +518,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             >
               {REPORT_SUBJECTS.map((s) => (
                 <option key={s.code} value={s.code}>
-                  {s.label}
+                  {subjectLabelLocalized(uiLang, s.code)}
                 </option>
               ))}
             </select>
@@ -531,7 +532,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             >
               {REPORT_LANGUAGES.map((o) => (
                 <option key={o.code} value={o.code}>
-                  {o.label}
+                  {reportLanguageOptionLabel(uiLang, o.code)}
                 </option>
               ))}
             </select>

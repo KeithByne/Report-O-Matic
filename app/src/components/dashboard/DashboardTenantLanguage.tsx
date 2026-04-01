@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
 
 type Tenant = { tenantId: string; tenantName: string; canEditSettings: boolean };
 
@@ -14,11 +16,12 @@ export function DashboardTenantLanguage({
   langs: Record<string, ReportLanguageCode>;
   onLanguageSaved: (tenantId: string, code: ReportLanguageCode) => void;
 }) {
+  const { t, lang: uiLang } = useUiLanguage();
   const [busy, setBusy] = useState<string | null>(null);
 
   async function save(tenantId: string, code: ReportLanguageCode) {
-    const t = tenants.find((x) => x.tenantId === tenantId);
-    if (!t?.canEditSettings) return;
+    const row = tenants.find((x) => x.tenantId === tenantId);
+    if (!row?.canEditSettings) return;
     setBusy(tenantId);
     try {
       const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}/settings`, {
@@ -40,27 +43,26 @@ export function DashboardTenantLanguage({
 
   return (
     <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-zinc-900">Default report language (per school)</h2>
+      <h2 className="text-sm font-semibold text-zinc-900">{t("dash.tenantLangTitle")}</h2>
       <p className="mt-1 text-sm text-zinc-600">
         <span aria-hidden className="mr-1">
           🌐
         </span>
-        Applies to new classes and reports unless overridden on the class or individual report. Owners and department
-        heads can change this; teachers see the current default read-only.
+        {t("dash.tenantLangHint")}
       </p>
       <ul className="mt-4 space-y-4">
-        {tenants.map((t) => (
-          <li key={t.tenantId} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="font-medium text-zinc-900">{t.tenantName}</span>
+        {tenants.map((row) => (
+          <li key={row.tenantId} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="font-medium text-zinc-900">{row.tenantName}</span>
             <select
-              value={langs[t.tenantId] ?? "en"}
-              onChange={(e) => void save(t.tenantId, e.target.value as ReportLanguageCode)}
-              disabled={busy !== null || !t.canEditSettings}
+              value={langs[row.tenantId] ?? "en"}
+              onChange={(e) => void save(row.tenantId, e.target.value as ReportLanguageCode)}
+              disabled={busy !== null || !row.canEditSettings}
               className="max-w-xs rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600"
             >
               {REPORT_LANGUAGES.map((o) => (
                 <option key={o.code} value={o.code}>
-                  {o.label}
+                  {reportLanguageOptionLabel(uiLang, o.code)}
                 </option>
               ))}
             </select>

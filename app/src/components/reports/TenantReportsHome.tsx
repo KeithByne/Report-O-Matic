@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
 import type { RomRole } from "@/lib/data/memberships";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 
@@ -16,7 +17,7 @@ type ClassRow = {
 type Props = { tenantId: string; schoolName: string; viewerRole: RomRole };
 
 export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
-  const { t } = useUiLanguage();
+  const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [lang, setLang] = useState<ReportLanguageCode>("en");
@@ -195,7 +196,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
           >
             {REPORT_LANGUAGES.map((o) => (
               <option key={o.code} value={o.code}>
-                {o.label}
+                {reportLanguageOptionLabel(uiLang, o.code)}
               </option>
             ))}
           </select>
