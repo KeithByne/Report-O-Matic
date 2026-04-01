@@ -2,11 +2,18 @@ import OpenAI from "openai";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { languageLabel } from "@/lib/i18n/reportLanguages";
 import type { ReportInputs } from "@/lib/reportInputs";
-import { isShortCourseReport, reportInputsToTeacherNotes, resolvedSubjectLabel } from "@/lib/reportInputs";
+import {
+  isShortCourseReport,
+  reportInputsToTeacherNotes,
+  resolvedSubjectCode,
+  resolvedSubjectLabel,
+} from "@/lib/reportInputs";
 import type { SubjectCode } from "@/lib/subjects";
 import type { OpenAiUsage } from "@/lib/ai/openaiCost";
-import { buildStandardReportDraftPrompts } from "@/lib/ai/reportCommentPrompts";
-import { buildShortCourseReportDraftPrompts } from "@/lib/ai/shortCourseReportCommentPrompt";
+import {
+  resolveShortCourseReportDraftPrompts,
+  resolveStandardReportDraftPrompts,
+} from "@/lib/ai/reportCommentPromptRegistry";
 
 const LANGUAGE_INSTRUCTION: Record<ReportLanguageCode, string> = {
   en: "British English",
@@ -39,10 +46,12 @@ export async function generateSchoolReportDraft(opts: {
   const openai = new OpenAI({ apiKey });
 
   const langName = LANGUAGE_INSTRUCTION[opts.outputLanguage] ?? languageLabel(opts.outputLanguage);
+  const subjectCode = resolvedSubjectCode(opts.inputs, opts.classDefaultSubject);
   const subjectLine = resolvedSubjectLabel(opts.inputs, opts.classDefaultSubject);
   const datasetBlock = reportInputsToTeacherNotes(opts.inputs, subjectLine);
 
   const ctx = {
+    subjectCode,
     langName,
     studentFirstName: opts.studentFirstName,
     schoolName: opts.schoolName,
@@ -54,8 +63,8 @@ export async function generateSchoolReportDraft(opts: {
   };
 
   const { system, user, temperature } = isShortCourseReport(opts.inputs)
-    ? buildShortCourseReportDraftPrompts(ctx)
-    : buildStandardReportDraftPrompts(ctx);
+    ? resolveShortCourseReportDraftPrompts(subjectCode, ctx)
+    : resolveStandardReportDraftPrompts(subjectCode, ctx);
 
   const completion = await openai.chat.completions.create({
     model,

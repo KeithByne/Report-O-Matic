@@ -1,14 +1,19 @@
 /**
  * Standard (term-based) school report comment prompts sent to OpenAI.
- * Short courses use `shortCourseReportCommentPrompt.ts` instead.
+ * Short courses use `shortCourseReportCommentPrompt.ts` by default; subject overrides: `reportCommentPromptRegistry.ts`.
  */
 
+import type { SubjectCode } from "@/lib/subjects";
+
 export type ReportDraftPromptContext = {
+  /** Resolved subject code (class default or report override). */
+  subjectCode: SubjectCode;
   /** e.g. "British English", "French" — from LANGUAGE_INSTRUCTION / languageLabel */
   langName: string;
   studentFirstName: string;
   schoolName: string;
   className: string | null;
+  /** Human-readable subject label (e.g. "English as a Foreign Language"). */
   subjectLine: string;
   /** From reportInputsToTeacherNotes (includes term labels for standard reports). */
   datasetBlock: string;
