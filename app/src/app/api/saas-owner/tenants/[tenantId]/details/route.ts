@@ -23,7 +23,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ tenantId: stri
       supabase.from("tenants").select("id, name, referral_code, referred_by_email, created_at").eq("id", tenantId).maybeSingle(),
       supabase
         .from("memberships")
-        .select("user_email, role")
+        .select("user_email, role, first_name, last_name")
         .eq("tenant_id", tenantId)
         .order("role", { ascending: true })
         .order("user_email", { ascending: true }),

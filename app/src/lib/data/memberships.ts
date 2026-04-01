@@ -66,7 +66,12 @@ export async function getRoleForTenant(email: string, tenantId: string): Promise
   return r as RomRole;
 }
 
-export type TenantMemberRow = { user_email: string; role: RomRole };
+export type TenantMemberRow = {
+  user_email: string;
+  role: RomRole;
+  first_name: string | null;
+  last_name: string | null;
+};
 
 /** All members of a school (for owner / department head dashboards). */
 export async function listMembersForTenant(tenantId: string): Promise<TenantMemberRow[]> {
@@ -74,7 +79,7 @@ export async function listMembersForTenant(tenantId: string): Promise<TenantMemb
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("memberships")
-    .select("user_email, role")
+    .select("user_email, role, first_name, last_name")
     .eq("tenant_id", tenantId)
     .order("role", { ascending: true })
     .order("user_email", { ascending: true });
@@ -83,7 +88,12 @@ export async function listMembersForTenant(tenantId: string): Promise<TenantMemb
   for (const row of data ?? []) {
     const r = (row as { user_email: string; role: string }).role as RomRole;
     if (r !== "owner" && r !== "department_head" && r !== "teacher") continue;
-    out.push({ user_email: (row as { user_email: string }).user_email, role: r });
+    out.push({
+      user_email: (row as { user_email: string }).user_email,
+      role: r,
+      first_name: typeof (row as { first_name?: unknown }).first_name === "string" ? (row as { first_name: string }).first_name : null,
+      last_name: typeof (row as { last_name?: unknown }).last_name === "string" ? (row as { last_name: string }).last_name : null,
+    } as TenantMemberRow);
   }
   return out;
 }
@@ -125,6 +135,8 @@ export async function inviteMemberToTenant(opts: {
   inviteeEmail: string;
   role: "department_head" | "teacher";
   inviterEmail: string;
+  firstName?: string | null;
+  lastName?: string | null;
 }): Promise<{ ok: true } | { ok: false; message: string; status: number }> {
   const supabase = getServiceSupabase();
   if (!supabase) {
@@ -162,10 +174,14 @@ export async function inviteMemberToTenant(opts: {
     }
   }
 
+  const fn = (opts.firstName ?? "").trim();
+  const ln = (opts.lastName ?? "").trim();
   const { error: iErr } = await supabase.from("memberships").insert({
     tenant_id: opts.tenantId,
     user_email: invitee,
     role: opts.role,
+    ...(fn ? { first_name: fn } : {}),
+    ...(ln ? { last_name: ln } : {}),
   });
 
   if (iErr) {

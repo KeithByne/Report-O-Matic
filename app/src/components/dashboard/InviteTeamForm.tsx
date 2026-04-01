@@ -12,6 +12,8 @@ type Props = {
 export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"teacher" | "department_head">("teacher");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string; warn?: string } | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -24,7 +26,13 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
       const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}/invites`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), role: inviteRole }),
+        body: JSON.stringify({
+          email: email.trim(),
+          role: inviteRole,
+          ...(inviteRole === "teacher"
+            ? { first_name: firstName.trim(), last_name: lastName.trim() }
+            : {}),
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         error?: string;
@@ -49,6 +57,8 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
             : undefined,
       });
       setEmail("");
+      setFirstName("");
+      setLastName("");
     } catch (err) {
       setMsg({
         type: "err",
@@ -84,6 +94,34 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
             placeholder="colleague@school.com"
           />
         </label>
+        {(variant === "department_head" || role === "teacher") ? (
+          <>
+            <label className="block min-w-[160px] text-sm">
+              <span className="text-zinc-600">Teacher first name(s)</span>
+              <input
+                type="text"
+                name="first_name"
+                required
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500"
+                placeholder="e.g. Alex"
+              />
+            </label>
+            <label className="block min-w-[160px] text-sm">
+              <span className="text-zinc-600">Teacher surname(s)</span>
+              <input
+                type="text"
+                name="last_name"
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500"
+                placeholder="e.g. Smith"
+              />
+            </label>
+          </>
+        ) : null}
         {variant === "owner" ? (
           <label className="block text-sm">
             <span className="text-zinc-600">Role</span>

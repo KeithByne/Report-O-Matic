@@ -50,6 +50,8 @@ type ClassListRow = { id: string; name: string };
 
 type ViewerRole = "owner" | "department_head" | "teacher";
 
+type TeacherOption = { email: string; first_name: string | null; last_name: string | null };
+
 type Props = {
   tenantId: string;
   classId: string;
@@ -134,7 +136,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [defSubject, setDefSubject] = useState<SubjectCode>("efl");
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [assignTeacher, setAssignTeacher] = useState("");
-  const [teacherEmails, setTeacherEmails] = useState<string[]>([]);
+  const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [allClasses, setAllClasses] = useState<ClassListRow[]>([]);
   const [moveStudentId, setMoveStudentId] = useState("");
   const [moveToClassId, setMoveToClassId] = useState("");
@@ -195,12 +197,31 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       try {
         const res = await fetch(`${base}/members`);
         const data = await res.json().catch(() => ({}));
-        if (res.ok && Array.isArray(data.teachers)) setTeacherEmails(data.teachers as string[]);
+        if (
+          res.ok &&
+          Array.isArray(data.teachers) &&
+          (data.teachers as unknown[]).every((t) => typeof (t as { email?: unknown })?.email === "string")
+        ) {
+          setTeachers(
+            (data.teachers as TeacherOption[]).map((t) => ({
+              email: String(t.email).trim().toLowerCase(),
+              first_name: typeof t.first_name === "string" ? t.first_name : null,
+              last_name: typeof t.last_name === "string" ? t.last_name : null,
+            })),
+          );
+        }
       } catch {
         /* ignore */
       }
     })();
   }, [base, viewerRole]);
+
+  function teacherLabel(t: TeacherOption): string {
+    const fn = (t.first_name ?? "").trim();
+    const ln = (t.last_name ?? "").trim();
+    const name = `${fn} ${ln}`.trim();
+    return name || t.email;
+  }
 
   useEffect(() => {
     if (viewerRole !== "owner" && viewerRole !== "department_head") return;
@@ -485,12 +506,12 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                 className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="">— Not assigned —</option>
-                {assignTeacher && !teacherEmails.some((em) => em === assignTeacher) ? (
+                {assignTeacher && !teachers.some((t) => t.email === assignTeacher) ? (
                   <option value={assignTeacher}>{assignTeacher} (current)</option>
                 ) : null}
-                {teacherEmails.map((em) => (
-                  <option key={em} value={em}>
-                    {em}
+                {teachers.map((t) => (
+                  <option key={t.email} value={t.email}>
+                    {teacherLabel(t)}
                   </option>
                 ))}
               </select>
@@ -501,7 +522,11 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           ) : detail?.assigned_teacher_email ? (
             <p className="text-sm text-zinc-600 sm:col-span-2">
               <span className="font-medium text-zinc-800">Class assignment: </span>
-              {detail.assigned_teacher_email}
+              {(() => {
+                const em = detail.assigned_teacher_email?.trim().toLowerCase() || "";
+                const t = teachers.find((x) => x.email === em);
+                return t ? teacherLabel(t) : detail.assigned_teacher_email;
+              })()}
             </p>
           ) : null}
           <div className="sm:col-span-2 flex flex-wrap items-center gap-3">

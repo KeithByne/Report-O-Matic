@@ -11,6 +11,8 @@ function isUuid(s: string): boolean {
 type Body = {
   email?: unknown;
   role?: unknown;
+  first_name?: unknown;
+  last_name?: unknown;
 };
 
 export async function POST(req: Request, context: { params: Promise<{ tenantId: string }> }) {
@@ -35,11 +37,16 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const emailRaw = typeof body.email === "string" ? body.email : "";
   const email = emailRaw.trim().toLowerCase();
   const roleRaw = body.role === "department_head" ? "department_head" : body.role === "teacher" ? "teacher" : "";
+  const firstName = typeof body.first_name === "string" ? body.first_name.trim() : "";
+  const lastName = typeof body.last_name === "string" ? body.last_name.trim() : "";
   if (!email || !email.includes("@")) {
     return NextResponse.json({ error: "Please provide a valid email address." }, { status: 400 });
   }
   if (roleRaw !== "department_head" && roleRaw !== "teacher") {
     return NextResponse.json({ error: "Role must be department_head or teacher." }, { status: 400 });
+  }
+  if (roleRaw === "teacher" && (!firstName || !lastName)) {
+    return NextResponse.json({ error: "Teacher first name and surname are required." }, { status: 400 });
   }
 
   try {
@@ -48,6 +55,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       inviteeEmail: email,
       role: roleRaw,
       inviterEmail: session.email,
+      firstName: firstName || null,
+      lastName: lastName || null,
     });
     if (!result.ok) {
       return NextResponse.json({ error: result.message }, { status: result.status });

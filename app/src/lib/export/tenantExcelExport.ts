@@ -49,6 +49,8 @@ export function buildTenantExportWorkbook(data: TenantExportData): Buffer {
     data.members.map((m) => ({
       user_email: m.user_email,
       role: m.role,
+      first_name: m.first_name ?? "",
+      last_name: m.last_name ?? "",
     })),
   );
   XLSX.utils.book_append_sheet(wb, members, "Members");

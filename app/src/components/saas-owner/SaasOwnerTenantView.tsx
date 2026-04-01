@@ -6,19 +6,26 @@ import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderB
 
 type TenantDetails = {
   tenant: { id: string; name: string; referral_code: string | null; referred_by_email: string | null; created_at: string };
-  memberships: { user_email: string; role: string }[];
+  memberships: { user_email: string; role: string; first_name?: string | null; last_name?: string | null }[];
   counts: { classes: number; students: number; reports: number };
   classes: { id: string; name: string; assigned_teacher_email: string | null; scholastic_year: string | null; cefr_level: string | null; created_at: string }[];
   students: { id: string; display_name: string; class_id: string; created_at: string }[];
   reports: { id: string; student_id: string; author_email: string; status: string; title: string | null; updated_at: string; created_at: string }[];
 };
 
-function groupByRole(rows: { user_email: string; role: string }[]): Record<string, string[]> {
+function fullName(row: { user_email: string; first_name?: string | null; last_name?: string | null }): string {
+  const fn = String(row.first_name ?? "").trim();
+  const ln = String(row.last_name ?? "").trim();
+  const both = `${fn} ${ln}`.trim();
+  return both || row.user_email;
+}
+
+function groupByRole(rows: { user_email: string; role: string; first_name?: string | null; last_name?: string | null }[]): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   for (const r of rows) {
     const role = String(r.role || "unknown");
     if (!out[role]) out[role] = [];
-    out[role].push(String(r.user_email || ""));
+    out[role].push(fullName(r));
   }
   return out;
 }
@@ -50,6 +57,13 @@ export function SaasOwnerTenantView({ tenantId, viewerEmail }: { tenantId: strin
   }, [tenantId]);
 
   const byRole = useMemo(() => groupByRole(data?.memberships ?? []), [data?.memberships]);
+  const memberLabelByEmail = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const row of data?.memberships ?? []) {
+      m.set(String(row.user_email || "").trim().toLowerCase(), fullName(row));
+    }
+    return m;
+  }, [data?.memberships]);
 
   return (
     <div className="min-h-screen bg-emerald-100/80 text-zinc-950">
@@ -156,7 +170,18 @@ export function SaasOwnerTenantView({ tenantId, viewerEmail }: { tenantId: strin
                     {data.classes.map((c) => (
                       <tr key={c.id} className="border-b border-zinc-100">
                         <td className="py-2 pr-3 font-medium text-zinc-900">{c.name}</td>
-                        <td className="py-2 pr-3 text-xs font-mono">{c.assigned_teacher_email ?? "—"}</td>
+                        <td className="py-2 pr-3 text-xs">
+                          {c.assigned_teacher_email ? (
+                            <div className="space-y-0.5">
+                              <div className="font-medium text-zinc-800">
+                                {memberLabelByEmail.get(c.assigned_teacher_email.trim().toLowerCase()) ?? c.assigned_teacher_email}
+                              </div>
+                              <div className="font-mono text-[11px] text-zinc-500">{c.assigned_teacher_email}</div>
+                            </div>
+                          ) : (
+                            <span className="text-zinc-500">—</span>
+                          )}
+                        </td>
                         <td className="py-2 pr-3 text-xs">{c.scholastic_year ?? "—"}</td>
                         <td className="py-2 pr-3 text-xs">{c.cefr_level ?? "—"}</td>
                         <td className="py-2 pr-3 text-xs font-mono">{c.id}</td>

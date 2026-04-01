@@ -21,6 +21,8 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [lang, setLang] = useState<ReportLanguageCode>("en");
   const [newClassName, setNewClassName] = useState("");
+  type TeacherOption = { email: string; first_name: string | null; last_name: string | null };
+  const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [teacherEmail, setTeacherEmail] = useState("");
   const [teacherOnlyFinal, setTeacherOnlyFinal] = useState(false);
   const [teacherOrder, setTeacherOrder] = useState<"updated_desc" | "updated_asc" | "student">("updated_desc");
@@ -50,6 +52,39 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    const isLead = viewerRole === "owner" || viewerRole === "department_head";
+    if (!isLead) return;
+    void (async () => {
+      try {
+        const res = await fetch(`${base}/members`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+        if (
+          Array.isArray(data.teachers) &&
+          (data.teachers as unknown[]).every((t) => typeof (t as { email?: unknown })?.email === "string")
+        ) {
+          setTeachers(
+            (data.teachers as TeacherOption[]).map((t) => ({
+              email: String(t.email).trim().toLowerCase(),
+              first_name: typeof t.first_name === "string" ? t.first_name : null,
+              last_name: typeof t.last_name === "string" ? t.last_name : null,
+            })),
+          );
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, [base, viewerRole]);
+
+  function teacherLabel(t: TeacherOption): string {
+    const fn = (t.first_name ?? "").trim();
+    const ln = (t.last_name ?? "").trim();
+    const name = `${fn} ${ln}`.trim();
+    return name || t.email;
+  }
 
   async function saveLanguage(next: ReportLanguageCode) {
     setLang(next);
@@ -176,13 +211,19 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
           </p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="text-sm">
-              <span className="text-zinc-600">Teacher email</span>
-              <input
+              <span className="text-zinc-600">Teacher</span>
+              <select
                 value={teacherEmail}
                 onChange={(e) => setTeacherEmail(e.target.value)}
-                className="mt-1 block min-w-[16rem] rounded-lg border border-emerald-200 px-3 py-2"
-                placeholder="teacher@school.com"
-              />
+                className="mt-1 block min-w-[16rem] rounded-lg border border-emerald-200 bg-white px-3 py-2"
+              >
+                <option value="">—</option>
+                {teachers.map((t) => (
+                  <option key={t.email} value={t.email}>
+                    {teacherLabel(t)}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
               <input

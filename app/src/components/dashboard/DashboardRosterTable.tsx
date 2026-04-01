@@ -27,6 +27,13 @@ type Props = {
   teacherStats: TeacherStats[];
 };
 
+function fullName(row: TenantMemberRow): string {
+  const fn = (row.first_name ?? "").trim();
+  const ln = (row.last_name ?? "").trim();
+  const both = `${fn} ${ln}`.trim();
+  return both || row.user_email;
+}
+
 export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster, teacherStats }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -72,7 +79,10 @@ export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster
           const stats = row.role === "teacher" ? statsByTeacher.get(email) : undefined;
           return (
             <tr key={`${row.user_email}-${row.role}`} className="border-b border-emerald-50">
-              <td className="break-all py-1.5 pr-3 font-mono text-xs text-zinc-800">{row.user_email}</td>
+              <td className="py-1.5 pr-3 text-xs text-zinc-800">
+                <div className="font-medium">{fullName(row)}</div>
+                <div className="break-all font-mono text-[11px] text-zinc-500">{row.user_email}</div>
+              </td>
               <td className="py-1.5 pr-3 text-xs text-zinc-700">{memberRoleLabel(row.role)}</td>
               <td className="py-1.5 pr-3 text-xs text-zinc-700">{stats ? stats.classes : "—"}</td>
               <td className="py-1.5 pr-3 text-xs text-zinc-700">{stats ? stats.students : "—"}</td>
