@@ -97,6 +97,11 @@ export function ResetForm() {
               <>Return to the landing page and start the reset again.</>
             )}
           </p>
+          {email ? (
+            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">
+              The email can take up to a minute to arrive. If you don’t see it, check your spam or junk folder.
+            </p>
+          ) : null}
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3">

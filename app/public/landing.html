@@ -332,9 +332,12 @@
                 ></div>
               </div>
 
-              <div class="split">
-                <span class="small">You’ll receive a 6–7 digit code by email.</span>
-                <a class="small" href="#" id="forgotPasswordLink">Forgot your password?</a>
+              <div class="split" style="align-items: flex-start; flex-wrap: wrap">
+                <span class="small"
+                  >You’ll receive a 6–7 digit security code by email. It may take up to a minute to arrive. If you don’t see it, check your
+                  <strong>spam</strong> or <strong>junk</strong> folder.</span
+                >
+                <a class="small" href="#" id="forgotPasswordLink" style="white-space: nowrap">Forgot your password?</a>
               </div>
             </form>
           </section>
@@ -374,6 +377,11 @@
                   required
                 />
               </div>
+
+              <p class="small" style="margin: -4px 0 0">
+                We’ll email a 6–7 digit security code. It may take up to a minute to arrive. If you don’t see it, check your <strong>spam</strong> or
+                <strong>junk</strong> folder.
+              </p>
 
               <button id="signUpBtn" class="btn btnPrimary" type="submit">
                 Create account & send code

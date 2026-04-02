@@ -7,6 +7,7 @@ import { hashPassword, verifyPassword } from "@/lib/auth/passwordHash";
 import { getPasswordHashForEmail, setPasswordHashIfMissing } from "@/lib/auth/passwordStore";
 import { corsHeadersForRequest } from "@/lib/http/cors";
 import { Resend } from "resend";
+import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
 
 type SendCodeBody = {
   email?: unknown;
@@ -100,6 +101,7 @@ async function sendOtpEmail(opts: {
       <p style="margin:14px 0 0; font-size:13px; color:#334155; line-height:1.6;">
         Expires in ${opts.expiresInSeconds} seconds.
       </p>
+      ${codeDeliveryNoteHtml()}
       <p style="margin:10px 0 0; font-size:12px; color:#64748b; line-height:1.6;">
         If you didn’t request this, you can ignore this email.
       </p>

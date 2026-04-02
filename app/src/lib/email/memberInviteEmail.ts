@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
 
 function getFromEmail(): string | null {
   const v = process.env.ROM_FROM_EMAIL;
@@ -49,6 +50,7 @@ export async function sendMemberAddedEmail(opts: {
     opts.signInUrl,
     ``,
     `You’ll then get a one-time security code sent to the address above.`,
+    CODE_DELIVERY_NOTE_TEXT_LINE,
   ].join("\n");
 
   const html = `
@@ -59,6 +61,7 @@ export async function sendMemberAddedEmail(opts: {
       <p>Open the sign-in page (avoid a shared browser’s autofill for someone else’s address):<br/>
       <a href="${escapeAttr(opts.signInUrl)}">${escapeHtml(opts.signInUrl)}</a></p>
       <p style="font-size:13px;color:#64748b;">Choose <strong>Sign in</strong>, enter the email above, then enter the one-time code from your email.</p>
+      ${codeDeliveryNoteHtml()}
     </div>
   `.trim();
 

@@ -5,6 +5,7 @@ import { getPasswordHashForEmail } from "@/lib/auth/passwordStore";
 import { newResetChallengeId, savePasswordResetChallenge } from "@/lib/auth/passwordResetChallenge";
 import { sha256Hex } from "@/lib/auth/devStore";
 import { Resend } from "resend";
+import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
 
 type Body = { email?: unknown; turnstile_token?: unknown };
 
@@ -58,6 +59,8 @@ async function sendResetEmail(opts: { to: string; code: string; expiresInSeconds
     ``,
     `It expires in ${opts.expiresInSeconds} seconds.`,
     ``,
+    CODE_DELIVERY_NOTE_TEXT_LINE,
+    ``,
     `If you didn’t request this, you can ignore this email. Your account is still safe.`,
   ].join("\n");
   const html = `
@@ -72,6 +75,7 @@ async function sendResetEmail(opts: { to: string; code: string; expiresInSeconds
       <p style="margin:14px 0 0; font-size:13px; color:#334155; line-height:1.6;">
         Expires in ${opts.expiresInSeconds} seconds.
       </p>
+      ${codeDeliveryNoteHtml()}
       <p style="margin:10px 0 0; font-size:12px; color:#64748b; line-height:1.6;">
         If you didn’t request this, you can ignore this email.
       </p>
