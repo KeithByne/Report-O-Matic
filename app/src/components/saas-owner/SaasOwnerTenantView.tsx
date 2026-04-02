@@ -104,7 +104,7 @@ export function SaasOwnerTenantView({ tenantId, viewerEmail }: { tenantId: strin
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Link href="/saas-owner" className="text-sm font-semibold text-emerald-800 hover:underline">
+          <Link href="/saas-owner/Jane2788Eyre" className="text-sm font-semibold text-emerald-800 hover:underline">
             {t("saas.backToOwner")}
           </Link>
           <div className="text-xs text-zinc-600 font-mono">{tenantId}</div>

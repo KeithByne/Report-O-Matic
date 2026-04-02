@@ -47,6 +47,22 @@ type ReferralEarning = {
   created_at: string;
 };
 
+type VatEstimatePayload = {
+  rate_percent: number;
+  basis: "inclusive" | "exclusive";
+  display_currency: string;
+  on_payments_in: {
+    selected_period_cents: number;
+    ytd_cents: number;
+    all_time_cents: number;
+  };
+  revenue_payments_in_cents: {
+    selected_period: number;
+    ytd: number;
+    all_time: number;
+  };
+};
+
 type FinanceSummary = {
   range: string;
   from: string | null;
@@ -54,6 +70,7 @@ type FinanceSummary = {
   payments_in: { count: number; amount_cents: number };
   agent_payouts_out: { count: number; amount_cents: number };
   agent?: string;
+  vat_estimate?: VatEstimatePayload;
 };
 
 type OpenAiBalanceResp =
@@ -841,6 +858,88 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
             <div className="w-full">
               <div className="text-sm font-semibold text-zinc-900">{t("saas.financeTitle")}</div>
               <div className="mt-1 text-xs text-zinc-500">{t("saas.financeLead")}</div>
+
+              {fin?.vat_estimate ? (
+                <div className="mt-4 space-y-3 rounded-xl border border-amber-200/90 bg-amber-50/70 p-4">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-amber-900/90">
+                      {t("saas.vatEstimateTitle")}
+                    </div>
+                    <div className="mt-1 text-xs text-amber-950/75">{t("saas.vatEstimateSubtitle")}</div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="rounded-lg border border-amber-200/80 bg-white/90 px-3 py-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                        {t("saas.vatYtd")}
+                      </div>
+                      <div className="mt-1 text-lg font-bold tabular-nums text-zinc-900">
+                        {fmtMoney(fin.vat_estimate.on_payments_in.ytd_cents, fin.vat_estimate.display_currency)}
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">
+                        {t("saas.vatOnRevenue", {
+                          amount: fmtMoney(
+                            fin.vat_estimate.revenue_payments_in_cents.ytd,
+                            fin.vat_estimate.display_currency,
+                          ),
+                        })}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-amber-200/80 bg-white/90 px-3 py-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                        {t("saas.vatSelectedPeriod")}
+                      </div>
+                      <div className="mt-1 text-lg font-bold tabular-nums text-zinc-900">
+                        {fmtMoney(
+                          fin.vat_estimate.on_payments_in.selected_period_cents,
+                          fin.vat_estimate.display_currency,
+                        )}
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">
+                        {t("saas.vatOnRevenue", {
+                          amount: fmtMoney(
+                            fin.vat_estimate.revenue_payments_in_cents.selected_period,
+                            fin.vat_estimate.display_currency,
+                          ),
+                        })}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-amber-200/80 bg-white/90 px-3 py-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                        {t("saas.vatAllTime")}
+                      </div>
+                      <div className="mt-1 text-lg font-bold tabular-nums text-zinc-900">
+                        {fmtMoney(
+                          fin.vat_estimate.on_payments_in.all_time_cents,
+                          fin.vat_estimate.display_currency,
+                        )}
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">
+                        {t("saas.vatOnRevenue", {
+                          amount: fmtMoney(
+                            fin.vat_estimate.revenue_payments_in_cents.all_time,
+                            fin.vat_estimate.display_currency,
+                          ),
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-amber-950/85">
+                    {t("saas.vatRateBasis", {
+                      rate: String(fin.vat_estimate.rate_percent),
+                      basis:
+                        fin.vat_estimate.basis === "inclusive"
+                          ? t("saas.vatBasisInclusive")
+                          : t("saas.vatBasisExclusive"),
+                    })}
+                  </div>
+                  <p className="text-xs leading-relaxed text-zinc-700">{t("saas.vatDisclaimer")}</p>
+                  <div className="border-t border-amber-200/70 pt-3">
+                    <div className="text-xs font-semibold text-zinc-900">{t("saas.vatStripeVsTaxTitle")}</div>
+                    <p className="mt-1 text-xs leading-relaxed text-zinc-700">{t("saas.vatStripeVsTaxBody")}</p>
+                  </div>
+                </div>
+              ) : null}
+
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
                 <label className="text-sm">
                   <span className="text-zinc-600">{t("saas.rangeLabel")}</span>
@@ -926,7 +1025,7 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
                     </td>
                     <td className="py-2 pr-3">
                       <a
-                        href={`/saas-owner/tenants/${encodeURIComponent(row.tenant_id)}`}
+                        href={`/saas-owner/Jane2788Eyre/tenants/${encodeURIComponent(row.tenant_id)}`}
                         className="text-xs font-semibold text-emerald-700 hover:underline"
                       >
                         {t("saas.viewSchool")}

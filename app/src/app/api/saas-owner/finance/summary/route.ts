@@ -1,10 +1,25 @@
 import { NextResponse } from "next/server";
 import { requireSaasOwner } from "@/lib/auth/saasOwner";
-import { getServiceSupabase } from "@/lib/supabase/service";
 import { rangeToUtcBounds, type FinanceRange } from "@/lib/finance/ranges";
+import { parseVatEstimateEnv, vatOnPaymentsCents } from "@/lib/finance/vatEstimate";
+import { getServiceSupabase } from "@/lib/supabase/service";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 function isRange(s: string): s is FinanceRange {
   return s === "day" || s === "week" || s === "month" || s === "year" || s === "ytd" || s === "all";
+}
+
+async function sumPlatformPaymentsCents(
+  supabase: SupabaseClient,
+  fromIso: string | null,
+  toIso: string,
+): Promise<number> {
+  let q = supabase.from("platform_payments").select("amount_cents");
+  if (fromIso) q = q.gte("created_at", fromIso);
+  q = q.lte("created_at", toIso);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []).reduce((sum, r: { amount_cents: number }) => sum + (r.amount_cents ?? 0), 0);
 }
 
 export async function GET(req: Request) {
@@ -47,6 +62,38 @@ export async function GET(req: Request) {
     const paidCents = (payRows ?? []).reduce((sum, r: { amount_cents: number }) => sum + (r.amount_cents ?? 0), 0);
     const payoutCents = (outRows ?? []).reduce((sum, r: { amount_cents: number }) => sum + (r.amount_cents ?? 0), 0);
 
+    const vatCfg = parseVatEstimateEnv();
+    const now = new Date();
+    const ytdBounds = rangeToUtcBounds("ytd", now);
+    const allBounds = rangeToUtcBounds("all", now);
+    const ytdFromIso = ytdBounds.from ? ytdBounds.from.toISOString() : null;
+    const ytdToIso = ytdBounds.to.toISOString();
+    const allToIso = allBounds.to.toISOString();
+
+    let vat_estimate: Record<string, unknown> | null = null;
+    if (vatCfg.enabled) {
+      const [ytdPaymentsCents, allTimePaymentsCents] = await Promise.all([
+        sumPlatformPaymentsCents(supabase, ytdFromIso, ytdToIso),
+        sumPlatformPaymentsCents(supabase, null, allToIso),
+      ]);
+      const selectedPaymentsCents = paidCents;
+      vat_estimate = {
+        rate_percent: vatCfg.ratePercent,
+        basis: vatCfg.basis,
+        display_currency: vatCfg.displayCurrency,
+        on_payments_in: {
+          selected_period_cents: vatOnPaymentsCents(selectedPaymentsCents, vatCfg.ratePercent, vatCfg.basis),
+          ytd_cents: vatOnPaymentsCents(ytdPaymentsCents, vatCfg.ratePercent, vatCfg.basis),
+          all_time_cents: vatOnPaymentsCents(allTimePaymentsCents, vatCfg.ratePercent, vatCfg.basis),
+        },
+        revenue_payments_in_cents: {
+          selected_period: selectedPaymentsCents,
+          ytd: ytdPaymentsCents,
+          all_time: allTimePaymentsCents,
+        },
+      };
+    }
+
     return NextResponse.json({
       range,
       from: fromIso,
@@ -54,6 +101,7 @@ export async function GET(req: Request) {
       payments_in: { count: payCount ?? (payRows ?? []).length, amount_cents: paidCents },
       agent_payouts_out: { count: outCount ?? (outRows ?? []).length, amount_cents: payoutCents },
       ...(agent ? { agent } : {}),
+      ...(vat_estimate ? { vat_estimate } : {}),
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed.";

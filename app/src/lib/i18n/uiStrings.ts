@@ -679,7 +679,10 @@ const EN: UiMessages = {
   "billing.reportsRemaining": "{n} reports remaining",
   "billing.ownerOnly": "Only school owners can purchase credits. Ask your owner to buy a pack.",
   "billing.continuePayment": "Continue to payment",
-  "billing.packLine": "{credits} reports • {price} {currency}",
+  "billing.packLine": "{credits} reports • Total: {price} {currency}",
+  "billing.packTaxIncluded": "This price already includes {taxDetail}.",
+  "billing.packTaxAddedToBase": "{taxDetail} is added to the pack price; the total above is what you pay.",
+  "billing.packNetBeforeTax": "Pack price before {tax}: {price} {currency}",
   "billing.backReports": "Back to reports",
   "billing.successTitle": "Payment received",
   "billing.successBody":
@@ -861,6 +864,21 @@ const EN: UiMessages = {
   "saas.financeTitle": "Finance",
   "saas.financeLead":
     "Payments in (Stripe) and agent payouts out, with day/week/month/year/YTD filters.",
+  "saas.vatEstimateTitle": "Estimated VAT (for your accounts)",
+  "saas.vatEstimateSubtitle":
+    "From payments recorded as Paid to SaaS, using your server VAT settings (not tax advice).",
+  "saas.vatYtd": "Year to date (YTD)",
+  "saas.vatSelectedPeriod": "Selected period",
+  "saas.vatAllTime": "All recorded time",
+  "saas.vatRateBasis": "{rate}% VAT • {basis} amounts",
+  "saas.vatBasisInclusive": "VAT-inclusive",
+  "saas.vatBasisExclusive": "VAT-exclusive (net)",
+  "saas.vatOnRevenue": "On revenue (payments in): {amount}",
+  "saas.vatDisclaimer":
+    "This is a rough working figure for cashflow and prep—not filing advice. If you charge in several currencies, convert consistently before relying on it. Confirm with your accountant.",
+  "saas.vatStripeVsTaxTitle": "Stripe vs tax returns",
+  "saas.vatStripeVsTaxBody":
+    "Stripe settles card payments and may add services such as Stripe Tax to help calculate customer tax. It does not replace your obligations as a company: you normally declare VAT through your own country’s tax authority (in the UK, typically quarterly Making Tax Digital filings to HMRC, not “through Stripe”). Corporation tax is separate and is part of your company tax return cycle. Use an accountant or approved software for filings.",
   "saas.agentOptional": "Agent (optional)",
   "saas.agentFilterPlaceholder": "agent email/account…",
   "saas.paidToSaaS": "Paid to SaaS",
@@ -1161,7 +1179,10 @@ const FR: UiMessages = {
   "billing.reportsRemaining": "{n} rapports restants",
   "billing.ownerOnly": "Seuls les propriétaires peuvent acheter des crédits. Demandez à votre propriétaire d’acheter un pack.",
   "billing.continuePayment": "Continuer vers le paiement",
-  "billing.packLine": "{credits} rapports • {price} {currency}",
+  "billing.packLine": "{credits} rapports • Total : {price} {currency}",
+  "billing.packTaxIncluded": "Ce prix inclut déjà {taxDetail}.",
+  "billing.packTaxAddedToBase": "{taxDetail} s’ajoute au prix du pack ; le total ci-dessus est à payer.",
+  "billing.packNetBeforeTax": "Prix du pack avant {tax} : {price} {currency}",
   "billing.backReports": "Retour aux rapports",
   "billing.successTitle": "Paiement reçu",
   "billing.successBody":
@@ -1505,7 +1526,10 @@ const ES: UiMessages = {
   "billing.reportsRemaining": "{n} informes restantes",
   "billing.ownerOnly": "Solo los propietarios pueden comprar créditos. Pida al propietario que compre un pack.",
   "billing.continuePayment": "Continuar al pago",
-  "billing.packLine": "{credits} informes • {price} {currency}",
+  "billing.packLine": "{credits} informes • Total: {price} {currency}",
+  "billing.packTaxIncluded": "Este precio ya incluye {taxDetail}.",
+  "billing.packTaxAddedToBase": "Se añade {taxDetail} al precio del pack; el total de arriba es lo que pagará.",
+  "billing.packNetBeforeTax": "Precio del pack antes de {tax}: {price} {currency}",
   "billing.backReports": "Volver a informes",
   "billing.successTitle": "Pago recibido",
   "billing.successBody":

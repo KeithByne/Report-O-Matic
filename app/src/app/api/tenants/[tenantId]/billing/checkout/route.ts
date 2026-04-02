@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant } from "@/lib/data/memberships";
+import {
+  getPackPriceTaxBasis,
+  getSalesTaxLabelForCustomers,
+  getSalesTaxRatePercent,
+  packGrossChargeCents,
+} from "@/lib/finance/salesTax";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { getStripe } from "@/lib/stripe/server";
 
@@ -51,6 +57,14 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const successUrl = `${baseUrl}/reports/${encodeURIComponent(tenantId)}/billing/success`;
   const cancelUrl = `${baseUrl}/reports/${encodeURIComponent(tenantId)}/billing`;
 
+  const rate = getSalesTaxRatePercent();
+  const packBasis = getPackPriceTaxBasis();
+  const taxLabel = getSalesTaxLabelForCustomers();
+  const storedCents = Number((pack as any).price_cents);
+  const unitAmount = packGrossChargeCents(Number.isFinite(storedCents) ? storedCents : 0, rate, packBasis);
+  const packName = String((pack as any).name);
+  const productName = rate > 0 ? `${packName} (${taxLabel} incl.)` : packName;
+
   const sess = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: session.email,
@@ -58,8 +72,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       {
         price_data: {
           currency: String((pack as any).currency || "eur"),
-          product_data: { name: String((pack as any).name) },
-          unit_amount: Number((pack as any).price_cents),
+          product_data: { name: productName },
+          unit_amount: unitAmount,
         },
         quantity: 1,
       },

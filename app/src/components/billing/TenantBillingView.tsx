@@ -5,6 +5,7 @@ import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
 import type { RomRole } from "@/lib/data/memberships";
+import { packCustomerDisplayCents, type PackPriceTaxBasis } from "@/lib/finance/salesTax";
 
 type Pack = {
   id: string;
@@ -14,18 +15,26 @@ type Pack = {
   report_credits: number;
 };
 
+type PackTaxDisplay = {
+  taxRatePercent: number;
+  packTaxBasis: PackPriceTaxBasis;
+  salesTaxLabel: string;
+};
+
 export function TenantBillingView({
   tenantId,
   schoolName,
   role,
   accountCreditsRemaining,
   packs,
+  packTaxDisplay,
 }: {
   tenantId: string;
   schoolName: string;
   role: RomRole;
   accountCreditsRemaining: number;
   packs: Pack[];
+  packTaxDisplay: PackTaxDisplay;
 }) {
   const { t } = useUiLanguage();
 
@@ -68,7 +77,19 @@ export function TenantBillingView({
           ) : null}
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {packs.map((p) => (
+            {packs.map((p) => {
+              const storedCents = Number(p.price_cents);
+              const displayCents = packCustomerDisplayCents(
+                Number.isFinite(storedCents) ? storedCents : 0,
+                packTaxDisplay.taxRatePercent,
+                packTaxDisplay.packTaxBasis
+              );
+              const currencyUpper = String(p.currency).toUpperCase();
+              const taxDetail =
+                packTaxDisplay.taxRatePercent > 0
+                  ? `${packTaxDisplay.taxRatePercent}% ${packTaxDisplay.salesTaxLabel}`
+                  : packTaxDisplay.salesTaxLabel;
+              return (
               <form
                 key={p.id}
                 action={`/api/tenants/${encodeURIComponent(tenantId)}/billing/checkout`}
@@ -77,13 +98,29 @@ export function TenantBillingView({
               >
                 <input type="hidden" name="pack_id" value={String(p.id)} />
                 <div className="text-sm font-semibold text-zinc-900">{String(p.name)}</div>
-                <div className="mt-1 text-xs text-zinc-600">
+                {packTaxDisplay.packTaxBasis === "exclusive" && packTaxDisplay.taxRatePercent > 0 ? (
+                  <p className="mt-1 text-xs text-zinc-600">
+                    {t("billing.packNetBeforeTax", {
+                      tax: packTaxDisplay.salesTaxLabel,
+                      price: (Math.max(0, Math.trunc(storedCents)) / 100).toFixed(2),
+                      currency: currencyUpper,
+                    })}
+                  </p>
+                ) : null}
+                <div className={`mt-1 text-sm tabular-nums ${packTaxDisplay.taxRatePercent > 0 ? "font-semibold text-zinc-900" : "text-xs text-zinc-600"}`}>
                   {t("billing.packLine", {
                     credits: Number(p.report_credits),
-                    price: (Number(p.price_cents) / 100).toFixed(2),
-                    currency: String(p.currency).toUpperCase(),
+                    price: (displayCents / 100).toFixed(2),
+                    currency: currencyUpper,
                   })}
                 </div>
+                {packTaxDisplay.taxRatePercent > 0 ? (
+                  <p className="mt-1 text-[11px] leading-snug text-zinc-500">
+                    {packTaxDisplay.packTaxBasis === "exclusive"
+                      ? t("billing.packTaxAddedToBase", { taxDetail })
+                      : t("billing.packTaxIncluded", { taxDetail })}
+                  </p>
+                ) : null}
                 <button
                   type="submit"
                   disabled={role !== "owner"}
@@ -92,7 +129,8 @@ export function TenantBillingView({
                   {t("billing.continuePayment")}
                 </button>
               </form>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-6 flex items-center justify-between">

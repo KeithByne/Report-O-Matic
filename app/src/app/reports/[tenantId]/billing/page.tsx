@@ -4,6 +4,7 @@ import { verifySession } from "@/lib/auth/session";
 import { TenantBillingView } from "@/components/billing/TenantBillingView";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { getOwnerCreditBalance, getTenantCreditBalance } from "@/lib/data/credits";
+import { getPackPriceTaxBasis, getSalesTaxLabelForCustomers, getSalesTaxRatePercent } from "@/lib/finance/salesTax";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
@@ -35,6 +36,10 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
         .order("sort_order", { ascending: true })
     : { data: [] };
 
+  const taxRatePercent = getSalesTaxRatePercent();
+  const packTaxBasis = getPackPriceTaxBasis();
+  const salesTaxLabel = getSalesTaxLabelForCustomers();
+
   return (
     <TenantBillingView
       tenantId={tenantId}
@@ -42,6 +47,7 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
       role={role}
       accountCreditsRemaining={accountCreditsRemaining}
       packs={(packs ?? []) as { id: string; name: string; price_cents: number; currency: string; report_credits: number }[]}
+      packTaxDisplay={{ taxRatePercent, packTaxBasis, salesTaxLabel }}
     />
   );
 }
