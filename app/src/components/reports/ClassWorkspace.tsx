@@ -336,8 +336,8 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   async function saveClassSettings(e: React.FormEvent) {
     e.preventDefault();
     const isLead = viewerRole === "owner" || viewerRole === "department_head";
+    if (!isLead) return;
     if (
-      isLead &&
       normalizeScholasticYearLabel(scholasticYear) !== normalizeScholasticYearLabel(detail?.scholastic_year ?? null)
     ) {
       const ok = window.confirm(t("class.confirmYearChange"));
@@ -350,17 +350,13 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           name: cName.trim(),
-          ...(isLead ? { scholastic_year: scholasticYear.trim() || null } : {}),
+          scholastic_year: scholasticYear.trim() || null,
           cefr_level: cefr.trim() || null,
           default_subject: defSubject,
           default_output_language: defLang,
           default_new_report_kind: defNewReportKind,
           active_weekdays: activeDays,
-          ...(viewerRole === "owner" || viewerRole === "department_head"
-            ? {
-                assigned_teacher_email: assignTeacher.trim() ? assignTeacher.trim().toLowerCase() : null,
-              }
-            : {}),
+          assigned_teacher_email: assignTeacher.trim() ? assignTeacher.trim().toLowerCase() : null,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -554,7 +550,9 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{schoolName}</p>
         <h2 className="text-xl font-semibold text-zinc-900">{cName || initialClassName}</h2>
-        <p className="mt-1 text-sm text-zinc-600">{t("class.intro")}</p>
+        <p className="mt-1 text-sm text-zinc-600">
+          {viewerRole === "teacher" ? t("class.introTeacher") : t("class.intro")}
+        </p>
       </div>
 
       {loadError ? (
@@ -569,18 +567,26 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           {t("class.settingsTitle")}
         </h3>
         <form onSubmit={saveClassSettings} className="mt-4 grid gap-4 sm:grid-cols-2">
-          <p className="rounded-lg border border-amber-100 bg-amber-50/80 px-3 py-2 text-xs leading-snug text-zinc-700 sm:col-span-2">
-            <span className="font-semibold text-zinc-800">{t("class.tipLabel")}: </span>
-            {t("class.nameTimetableTip")}
-          </p>
+          {viewerRole === "owner" || viewerRole === "department_head" ? (
+            <p className="rounded-lg border border-amber-100 bg-amber-50/80 px-3 py-2 text-xs leading-snug text-zinc-700 sm:col-span-2">
+              <span className="font-semibold text-zinc-800">{t("class.tipLabel")}: </span>
+              {t("class.nameTimetableTip")}
+            </p>
+          ) : null}
           <label className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.className")}</span>
-            <input
-              value={cName}
-              onChange={(e) => setCName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
-              required
-            />
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <input
+                value={cName}
+                onChange={(e) => setCName(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
+                required
+              />
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {cName.trim() || "—"}
+              </p>
+            )}
           </label>
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.scholasticYear")}</span>
@@ -596,103 +602,147 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                 placeholder={t("class.scholasticPlaceholder")}
               />
             )}
-            {viewerRole === "teacher" ? (
-              <p className="mt-1 text-xs text-zinc-500">{t("class.yearReadonlyHint")}</p>
-            ) : null}
           </label>
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.cefr")}</span>
-            <select
-              value={cefr}
-              onChange={(e) => setCefr(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-            >
-              <option value="">—</option>
-              {CEFR.map((x) => (
-                <option key={x} value={x}>
-                  {x}
-                </option>
-              ))}
-            </select>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <select
+                value={cefr}
+                onChange={(e) => setCefr(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">—</option>
+                {CEFR.map((x) => (
+                  <option key={x} value={x}>
+                    {x}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {cefr.trim() || "—"}
+              </p>
+            )}
           </label>
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.defaultSubject")}</span>
-            <select
-              value={defSubject}
-              onChange={(e) => setDefSubject(e.target.value as SubjectCode)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-            >
-              {REPORT_SUBJECTS.map((s) => (
-                <option key={s.code} value={s.code}>
-                  {subjectLabelLocalized(uiLang, s.code)}
-                </option>
-              ))}
-            </select>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <select
+                value={defSubject}
+                onChange={(e) => setDefSubject(e.target.value as SubjectCode)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                {REPORT_SUBJECTS.map((s) => (
+                  <option key={s.code} value={s.code}>
+                    {subjectLabelLocalized(uiLang, s.code)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {subjectLabelLocalized(uiLang, defSubject)}
+              </p>
+            )}
           </label>
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.defaultOutputLang")}</span>
-            <select
-              value={defLang}
-              onChange={(e) => setDefLang(e.target.value as ReportLanguageCode)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-            >
-              {REPORT_LANGUAGES.map((o) => (
-                <option key={o.code} value={o.code}>
-                  {reportLanguageOptionLabel(uiLang, o.code)}
-                </option>
-              ))}
-            </select>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <select
+                value={defLang}
+                onChange={(e) => setDefLang(e.target.value as ReportLanguageCode)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                {REPORT_LANGUAGES.map((o) => (
+                  <option key={o.code} value={o.code}>
+                    {reportLanguageOptionLabel(uiLang, o.code)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {reportLanguageOptionLabel(uiLang, defLang)}
+              </p>
+            )}
           </label>
           <label className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.defaultNewReportKind")}</span>
-            <select
-              value={defNewReportKind}
-              onChange={(e) => setDefNewReportKind(e.target.value as ReportKind)}
-              className="mt-1 w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-            >
-              <option value="standard">{t("class.reportKindStandard")}</option>
-              <option value="short_course">{t("class.reportKindShortCourse")}</option>
-            </select>
-            <p className="mt-1 text-xs text-zinc-500">{t("class.defaultNewReportKindHint")}</p>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <>
+                <select
+                  value={defNewReportKind}
+                  onChange={(e) => setDefNewReportKind(e.target.value as ReportKind)}
+                  className="mt-1 w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="standard">{t("class.reportKindStandard")}</option>
+                  <option value="short_course">{t("class.reportKindShortCourse")}</option>
+                </select>
+                <p className="mt-1 text-xs text-zinc-500">{t("class.defaultNewReportKindHint")}</p>
+              </>
+            ) : (
+              <>
+                <p className="mt-1 max-w-xl rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                  {defNewReportKind === "short_course"
+                    ? t("class.reportKindShortCourse")
+                    : t("class.reportKindStandard")}
+                </p>
+                <p className="mt-1 text-xs text-zinc-500">{t("class.defaultNewReportKindHint")}</p>
+              </>
+            )}
           </label>
           <div className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.activeDaysLabel")}</span>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {WEEKDAY_KEYS.map((k) => {
-                const selected = activeDays.includes(k);
-                return (
-                  <label
-                    key={k}
-                    className={`inline-flex cursor-pointer select-none items-center rounded-lg border px-3 py-2 text-sm transition-colors focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2 ${
-                      selected
-                        ? "border-emerald-600 bg-emerald-100 font-semibold text-emerald-950 shadow-sm"
-                        : "border-zinc-200 bg-white font-normal text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() => {
-                        setActiveDays((prev) => {
-                          const on = prev.includes(k);
-                          const raw = on ? prev.filter((d) => d !== k) : [...prev, k];
-                          return WEEKDAY_KEYS.filter((d) => raw.includes(d));
-                        });
-                      }}
-                      className="sr-only"
-                    />
-                    {t(`weekday.${k}`)}
-                  </label>
-                );
-              })}
-            </div>
-            <p className="mt-2 text-sm text-zinc-700">
-              <span className="font-medium text-zinc-800">{t("class.activeDaysDisplay")}: </span>
-              {WEEKDAY_KEYS.filter((k) => activeDays.includes(k))
-                .map((k) => t(`weekday.${k}`))
-                .join(", ") || "—"}
-            </p>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {WEEKDAY_KEYS.map((k) => {
+                    const selected = activeDays.includes(k);
+                    return (
+                      <label
+                        key={k}
+                        className={`inline-flex cursor-pointer select-none items-center rounded-lg border px-3 py-2 text-sm transition-colors focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2 ${
+                          selected
+                            ? "border-emerald-600 bg-emerald-100 font-semibold text-emerald-950 shadow-sm"
+                            : "border-zinc-200 bg-white font-normal text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => {
+                            setActiveDays((prev) => {
+                              const on = prev.includes(k);
+                              const raw = on ? prev.filter((d) => d !== k) : [...prev, k];
+                              return WEEKDAY_KEYS.filter((d) => raw.includes(d));
+                            });
+                          }}
+                          className="sr-only"
+                        />
+                        {t(`weekday.${k}`)}
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-sm text-zinc-700">
+                  <span className="font-medium text-zinc-800">{t("class.activeDaysDisplay")}: </span>
+                  {WEEKDAY_KEYS.filter((k) => activeDays.includes(k))
+                    .map((k) => t(`weekday.${k}`))
+                    .join(", ") || "—"}
+                </p>
+              </>
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {WEEKDAY_KEYS.filter((k) => activeDays.includes(k))
+                  .map((k) => t(`weekday.${k}`))
+                  .join(", ") || "—"}
+              </p>
+            )}
           </div>
+          {viewerRole === "teacher" ? (
+            <div className="space-y-2 text-xs leading-snug text-zinc-500 sm:col-span-2">
+              <p>{t("class.coreSettingsReadonlyHint")}</p>
+              <p>{t("class.teacherPerReportOutputLangHint")}</p>
+            </div>
+          ) : null}
           {viewerRole === "owner" || viewerRole === "department_head" ? (
             <div className="sm:col-span-2">
               <h4 id="class-teacher-heading" className="text-sm font-semibold text-zinc-900">
@@ -731,13 +781,15 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </div>
           ) : null}
           <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              disabled={busy !== null || !detail}
-              className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              Save class settings
-            </button>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <button
+                type="submit"
+                disabled={busy !== null || !detail}
+                className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              >
+                {t("class.saveSettings")}
+              </button>
+            ) : null}
             {canDeleteClass ? (
               <button
                 type="button"

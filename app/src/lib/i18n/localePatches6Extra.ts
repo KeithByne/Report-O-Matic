@@ -159,11 +159,17 @@ export const NL_EXTRA: Record<string, string> = {
   "archive.updated": "Bijgewerkt",
   "class.intro":
     "Stel hier klassennaam, jaar, CEFR, vak en standaard uitvoertaal in. De rapportpagina wijzigt alleen wat nodig is.",
+  "class.introTeacher":
+    "Klasstandaarden worden ingesteld door de accounteigenaar of afdelingshoofd. U kunt de uitvoertaal per leerlingrapport aanpassen indien nodig.",
   "class.settingsTitle": "Klasinstellingen",
   "class.className": "Klassennaam",
   "class.scholasticYear": "Schooljaar (jjjj – jjjj)",
   "class.scholasticPlaceholder": "bijv. 2024 – 2025",
   "class.yearReadonlyHint": "Alleen eigenaren en afdelingshoofden kunnen het schooljaar wijzigen.",
+  "class.coreSettingsReadonlyHint":
+    "Alleen eigenaren en afdelingshoofden kunnen hier klasinstellingen wijzigen: naam, schooljaar, CEFR-niveau, standaardvak, standaard uitvoertaal, type nieuwe leerlingrapporten en actieve weekdagen.",
+  "class.teacherPerReportOutputLangHint":
+    "U kunt de uitvoertaal nog steeds per leerlingrapport instellen indien nodig.",
   "class.cefr": "Klasniveau (CEFR)",
   "class.defaultSubject": "Standaardvak",
   "class.defaultOutputLang": "Standaard uitvoertaal",
@@ -354,11 +360,17 @@ export const PL_EXTRA: Record<string, string> = {
   "archive.updated": "Zaktualizowano",
   "class.intro":
     "Ustaw nazwę klasy, rok, MCER, przedmiot i domyślny język. Strona sprawozdania zmienia tylko potrzebne pola.",
+  "class.introTeacher":
+    "Ustawienia domyślne klasy ustala właściciel konta lub kierownik działu. Możesz zmienić język wyjściowy w sprawozdaniu każdego ucznia w razie potrzeby.",
   "class.settingsTitle": "Ustawienia klasy",
   "class.className": "Nazwa klasy",
   "class.scholasticYear": "Rok szkolny (rrrr – rrrr)",
   "class.scholasticPlaceholder": "np. 2024 – 2025",
   "class.yearReadonlyHint": "Tylko właściciele i kierownicy zmieniają rok szkolny.",
+  "class.coreSettingsReadonlyHint":
+    "Tylko właściciel konta lub kierownik działu może zmienić ustawienia klasy: nazwę, rok szkolny, poziom CEFR, domyślny przedmiot, domyślny język wyjściowy, typ nowych raportów i aktywne dni tygodnia.",
+  "class.teacherPerReportOutputLangHint":
+    "Nadal możesz ustawić język wyjściowy w raporcie każdego ucznia w razie potrzeby.",
   "class.cefr": "Poziom klasy (MCER)",
   "class.defaultSubject": "Domyślny przedmiot",
   "class.defaultOutputLang": "Domyślny język wyjściowy",
@@ -545,11 +557,17 @@ export const RO_EXTRA: Record<string, string> = {
   "archive.updated": "Actualizat",
   "class.intro":
     "Setați numele clasei, anul, CEFR, obiectul și limba implicită. Pagina raportului modifică doar ce e nevoie.",
+  "class.introTeacher":
+    "Valorile implicite ale clasei sunt setate de proprietarul contului sau de șeful departamentului. Puteți schimba limba de ieșire în raportul fiecărui elev dacă e nevoie.",
   "class.settingsTitle": "Setări clasă",
   "class.className": "Numele clasei",
   "class.scholasticYear": "An școlar (aaaa – aaaa)",
   "class.scholasticPlaceholder": "ex. 2024 – 2025",
   "class.yearReadonlyHint": "Doar proprietarii și șefii schimbă anul.",
+  "class.coreSettingsReadonlyHint":
+    "Doar proprietarul contului sau șeful departamentului poate modifica setările clasei: nume, an școlar, nivel CEFR, obiect implicit, limba de ieșire implicită, tipul rapoartelor noi și zilele active.",
+  "class.teacherPerReportOutputLangHint":
+    "Puteți în continuare seta limba de ieșire în raportul fiecărui elev dacă e nevoie.",
   "class.cefr": "Nivel clasă (CEFR)",
   "class.defaultSubject": "Obiect implicit",
   "class.defaultOutputLang": "Limba de ieșire implicită",
@@ -737,11 +755,17 @@ export const RU_EXTRA: Record<string, string> = {
   "archive.updated": "Обновлено",
   "class.intro":
     "Имя класса, год, CEFR, предмет и язык по умолчанию. Страница отчёта меняет только нужное.",
+  "class.introTeacher":
+    "Параметры класса задаёт владелец аккаунта или заведующий отделом. Язык вывода можно изменить в отчёте каждого ученика при необходимости.",
   "class.settingsTitle": "Настройки класса",
   "class.className": "Название класса",
   "class.scholasticYear": "Учебный год (гггг – гггг)",
   "class.scholasticPlaceholder": "напр. 2024 – 2025",
   "class.yearReadonlyHint": "Год меняют только владельцы и заведующие.",
+  "class.coreSettingsReadonlyHint":
+    "Только владелец аккаунта или заведующий отделом может менять настройки класса: название, учебный год, уровень CEFR, предмет и язык вывода по умолчанию, тип новых отчётов и активные дни недели.",
+  "class.teacherPerReportOutputLangHint":
+    "Язык вывода по-прежнему можно задать в отчёте каждого ученика при необходимости.",
   "class.cefr": "Уровень класса (CEFR)",
   "class.defaultSubject": "Предмет по умолчанию",
   "class.defaultOutputLang": "Язык вывода по умолчанию",
@@ -928,11 +952,17 @@ export const UK_EXTRA: Record<string, string> = {
   "archive.updated": "Оновлено",
   "class.intro":
     "Назва класу, рік, CEFR, предмет і мова за замовчуванням. Сторінка звіту змінює лише потрібне.",
+  "class.introTeacher":
+    "Типові параметри класу задає власник облікового запису або завідувач відділу. Мову виводу можна змінити у звіті кожного учня за потреби.",
   "class.settingsTitle": "Налаштування класу",
   "class.className": "Назва класу",
   "class.scholasticYear": "Навчальний рік (рррр – рррр)",
   "class.scholasticPlaceholder": "напр. 2024 – 2025",
   "class.yearReadonlyHint": "Рік змінюють лише власники та завідувачі.",
+  "class.coreSettingsReadonlyHint":
+    "Лише власник облікового запису або завідувач відділу може змінювати налаштування класу: назву, навчальний рік, рівень CEFR, предмет і мову виводу за замовчуванням, тип нових звітів та активні дні тижня.",
+  "class.teacherPerReportOutputLangHint":
+    "Мову виводу досі можна вказати в звіті кожного учня за потреби.",
   "class.cefr": "Рівень класу (CEFR)",
   "class.defaultSubject": "Предмет за замовчуванням",
   "class.defaultOutputLang": "Мова виводу за замовчуванням",
@@ -1119,11 +1149,17 @@ export const AR_EXTRA: Record<string, string> = {
   "archive.updated": "مُحدَّث",
   "class.intro":
     "اضبط اسم الفصل والسنة والمستوى والمادة واللغة الافتراضية. صفحة التقرير تغيّر فقط عند الحاجة.",
+  "class.introTeacher":
+    "يحدّد مالك الحساب أو رئيس القسم الإعدادات الافتراضية للفصل. يمكنك تغيير لغة الإخراج في تقرير كل تلميذ عند الحاجة.",
   "class.settingsTitle": "إعدادات الفصل",
   "class.className": "اسم الفصل",
   "class.scholasticYear": "السنة الدراسية (سنة – سنة)",
   "class.scholasticPlaceholder": "مثال: 2024 – 2025",
   "class.yearReadonlyHint": "المالكون ورؤساء الأقسام فقط يغيّرون السنة.",
+  "class.coreSettingsReadonlyHint":
+    "يستطيع مالك الحساب أو رئيس القسم فقط تغيير إعدادات الفصل: الاسم والسنة والمستوى والمادة ولغة الإخراج الافتراضية ونوع التقارير الجديدة والأيام النشطة.",
+  "class.teacherPerReportOutputLangHint":
+    "ما زال بإمكانك تعيين لغة الإخراج في تقرير كل تلميذ عند الحاجة.",
   "class.cefr": "مستوى الفصل (CEFR)",
   "class.defaultSubject": "المادة الافتراضية",
   "class.defaultOutputLang": "لغة الإخراج الافتراضية",

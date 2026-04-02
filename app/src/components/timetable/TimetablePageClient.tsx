@@ -98,6 +98,17 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
 
   const visibleDayIndexes = useMemo(() => visibleMonFriDayIndexesFromClasses(classes), [classes]);
 
+  /** At most one lesson per day/period for a teacher; room row comes from the slot. */
+  const teacherSlotByDayPeriod = useMemo(() => {
+    const m = new Map<string, SlotApi>();
+    if (viewerRole !== "teacher") return m;
+    for (const s of slots) {
+      const k = `${s.day_of_week}-${s.period_index}`;
+      if (!m.has(k)) m.set(k, s);
+    }
+    return m;
+  }, [slots, viewerRole]);
+
   function teacherEmailForDisplay(slot: SlotApi): string {
     const c = classById.get(slot.class_id);
     const fromClass = c?.assigned_teacher_email?.trim().toLowerCase() ?? "";
@@ -364,6 +375,34 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                     );
                   }
                   const periodIndex = gc < settings.periods_am ? gc : gc - 1;
+                  if (viewerRole === "teacher") {
+                    const slot = teacherSlotByDayPeriod.get(`${d}-${periodIndex}`);
+                    const emailForColor = slot ? teacherEmailForDisplay(slot) : "";
+                    const bg = emailForColor ? teacherHexColor(emailForColor) : "#f8fafc";
+                    return (
+                      <td key={`c-${d}-${gc}`} className="border-r border-zinc-100 align-top p-0">
+                        <div
+                          className="flex min-h-[120px] flex-col px-1.5 py-1.5 text-left"
+                          style={{ backgroundColor: bg }}
+                        >
+                          {slot ? (
+                            <>
+                              <div className="text-[10px] font-semibold text-zinc-600">
+                                {t("pdf.timetableRoomN", { n: slot.room_index + 1 })}
+                              </div>
+                              <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
+                                {(slot.class_name ?? "").trim() || "—"}
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex min-h-[100px] items-center justify-center text-[11px] text-zinc-500">
+                              {t("timetable.emptyCell")}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  }
                   return (
                     <td key={`c-${d}-${gc}`} className="border-r border-zinc-100 align-top p-0">
                       <div className="flex flex-col">

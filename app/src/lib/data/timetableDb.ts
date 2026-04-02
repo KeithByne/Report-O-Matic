@@ -179,6 +179,23 @@ export async function listTimetableSlots(tenantId: string, opts?: { teacherEmail
   return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
 }
 
+/** Slots for the given classes only (e.g. teacher’s assigned classes). */
+export async function listTimetableSlotsForClassIds(tenantId: string, classIds: string[]): Promise<TimetableSlotRow[]> {
+  if (classIds.length === 0) return [];
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("timetable_slots")
+    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
+    .eq("tenant_id", tenantId)
+    .in("class_id", classIds)
+    .order("day_of_week", { ascending: true })
+    .order("period_index", { ascending: true })
+    .order("room_index", { ascending: true });
+  if (error) throw new Error(formatErr(error));
+  return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
+}
+
 export async function insertTimetableSlot(opts: {
   tenantId: string;
   day_of_week: number;

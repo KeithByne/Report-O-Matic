@@ -778,6 +778,8 @@ const EN: UiMessages = {
   "tenant.confirmDeleteClass": "Delete class \"{name}\" and all pupils and reports in it?",
   "class.intro":
     "Set class name, year, CEFR, subject, and default output language here. The individual report page only overrides when needed.",
+  "class.introTeacher":
+    "Class defaults are set by the account owner or department head. You can change the output language on a pupil’s report when needed.",
   "class.settingsTitle": "Class settings",
   "class.tipLabel": "Tip",
   "class.nameTimetableTip":
@@ -786,6 +788,10 @@ const EN: UiMessages = {
   "class.scholasticYear": "Scholastic year (yyyy – yyyy)",
   "class.scholasticPlaceholder": "e.g. 2024 – 2025",
   "class.yearReadonlyHint": "Only owners and department heads can change the scholastic year.",
+  "class.coreSettingsReadonlyHint":
+    "Only owners and department heads can change class settings here: name, scholastic year, CEFR level, default subject, default output language, type for new pupil reports, and active weekdays.",
+  "class.teacherPerReportOutputLangHint":
+    "You can still set the output language on each pupil’s report when needed.",
   "class.cefr": "Class level (CEFR)",
   "class.defaultSubject": "Default subject",
   "class.defaultOutputLang": "Default output language",
@@ -1290,11 +1296,17 @@ const FR: UiMessages = {
   "tenant.confirmDeleteClass": "Supprimer la classe « {name} » et tous les élèves et rapports ?",
   "class.intro":
     "Définissez ici le nom de la classe, l’année, le CECR, la matière et la langue de sortie par défaut. La page rapport ne surcharge qu’en cas de besoin.",
+  "class.introTeacher":
+    "Les valeurs par défaut de la classe sont définies par le propriétaire du compte ou le·la chef·fe de département. Vous pouvez changer la langue de sortie sur le rapport de chaque élève si besoin.",
   "class.settingsTitle": "Paramètres de la classe",
   "class.className": "Nom de la classe",
   "class.scholasticYear": "Année scolaire (aaaa – aaaa)",
   "class.scholasticPlaceholder": "ex. 2024 – 2025",
   "class.yearReadonlyHint": "Seuls propriétaires et chefs peuvent modifier l’année scolaire.",
+  "class.coreSettingsReadonlyHint":
+    "Seuls le propriétaire du compte ou le·la chef·fe de département peuvent modifier les paramètres de la classe ici : nom, année scolaire, niveau CECR, matière par défaut, langue de sortie par défaut, type de nouveaux rapports et jours actifs.",
+  "class.teacherPerReportOutputLangHint":
+    "Vous pouvez toujours définir la langue de sortie sur le rapport de chaque élève si besoin.",
   "class.cefr": "Niveau classe (CECR)",
   "class.defaultSubject": "Matière par défaut",
   "class.defaultOutputLang": "Langue de sortie par défaut",
@@ -1657,6 +1669,8 @@ const ES: UiMessages = {
   "tenant.confirmDeleteClass": "¿Eliminar la clase «{name}» y todos los alumnos e informes?",
   "class.intro":
     "Configure aquí el nombre de la clase, el año, el MCER, la materia y el idioma de salida por defecto. La página de informe solo cambia lo necesario.",
+  "class.introTeacher":
+    "Los valores por defecto de la clase los define el propietario de la cuenta o el jefe de departamento. Puede cambiar el idioma de salida en el informe de cada alumno si hace falta.",
   "class.settingsTitle": "Ajustes de la clase",
   "class.tipLabel": "Sugerencia",
   "class.nameTimetableTip":
@@ -1665,6 +1679,10 @@ const ES: UiMessages = {
   "class.scholasticYear": "Año escolar (aaaa – aaaa)",
   "class.scholasticPlaceholder": "p. ej. 2024 – 2025",
   "class.yearReadonlyHint": "Solo propietarios y jefes pueden cambiar el año escolar.",
+  "class.coreSettingsReadonlyHint":
+    "Solo el propietario de la cuenta o el jefe de departamento puede cambiar los ajustes de la clase: nombre, año escolar, nivel MCER, materia por defecto, idioma de salida por defecto, tipo de informes nuevos y días lectivos activos.",
+  "class.teacherPerReportOutputLangHint":
+    "Aún puede fijar el idioma de salida en el informe de cada alumno si lo necesita.",
   "class.cefr": "Nivel de la clase (MCER)",
   "class.defaultSubject": "Materia por defecto",
   "class.defaultOutputLang": "Idioma de salida por defecto",

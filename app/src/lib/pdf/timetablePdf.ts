@@ -44,6 +44,11 @@ export type TimetablePdfInput = {
   uiLang: string;
   /** Mon–Fri row indices to include (e.g. from class meeting days). Default all five. */
   visibleDayIndexes?: number[];
+  /**
+   * One page: key slots by day+period only; each cell shows class + room row for that lesson.
+   * Used for “my timetable” PDFs.
+   */
+  teacherSinglePage?: boolean;
 };
 
 function colWidthPt(gc: number, periodsAm: number, periodColW: number): number {
@@ -100,12 +105,20 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
       : [0, 1, 2, 3, 4];
   const numDayRows = dayRowIndices.length;
 
+  const teacherSingle = Boolean(opts.teacherSinglePage);
   const slotMap = new Map<string, TimetablePdfSlot>();
-  for (const s of opts.slots) {
-    slotMap.set(`${s.day_of_week}-${s.period_index}-${s.room_index}`, s);
+  if (teacherSingle) {
+    for (const s of opts.slots) {
+      const k = `${s.day_of_week}-${s.period_index}`;
+      if (!slotMap.has(k)) slotMap.set(k, s);
+    }
+  } else {
+    for (const s of opts.slots) {
+      slotMap.set(`${s.day_of_week}-${s.period_index}-${s.room_index}`, s);
+    }
   }
 
-  const roomPages = Math.max(1, opts.roomCount);
+  const roomPages = teacherSingle ? 1 : Math.max(1, opts.roomCount);
 
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -130,12 +143,14 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
       doc.text(translate(lang, opts.titleKey), MARGIN_PT, doc.y, {
         width: PAGE_W - MARGIN_PT * 2,
       });
-      doc.font("Helvetica-Bold").fontSize(11).fillColor("#334155");
-      doc.text(translate(lang, "pdf.timetablePageRoom", { n: roomIndex + 1 }), MARGIN_PT, doc.y + 4, {
-        width: PAGE_W - MARGIN_PT * 2,
-      });
+      if (!teacherSingle) {
+        doc.font("Helvetica-Bold").fontSize(11).fillColor("#334155");
+        doc.text(translate(lang, "pdf.timetablePageRoom", { n: roomIndex + 1 }), MARGIN_PT, doc.y + 4, {
+          width: PAGE_W - MARGIN_PT * 2,
+        });
+      }
 
-      let y = doc.y + 14;
+      let y = doc.y + (teacherSingle ? 10 : 14);
       y = drawPeriodHeaderRow(doc, lang, y, x0, dayColW, gridCols, opts, periodColW);
 
       const yBodyStart = y + 4;
@@ -169,7 +184,7 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
             const innerW = cw - 8;
             const blockTop = rowY + 6;
             const blockH = dayRowH - 12;
-            const slot = slotMap.get(`${d}-${p}-${roomIndex}`);
+            const slot = teacherSingle ? slotMap.get(`${d}-${p}`) : slotMap.get(`${d}-${p}-${roomIndex}`);
             if (slot) {
               doc.save();
               doc
@@ -178,15 +193,19 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
                 .fill();
               doc.restore();
             }
-            doc.font("Helvetica-Bold").fontSize(7).fillColor("#0f172a");
-            doc.text(translate(lang, "pdf.timetableRoomN", { n: roomIndex + 1 }), innerLeft, blockTop, {
-              width: innerW,
-            });
             if (slot) {
+              doc.font("Helvetica-Bold").fontSize(7).fillColor("#0f172a");
+              doc.text(translate(lang, "pdf.timetableRoomN", { n: slot.room_index + 1 }), innerLeft, blockTop, {
+                width: innerW,
+              });
               const classLine = slot.class_name.trim() || "—";
               const teacherLine = slot.teacher_display.trim() || "—";
-              const classBlockH = Math.max(24, blockH * 0.52);
-              const teacherBlockH = Math.max(18, blockH - classBlockH - 14);
+              const classBlockH = teacherSingle
+                ? Math.max(28, blockH * 0.58)
+                : Math.max(24, blockH * 0.52);
+              const teacherBlockH = teacherSingle
+                ? 0
+                : Math.max(18, blockH - classBlockH - 14);
               doc.font("Helvetica").fontSize(6.5).fillColor("#0f172a");
               doc.text(classLine, innerLeft, blockTop + 12, {
                 width: innerW,
@@ -194,12 +213,22 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
                 height: classBlockH,
                 ellipsis: true,
               });
-              doc.font("Helvetica").fontSize(6).fillColor("#0f172a");
-              doc.text(teacherLine, innerLeft, blockTop + 12 + classBlockH + 2, {
+              if (!teacherSingle && teacherBlockH > 0) {
+                doc.font("Helvetica").fontSize(6).fillColor("#0f172a");
+                doc.text(teacherLine, innerLeft, blockTop + 12 + classBlockH + 2, {
+                  width: innerW,
+                  lineGap: 0.5,
+                  height: teacherBlockH,
+                  ellipsis: true,
+                });
+              }
+            } else if (teacherSingle) {
+              doc.font("Helvetica").fontSize(8).fillColor("#94a3b8");
+              doc.text("—", innerLeft, rowY + dayRowH / 2 - 4, { width: innerW, align: "center" });
+            } else {
+              doc.font("Helvetica-Bold").fontSize(7).fillColor("#0f172a");
+              doc.text(translate(lang, "pdf.timetableRoomN", { n: roomIndex + 1 }), innerLeft, blockTop, {
                 width: innerW,
-                lineGap: 0.5,
-                height: teacherBlockH,
-                ellipsis: true,
               });
             }
           }

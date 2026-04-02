@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant, listMembersForTenant } from "@/lib/data/memberships";
-import { getTimetableSettings, listTimetableSlots, updateTimetableSettings } from "@/lib/data/timetableDb";
+import {
+  getTimetableSettings,
+  listTimetableSlots,
+  listTimetableSlotsForClassIds,
+  updateTimetableSettings,
+} from "@/lib/data/timetableDb";
 
 export const runtime = "nodejs";
 
@@ -31,10 +36,25 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     const settings = await getTimetableSettings(tenantId);
     if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
 
-    const slots =
-      role === "teacher"
-        ? await listTimetableSlots(tenantId, { teacherEmail: gate.email })
-        : await listTimetableSlots(tenantId);
+    const classRows =
+      role === "owner" || role === "department_head"
+        ? await listClasses(tenantId)
+        : await listClasses(tenantId, { viewerRole: role, viewerEmail: gate.email });
+
+    let slots: Awaited<ReturnType<typeof listTimetableSlots>>;
+    if (role === "teacher") {
+      const myClassIds = classRows.map((c) => c.id);
+      const assignedByClassId = new Map(classRows.map((c) => [c.id, c.assigned_teacher_email]));
+      const viewerNorm = gate.email.trim().toLowerCase();
+      const raw = await listTimetableSlotsForClassIds(tenantId, myClassIds);
+      slots = raw.filter((s) => {
+        const assigned = assignedByClassId.get(s.class_id)?.trim().toLowerCase() ?? "";
+        const fallback = s.teacher_email.trim().toLowerCase();
+        return (assigned || fallback) === viewerNorm;
+      });
+    } else {
+      slots = await listTimetableSlots(tenantId);
+    }
 
     const members = await listMembersForTenant(tenantId);
     const teacherMembers = members.filter((m) => m.role === "teacher");
@@ -47,10 +67,6 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
       label: teacherLabel(m),
     }));
 
-    const classRows =
-      role === "owner" || role === "department_head"
-        ? await listClasses(tenantId)
-        : await listClasses(tenantId, { viewerRole: role, viewerEmail: gate.email });
     const classes = classRows.map((c) => ({
       id: c.id,
       name: c.name,

@@ -4,7 +4,7 @@ import { listClasses } from "@/lib/data/classesDb";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant, getTenantName, listMembersForTenant } from "@/lib/data/memberships";
-import { listTimetableSlots, getTimetableSettings } from "@/lib/data/timetableDb";
+import { getTimetableSettings, listTimetableSlots, listTimetableSlotsForClassIds } from "@/lib/data/timetableDb";
 import { isUiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { buildTimetablePdfBuffer, type TimetablePdfSlot } from "@/lib/pdf/timetablePdf";
@@ -97,10 +97,11 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       titleKey,
       periodsAm: settings.periods_am,
       periodsPm: settings.periods_pm,
-      roomCount: settings.room_count,
+      roomCount: role === "teacher" ? 1 : settings.room_count,
       slots,
       uiLang,
       visibleDayIndexes,
+      teacherSinglePage: role === "teacher",
     });
     const fname = `${safeFilename(tenantRecordName)}-${role === "teacher" ? "my-timetable" : "timetable"}.pdf`;
     return new NextResponse(new Uint8Array(pdf), {

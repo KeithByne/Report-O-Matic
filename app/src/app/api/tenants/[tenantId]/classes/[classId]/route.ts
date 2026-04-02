@@ -61,12 +61,35 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
 
   const isLead = role === "owner" || role === "department_head";
 
+  if (!isLead) {
+    if (
+      body.name !== undefined ||
+      body.scholastic_year !== undefined ||
+      body.cefr_level !== undefined ||
+      body.default_subject !== undefined ||
+      body.default_output_language !== undefined ||
+      body.default_new_report_kind !== undefined ||
+      body.active_weekdays !== undefined
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Only owners and department heads can change class settings. Teachers can adjust output language on each report if needed.",
+        },
+        { status: 403 },
+      );
+    }
+  }
+
   const patch: Parameters<typeof updateClass>[2] = {};
-  if (typeof body.name === "string") patch.name = body.name;
+  if (typeof body.name === "string" && isLead) patch.name = body.name;
   if (isLead && (body.scholastic_year === null || typeof body.scholastic_year === "string")) {
     patch.scholastic_year = body.scholastic_year === null ? null : (body.scholastic_year as string).trim() || null;
   }
-  if (body.cefr_level === null || typeof body.cefr_level === "string") {
+  if (
+    isLead &&
+    (body.cefr_level === null || typeof body.cefr_level === "string")
+  ) {
     if (body.cefr_level === null || (typeof body.cefr_level === "string" && body.cefr_level.trim() === "")) {
       patch.cefr_level = null;
     } else if (typeof body.cefr_level === "string" && ["A1", "A2", "B1", "B2", "C1", "C2"].includes(body.cefr_level)) {
@@ -75,7 +98,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       return NextResponse.json({ error: "Invalid cefr_level." }, { status: 400 });
     }
   }
-  if (typeof body.default_subject === "string" && isSubjectCode(body.default_subject)) {
+  if (typeof body.default_subject === "string" && isSubjectCode(body.default_subject) && isLead) {
     patch.default_subject = body.default_subject;
   }
   if (typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language)) {
@@ -94,7 +117,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     }
   }
 
-  if (body.active_weekdays !== undefined) {
+  if (isLead && body.active_weekdays !== undefined) {
     if (!Array.isArray(body.active_weekdays)) {
       return NextResponse.json({ error: "active_weekdays must be an array of weekday keys." }, { status: 400 });
     }

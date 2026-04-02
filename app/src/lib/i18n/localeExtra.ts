@@ -229,11 +229,17 @@ export const IT_LABELS: Record<string, string> = {
   "tenant.confirmDeleteClass": "Eliminare la classe «{name}» e tutti gli studenti e rapporti?",
   "class.intro":
     "Imposta qui nome classe, anno, CEFR, materia e lingua di output predefinita. La pagina rapporto modifica solo se serve.",
+  "class.introTeacher":
+    "I valori predefiniti della classe sono impostati dal proprietario dell’account o dal capo dipartimento. Puoi cambiare la lingua di output sul rapporto di ogni studente se serve.",
   "class.settingsTitle": "Impostazioni classe",
   "class.className": "Nome classe",
   "class.scholasticYear": "Anno scolastico (aaaa – aaaa)",
   "class.scholasticPlaceholder": "es. 2024 – 2025",
   "class.yearReadonlyHint": "Solo proprietari e capi possono cambiare l’anno scolastico.",
+  "class.coreSettingsReadonlyHint":
+    "Solo il proprietario dell’account o il capo dipartimento può modificare i parametri della classe: nome, anno scolastico, livello CEFR, materia predefinita, lingua di output predefinita, tipo di nuovi rapporti e giorni di lezione attivi.",
+  "class.teacherPerReportOutputLangHint":
+    "Puoi comunque impostare la lingua di output su ogni rapporto di studente se serve.",
   "class.cefr": "Livello classe (CEFR)",
   "class.defaultSubject": "Materia predefinita",
   "class.defaultOutputLang": "Lingua di output predefinita",
@@ -511,11 +517,17 @@ export const PT_LABELS: Record<string, string> = {
   "tenant.confirmDeleteClass": "Eliminar a turma «{name}» e todos os alunos e relatórios?",
   "class.intro":
     "Defina aqui o nome da turma, ano, CEFR, disciplina e idioma de saída predefinido. A página relatório só altera quando necessário.",
+  "class.introTeacher":
+    "Os valores predefinidos da turma são definidos pelo proprietário da conta ou pelo chefe de departamento. Pode alterar o idioma de saída no relatório de cada aluno se necessário.",
   "class.settingsTitle": "Definições da turma",
   "class.className": "Nome da turma",
   "class.scholasticYear": "Ano letivo (aaaa – aaaa)",
   "class.scholasticPlaceholder": "ex.: 2024 – 2025",
   "class.yearReadonlyHint": "Só proprietários e chefes podem alterar o ano letivo.",
+  "class.coreSettingsReadonlyHint":
+    "Só o proprietário da conta ou o chefe de departamento pode alterar as definições da turma: nome, ano letivo, nível CEFR, disciplina predefinida, idioma de saída predefinido, tipo de novos relatórios e dias letivos ativos.",
+  "class.teacherPerReportOutputLangHint":
+    "Ainda pode definir o idioma de saída no relatório de cada aluno se precisar.",
   "class.cefr": "Nível da turma (CEFR)",
   "class.defaultSubject": "Disciplina predefinida",
   "class.defaultOutputLang": "Idioma de saída predefinido",
@@ -794,11 +806,17 @@ export const DE_LABELS: Record<string, string> = {
   "tenant.confirmDeleteClass": "Klasse „{name}“ und alle Schüler und Berichte darin löschen?",
   "class.intro":
     "Legen Sie hier Klassenname, Jahr, GER, Fach und Standard-Ausgabesprache fest. Die Einzelberichtsseite überschreibt nur bei Bedarf.",
+  "class.introTeacher":
+    "Klassen-Standards legt der Kontoinhaber oder die Abteilungsleitung fest. Sie können die Ausgabesprache bei Bedarf im Bericht jedes Schülers ändern.",
   "class.settingsTitle": "Klasseneinstellungen",
   "class.className": "Klassenname",
   "class.scholasticYear": "Schuljahr (jjjj – jjjj)",
   "class.scholasticPlaceholder": "z. B. 2024 – 2025",
   "class.yearReadonlyHint": "Nur Inhaber und Abteilungsleitung können das Schuljahr ändern.",
+  "class.coreSettingsReadonlyHint":
+    "Nur Kontoinhaber oder Abteilungsleitung können hier Klasseneinstellungen ändern: Name, Schuljahr, GER-Niveau, Standardfach, Standard-Ausgabesprache, Art neuer Schülerberichte und aktive Unterrichtstage.",
+  "class.teacherPerReportOutputLangHint":
+    "Die Ausgabesprache können Sie bei Bedarf weiterhin in jedem Schülerbericht festlegen.",
   "class.cefr": "Klassenniveau (GER)",
   "class.defaultSubject": "Standardfach",
   "class.defaultOutputLang": "Standard-Ausgabesprache",
