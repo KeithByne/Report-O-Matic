@@ -37,11 +37,16 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
 
   const { data: tenantRow } = await supabase
     .from("tenants")
-    .select("referral_code, referred_by_email, is_test_access")
+    .select("referral_code, referred_by_email, is_test_access, test_credits_remaining")
     .eq("id", tenantId)
     .maybeSingle();
-  if ((tenantRow as any)?.is_test_access) {
-    return NextResponse.json({ error: "Test access accounts cannot purchase credits." }, { status: 403 });
+  const isTest = !!(tenantRow as any)?.is_test_access;
+  const testRemaining = Number((tenantRow as any)?.test_credits_remaining ?? 0);
+  if (isTest && testRemaining > 0) {
+    return NextResponse.json(
+      { error: "Use your free test credits first. Stripe checkout unlocks after the trial reports are used." },
+      { status: 403 },
+    );
   }
 
   const stripe = getStripe();

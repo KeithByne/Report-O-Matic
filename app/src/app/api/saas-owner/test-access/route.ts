@@ -8,11 +8,6 @@ function tokenUrlSafe(bytes = 18): string {
   return crypto.randomBytes(bytes).toString("base64url");
 }
 
-function testOwnerEmailForToken(token: string): string {
-  const domain = (process.env.ROM_TEST_ACCESS_OWNER_DOMAIN ?? "report-o-matic.online").trim() || "report-o-matic.online";
-  return `rom-test-owner+${token}@${domain}`.toLowerCase();
-}
-
 export async function POST(req: Request) {
   const gate = await requireSaasOwner();
   if (!gate.ok) return gate.res;
@@ -21,11 +16,9 @@ export async function POST(req: Request) {
   if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
 
   const token = tokenUrlSafe();
-  const ownerEmail = testOwnerEmailForToken(token);
   const nowIso = new Date().toISOString();
 
-  // Create a sandbox tenant + internal owner (not the SaaS owner) so the free credits
-  // don't mix with real paid credits.
+  // Sandbox tenant only — the claimant becomes owner on verify and receives 50 credits on their account.
   const tenantName = `Test account (${new Date().toLocaleDateString()})`;
 
   const { data: tenant, error: tErr } = await supabase
@@ -38,31 +31,6 @@ export async function POST(req: Request) {
   const tenantId = String((tenant as any).id || "").trim();
   if (!tenantId) return NextResponse.json({ error: "Could not create test tenant." }, { status: 500 });
 
-  const { error: mErr } = await supabase.from("memberships").insert({
-    tenant_id: tenantId,
-    user_email: ownerEmail,
-    role: "owner",
-  });
-  if (mErr) {
-    await supabase.from("tenants").delete().eq("id", tenantId);
-    return NextResponse.json({ error: mErr.message || "Could not create test tenant owner." }, { status: 500 });
-  }
-
-  // Grant 50 credits to this internal owner email.
-  const { error: cErr } = await supabase.from("owner_credit_ledger").insert({
-    owner_email: ownerEmail,
-    delta_credits: 50,
-    reason: "manual_adjust",
-    tenant_id: tenantId,
-    report_id: null,
-    stripe_event_id: null,
-  });
-  if (cErr) {
-    await supabase.from("memberships").delete().eq("tenant_id", tenantId).eq("user_email", ownerEmail);
-    await supabase.from("tenants").delete().eq("id", tenantId);
-    return NextResponse.json({ error: cErr.message || "Could not grant test credits." }, { status: 500 });
-  }
-
   const { error: lErr } = await supabase.from("test_access_links").insert({
     token,
     tenant_id: tenantId,
@@ -71,6 +39,7 @@ export async function POST(req: Request) {
     created_at: nowIso,
   });
   if (lErr) {
+    await supabase.from("tenants").delete().eq("id", tenantId);
     return NextResponse.json({ error: lErr.message || "Could not create test link." }, { status: 500 });
   }
 

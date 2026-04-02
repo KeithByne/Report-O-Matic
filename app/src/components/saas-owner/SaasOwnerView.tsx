@@ -355,8 +355,9 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
             <div>
               <div className="text-sm font-semibold text-zinc-900">Test access</div>
               <div className="mt-1 text-xs text-zinc-500">
-                Generate a one-time link for a friend. It creates a sandbox school with <span className="font-semibold">50 report credits</span> and
-                closes when used up.
+                One-time link: friend becomes <span className="font-semibold">account owner</span> of a sandbox school with{" "}
+                <span className="font-semibold">50 free report credits</span>. After those are used they can pay via Stripe to keep the school like any
+                other owner.
               </div>
             </div>
             <button

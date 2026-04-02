@@ -21,6 +21,12 @@ type PackTaxDisplay = {
   salesTaxLabel: string;
 };
 
+type TestAccessBanner = {
+  isTestAccess: boolean;
+  testCreditsRemaining: number;
+  testTrialExhausted: boolean;
+};
+
 export function TenantBillingView({
   tenantId,
   schoolName,
@@ -28,6 +34,7 @@ export function TenantBillingView({
   accountCreditsRemaining,
   packs,
   packTaxDisplay,
+  testAccess,
 }: {
   tenantId: string;
   schoolName: string;
@@ -35,6 +42,7 @@ export function TenantBillingView({
   accountCreditsRemaining: number;
   packs: Pack[];
   packTaxDisplay: PackTaxDisplay;
+  testAccess: TestAccessBanner;
 }) {
   const { t } = useUiLanguage();
 
@@ -70,6 +78,16 @@ export function TenantBillingView({
               {t("billing.reportsRemaining", { n: accountCreditsRemaining })}
             </span>
           </p>
+          {role === "owner" && testAccess.isTestAccess && testAccess.testCreditsRemaining > 0 ? (
+            <p className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">
+              {t("billing.testTrialActive", { n: testAccess.testCreditsRemaining })}
+            </p>
+          ) : null}
+          {role === "owner" && testAccess.testTrialExhausted ? (
+            <p className="mt-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
+              {t("billing.testConvertLead")}
+            </p>
+          ) : null}
           {role !== "owner" ? (
             <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
               {t("billing.ownerOnly")}

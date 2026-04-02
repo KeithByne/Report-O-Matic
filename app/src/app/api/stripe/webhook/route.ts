@@ -94,6 +94,13 @@ export async function POST(req: Request) {
             { onConflict: "tenant_id" },
           );
 
+          // First paid pack converts a sandbox school into a normal tenant.
+          await supabase
+            .from("tenants")
+            .update({ is_test_access: false, test_credits_remaining: null, test_closed_at: null })
+            .eq("id", tenantId)
+            .eq("is_test_access", true);
+
           // Referral earning (default 20% commission if agent link exists and active).
           if (referralCode) {
             const { data: agent } = await supabase

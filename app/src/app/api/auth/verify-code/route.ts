@@ -108,26 +108,44 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: "Test access link is invalid or has already been used." }, { status: 400, headers: cors.headers });
         }
 
-        // Mark link as claimed (one-time) and grant teacher access.
+        const tenantId = String((link as any).tenant_id || "").trim();
+        if (!tenantId) {
+          return NextResponse.json({ error: "Invalid test tenant." }, { status: 400, headers: cors.headers });
+        }
+
+        // Owner + 50 starter credits on the claimant's account (same pool as production owners).
+        const { error: mErr } = await supabase.from("memberships").insert({
+          tenant_id: tenantId,
+          user_email: email,
+          role: "owner",
+        });
+        if (mErr) {
+          if (mErr.code === "23505") {
+            return NextResponse.json({ error: "This test link was already used with a different step. Request a new link." }, { status: 409, headers: cors.headers });
+          }
+          return NextResponse.json({ error: mErr.message || "Could not grant test access." }, { status: 500, headers: cors.headers });
+        }
+
+        const { error: cErr } = await supabase.from("owner_credit_ledger").insert({
+          owner_email: email,
+          delta_credits: 50,
+          reason: "manual_adjust",
+          tenant_id: tenantId,
+          report_id: null,
+          stripe_event_id: null,
+        });
+        if (cErr) {
+          await supabase.from("memberships").delete().eq("tenant_id", tenantId).eq("user_email", email).eq("role", "owner");
+          return NextResponse.json({ error: cErr.message || "Could not grant test credits." }, { status: 500, headers: cors.headers });
+        }
+
         const { error: claimErr } = await supabase
           .from("test_access_links")
           .update({ active: false, claimed_by_email: email, claimed_at: new Date(nowMs).toISOString() })
           .eq("token", verified.testAccessToken)
           .eq("active", true);
         if (claimErr) {
-          return NextResponse.json({ error: claimErr.message || "Could not claim test access." }, { status: 500, headers: cors.headers });
-        }
-
-        const tenantId = String((link as any).tenant_id || "").trim();
-        if (tenantId) {
-          const { error: mErr } = await supabase.from("memberships").insert({
-            tenant_id: tenantId,
-            user_email: email,
-            role: "teacher",
-          });
-          if (mErr && mErr.code !== "23505") {
-            return NextResponse.json({ error: mErr.message || "Could not grant test access." }, { status: 500, headers: cors.headers });
-          }
+          return NextResponse.json({ error: claimErr.message || "Could not finalize test access." }, { status: 500, headers: cors.headers });
         }
       }
     } catch (e: unknown) {

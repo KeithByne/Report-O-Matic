@@ -683,6 +683,10 @@ const EN: UiMessages = {
   "billing.packTaxIncluded": "This price already includes {taxDetail}.",
   "billing.packTaxAddedToBase": "{taxDetail} is added to the pack price; the total above is what you pay.",
   "billing.packNetBeforeTax": "Pack price before {tax}: {price} {currency}",
+  "billing.testTrialActive":
+    "Sandbox trial: {n} free test report credits left on this school. Purchase unlocks automatically after they are used.",
+  "billing.testConvertLead":
+    "Your free test credits for this school are used up. Buy a credit pack below to keep this organisation as a full account — same Stripe checkout as production.",
   "billing.backReports": "Back to reports",
   "billing.successTitle": "Payment received",
   "billing.successBody":
@@ -1183,6 +1187,10 @@ const FR: UiMessages = {
   "billing.packTaxIncluded": "Ce prix inclut déjà {taxDetail}.",
   "billing.packTaxAddedToBase": "{taxDetail} s’ajoute au prix du pack ; le total ci-dessus est à payer.",
   "billing.packNetBeforeTax": "Prix du pack avant {tax} : {price} {currency}",
+  "billing.testTrialActive":
+    "Essai bac à sable : il reste {n} crédits gratuits pour cette école. L’achat par Stripe sera possible une fois épuisés.",
+  "billing.testConvertLead":
+    "Les crédits d’essai gratuits sont épuisés pour cette école. Achetez un pack ci-dessous pour garder cette organisation comme un compte complet (paiement Stripe).",
   "billing.backReports": "Retour aux rapports",
   "billing.successTitle": "Paiement reçu",
   "billing.successBody":
@@ -1530,6 +1538,10 @@ const ES: UiMessages = {
   "billing.packTaxIncluded": "Este precio ya incluye {taxDetail}.",
   "billing.packTaxAddedToBase": "Se añade {taxDetail} al precio del pack; el total de arriba es lo que pagará.",
   "billing.packNetBeforeTax": "Precio del pack antes de {tax}: {price} {currency}",
+  "billing.testTrialActive":
+    "Prueba en sandbox: quedan {n} informes de prueba gratis en este centro. La compra con Stripe se desbloquea al gastarlos.",
+  "billing.testConvertLead":
+    "Se han agotado los informes de prueba gratis de este centro. Compre un pack abajo para conservar esta organización como cuenta completa (pago con Stripe).",
   "billing.backReports": "Volver a informes",
   "billing.successTitle": "Pago recibido",
   "billing.successBody":

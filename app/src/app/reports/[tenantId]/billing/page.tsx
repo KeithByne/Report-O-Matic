@@ -36,9 +36,17 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
         .order("sort_order", { ascending: true })
     : { data: [] };
 
+  const { data: tenantFlags } = supabase
+    ? await supabase.from("tenants").select("is_test_access, test_credits_remaining").eq("id", tenantId).maybeSingle()
+    : { data: null };
+
   const taxRatePercent = getSalesTaxRatePercent();
   const packTaxBasis = getPackPriceTaxBasis();
   const salesTaxLabel = getSalesTaxLabelForCustomers();
+
+  const isTestAccess = !!(tenantFlags as { is_test_access?: boolean } | null)?.is_test_access;
+  const testCreditsRemaining = Number((tenantFlags as { test_credits_remaining?: number } | null)?.test_credits_remaining ?? 0);
+  const testTrialExhausted = isTestAccess && testCreditsRemaining <= 0;
 
   return (
     <TenantBillingView
@@ -48,6 +56,7 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
       accountCreditsRemaining={accountCreditsRemaining}
       packs={(packs ?? []) as { id: string; name: string; price_cents: number; currency: string; report_credits: number }[]}
       packTaxDisplay={{ taxRatePercent, packTaxBasis, salesTaxLabel }}
+      testAccess={{ isTestAccess, testCreditsRemaining, testTrialExhausted }}
     />
   );
 }
