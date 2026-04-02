@@ -145,6 +145,13 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     return `${base}/classes/${encodeURIComponent(classId)}/register-pdf?${qp.toString()}`;
   }, [base, classId, uiLang]);
 
+  const registerPdfPreviewHref = useMemo(() => {
+    const qp = new URLSearchParams();
+    qp.set("lang", uiLang);
+    qp.set("inline", "1");
+    return `${base}/classes/${encodeURIComponent(classId)}/register-pdf?${qp.toString()}`;
+  }, [base, classId, uiLang]);
+
   const registerPdfGate = useMemo(() => {
     if (students.length === 0) {
       return { canPrint: false as const, message: t("class.printRegisterNeedStudents") };
@@ -814,6 +821,19 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </div>
           )}
         </div>
+        {registerPdfGate.canPrint ? (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
+            <h4 className="text-sm font-semibold text-zinc-900">{t("class.registerPreviewTitle")}</h4>
+            <p className="mt-1 text-xs text-zinc-500">{t("class.registerPreviewHint")}</p>
+            <iframe
+              key={`reg-${students.map((s) => s.id).join(",")}-${(detail?.active_weekdays ?? []).join("")}-${uiLang}`}
+              title={t("class.registerPreviewTitle")}
+              src={registerPdfPreviewHref}
+              loading="lazy"
+              className="mt-3 h-[85vh] max-h-[920px] min-h-[480px] w-full rounded-lg border border-zinc-200 bg-zinc-50"
+            />
+          </div>
+        ) : null}
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.firstName")}</span>

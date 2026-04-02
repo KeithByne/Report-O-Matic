@@ -821,6 +821,8 @@ const EN: UiMessages = {
   "class.activeDaysLabel": "Days this class meets",
   "class.activeDaysDisplay": "Register uses",
   "class.printRegister": "Print Register",
+  "class.registerPreviewTitle": "Register preview",
+  "class.registerPreviewHint": "PDF shown below; use Print Register to download.",
   "class.printRegisterNeedDays": "Choose which days the class meets in Class settings first.",
   "class.printRegisterNeedStudents": "Add pupils before printing the register.",
   "class.bulkPdfOrderLabel": "Order",
@@ -1329,6 +1331,8 @@ const FR: UiMessages = {
   "class.activeDaysLabel": "Jours de cours",
   "class.activeDaysDisplay": "Jours pour le registre",
   "class.printRegister": "Imprimer le registre",
+  "class.registerPreviewTitle": "Aperçu du registre",
+  "class.registerPreviewHint": "PDF ci-dessous ; utilisez Imprimer le registre pour télécharger.",
   "class.printRegisterNeedDays": "Choisissez d’abord les jours de cours dans les paramètres de la classe.",
   "class.printRegisterNeedStudents": "Ajoutez des élèves avant d’imprimer le registre.",
   "class.duplicatePupilWarning":
@@ -1697,6 +1701,8 @@ const ES: UiMessages = {
   "class.activeDaysLabel": "Días de clase",
   "class.activeDaysDisplay": "Días activos (registro)",
   "class.printRegister": "Imprimir registro",
+  "class.registerPreviewTitle": "Vista previa del registro",
+  "class.registerPreviewHint": "PDF abajo; use Imprimir registro para descargar.",
   "class.printRegisterNeedDays": "Elija primero los días de clase en Ajustes de la clase.",
   "class.printRegisterNeedStudents": "Añada alumnos antes de imprimir el registro.",
   "class.duplicatePupilWarning":
