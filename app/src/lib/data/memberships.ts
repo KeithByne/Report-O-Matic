@@ -81,6 +81,19 @@ export async function getRoleForTenant(email: string, tenantId: string): Promise
   if (error || !data) return null;
   const r = data.role as string;
   if (r !== "owner" && r !== "department_head" && r !== "teacher") return null;
+
+  // Test-access tenants auto-close when credits are exhausted.
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("is_test_access, test_credits_remaining, test_closed_at")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if (tenant && (tenant as any).is_test_access) {
+    const remaining = Number((tenant as any).test_credits_remaining ?? 0);
+    const closedAt = (tenant as any).test_closed_at;
+    if (closedAt || remaining <= 0) return null;
+  }
+
   return r as RomRole;
 }
 

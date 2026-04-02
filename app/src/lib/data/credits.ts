@@ -84,7 +84,32 @@ export async function consumeCreditForReport(opts: { tenantId: string; reportId:
     report_id: opts.reportId,
     tenant_id: opts.tenantId,
   });
-  if (!error) return true;
+  if (!error) {
+    // If this is a test-access tenant, decrement its remaining allowance and close at 0.
+    try {
+      const { data: t } = await supabase
+        .from("tenants")
+        .select("is_test_access, test_credits_remaining, test_closed_at")
+        .eq("id", opts.tenantId)
+        .maybeSingle();
+      if (t && (t as any).is_test_access && !(t as any).test_closed_at) {
+        const remaining = Number((t as any).test_credits_remaining ?? 0);
+        if (remaining > 0) {
+          const next = remaining - 1;
+          await supabase
+            .from("tenants")
+            .update({
+              test_credits_remaining: Math.max(0, next),
+              test_closed_at: next <= 0 ? new Date().toISOString() : null,
+            })
+            .eq("id", opts.tenantId);
+        }
+      }
+    } catch {
+      // If test-credit bookkeeping fails, don't block report generation.
+    }
+    return true;
+  }
   if (error.code === "23505") return false;
   throw new Error(formatErr(error));
 }

@@ -91,6 +91,45 @@ export async function POST(req: Request) {
           referralCode: verified.referralCode,
         });
       }
+
+      if (verified.testAccessToken) {
+        const supabase = getServiceSupabase();
+        if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503, headers: cors.headers });
+
+        const { data: link, error: lErr } = await supabase
+          .from("test_access_links")
+          .select("token, tenant_id, active")
+          .eq("token", verified.testAccessToken)
+          .maybeSingle();
+        if (lErr) {
+          return NextResponse.json({ error: lErr.message || "Could not claim test access." }, { status: 500, headers: cors.headers });
+        }
+        if (!link || !(link as any).active) {
+          return NextResponse.json({ error: "Test access link is invalid or has already been used." }, { status: 400, headers: cors.headers });
+        }
+
+        // Mark link as claimed (one-time) and grant teacher access.
+        const { error: claimErr } = await supabase
+          .from("test_access_links")
+          .update({ active: false, claimed_by_email: email, claimed_at: new Date(nowMs).toISOString() })
+          .eq("token", verified.testAccessToken)
+          .eq("active", true);
+        if (claimErr) {
+          return NextResponse.json({ error: claimErr.message || "Could not claim test access." }, { status: 500, headers: cors.headers });
+        }
+
+        const tenantId = String((link as any).tenant_id || "").trim();
+        if (tenantId) {
+          const { error: mErr } = await supabase.from("memberships").insert({
+            tenant_id: tenantId,
+            user_email: email,
+            role: "teacher",
+          });
+          if (mErr && mErr.code !== "23505") {
+            return NextResponse.json({ error: mErr.message || "Could not grant test access." }, { status: 500, headers: cors.headers });
+          }
+        }
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not finish signup.";
       console.error("[ROM verify-code] ensureOwnerTenantForSignup:", msg);

@@ -28,15 +28,24 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const role = await getRoleForTenant(session.email, tenantId);
   if (role !== "owner") return NextResponse.json({ error: "Only owners can purchase credits." }, { status: 403 });
 
-  const stripe = getStripe();
-  if (!stripe) return NextResponse.json({ error: "Stripe not configured." }, { status: 503 });
-
   const form = await req.formData();
   const packId = String(form.get("pack_id") ?? "").trim();
   if (!packId) return NextResponse.json({ error: "pack_id is required." }, { status: 400 });
 
   const supabase = getServiceSupabase();
   if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
+
+  const { data: tenantRow } = await supabase
+    .from("tenants")
+    .select("referral_code, referred_by_email, is_test_access")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if ((tenantRow as any)?.is_test_access) {
+    return NextResponse.json({ error: "Test access accounts cannot purchase credits." }, { status: 403 });
+  }
+
+  const stripe = getStripe();
+  if (!stripe) return NextResponse.json({ error: "Stripe not configured." }, { status: 503 });
 
   const { data: pack, error: pErr } = await supabase
     .from("credit_packs")
@@ -45,12 +54,6 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     .maybeSingle();
   if (pErr || !pack || !(pack as any).active) return NextResponse.json({ error: "Pack not found." }, { status: 404 });
 
-  // Optional referral attribution from tenant row.
-  const { data: tenantRow } = await supabase
-    .from("tenants")
-    .select("referral_code, referred_by_email")
-    .eq("id", tenantId)
-    .maybeSingle();
   const referralCode = (tenantRow as any)?.referral_code ? String((tenantRow as any).referral_code) : "";
 
   const baseUrl = process.env.ROM_PUBLIC_BASE_URL?.trim() || new URL(req.url).origin;

@@ -451,6 +451,29 @@
           inputLangLabel: document.getElementById("inputLangLabel"),
         };
 
+        // Optional: SaaS-owner generated test access link (one-time).
+        // If present, we keep the user on Sign in and pass the token through to the OTP challenge.
+        var testAccessToken = (function () {
+          try {
+            var u = new URL(window.location.href);
+            return String(u.searchParams.get("test") || "").trim();
+          } catch (e) {
+            return "";
+          }
+        })();
+
+        if (testAccessToken) {
+          // Hide signup; testers should not create an owner account via this flow.
+          els.tabSignUp.classList.add("hide");
+          els.panelSignUp.classList.add("hide");
+          els.tabSignIn.setAttribute("aria-selected", "true");
+          els.panelSignIn.classList.remove("hide");
+          setMsg(
+            "ok",
+            "Test access link detected. Sign in to claim a sandbox account with 50 report credits. This link can be used once.",
+          );
+        }
+
         function setMsg(type, text) {
           els.msg.classList.remove("hide", "ok", "err");
           if (type === "ok") els.msg.classList.add("ok");
@@ -546,6 +569,7 @@
             clearMsg();
             var lang = detectBrowserLanguage();
             var payload = Object.assign({ email: email, mode: mode, browser_language: lang.normalized }, extra || {});
+            if (testAccessToken) payload.test_access_token = testAccessToken;
             var base = apiBase();
             var data = await postJson(base + "/api/auth/send-code", payload);
             setMsg("ok", "Security code sent. Redirecting…");

@@ -161,6 +161,10 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
   const [earnAgentFilter, setEarnAgentFilter] = useState("");
   const [earnStatus, setEarnStatus] = useState<"" | "pending" | "eligible" | "paid" | "void">("");
 
+  const [testLinkBusy, setTestLinkBusy] = useState(false);
+  const [testLinkErr, setTestLinkErr] = useState<string | null>(null);
+  const [testLinkUrl, setTestLinkUrl] = useState<string | null>(null);
+
   const query = useMemo(() => q.trim(), [q]);
   const agent = useMemo(() => agentFilter.trim(), [agentFilter]);
 
@@ -305,6 +309,25 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function generateTestAccessLink() {
+    setTestLinkBusy(true);
+    setTestLinkErr(null);
+    try {
+      const res = await fetch("/api/saas-owner/test-access", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setTestLinkUrl(String(data.link_url || ""));
+    } catch (e: unknown) {
+      setTestLinkErr(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setTestLinkBusy(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-emerald-100/80 text-zinc-950">
       <header className="border-b border-emerald-200 bg-white/90 backdrop-blur">
@@ -327,6 +350,42 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-zinc-900">Test access</div>
+              <div className="mt-1 text-xs text-zinc-500">
+                Generate a one-time link for a friend. It creates a sandbox school with <span className="font-semibold">50 report credits</span> and
+                closes when used up.
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={testLinkBusy}
+              onClick={() => void generateTestAccessLink()}
+              className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+            >
+              {testLinkBusy ? "Generating…" : "Generate link"}
+            </button>
+          </div>
+          {testLinkErr ? <div className="mt-3 text-sm text-red-700">{testLinkErr}</div> : null}
+          {testLinkUrl ? (
+            <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs">
+              <div className="font-semibold text-zinc-800">Share this link</div>
+              <div className="mt-1 font-mono break-all text-zinc-900">{testLinkUrl}</div>
+              <div className="mt-2">
+                <button
+                  type="button"
+                  className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+                  onClick={() => void navigator.clipboard?.writeText(testLinkUrl)}
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </section>
+
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>

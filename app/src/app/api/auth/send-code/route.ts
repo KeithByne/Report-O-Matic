@@ -6,6 +6,7 @@ import { hasAnyMembership } from "@/lib/data/memberships";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwordHash";
 import { getPasswordHashForEmail, setPasswordHashIfMissing } from "@/lib/auth/passwordStore";
 import { corsHeadersForRequest } from "@/lib/http/cors";
+import { getServiceSupabase } from "@/lib/supabase/service";
 import { Resend } from "resend";
 import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
 
@@ -17,6 +18,7 @@ type SendCodeBody = {
   owner_name?: unknown;
   school_name?: unknown;
   referral_code?: unknown;
+  test_access_token?: unknown;
   browser_language?: unknown;
 };
 
@@ -191,6 +193,20 @@ export async function POST(req: Request) {
   }
 
   const mode = body.mode === "signup" ? "signup" : "signin";
+  const testAccessTokenRaw = typeof body.test_access_token === "string" ? body.test_access_token.trim() : "";
+  const testAccessToken = testAccessTokenRaw || null;
+
+  if (testAccessToken) {
+    const supabase = getServiceSupabase();
+    if (!supabase) return jsonError(503, "Database not configured.", cors.headers);
+    const { data: link, error: lErr } = await supabase
+      .from("test_access_links")
+      .select("token, active, tenant_id")
+      .eq("token", testAccessToken)
+      .maybeSingle();
+    if (lErr) return jsonError(500, lErr.message || "Could not validate test access link.", cors.headers);
+    if (!link || !(link as any).active) return jsonError(400, "Test access link is invalid or has already been used.", cors.headers);
+  }
 
   let ownerName: string | null = null;
   let schoolName: string | null = null;
@@ -267,6 +283,7 @@ export async function POST(req: Request) {
       ownerName,
       schoolName,
       referralCode,
+      testAccessToken,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Could not create challenge.";

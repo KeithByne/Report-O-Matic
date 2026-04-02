@@ -10,6 +10,7 @@ type OtpRecord = {
   ownerName: string | null;
   schoolName: string | null;
   referralCode: string | null;
+  testAccessToken?: string | null;
   attempts: number;
 };
 
