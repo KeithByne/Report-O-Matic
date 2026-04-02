@@ -811,6 +811,9 @@ const EN: UiMessages = {
   "class.reportKindShortCourse": "Short course (one period)",
   "class.shortCourseReportLink": "Short course",
   "class.deletePupil": "Delete pupil",
+  "class.editPupil": "Edit",
+  "class.savePupilEdits": "Save",
+  "class.cancelPupilEdit": "Cancel",
   "class.noPupils": "No pupils yet — add one above.",
   "class.confirmYearChange":
     "Changing the scholastic year saves a read-only archive of the current year (all pupil reports), then removes those reports so you can start fresh for the new year. Pupils stay in the class. Continue?",
@@ -839,6 +842,10 @@ const EN: UiMessages = {
   "class.bulkPdfNotFinishedTerm": "Every pupil needs a finished report for the selected term.",
   "class.bulkPdfNeedStudents": "Add pupils to this class before downloading a combined PDF.",
   "class.firstLastRequired": "First name and last name are required.",
+  "class.duplicatePupilWarning":
+    "Warning: this exact first and last name is already used in: {locations}. You can still add this pupil if appropriate.",
+  "class.duplicatePupilThisClass": "this class",
+  "class.duplicatePupilUnnamedClass": "(unnamed class)",
   "class.movePickOtherClass": "Pick a different destination class.",
   "class.moveConfirm": "Move {who} to {dest}? Their reports will move with them.",
   "saas.platformBadge": "Platform",
@@ -1312,6 +1319,9 @@ const FR: UiMessages = {
   "class.reportKindShortCourse": "Cours court (une période)",
   "class.shortCourseReportLink": "Cours court",
   "class.deletePupil": "Supprimer l’élève",
+  "class.editPupil": "Modifier",
+  "class.savePupilEdits": "Enregistrer",
+  "class.cancelPupilEdit": "Annuler",
   "class.noPupils": "Pas encore d’élèves — ajoutez-en un ci-dessus.",
   "class.confirmYearChange":
     "Changer l’année scolaire enregistre un archive en lecture seule de l’année en cours (tous les rapports des élèves), puis supprime ces rapports pour repartir à zéro. Les élèves restent dans la classe. Continuer ?",
@@ -1321,6 +1331,10 @@ const FR: UiMessages = {
   "class.printRegister": "Imprimer le registre",
   "class.printRegisterNeedDays": "Choisissez d’abord les jours de cours dans les paramètres de la classe.",
   "class.printRegisterNeedStudents": "Ajoutez des élèves avant d’imprimer le registre.",
+  "class.duplicatePupilWarning":
+    "Attention : ce prénom et ce nom exacts sont déjà utilisés dans : {locations}. Vous pouvez quand même ajouter si besoin.",
+  "class.duplicatePupilThisClass": "cette classe",
+  "class.duplicatePupilUnnamedClass": "(classe sans nom)",
   "weekday.mon": "lundi",
   "weekday.tue": "mardi",
   "weekday.wed": "mercredi",
@@ -1673,6 +1687,9 @@ const ES: UiMessages = {
   "class.reportKindShortCourse": "Curso corto (un periodo)",
   "class.shortCourseReportLink": "Curso corto",
   "class.deletePupil": "Eliminar alumno",
+  "class.editPupil": "Editar",
+  "class.savePupilEdits": "Guardar",
+  "class.cancelPupilEdit": "Cancelar",
   "class.noPupils": "Aún no hay alumnos — añada uno arriba.",
   "class.confirmYearChange":
     "Al cambiar el año escolar se archiva en solo lectura el año actual (todos los informes de los alumnos) y luego se eliminan esos informes para empezar de cero. Los alumnos permanecen en la clase. ¿Continuar?",
@@ -1682,6 +1699,10 @@ const ES: UiMessages = {
   "class.printRegister": "Imprimir registro",
   "class.printRegisterNeedDays": "Elija primero los días de clase en Ajustes de la clase.",
   "class.printRegisterNeedStudents": "Añada alumnos antes de imprimir el registro.",
+  "class.duplicatePupilWarning":
+    "Advertencia: este nombre y apellidos exactos ya figuran en: {locations}. Puede añadir el alumno si procede.",
+  "class.duplicatePupilThisClass": "esta clase",
+  "class.duplicatePupilUnnamedClass": "(clase sin nombre)",
   "weekday.mon": "lunes",
   "weekday.tue": "martes",
   "weekday.wed": "miércoles",

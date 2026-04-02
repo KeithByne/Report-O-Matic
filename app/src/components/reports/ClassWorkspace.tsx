@@ -21,11 +21,14 @@ function normalizeScholasticYearLabel(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+type StudentGender = "male" | "female" | "non_binary" | null;
+
 type Student = {
   id: string;
   display_name: string;
   first_name: string | null;
   last_name: string | null;
+  gender?: StudentGender;
   class_id: string;
   class_name: string;
 };
@@ -172,6 +175,12 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [newFirst, setNewFirst] = useState("");
   const [newLast, setNewLast] = useState("");
   const [newGender, setNewGender] = useState<"" | "male" | "female" | "non_binary">("");
+  /** All pupils visible to this user in the organisation (any class), for duplicate-name warnings when adding. */
+  const [orgStudents, setOrgStudents] = useState<Student[]>([]);
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+  const [editFirst, setEditFirst] = useState("");
+  const [editLast, setEditLast] = useState("");
+  const [editGender, setEditGender] = useState<"" | "male" | "female" | "non_binary">("");
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -203,6 +212,18 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       setLoadError(e instanceof Error ? e.message : "Failed to load class");
     }
   }, [base, classId]);
+
+  const refreshOrgStudents = useCallback(async () => {
+    try {
+      const res = await fetch(`${base}/students`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      const rows = data.students;
+      setOrgStudents(Array.isArray(rows) ? (rows as Student[]) : []);
+    } catch {
+      /* ignore */
+    }
+  }, [base]);
 
   const refreshStudents = useCallback(async () => {
     setLoadError(null);
@@ -279,6 +300,32 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     void refreshStudents();
   }, [refreshStudents]);
 
+  useEffect(() => {
+    void refreshOrgStudents();
+  }, [refreshOrgStudents]);
+
+  const duplicateNameMatches = useMemo(() => {
+    const fn = newFirst.trim();
+    const ln = newLast.trim();
+    if (!fn || !ln) return [];
+    return orgStudents.filter((s) => {
+      const sf = (s.first_name ?? "").trim();
+      const sl = (s.last_name ?? "").trim();
+      return sf === fn && sl === ln;
+    });
+  }, [orgStudents, newFirst, newLast]);
+
+  const duplicatePupilWarningText = useMemo(() => {
+    if (duplicateNameMatches.length === 0) return null;
+    const labels = duplicateNameMatches.map((s) =>
+      s.class_id === classId
+        ? t("class.duplicatePupilThisClass")
+        : s.class_name?.trim() || t("class.duplicatePupilUnnamedClass"),
+    );
+    const locations = [...new Set(labels)].join(", ");
+    return t("class.duplicatePupilWarning", { locations });
+  }, [duplicateNameMatches, classId, t]);
+
   async function saveClassSettings(e: React.FormEvent) {
     e.preventDefault();
     const isLead = viewerRole === "owner" || viewerRole === "department_head";
@@ -347,6 +394,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       setNewLast("");
       setNewGender("");
       await refreshStudents();
+      await refreshOrgStudents();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -393,7 +441,53 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       const res = await fetch(`${base}/students/${encodeURIComponent(studentId)}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed");
+      setEditingStudentId((id) => (id === studentId ? null : id));
       await refreshStudents();
+      await refreshOrgStudents();
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function startEditStudent(s: Student) {
+    setEditingStudentId(s.id);
+    setEditFirst((s.first_name ?? "").trim());
+    setEditLast((s.last_name ?? "").trim());
+    const g = s.gender;
+    setEditGender(g === "male" || g === "female" || g === "non_binary" ? g : "");
+  }
+
+  function cancelEditStudent() {
+    setEditingStudentId(null);
+  }
+
+  async function saveEditStudent() {
+    if (!editingStudentId) return;
+    const fn = editFirst.trim();
+    const ln = editLast.trim();
+    if (!fn || !ln) {
+      alert(t("class.firstLastRequired"));
+      return;
+    }
+    setBusy("edit-stu");
+    try {
+      const res = await fetch(`${base}/students/${encodeURIComponent(editingStudentId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          first_name: fn,
+          last_name: ln,
+          gender: editGender === "" ? null : editGender,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setEditingStudentId(null);
+      await refreshStudents();
+      await refreshOrgStudents();
       router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");
@@ -423,6 +517,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       setMoveStudentId("");
       setMoveToClassId("");
       await refreshStudents();
+      await refreshOrgStudents();
       router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");
@@ -760,6 +855,14 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
               {t("class.addPupil")}
             </button>
           </div>
+          {duplicatePupilWarningText ? (
+            <div
+              role="status"
+              className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950 sm:col-span-2 lg:col-span-4"
+            >
+              {duplicatePupilWarningText}
+            </div>
+          ) : null}
         </form>
 
         {viewerRole === "owner" || viewerRole === "department_head" ? (
@@ -817,37 +920,105 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
 
         <ul className="mt-4 divide-y divide-emerald-100">
           {students.map((s) => (
-            <li key={s.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="font-medium text-zinc-900">{s.display_name}</div>
-              <div className="flex flex-wrap items-center gap-2">
-                {reportsByStudent(s.id).map((r) => (
-                  <Link
-                    key={r.id}
-                    href={`/reports/${tenantId}/classes/${classId}/reports/${r.id}`}
-                    className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm text-zinc-800 hover:bg-emerald-100"
-                  >
-                    {isShortCourseReport(parseReportInputs(r.inputs)) ? t("class.shortCourseReportLink") : t("class.report")}
-                  </Link>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => void createReport(s.id)}
-                  disabled={busy !== null}
-                  className="rounded-lg border border-dashed border-emerald-200 px-3 py-1.5 text-sm text-zinc-700 hover:bg-emerald-50/70 disabled:opacity-50"
-                >
-                  {t("class.newReport")}
-                </button>
-                {canDeleteStudent ? (
-                  <button
-                    type="button"
-                    disabled={busy !== null}
-                    onClick={() => void deleteStudentRow(s.id, s.display_name)}
-                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-900 hover:bg-red-100 disabled:opacity-50"
-                  >
-                    {t("class.deletePupil")}
-                  </button>
-                ) : null}
-              </div>
+            <li key={s.id} className="py-3">
+              {editingStudentId === s.id ? (
+                <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <label className="text-sm">
+                      <span className="text-zinc-600">{t("class.firstName")}</span>
+                      <input
+                        value={editFirst}
+                        onChange={(e) => setEditFirst(e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2"
+                        autoComplete="given-name"
+                      />
+                    </label>
+                    <label className="text-sm">
+                      <span className="text-zinc-600">{t("class.lastName")}</span>
+                      <input
+                        value={editLast}
+                        onChange={(e) => setEditLast(e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2"
+                        autoComplete="family-name"
+                      />
+                    </label>
+                    <label className="text-sm">
+                      <span className="text-zinc-600">{t("class.genderOptional")}</span>
+                      <select
+                        value={editGender}
+                        onChange={(e) => setEditGender(e.target.value as typeof editGender)}
+                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                      >
+                        <option value="">—</option>
+                        <option value="male">{t("class.genderMale")}</option>
+                        <option value="female">{t("class.genderFemale")}</option>
+                        <option value="non_binary">{t("class.genderNonBinaryOpt")}</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => void saveEditStudent()}
+                      className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                    >
+                      {t("class.savePupilEdits")}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={cancelEditStudent}
+                      className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50/70 disabled:opacity-50"
+                    >
+                      {t("class.cancelPupilEdit")}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="font-medium text-zinc-900">{s.display_name}</span>
+                    <button
+                      type="button"
+                      disabled={busy !== null || editingStudentId !== null}
+                      onClick={() => startEditStudent(s)}
+                      className="shrink-0 rounded-md border border-emerald-300 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-900 hover:bg-emerald-50 disabled:opacity-50"
+                    >
+                      {t("class.editPupil")}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {reportsByStudent(s.id).map((r) => (
+                      <Link
+                        key={r.id}
+                        href={`/reports/${tenantId}/classes/${classId}/reports/${r.id}`}
+                        className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm text-zinc-800 hover:bg-emerald-100"
+                      >
+                        {isShortCourseReport(parseReportInputs(r.inputs)) ? t("class.shortCourseReportLink") : t("class.report")}
+                      </Link>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => void createReport(s.id)}
+                      disabled={busy !== null || editingStudentId !== null}
+                      className="rounded-lg border border-dashed border-emerald-200 px-3 py-1.5 text-sm text-zinc-700 hover:bg-emerald-50/70 disabled:opacity-50"
+                    >
+                      {t("class.newReport")}
+                    </button>
+                    {canDeleteStudent ? (
+                      <button
+                        type="button"
+                        disabled={busy !== null || editingStudentId !== null}
+                        onClick={() => void deleteStudentRow(s.id, s.display_name)}
+                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-900 hover:bg-red-100 disabled:opacity-50"
+                      >
+                        {t("class.deletePupil")}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>
