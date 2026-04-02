@@ -134,6 +134,20 @@ export async function syncTimetableSlotsTeacherForClass(
   if (upErr) throw new Error(formatErr(upErr));
 }
 
+export async function getTimetableSlot(slotId: string, tenantId: string): Promise<TimetableSlotRow | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("timetable_slots")
+    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
+    .eq("id", slotId)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+  if (error) throw new Error(formatErr(error));
+  if (!data) return null;
+  return mapSlot(data as Record<string, unknown>);
+}
+
 export async function getTimetableSlotClassId(slotId: string, tenantId: string): Promise<string | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;
@@ -228,6 +242,50 @@ export async function deleteTimetableSlot(slotId: string, tenantId: string): Pro
   const { error, count } = await supabase.from("timetable_slots").delete({ count: "exact" }).eq("id", slotId).eq("tenant_id", tenantId);
   if (error) throw new Error(formatErr(error));
   return (count ?? 0) > 0;
+}
+
+export async function listTimetableSlotsAt(
+  tenantId: string,
+  classId: string,
+  periodIndex: number,
+  roomIndex: number,
+  dayIndices: number[],
+): Promise<TimetableSlotRow[]> {
+  if (dayIndices.length === 0) return [];
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("timetable_slots")
+    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
+    .eq("tenant_id", tenantId)
+    .eq("class_id", classId)
+    .eq("period_index", periodIndex)
+    .eq("room_index", roomIndex)
+    .in("day_of_week", dayIndices);
+  if (error) throw new Error(formatErr(error));
+  return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
+}
+
+/** Remove slots matching class + period + room on the given days (mirror delete). */
+export async function deleteTimetableSlotsMirrorKeys(
+  tenantId: string,
+  classId: string,
+  periodIndex: number,
+  roomIndex: number,
+  dayIndices: number[],
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  if (dayIndices.length === 0) return;
+  const { error } = await supabase
+    .from("timetable_slots")
+    .delete()
+    .eq("tenant_id", tenantId)
+    .eq("class_id", classId)
+    .eq("period_index", periodIndex)
+    .eq("room_index", roomIndex)
+    .in("day_of_week", dayIndices);
+  if (error) throw new Error(formatErr(error));
 }
 
 export function isTimetableConflictError(message: string): "room" | "teacher" | null {

@@ -3,10 +3,12 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant, listMembersForTenant } from "@/lib/data/memberships";
 import {
+  deleteTimetableSlot,
   getTimetableSettings,
   insertTimetableSlot,
   isTimetableConflictError,
 } from "@/lib/data/timetableDb";
+import { timetableMirrorDayIndices } from "@/lib/timetable/timetableMirrorDays";
 
 export const runtime = "nodejs";
 
@@ -86,17 +88,32 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     );
   }
 
+  const days = timetableMirrorDayIndices(klass, day_of_week);
+  const created: Awaited<ReturnType<typeof insertTimetableSlot>>[] = [];
+
   try {
-    const slot = await insertTimetableSlot({
-      tenantId,
-      day_of_week,
-      period_index,
-      room_index,
-      class_id,
-      teacher_email,
-    });
-    return NextResponse.json({ slot });
+    for (const d of days) {
+      created.push(
+        await insertTimetableSlot({
+          tenantId,
+          day_of_week: d,
+          period_index,
+          room_index,
+          class_id,
+          teacher_email,
+        }),
+      );
+    }
+    const anchor = created.find((s) => s.day_of_week === day_of_week) ?? created[0];
+    return NextResponse.json({ slot: anchor, slots: created });
   } catch (e: unknown) {
+    for (const s of created) {
+      try {
+        await deleteTimetableSlot(s.id, tenantId);
+      } catch {
+        /* best-effort rollback */
+      }
+    }
     const msg = e instanceof Error ? e.message : "";
     const c = isTimetableConflictError(msg);
     if (c) return NextResponse.json({ error: conflictMessage(c) }, { status: 409 });
