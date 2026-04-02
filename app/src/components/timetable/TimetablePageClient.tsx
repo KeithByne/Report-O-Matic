@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import type { RomRole } from "@/lib/data/memberships";
-import { isWeekdayKey, type WeekdayKey } from "@/lib/activeWeekdays";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
+import { visibleMonFriDayIndexesFromClasses } from "@/lib/timetable/visibleTimetableDays";
 
 type Settings = { room_count: number; periods_am: number; periods_pm: number };
 
@@ -31,33 +31,6 @@ type ClassOpt = {
 type Props = { tenantId: string; schoolName: string; viewerRole: RomRole };
 
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri"] as const;
-
-/** Mon–Fri indices used by timetable rows (`day_of_week` in slots). */
-const TIMETABLE_DAY_INDEX: Partial<Record<WeekdayKey, number>> = {
-  mon: 0,
-  tue: 1,
-  wed: 2,
-  thu: 3,
-  fri: 4,
-};
-
-/** Union of Mon–Fri meeting days from all visible classes; if none set, show all five. */
-function visibleMonFriDayIndexes(classes: ClassOpt[]): number[] {
-  const set = new Set<number>();
-  for (const c of classes) {
-    const aw = c.active_weekdays;
-    if (!Array.isArray(aw)) continue;
-    for (const raw of aw) {
-      if (typeof raw !== "string") continue;
-      const k = raw.trim().toLowerCase();
-      if (!isWeekdayKey(k)) continue;
-      const idx = TIMETABLE_DAY_INDEX[k];
-      if (idx !== undefined) set.add(idx);
-    }
-  }
-  if (set.size === 0) return [0, 1, 2, 3, 4];
-  return [0, 1, 2, 3, 4].filter((d) => set.has(d));
-}
 
 export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props) {
   const { t, lang } = useUiLanguage();
@@ -123,7 +96,7 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
 
   const classById = useMemo(() => new Map(classes.map((c) => [c.id, c])), [classes]);
 
-  const visibleDayIndexes = useMemo(() => visibleMonFriDayIndexes(classes), [classes]);
+  const visibleDayIndexes = useMemo(() => visibleMonFriDayIndexesFromClasses(classes), [classes]);
 
   function teacherEmailForDisplay(slot: SlotApi): string {
     const c = classById.get(slot.class_id);

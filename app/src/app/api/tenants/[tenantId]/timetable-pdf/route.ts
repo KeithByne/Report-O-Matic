@@ -8,6 +8,7 @@ import { listTimetableSlots, getTimetableSettings } from "@/lib/data/timetableDb
 import { isUiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { buildTimetablePdfBuffer, type TimetablePdfSlot } from "@/lib/pdf/timetablePdf";
+import { visibleMonFriDayIndexesFromClasses } from "@/lib/timetable/visibleTimetableDays";
 
 export const runtime = "nodejs";
 
@@ -87,6 +88,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
 
   const titleKey = role === "teacher" ? "pdf.timetableMyTitle" : "pdf.timetableTitle";
+  const visibleDayIndexes = visibleMonFriDayIndexesFromClasses(classRows);
 
   try {
     const pdf = await buildTimetablePdfBuffer({
@@ -98,6 +100,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       roomCount: settings.room_count,
       slots,
       uiLang,
+      visibleDayIndexes,
     });
     const fname = `${safeFilename(tenantRecordName)}-${role === "teacher" ? "my-timetable" : "timetable"}.pdf`;
     return new NextResponse(new Uint8Array(pdf), {

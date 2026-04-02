@@ -42,6 +42,8 @@ export type TimetablePdfInput = {
   roomCount: number;
   slots: TimetablePdfSlot[];
   uiLang: string;
+  /** Mon–Fri row indices to include (e.g. from class meeting days). Default all five. */
+  visibleDayIndexes?: number[];
 };
 
 function colWidthPt(gc: number, periodsAm: number, periodColW: number): number {
@@ -92,6 +94,11 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
   const dayColW = 72;
   const usableW = PAGE_W - MARGIN_PT * 2 - dayColW;
   const periodColW = (usableW - LUNCH_COL_W_PT) / Math.max(1, periodTotal);
+  const dayRowIndices =
+    opts.visibleDayIndexes?.length && opts.visibleDayIndexes.every((d) => d >= 0 && d <= 4)
+      ? opts.visibleDayIndexes
+      : [0, 1, 2, 3, 4];
+  const numDayRows = dayRowIndices.length;
 
   const slotMap = new Map<string, TimetablePdfSlot>();
   for (const s of opts.slots) {
@@ -133,12 +140,13 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
 
       const yBodyStart = y + 4;
       const availableForRows = PAGE_H - MARGIN_PT - yBodyStart - 6;
-      const dayRowH = Math.max(76, Math.floor(availableForRows / 5));
+      const dayRowH = Math.max(76, Math.floor(availableForRows / Math.max(1, numDayRows)));
 
       doc.font("Helvetica").fontSize(6.2).fillColor("#0f172a");
 
-      for (let d = 0; d < 5; d += 1) {
-        const rowY = yBodyStart + d * dayRowH;
+      for (let rowI = 0; rowI < numDayRows; rowI += 1) {
+        const d = dayRowIndices[rowI]!;
+        const rowY = yBodyStart + rowI * dayRowH;
         const dayLabel = translate(lang, `weekday.${DAY_KEYS[d]}`);
         doc.font("Helvetica-Bold").fontSize(8).fillColor("#334155");
         doc.text(dayLabel, x0, rowY + dayRowH / 2 - 5, { width: dayColW - 4, align: "right" });
