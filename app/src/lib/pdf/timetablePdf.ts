@@ -63,16 +63,11 @@ function drawPeriodHeaderRow(
   for (let gc = 0; gc < gridCols; gc += 1) {
     const cw = colWidthPt(gc, opts.periodsAm, periodColW);
     const isLunch = gc === opts.periodsAm;
-    if (isLunch) {
-      doc.save();
-      doc.fillColor(LUNCH_FILL).rect(x, y, cw, PERIOD_HEADER_H).fill();
-      doc.restore();
-      doc.rect(x, y, cw, PERIOD_HEADER_H).strokeColor(LUNCH_STROKE).lineWidth(0.5).stroke();
-      doc.fillColor(LUNCH_HEADER_TEXT);
-    } else {
-      doc.rect(x, y, cw, PERIOD_HEADER_H).strokeColor("#cbd5e1").lineWidth(0.45).stroke();
-      doc.fillColor("#475569");
-    }
+    doc.save();
+    doc.fillColor(LUNCH_FILL).rect(x, y, cw, PERIOD_HEADER_H).fill();
+    doc.restore();
+    doc.rect(x, y, cw, PERIOD_HEADER_H).strokeColor(LUNCH_STROKE).lineWidth(0.5).stroke();
+    doc.fillColor(LUNCH_HEADER_TEXT);
     const label =
       isLunch
         ? translate(lang, "pdf.timetableLunch")

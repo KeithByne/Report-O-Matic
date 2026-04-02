@@ -55,6 +55,7 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
       id: c.id,
       name: c.name,
       assigned_teacher_email: c.assigned_teacher_email,
+      active_weekdays: c.active_weekdays,
     }));
 
     return NextResponse.json({
