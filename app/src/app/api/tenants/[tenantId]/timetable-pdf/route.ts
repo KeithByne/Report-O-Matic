@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
+import { listClasses } from "@/lib/data/classesDb";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant, getTenantName, listMembersForTenant } from "@/lib/data/memberships";
@@ -50,19 +51,35 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
 
   const members = await listMembersForTenant(tenantId);
-  const slotsRaw =
+  const classRows =
     role === "teacher"
-      ? await listTimetableSlots(tenantId, { teacherEmail: gate.email })
-      : await listTimetableSlots(tenantId);
+      ? await listClasses(tenantId, { viewerRole: "teacher", viewerEmail: gate.email })
+      : await listClasses(tenantId);
+  const assignedByClassId = new Map(classRows.map((c) => [c.id, c.assigned_teacher_email]));
 
-  const slots: TimetablePdfSlot[] = slotsRaw.map((s) => ({
-    day_of_week: s.day_of_week,
-    period_index: s.period_index,
-    room_index: s.room_index,
-    class_name: (s.class_name ?? "").trim() || "—",
-    teacher_display: displayForEmail(members, s.teacher_email),
-    teacher_email: s.teacher_email,
-  }));
+  let slotsRaw = await listTimetableSlots(tenantId);
+  const viewerNorm = gate.email.trim().toLowerCase();
+  if (role === "teacher") {
+    slotsRaw = slotsRaw.filter((s) => {
+      const assigned = assignedByClassId.get(s.class_id)?.trim().toLowerCase() ?? "";
+      const fallback = s.teacher_email.trim().toLowerCase();
+      const teacherNorm = assigned || fallback;
+      return teacherNorm === viewerNorm;
+    });
+  }
+
+  const slots: TimetablePdfSlot[] = slotsRaw.map((s) => {
+    const assigned = assignedByClassId.get(s.class_id)?.trim().toLowerCase() ?? "";
+    const teacherEmail = assigned || s.teacher_email.trim().toLowerCase();
+    return {
+      day_of_week: s.day_of_week,
+      period_index: s.period_index,
+      room_index: s.room_index,
+      class_name: (s.class_name ?? "").trim() || "—",
+      teacher_display: displayForEmail(members, teacherEmail),
+      teacher_email: teacherEmail,
+    };
+  });
 
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);

@@ -6,6 +6,7 @@ import type { RomRole } from "@/lib/data/memberships";
 import type { SubjectCode } from "@/lib/subjects";
 import { isSubjectCode } from "@/lib/subjects";
 import type { ReportKind } from "@/lib/reportInputs";
+import { syncTimetableSlotsTeacherForClass } from "@/lib/data/timetableDb";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
@@ -125,6 +126,14 @@ export async function updateClass(
 ): Promise<ClassRow> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
+
+  let priorAssigned: string | null | undefined;
+  if (patch.assigned_teacher_email !== undefined) {
+    const priorRow = await getClassInTenant(tenantId, classId);
+    if (!priorRow) throw new Error("Class not found.");
+    priorAssigned = priorRow.assigned_teacher_email;
+  }
+
   const row: Record<string, unknown> = {};
   if (patch.name !== undefined) row.name = patch.name.trim();
   if (patch.scholastic_year !== undefined) row.scholastic_year = patch.scholastic_year?.trim() || null;
@@ -148,7 +157,23 @@ export async function updateClass(
     .select(classSelect)
     .single();
   if (error) throw new Error(formatErr(error));
-  return mapClassRow(data as Record<string, unknown>);
+  const updated = mapClassRow(data as Record<string, unknown>);
+
+  if (patch.assigned_teacher_email !== undefined) {
+    try {
+      await syncTimetableSlotsTeacherForClass(tenantId, classId, updated.assigned_teacher_email);
+    } catch (syncErr) {
+      const { error: revErr } = await supabase
+        .from("classes")
+        .update({ assigned_teacher_email: priorAssigned ?? null })
+        .eq("tenant_id", tenantId)
+        .eq("id", classId);
+      if (revErr) throw new Error(formatErr(revErr));
+      throw syncErr instanceof Error ? syncErr : new Error("Could not update timetable slots for this teacher change.");
+    }
+  }
+
+  return updated;
 }
 
 export async function deleteClassInTenant(tenantId: string, classId: string): Promise<void> {

@@ -20,7 +20,7 @@ type SlotApi = {
 
 type TeacherOpt = { email: string; label: string };
 
-type ClassOpt = { id: string; name: string };
+type ClassOpt = { id: string; name: string; assigned_teacher_email: string | null };
 
 type Props = { tenantId: string; schoolName: string; viewerRole: RomRole };
 
@@ -89,6 +89,19 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
     return m;
   }, [slots]);
 
+  const classById = useMemo(() => new Map(classes.map((c) => [c.id, c])), [classes]);
+
+  function teacherEmailForDisplay(slot: SlotApi): string {
+    const c = classById.get(slot.class_id);
+    const fromClass = c?.assigned_teacher_email?.trim().toLowerCase() ?? "";
+    return fromClass || slot.teacher_email.trim().toLowerCase();
+  }
+
+  function teacherLabelForEmail(email: string): string {
+    const e = email.trim().toLowerCase();
+    return teachers.find((x) => x.email === e)?.label ?? email;
+  }
+
   async function saveLayout() {
     if (!canEditLayout) return;
     const rc = Number.parseInt(ownerRooms, 10);
@@ -119,7 +132,6 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
     const key = `${day}-${periodIndex}-${roomIndex}`;
     const slot = slotMap.get(key) ?? null;
     setFormClassId(slot?.class_id ?? "");
-    setFormTeacher(slot?.teacher_email ?? "");
     setFormError(null);
     setModal({ day, periodIndex, roomIndex, slot });
   }
@@ -127,9 +139,14 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
   async function saveModal() {
     if (!modal || !settings) return;
     const classId = formClassId.trim();
-    const teacher = formTeacher.trim().toLowerCase();
-    if (!classId || !teacher) {
-      setFormError("Choose a class and teacher.");
+    if (!classId) {
+      setFormError(t("timetable.pickClass"));
+      return;
+    }
+    const klass = classById.get(classId);
+    const assigned = klass?.assigned_teacher_email?.trim().toLowerCase() ?? "";
+    if (!assigned) {
+      setFormError(t("timetable.assignTeacherOnClass"));
       return;
     }
     setBusy(true);
@@ -141,7 +158,6 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             class_id: classId,
-            teacher_email: teacher,
             day_of_week: modal.day,
             period_index: modal.periodIndex,
             room_index: modal.roomIndex,
@@ -158,7 +174,6 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
             period_index: modal.periodIndex,
             room_index: modal.roomIndex,
             class_id: classId,
-            teacher_email: teacher,
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -347,7 +362,8 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                       <div className="flex flex-col">
                         {Array.from({ length: settings.room_count }, (_, r) => {
                           const slot = slotMap.get(`${d}-${periodIndex}-${r}`);
-                          const bg = slot ? teacherHexColor(slot.teacher_email) : "#f8fafc";
+                          const emailForColor = slot ? teacherEmailForDisplay(slot) : "";
+                          const bg = emailForColor ? teacherHexColor(emailForColor) : "#f8fafc";
                           const interactive = canEditGrid;
                           return (
                             <button
@@ -410,21 +426,16 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                   ))}
                 </select>
               </label>
-              <label className="block text-xs font-medium text-zinc-700">
-                {t("timetable.teacher")}
-                <select
-                  className="mt-1 w-full rounded border border-zinc-300 px-2 py-2 text-sm"
-                  value={formTeacher}
-                  onChange={(e) => setFormTeacher(e.target.value)}
-                >
-                  <option value="">—</option>
-                  {teachers.map((c) => (
-                    <option key={c.email} value={c.email}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <p className="text-xs text-zinc-600">{t("timetable.teacherFromClassHint")}</p>
+              {formClassId ? (
+                <p className="text-xs font-medium text-zinc-800">
+                  {t("timetable.teacher")}:{" "}
+                  {(() => {
+                    const e = classById.get(formClassId)?.assigned_teacher_email?.trim().toLowerCase() ?? "";
+                    return e ? teacherLabelForEmail(e) : `— (${t("timetable.assignTeacherOnClass")})`;
+                  })()}
+                </p>
+              ) : null}
             </div>
             {formError ? <p className="mt-3 text-sm text-red-700">{formError}</p> : null}
             <div className="mt-5 flex flex-wrap gap-2">

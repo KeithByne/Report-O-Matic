@@ -482,7 +482,7 @@ const EN: UiMessages = {
   "dash.timetableLayoutSaved": "Layout saved.",
   "timetable.title": "Timetable",
   "timetable.leadIntro":
-    "Set how many rooms and lesson periods this school uses. Click a cell to assign class, teacher, and room row. The same room or teacher cannot appear twice in the same period.",
+    "Set how many rooms and lesson periods this school uses. Click a cell to assign a class to that room row; the teacher is always the one assigned on the class card. The same room or teacher cannot appear twice in the same period.",
   "timetable.teacherIntro": "Your lessons appear in the grid below. Department heads and owners build the full school timetable.",
   "timetable.lunch": "Lunch",
   "timetable.editCell": "Lesson in this slot",
@@ -496,6 +496,10 @@ const EN: UiMessages = {
   "timetable.loadError": "Could not load timetable.",
   "timetable.noClasses": "Create classes in Reports first.",
   "timetable.noTeachers": "Invite teachers from the dashboard first.",
+  "timetable.teacherFromClassHint":
+    "Teacher is taken from the class page (assigned teacher). To change who teaches this class, update the class card—not here.",
+  "timetable.assignTeacherOnClass": "Assign a teacher to this class on the class page before adding it to the timetable.",
+  "timetable.pickClass": "Choose a class.",
   "dash.addSchoolTitle": "Add another school",
   "dash.addSchoolHint": "Create an additional organisation you own. You will be the owner of the new school.",
   "dash.addSchoolPlaceholder": "New school name",

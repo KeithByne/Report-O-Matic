@@ -110,6 +110,44 @@ function mapSlot(raw: Record<string, unknown>): TimetableSlotRow {
   };
 }
 
+/** When a class’s assigned teacher changes or is cleared, keep slots consistent (and delete slots if unassigned). */
+export async function syncTimetableSlotsTeacherForClass(
+  tenantId: string,
+  classId: string,
+  newTeacherEmail: string | null,
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+
+  if (newTeacherEmail == null || !String(newTeacherEmail).trim()) {
+    const { error } = await supabase.from("timetable_slots").delete().eq("tenant_id", tenantId).eq("class_id", classId);
+    if (error) throw new Error(formatErr(error));
+    return;
+  }
+
+  const normalized = String(newTeacherEmail).trim().toLowerCase();
+  const { error: upErr } = await supabase
+    .from("timetable_slots")
+    .update({ teacher_email: normalized })
+    .eq("tenant_id", tenantId)
+    .eq("class_id", classId);
+  if (upErr) throw new Error(formatErr(upErr));
+}
+
+export async function getTimetableSlotClassId(slotId: string, tenantId: string): Promise<string | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("timetable_slots")
+    .select("class_id")
+    .eq("id", slotId)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+  if (error) throw new Error(formatErr(error));
+  if (!data) return null;
+  return (data as { class_id: string }).class_id;
+}
+
 export async function listTimetableSlots(tenantId: string, opts?: { teacherEmail?: string }): Promise<TimetableSlotRow[]> {
   const supabase = getServiceSupabase();
   if (!supabase) return [];

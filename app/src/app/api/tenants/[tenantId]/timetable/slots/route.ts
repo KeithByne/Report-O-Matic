@@ -19,6 +19,9 @@ function conflictMessage(kind: "room" | "teacher"): string {
   return "That teacher is already teaching in this period. Change or remove the other entry first.";
 }
 
+const CLASS_TEACHER_REQUIRED =
+  "Assign a teacher to this class on the class page before adding it to the timetable.";
+
 export async function POST(req: Request, context: { params: Promise<{ tenantId: string }> }) {
   const { tenantId } = await context.params;
   if (!isUuid(tenantId)) return NextResponse.json({ error: "Invalid organisation id." }, { status: 400 });
@@ -36,7 +39,6 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     period_index?: unknown;
     room_index?: unknown;
     class_id?: unknown;
-    teacher_email?: unknown;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -48,16 +50,12 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const period_index = typeof body.period_index === "number" ? Math.floor(body.period_index) : NaN;
   const room_index = typeof body.room_index === "number" ? Math.floor(body.room_index) : NaN;
   const class_id = typeof body.class_id === "string" ? body.class_id.trim() : "";
-  const teacher_email = typeof body.teacher_email === "string" ? body.teacher_email.trim().toLowerCase() : "";
 
   if (!Number.isFinite(day_of_week) || day_of_week < 0 || day_of_week > 4) {
     return NextResponse.json({ error: "day_of_week must be 0–4 (Monday–Friday)." }, { status: 400 });
   }
   if (!class_id || !isUuid(class_id)) {
     return NextResponse.json({ error: "class_id is required." }, { status: 400 });
-  }
-  if (!teacher_email) {
-    return NextResponse.json({ error: "teacher_email is required." }, { status: 400 });
   }
 
   const settings = await getTimetableSettings(tenantId);
@@ -74,10 +72,18 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const klass = await getClassInTenant(tenantId, class_id);
   if (!klass) return NextResponse.json({ error: "Class not found." }, { status: 404 });
 
+  const teacher_email = klass.assigned_teacher_email?.trim().toLowerCase() ?? "";
+  if (!teacher_email) {
+    return NextResponse.json({ error: CLASS_TEACHER_REQUIRED }, { status: 400 });
+  }
+
   const members = await listMembersForTenant(tenantId);
   const isTeacher = members.some((m) => m.user_email === teacher_email && m.role === "teacher");
   if (!isTeacher) {
-    return NextResponse.json({ error: "The teacher must be an invited teacher on the school roster." }, { status: 400 });
+    return NextResponse.json(
+      { error: "The class’s assigned teacher must be an invited teacher on the school roster." },
+      { status: 400 },
+    );
   }
 
   try {

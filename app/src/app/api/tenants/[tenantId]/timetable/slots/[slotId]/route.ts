@@ -5,6 +5,7 @@ import { getRoleForTenant, listMembersForTenant } from "@/lib/data/memberships";
 import {
   deleteTimetableSlot,
   getTimetableSettings,
+  getTimetableSlotClassId,
   isTimetableConflictError,
   updateTimetableSlot,
 } from "@/lib/data/timetableDb";
@@ -19,6 +20,9 @@ function conflictMessage(kind: "room" | "teacher"): string {
   if (kind === "room") return "That room is already used in this period. Change or remove the other entry first.";
   return "That teacher is already teaching in this period. Change or remove the other entry first.";
 }
+
+const CLASS_TEACHER_REQUIRED =
+  "Assign a teacher to this class on the class page before placing it on the timetable.";
 
 export async function PATCH(req: Request, context: { params: Promise<{ tenantId: string; slotId: string }> }) {
   const { tenantId, slotId } = await context.params;
@@ -39,7 +43,6 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     period_index?: unknown;
     room_index?: unknown;
     class_id?: unknown;
-    teacher_email?: unknown;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -75,12 +78,6 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     }
     patch.class_id = body.class_id.trim();
   }
-  if (body.teacher_email !== undefined) {
-    if (typeof body.teacher_email !== "string" || !body.teacher_email.trim()) {
-      return NextResponse.json({ error: "teacher_email must be a non-empty string." }, { status: 400 });
-    }
-    patch.teacher_email = body.teacher_email.trim().toLowerCase();
-  }
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "No changes supplied." }, { status: 400 });
@@ -97,18 +94,30 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     return NextResponse.json({ error: "room_index is out of range for this school’s room count." }, { status: 400 });
   }
 
-  if (patch.class_id) {
-    const klass = await getClassInTenant(tenantId, patch.class_id);
-    if (!klass) return NextResponse.json({ error: "Class not found." }, { status: 404 });
+  const resolvedClassId = patch.class_id ?? (await getTimetableSlotClassId(slotId, tenantId));
+  if (!resolvedClassId || !isUuid(resolvedClassId)) {
+    return NextResponse.json({ error: "Could not resolve class for this slot." }, { status: 400 });
   }
 
-  if (patch.teacher_email) {
-    const members = await listMembersForTenant(tenantId);
-    const ok = members.some((m) => m.user_email === patch.teacher_email && m.role === "teacher");
-    if (!ok) {
-      return NextResponse.json({ error: "The teacher must be an invited teacher on the school roster." }, { status: 400 });
-    }
+  const klass = await getClassInTenant(tenantId, resolvedClassId);
+  if (!klass) return NextResponse.json({ error: "Class not found." }, { status: 404 });
+
+  const teacher = klass.assigned_teacher_email?.trim().toLowerCase() ?? "";
+  if (!teacher) {
+    return NextResponse.json({ error: CLASS_TEACHER_REQUIRED }, { status: 400 });
   }
+
+  const members = await listMembersForTenant(tenantId);
+  const ok = members.some((m) => m.user_email === teacher && m.role === "teacher");
+  if (!ok) {
+    return NextResponse.json(
+      { error: "The class’s assigned teacher must be an invited teacher on the school roster." },
+      { status: 400 },
+    );
+  }
+
+  patch.teacher_email = teacher;
+  patch.class_id = resolvedClassId;
 
   try {
     const slot = await updateTimetableSlot(slotId, tenantId, patch);

@@ -47,11 +47,15 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
       label: teacherLabel(m),
     }));
 
-    let classes: { id: string; name: string }[] = [];
-    if (role === "owner" || role === "department_head") {
-      const all = await listClasses(tenantId);
-      classes = all.map((c) => ({ id: c.id, name: c.name }));
-    }
+    const classRows =
+      role === "owner" || role === "department_head"
+        ? await listClasses(tenantId)
+        : await listClasses(tenantId, { viewerRole: role, viewerEmail: gate.email });
+    const classes = classRows.map((c) => ({
+      id: c.id,
+      name: c.name,
+      assigned_teacher_email: c.assigned_teacher_email,
+    }));
 
     return NextResponse.json({
       settings,
