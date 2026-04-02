@@ -778,6 +778,9 @@ const EN: UiMessages = {
   "class.intro":
     "Set class name, year, CEFR, subject, and default output language here. The individual report page only overrides when needed.",
   "class.settingsTitle": "Class settings",
+  "class.tipLabel": "Tip",
+  "class.nameTimetableTip":
+    "If you include the class start time in the Class Name, the time will show on the Timetable.",
   "class.className": "Class name",
   "class.scholasticYear": "Scholastic year (yyyy – yyyy)",
   "class.scholasticPlaceholder": "e.g. 2024 – 2025",
@@ -1634,6 +1637,9 @@ const ES: UiMessages = {
   "class.intro":
     "Configure aquí el nombre de la clase, el año, el MCER, la materia y el idioma de salida por defecto. La página de informe solo cambia lo necesario.",
   "class.settingsTitle": "Ajustes de la clase",
+  "class.tipLabel": "Sugerencia",
+  "class.nameTimetableTip":
+    "Si incluye la hora de inicio en el nombre de la clase, la hora aparecerá en el horario.",
   "class.className": "Nombre de la clase",
   "class.scholasticYear": "Año escolar (aaaa – aaaa)",
   "class.scholasticPlaceholder": "p. ej. 2024 – 2025",

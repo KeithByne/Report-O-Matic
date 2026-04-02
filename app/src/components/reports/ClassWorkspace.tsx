@@ -467,6 +467,10 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           {t("class.settingsTitle")}
         </h3>
         <form onSubmit={saveClassSettings} className="mt-4 grid gap-4 sm:grid-cols-2">
+          <p className="rounded-lg border border-amber-100 bg-amber-50/80 px-3 py-2 text-xs leading-snug text-zinc-700 sm:col-span-2">
+            <span className="font-semibold text-zinc-800">{t("class.tipLabel")}: </span>
+            {t("class.nameTimetableTip")}
+          </p>
           <label className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.className")}</span>
             <input
