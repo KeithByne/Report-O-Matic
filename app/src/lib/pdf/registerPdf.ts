@@ -5,13 +5,18 @@ import { PDF_PAGE_SPEC } from "@/lib/pdf/reportPdfLayoutModel";
 import { drawReportLetterhead, type ReportPdfLetterhead } from "@/lib/pdf/reportPdf";
 
 const REGISTER_MARGIN_PT = 28;
-const ROWS_PER_PAGE = 16;
-/** Body: first / last name columns (PDF points, 1 pt = 1/72 in). */
-const NAME_FONT_PT = 12;
+const ROWS_PER_PAGE = 20;
+/** Body: first / last name columns — 10pt Helvetica. */
+const NAME_FONT_PT = 10;
+/** Session / day columns never narrower than this (pt); width is shared equally. */
+const MIN_SESSION_COL_W_PT = 6;
+/** Floor for name column width when many session columns need space (pt). */
+const ABS_MIN_NAME_COL_W_PT = 36;
 const CLASS_TITLE_FONT_PT = 18;
 const MONTH_BOX_W_PT = 118;
 const MONTH_BOX_H_PT = 16;
 const TITLE_ROW_GAP_AFTER_PT = 10;
+const NAME_COL_HPADDING_PT = 8;
 
 const { widthPt, heightPt } = PDF_PAGE_SPEC;
 
@@ -42,14 +47,79 @@ function chunkPages<T>(arr: T[], pageSize: number): T[][] {
   return out;
 }
 
-function clipName(s: string, maxLen: number): string {
-  const t = s.trim();
-  if (t.length <= maxLen) return t;
-  return `${t.slice(0, Math.max(0, maxLen - 1))}…`;
-}
-
 function registerSessionAbbr(lang: UiLang, day: WeekdayKey): string {
   return translate(lang, `pdf.registerAbbr.${day}`);
+}
+
+type RegisterColumnLayout = {
+  firstColW: number;
+  lastColW: number;
+  sessionW: number;
+  sessionTotalW: number;
+};
+
+/**
+ * Size first/last columns to longest name at 12pt (one line); day columns share remaining width.
+ * If ideals would leave sessions below MIN_SESSION_COL_W_PT, shrink name columns proportionally.
+ */
+function computeRegisterColumnLayout(
+  doc: PdfDoc,
+  students: RegisterPdfStudentRow[],
+  lang: UiLang,
+  usableW: number,
+  sessionColumnCount: number,
+): RegisterColumnLayout {
+  doc.font("Helvetica").fontSize(NAME_FONT_PT).fillColor("#0f172a");
+  let maxFirst = 0;
+  let maxLast = 0;
+  for (const s of students) {
+    const fn = (s.firstName ?? "").trim() || "—";
+    const ln = (s.lastName ?? "").trim() || "—";
+    maxFirst = Math.max(maxFirst, doc.widthOfString(fn));
+    maxLast = Math.max(maxLast, doc.widthOfString(ln));
+  }
+  doc.font("Helvetica-Bold").fontSize(9);
+  maxFirst = Math.max(maxFirst, doc.widthOfString(translate(lang, "class.firstName")));
+  maxLast = Math.max(maxLast, doc.widthOfString(translate(lang, "class.lastName")));
+
+  const pad = NAME_COL_HPADDING_PT;
+  const firstIdeal = Math.ceil(maxFirst) + pad;
+  const lastIdeal = Math.ceil(maxLast) + pad;
+
+  const rawSessionNeed = sessionColumnCount * MIN_SESSION_COL_W_PT;
+  const sessionNeedMin = Math.min(rawSessionNeed, Math.max(0, usableW - ABS_MIN_NAME_COL_W_PT * 2));
+  const maxNameBudget = Math.max(0, usableW - sessionNeedMin);
+  const sumIdeal = firstIdeal + lastIdeal;
+
+  let firstColW = firstIdeal;
+  let lastColW = lastIdeal;
+  if (sumIdeal > maxNameBudget && maxNameBudget > 0 && sumIdeal > 0) {
+    firstColW = Math.floor((maxNameBudget * firstIdeal) / sumIdeal);
+    lastColW = Math.floor((maxNameBudget * lastIdeal) / sumIdeal);
+    let rem = maxNameBudget - firstColW - lastColW;
+    if (rem > 0) {
+      if (firstIdeal >= lastIdeal) firstColW += rem;
+      else lastColW += rem;
+    }
+    firstColW = Math.max(ABS_MIN_NAME_COL_W_PT, firstColW);
+    lastColW = Math.max(ABS_MIN_NAME_COL_W_PT, lastColW);
+  }
+
+  let sessionTotalW = usableW - firstColW - lastColW;
+  while (
+    sessionColumnCount > 0 &&
+    sessionTotalW < sessionNeedMin &&
+    firstColW + lastColW > ABS_MIN_NAME_COL_W_PT * 2
+  ) {
+    if (firstColW >= lastColW) firstColW -= 1;
+    else lastColW -= 1;
+    firstColW = Math.max(ABS_MIN_NAME_COL_W_PT, firstColW);
+    lastColW = Math.max(ABS_MIN_NAME_COL_W_PT, lastColW);
+    sessionTotalW = usableW - firstColW - lastColW;
+  }
+
+  const sessionW = sessionColumnCount > 0 ? sessionTotalW / sessionColumnCount : sessionTotalW;
+  return { firstColW, lastColW, sessionW, sessionTotalW };
 }
 
 function drawRegisterPage(
@@ -62,6 +132,7 @@ function drawRegisterPage(
     sessionColumnCount: number;
     activeWeekdays: WeekdayKey[];
     lang: UiLang;
+    layout: RegisterColumnLayout;
   },
 ): void {
   const M = REGISTER_MARGIN_PT;
@@ -102,34 +173,19 @@ function drawRegisterPage(
   doc.y = y;
   doc.x = M;
 
-  const usableW = widthPt - M * 2;
   const bottomY = heightPt - M;
   const sessionCount = opts.sessionColumnCount;
-
-  let firstColW = Math.min(118, usableW * 0.24);
-  let lastColW = Math.min(118, usableW * 0.24);
-  let sessionTotalW = usableW - firstColW - lastColW;
-  let sessionW = sessionCount > 0 ? sessionTotalW / sessionCount : sessionTotalW;
-
-  if (sessionW < 4 && sessionCount > 0) {
-    const need = sessionCount * 4;
-    const deficit = need - sessionTotalW;
-    const take = Math.min(deficit / 2, firstColW - 72);
-    firstColW = Math.max(72, firstColW - Math.max(0, take));
-    lastColW = Math.max(72, lastColW - Math.max(0, take));
-    sessionTotalW = usableW - firstColW - lastColW;
-    sessionW = sessionTotalW / sessionCount;
-  }
+  const { firstColW, lastColW, sessionW, sessionTotalW } = opts.layout;
 
   const headerH = 22;
-  const rowH = Math.max(16, Math.min(36, (bottomY - y - headerH) / ROWS_PER_PAGE));
+  const rowH = Math.max(13, Math.min(36, (bottomY - y - headerH) / ROWS_PER_PAGE));
 
   const x0 = M;
   const x1 = x0 + firstColW;
   const x2 = x1 + lastColW;
   const x3 = x2 + sessionTotalW;
 
-  const hdrNumSize = Math.max(5, Math.min(8, sessionW * 0.9));
+  const hdrNumSize = Math.max(4, Math.min(8, sessionW * 0.85));
   const tableTop = y;
   const tableBottom = tableTop + headerH + ROWS_PER_PAGE * rowH;
 
@@ -160,21 +216,25 @@ function drawRegisterPage(
     const st = opts.studentsPage[r];
     const rowY = tableTop + headerH + r * rowH;
     if (st) {
-      const first = clipName(st.firstName, Math.max(8, Math.floor(firstColW / 7)));
-      const last = clipName(st.lastName, Math.max(8, Math.floor(lastColW / 7)));
-      const textY = rowY + Math.max(2, (rowH - NAME_FONT_PT) / 2);
-      doc.text(first, x0 + 4, textY, {
-        width: firstColW - 8,
+      const first = (st.firstName ?? "").trim() || "—";
+      const last = (st.lastName ?? "").trim() || "—";
+      const innerPad = 4;
+      const textWFirst = firstColW - innerPad * 2;
+      const textWLast = lastColW - innerPad * 2;
+      const lineH = Math.min(rowH - 4, NAME_FONT_PT * 1.15);
+      const textY = rowY + Math.max(2, (rowH - lineH) / 2);
+      doc.text(first, x0 + innerPad, textY, {
+        width: textWFirst,
         align: "left",
         lineGap: 0,
-        height: rowH - 4,
+        height: lineH,
         ellipsis: true,
       });
-      doc.text(last, x1 + 4, textY, {
-        width: lastColW - 8,
+      doc.text(last, x1 + innerPad, textY, {
+        width: textWLast,
         align: "left",
         lineGap: 0,
-        height: rowH - 4,
+        height: lineH,
         ellipsis: true,
       });
     }
@@ -204,6 +264,7 @@ export function buildRegisterPdfBuffer(ctx: RegisterPdfContext): Promise<Buffer>
     return Promise.reject(new Error("Register PDF requires at least one active weekday."));
   }
   const pages = chunkPages(ctx.students, ROWS_PER_PAGE);
+  const usableW = widthPt - REGISTER_MARGIN_PT * 2;
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
@@ -221,6 +282,8 @@ export function buildRegisterPdfBuffer(ctx: RegisterPdfContext): Promise<Buffer>
     doc.on("end", () => resolve(Buffer.concat(buffers)));
     doc.on("error", reject);
 
+    const layout = computeRegisterColumnLayout(doc, ctx.students, lang, usableW, ctx.sessionColumnCount);
+
     for (let i = 0; i < pages.length; i++) {
       if (i > 0) doc.addPage();
       drawRegisterPage(doc, {
@@ -231,6 +294,7 @@ export function buildRegisterPdfBuffer(ctx: RegisterPdfContext): Promise<Buffer>
         sessionColumnCount: ctx.sessionColumnCount,
         activeWeekdays: ctx.activeWeekdays,
         lang,
+        layout,
       });
     }
 
