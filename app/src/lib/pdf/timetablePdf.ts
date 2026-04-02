@@ -14,6 +14,14 @@ const PAGE_W = PDF_PAGE_SPEC.heightPt;
 const PAGE_H = PDF_PAGE_SPEC.widthPt;
 const MARGIN_PT = 32;
 
+/** Lunch column width (pt)—kept narrow vs lesson periods. */
+const LUNCH_COL_W_PT = 30;
+
+const LUNCH_FILL = "#d1fae5";
+const LUNCH_STROKE = "#6ee7b7";
+const LUNCH_HEADER_TEXT = "#14532d";
+const LUNCH_BODY_TEXT = "#166534";
+
 export type TimetablePdfSlot = {
   day_of_week: number;
   period_index: number;
@@ -34,10 +42,8 @@ export type TimetablePdfInput = {
   uiLang: string;
 };
 
-function clipPdfText(s: string, maxLen: number): string {
-  const t = s.trim();
-  if (t.length <= maxLen) return t;
-  return `${t.slice(0, Math.max(0, maxLen - 1))}…`;
+function colWidthPt(gc: number, periodsAm: number, periodColW: number): number {
+  return gc === periodsAm ? LUNCH_COL_W_PT : periodColW;
 }
 
 export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer> {
@@ -47,9 +53,11 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
   const gridCols = periodTotal + lunchCols;
   const dayColW = 72;
   const usableW = PAGE_W - MARGIN_PT * 2 - dayColW;
-  const colW = usableW / Math.max(1, gridCols);
-  const roomLineH = 13;
-  const dayRowH = Math.max(28, opts.roomCount * roomLineH + 6);
+  const periodColW = (usableW - LUNCH_COL_W_PT) / Math.max(1, periodTotal);
+
+  /** One room row: Rm line + class/teacher block (two logical lines). */
+  const roomBlockH = 30;
+  const dayRowH = Math.max(32, opts.roomCount * roomBlockH + 8);
 
   const slotMap = new Map<string, TimetablePdfSlot>();
   for (const s of opts.slots) {
@@ -78,17 +86,33 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
     const headerH = 22;
     const x0 = MARGIN_PT;
 
-    doc.font("Helvetica-Bold").fontSize(7).fillColor("#475569");
+    doc.font("Helvetica-Bold").fontSize(7);
     let x = x0 + dayColW;
-    for (let p = 0; p < opts.periodsAm; p += 1) {
-      doc.text(translate(lang, "pdf.timetablePeriodAm", { n: p + 1 }), x + 2, y, { width: colW - 4, align: "center" });
-      x += colW;
-    }
-    doc.text(translate(lang, "pdf.timetableLunch"), x + 2, y, { width: colW - 4, align: "center" });
-    x += colW;
-    for (let p = 0; p < opts.periodsPm; p += 1) {
-      doc.text(translate(lang, "pdf.timetablePeriodPm", { n: p + 1 }), x + 2, y, { width: colW - 4, align: "center" });
-      x += colW;
+    for (let gc = 0; gc < gridCols; gc += 1) {
+      const cw = colWidthPt(gc, opts.periodsAm, periodColW);
+      const isLunch = gc === opts.periodsAm;
+      if (isLunch) {
+        doc.save();
+        doc.fillColor(LUNCH_FILL).rect(x, y, cw, headerH).fill();
+        doc.restore();
+        doc.rect(x, y, cw, headerH).strokeColor(LUNCH_STROKE).lineWidth(0.5).stroke();
+        doc.fillColor(LUNCH_HEADER_TEXT);
+      } else {
+        doc.rect(x, y, cw, headerH).strokeColor("#cbd5e1").lineWidth(0.45).stroke();
+        doc.fillColor("#475569");
+      }
+      const label =
+        isLunch
+          ? translate(lang, "pdf.timetableLunch")
+          : gc < opts.periodsAm
+            ? translate(lang, "pdf.timetablePeriodAm", { n: gc + 1 })
+            : translate(lang, "pdf.timetablePeriodPm", { n: gc - opts.periodsAm });
+      doc.text(label, x + 2, y + (isLunch ? 6 : 4), {
+        width: cw - 4,
+        align: "center",
+        lineBreak: true,
+      });
+      x += cw;
     }
 
     y += headerH;
@@ -109,32 +133,60 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
 
       let cx = x0 + dayColW;
       for (let gc = 0; gc < gridCols; gc += 1) {
+        const cw = colWidthPt(gc, opts.periodsAm, periodColW);
         const isLunch = gc === opts.periodsAm;
-        doc.rect(cx, y, colW, dayRowH).strokeColor("#cbd5e1").lineWidth(0.45).stroke();
-        if (!isLunch) {
+        if (isLunch) {
+          doc.save();
+          doc.fillColor(LUNCH_FILL).rect(cx, y, cw, dayRowH).fill();
+          doc.restore();
+          doc.rect(cx, y, cw, dayRowH).strokeColor(LUNCH_STROKE).lineWidth(0.5).stroke();
+          doc.font("Helvetica").fontSize(8).fillColor(LUNCH_BODY_TEXT);
+          doc.text("—", cx, y + dayRowH / 2 - 4, { width: cw, align: "center" });
+        } else {
+          doc.rect(cx, y, cw, dayRowH).strokeColor("#cbd5e1").lineWidth(0.45).stroke();
           const p = gc < opts.periodsAm ? gc : gc - 1;
-          const ry0 = y + 2;
+          const innerLeft = cx + 3;
+          const innerW = cw - 6;
           for (let r = 0; r < opts.roomCount; r += 1) {
-            const lineY = ry0 + r * roomLineH;
+            const blockTop = y + 4 + r * roomBlockH;
+            if (r > 0) {
+              doc.save();
+              doc.strokeColor("#e2e8f0").lineWidth(0.35).moveTo(cx + 1, blockTop).lineTo(cx + cw - 1, blockTop).stroke();
+              doc.restore();
+            }
             const slot = slotMap.get(`${d}-${p}-${r}`);
             if (slot) {
               doc.save();
-              doc.fillColor(teacherHexColor(slot.teacher_email)).rect(cx + 0.5, lineY - 1, colW - 1, roomLineH - 0.5).fill();
+              doc
+                .fillColor(teacherHexColor(slot.teacher_email))
+                .rect(cx + 0.5, blockTop - 0.5, cw - 1, roomBlockH - 1)
+                .fill();
               doc.restore();
             }
-            doc.font("Helvetica").fontSize(6).fillColor("#0f172a");
-            const roomBit = translate(lang, "pdf.timetableRoomN", { n: r + 1 });
-            let line = roomBit;
+            doc.font("Helvetica-Bold").fontSize(6).fillColor("#0f172a");
+            doc.text(translate(lang, "pdf.timetableRoomN", { n: r + 1 }), innerLeft, blockTop + 1, {
+              width: innerW,
+            });
             if (slot) {
-              line = `${clipPdfText(slot.class_name, 22)} · ${clipPdfText(slot.teacher_display, 18)} · ${roomBit}`;
+              const classLine = slot.class_name.trim() || "—";
+              const teacherLine = slot.teacher_display.trim() || "—";
+              doc.font("Helvetica").fontSize(5.5).fillColor("#0f172a");
+              doc.text(classLine, innerLeft, blockTop + 9, {
+                width: innerW,
+                lineGap: 0.5,
+                height: 9,
+                ellipsis: true,
+              });
+              doc.text(teacherLine, innerLeft, blockTop + 20, {
+                width: innerW,
+                lineGap: 0.5,
+                height: 9,
+                ellipsis: true,
+              });
             }
-            doc.text(line, cx + 3, lineY, { width: colW - 6 });
           }
-        } else {
-          doc.font("Helvetica").fontSize(7).fillColor("#94a3b8");
-          doc.text("—", cx, y + dayRowH / 2 - 4, { width: colW, align: "center" });
         }
-        cx += colW;
+        cx += cw;
       }
 
       y += dayRowH;
