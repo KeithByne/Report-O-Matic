@@ -12,6 +12,8 @@ const NAME_FONT_PT = 10;
 const MIN_SESSION_COL_W_PT = 6;
 /** Floor for name column width when many session columns need space (pt). */
 const ABS_MIN_NAME_COL_W_PT = 36;
+/** Zebra fill for every other column (attendance grid readability). */
+const REGISTER_ALT_COLUMN_FILL = "#f1f5f9";
 const CLASS_TITLE_FONT_PT = 18;
 const MONTH_BOX_W_PT = 118;
 const MONTH_BOX_H_PT = 16;
@@ -188,6 +190,23 @@ function drawRegisterPage(
   const hdrNumSize = Math.max(4, Math.min(8, sessionW * 0.85));
   const tableTop = y;
   const tableBottom = tableTop + headerH + ROWS_PER_PAGE * rowH;
+  const tableH = tableBottom - tableTop;
+
+  type ColBand = { x: number; w: number; idx: number };
+  const bands: ColBand[] = [
+    { x: x0, w: firstColW, idx: 0 },
+    { x: x1, w: lastColW, idx: 1 },
+  ];
+  for (let c = 0; c < sessionCount; c += 1) {
+    bands.push({ x: x2 + c * sessionW, w: sessionW, idx: 2 + c });
+  }
+  for (const b of bands) {
+    if (b.idx % 2 === 0) {
+      doc.save();
+      doc.fillColor(REGISTER_ALT_COLUMN_FILL).rect(b.x, tableTop, b.w, tableH).fill();
+      doc.restore();
+    }
+  }
 
   doc.font("Helvetica-Bold").fontSize(9).fillColor("#334155");
   doc.text(translate(opts.lang, "class.firstName"), x0 + 4, tableTop + 5, {
