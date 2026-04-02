@@ -175,6 +175,24 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
         {isLead ? t("tenant.introLead", { school: schoolName }) : t("tenant.introTeacher")}
       </p>
 
+      <section className="flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm">
+        <span className="text-sm font-semibold text-zinc-800">{t("timetable.title")}</span>
+        <Link
+          href={`/reports/${tenantId}/timetable`}
+          className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+        >
+          {viewerRole === "teacher" ? t("dash.myTimetable") : t("dash.timetable")}
+        </Link>
+        <a
+          href={`${base}/timetable-pdf?lang=${encodeURIComponent(uiLang)}&inline=1`}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-emerald-50/80"
+        >
+          {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
+        </a>
+      </section>
+
       {loadError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
       ) : null}

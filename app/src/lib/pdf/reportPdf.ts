@@ -206,6 +206,7 @@ function drawLetterheadBlock(
   lh: ReportPdfLetterhead,
   logo: Buffer | null,
   pageMarginPt: number = marginPt,
+  pageWidthPt: number = widthPt,
 ): void {
 
   const startY = doc.y;
@@ -218,7 +219,7 @@ function drawLetterheadBlock(
 
   const textX = leftX + slotW + lhSpec.columnGapPt;
 
-  const textW = widthPt - pageMarginPt - textX;
+  const textW = pageWidthPt - pageMarginPt - textX;
 
 
 
@@ -318,9 +319,9 @@ export function drawReportLetterhead(
   doc: PdfDoc,
   lh: ReportPdfLetterhead,
   logo: Buffer | null,
-  opts?: { pageMarginPt?: number },
+  opts?: { pageMarginPt?: number; pageWidthPt?: number },
 ): void {
-  drawLetterheadBlock(doc, lh, logo, opts?.pageMarginPt ?? marginPt);
+  drawLetterheadBlock(doc, lh, logo, opts?.pageMarginPt ?? marginPt, opts?.pageWidthPt ?? widthPt);
 }
 
 

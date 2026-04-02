@@ -6,6 +6,7 @@ import { AddSchoolForm } from "@/components/dashboard/AddSchoolForm";
 import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTable";
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
+import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
@@ -411,6 +412,9 @@ export function DashboardClientView({
                             <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.reportsRendered}</div>
                           </div>
                         </div>
+                      ) : null}
+                      {m.role === "owner" || m.role === "department_head" || m.role === "teacher" ? (
+                        <DashboardTimetableSnippet tenantId={m.tenantId} role={m.role} />
                       ) : null}
                       {m.role === "owner" ? (
                         <div className="mt-3 flex flex-wrap items-center gap-2">
