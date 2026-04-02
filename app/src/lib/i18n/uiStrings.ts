@@ -491,6 +491,7 @@ const EN: UiMessages = {
   "timetable.roomRow": "Room row",
   "timetable.clearSlot": "Clear slot",
   "timetable.saveSlot": "Save",
+  "timetable.goToClass": "Go to class",
   "timetable.cancel": "Cancel",
   "timetable.emptyCell": "Empty",
   "timetable.loadError": "Could not load timetable.",

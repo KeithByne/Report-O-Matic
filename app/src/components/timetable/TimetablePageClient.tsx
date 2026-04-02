@@ -386,7 +386,7 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                               )}
                               {slot ? (
                                 <div className="mt-0.5 text-[10px] text-zinc-700">
-                                  {teachers.find((x) => x.email === slot.teacher_email)?.label ?? slot.teacher_email}
+                                  {teacherLabelForEmail(teacherEmailForDisplay(slot))}
                                 </div>
                               ) : null}
                             </button>
@@ -436,6 +436,18 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                   })()}
                 </p>
               ) : null}
+              {(() => {
+                const classIdForLink = formClassId.trim() || modal.slot?.class_id || "";
+                if (!classIdForLink) return null;
+                return (
+                  <Link
+                    href={`/reports/${tenantId}/classes/${encodeURIComponent(classIdForLink)}`}
+                    className="inline-flex rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+                  >
+                    {t("timetable.goToClass")}
+                  </Link>
+                );
+              })()}
             </div>
             {formError ? <p className="mt-3 text-sm text-red-700">{formError}</p> : null}
             <div className="mt-5 flex flex-wrap gap-2">
