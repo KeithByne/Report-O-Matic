@@ -7,6 +7,7 @@ const LABELS: Record<ReportLanguageCode, string> = {
   it: "Firma dell’insegnante",
   de: "Unterschrift der Lehrkraft",
   pt: "Assinatura do professor ou da professora",
+  el: "Υπογραφή εκπαιδευτικού",
   nl: "Handtekening docent",
   pl: "Podpis nauczyciela",
   ro: "Semnătura profesorului",

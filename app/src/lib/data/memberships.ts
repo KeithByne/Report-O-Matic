@@ -326,6 +326,42 @@ export async function getMembershipRoleForEmail(
   return r;
 }
 
+export async function setMembershipRoleForTenant(
+  tenantId: string,
+  userEmail: string,
+  role: "department_head" | "teacher",
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const normalized = userEmail.trim().toLowerCase();
+  const { error } = await supabase
+    .from("memberships")
+    .update({ role })
+    .eq("tenant_id", tenantId)
+    .eq("user_email", normalized);
+  if (error) throw new Error(formatErr(error));
+}
+
+export async function setMembershipDisplayNameForTenant(
+  tenantId: string,
+  userEmail: string,
+  patch: { first_name?: string | null; last_name?: string | null },
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const normalized = userEmail.trim().toLowerCase();
+  const row: { first_name?: string | null; last_name?: string | null } = {};
+  if (patch.first_name !== undefined) row.first_name = patch.first_name;
+  if (patch.last_name !== undefined) row.last_name = patch.last_name;
+  if (Object.keys(row).length === 0) return;
+  const { error } = await supabase
+    .from("memberships")
+    .update(row)
+    .eq("tenant_id", tenantId)
+    .eq("user_email", normalized);
+  if (error) throw new Error(formatErr(error));
+}
+
 export async function deleteMembershipForEmail(tenantId: string, userEmail: string): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");

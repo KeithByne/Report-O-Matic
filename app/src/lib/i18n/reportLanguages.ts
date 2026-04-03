@@ -3,8 +3,8 @@
  *
  * Full UI copy lives in `uiStrings.ts`. Locales `nl`, `pl`, `ro`, `ru`, `uk`, `ar` use `localePatches6`
  * (plus `localePatches6Extra`) merged over English; keys not in those patches fall back to English.
- * `fr`/`es`/`de`/`it`/`pt` have larger dedicated bundles. Language *names* use `reportLanguageOptionLabel`
- * (Intl / CLDR).
+ * `fr`/`es`/`de`/`it`/`pt` use dedicated bundles; `el` (Greek) merges `localeElBody` + `localeUiFill` over English.
+ * Language *names* use `reportLanguageOptionLabel` (Intl / CLDR).
  */
 export const REPORT_LANGUAGES = [
   { code: "en", label: "English" },
@@ -13,6 +13,7 @@ export const REPORT_LANGUAGES = [
   { code: "it", label: "Italian" },
   { code: "de", label: "German" },
   { code: "pt", label: "Portuguese" },
+  { code: "el", label: "Greek" },
   { code: "nl", label: "Dutch" },
   { code: "pl", label: "Polish" },
   { code: "ro", label: "Romanian" },
@@ -29,6 +30,7 @@ export const UI_LOCALE_CODES = [
   "it",
   "de",
   "pt",
+  "el",
   "nl",
   "pl",
   "ro",
@@ -48,6 +50,7 @@ export const UI_LOCALE_BCP47: Record<UiLocaleCode, string> = {
   it: "it-IT",
   de: "de-DE",
   pt: "pt-PT",
+  el: "el-GR",
   nl: "nl-NL",
   pl: "pl-PL",
   ro: "ro-RO",

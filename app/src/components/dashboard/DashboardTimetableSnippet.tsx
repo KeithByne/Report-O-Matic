@@ -1,8 +1,10 @@
 "use client";
 
+import { CalendarDays, Printer, Save } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 
 type Props = { tenantId: string; role: RomRole };
@@ -68,7 +70,10 @@ export function DashboardTimetableSnippet({ tenantId, role }: Props) {
 
   return (
     <div className="mt-3 rounded-lg border border-emerald-100 bg-white/80 px-3 py-3">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{t("timetable.title")}</div>
+      <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+        <CalendarDays className={`${ICON_INLINE} h-3.5 w-3.5 shrink-0 opacity-80`} aria-hidden />
+        {t("timetable.title")}
+      </div>
       {isOwner && loaded ? (
         <div className="mt-2 flex flex-wrap items-end gap-2">
           <label className="flex flex-col text-[11px] font-medium text-zinc-700">
@@ -106,8 +111,9 @@ export function DashboardTimetableSnippet({ tenantId, role }: Props) {
             type="button"
             disabled={busy}
             onClick={() => void saveLayout()}
-            className="rounded-md bg-emerald-800 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-md bg-emerald-800 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
           >
+            <Save className={`${ICON_INLINE} h-3.5 w-3.5`} aria-hidden />
             {busy ? t("dash.timetableSavingLayout") : t("dash.timetableSaveLayout")}
           </button>
         </div>
@@ -115,16 +121,18 @@ export function DashboardTimetableSnippet({ tenantId, role }: Props) {
       <div className={`flex flex-wrap gap-2 ${isOwner ? "mt-2" : "mt-1"}`}>
         <Link
           href={`/reports/${tenantId}/timetable`}
-          className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+          className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
         >
+          <CalendarDays className={`${ICON_INLINE} h-3.5 w-3.5 opacity-90`} aria-hidden />
           {role === "teacher" ? t("dash.myTimetable") : t("dash.timetable")}
         </Link>
         <a
           href={pdfHref}
           target="_blank"
           rel="noreferrer"
-          className="rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-800 hover:bg-emerald-50/60"
+          className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-800 hover:bg-emerald-50/60"
         >
+          <Printer className={`${ICON_INLINE} h-3.5 w-3.5 opacity-90`} aria-hidden />
           {role === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
         </a>
       </div>

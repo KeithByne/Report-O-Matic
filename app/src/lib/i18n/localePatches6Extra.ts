@@ -49,7 +49,7 @@ export const NL_EXTRA: Record<string, string> = {
   "dash.statReportsRendered": "Gerenderde rapporten",
   "dash.downloadSchoolDataExcel": "Schoolgegevens downloaden (Excel)",
   "dash.addSchoolHint": "Maak een extra organisatie die u bezit. U wordt eigenaar van de nieuwe school.",
-  "dash.addSchoolPlaceholder": "Naam nieuwe school",
+  "dash.addSchoolPlaceholder": "Schoolnaam",
   "dash.pdfLetterheadTitle": "PDF-briefhoofd (eigenaar)",
   "dash.pdfLetterheadHint":
     "Logo (links), slogan onder het logo en tekst rechts op PDF’s. Landschap PNG, JPEG of WebP — ongeveer 3∶1 (±10%), max. 4 MB. Server normaliseert voor de PDF. Sla tekstvelden op en bekijk een voorbeeld.",
@@ -133,6 +133,10 @@ export const NL_EXTRA: Record<string, string> = {
   "roster.roleOwner": "Eigenaar",
   "roster.roleTeacher": "Docent",
   "roster.roleDeptShort": "Afdelingshoofd",
+  "roster.roleSelectAria": "Rol voor {name}",
+  "roster.editDisplayName": "Naam bewerken",
+  "roster.saveDisplayName": "Opslaan",
+  "roster.cancelNameEdit": "Annuleren",
   "tenant.confirmDeleteClass": "Klas \"{name}\" en alle leerlingen en rapporten daarin verwijderen?",
   "archive.title": "Archieven schooljaar",
   "archive.emptyExpl":
@@ -253,7 +257,7 @@ export const PL_EXTRA: Record<string, string> = {
   "dash.statReportsRendered": "Wygenerowane sprawozdania",
   "dash.downloadSchoolDataExcel": "Pobierz dane szkoły (Excel)",
   "dash.addSchoolHint": "Nowa organizacja pod twoim zarządzaniem.",
-  "dash.addSchoolPlaceholder": "Nazwa nowej szkoły",
+  "dash.addSchoolPlaceholder": "Nazwa szkoły",
   "dash.pdfLetterheadTitle": "Nagłówek PDF (właściciel)",
   "dash.pdfLetterheadHint":
     "Logo, slogan, tekst po prawej. PNG, JPEG lub WebP, krajobraz ~3∶1 (±10%), max 4 MB. Zapisz i podejrzyj PDF.",
@@ -335,6 +339,10 @@ export const PL_EXTRA: Record<string, string> = {
   "roster.roleOwner": "Właściciel",
   "roster.roleTeacher": "Nauczyciel",
   "roster.roleDeptShort": "Kierownik",
+  "roster.roleSelectAria": "Rola dla {name}",
+  "roster.editDisplayName": "Edytuj imię i nazwisko",
+  "roster.saveDisplayName": "Zapisz",
+  "roster.cancelNameEdit": "Anuluj",
   "tenant.confirmDeleteClass": "Usunąć klasę „{name}” i wszystkich uczniów oraz raporty?",
   "archive.title": "Archiwa roku szkolnego",
   "archive.emptyExpl":
@@ -453,7 +461,7 @@ export const RO_EXTRA: Record<string, string> = {
   "dash.statReportsRendered": "Rapoarte generate",
   "dash.downloadSchoolDataExcel": "Descarcă date școală (Excel)",
   "dash.addSchoolHint": "Organizație suplimentară în proprietatea dvs.",
-  "dash.addSchoolPlaceholder": "Nume școală nouă",
+  "dash.addSchoolPlaceholder": "Numele școlii",
   "dash.pdfLetterheadTitle": "Antet PDF (proprietar)",
   "dash.pdfLetterheadHint":
     "Logo, slogan, text în dreapta. PNG, JPEG sau WebP, peisaj ~3∶1, max 4 MB. Salvați și previzualizați.",
@@ -532,6 +540,10 @@ export const RO_EXTRA: Record<string, string> = {
   "roster.roleOwner": "Proprietar",
   "roster.roleTeacher": "Profesor",
   "roster.roleDeptShort": "Șef dept.",
+  "roster.roleSelectAria": "Rol pentru {name}",
+  "roster.editDisplayName": "Editează numele",
+  "roster.saveDisplayName": "Salvează",
+  "roster.cancelNameEdit": "Anulare",
   "tenant.confirmDeleteClass": "Ștergeți clasa „{name}” cu toți elevii și rapoartele?",
   "archive.title": "Arhive an școlar",
   "archive.emptyExpl":
@@ -650,7 +662,7 @@ export const RU_EXTRA: Record<string, string> = {
   "dash.statReportsRendered": "Сформировано отчётов",
   "dash.downloadSchoolDataExcel": "Скачать данные школы (Excel)",
   "dash.addSchoolHint": "Ещё одна организация в вашей собственности.",
-  "dash.addSchoolPlaceholder": "Название новой школы",
+  "dash.addSchoolPlaceholder": "Название школы",
   "dash.pdfLetterheadTitle": "Шапка PDF (владелец)",
   "dash.pdfLetterheadHint":
     "Логотип, слоган, текст справа. PNG, JPEG или WebP, альбом ~3∶1, до 4 МБ. Сохраните и посмотрите образец.",
@@ -730,6 +742,10 @@ export const RU_EXTRA: Record<string, string> = {
   "roster.roleOwner": "Владелец",
   "roster.roleTeacher": "Учитель",
   "roster.roleDeptShort": "Зав.",
+  "roster.roleSelectAria": "Роль для {name}",
+  "roster.editDisplayName": "Изменить имя",
+  "roster.saveDisplayName": "Сохранить",
+  "roster.cancelNameEdit": "Отмена",
   "tenant.confirmDeleteClass": "Удалить класс «{name}» со всеми учениками и отчётами?",
   "archive.title": "Архивы учебного года",
   "archive.emptyExpl":
@@ -847,7 +863,7 @@ export const UK_EXTRA: Record<string, string> = {
   "dash.statReportsRendered": "Сформовано звітів",
   "dash.downloadSchoolDataExcel": "Завантажити дані школи (Excel)",
   "dash.addSchoolHint": "Додаткова організація у вашій власності.",
-  "dash.addSchoolPlaceholder": "Назва нової школи",
+  "dash.addSchoolPlaceholder": "Назва школи",
   "dash.pdfLetterheadTitle": "Шапка PDF (власник)",
   "dash.pdfLetterheadHint":
     "Логотип, слоган, текст праворуч. PNG, JPEG або WebP, альбом ~3∶1, до 4 МБ.",
@@ -927,6 +943,10 @@ export const UK_EXTRA: Record<string, string> = {
   "roster.roleOwner": "Власник",
   "roster.roleTeacher": "Вчитель",
   "roster.roleDeptShort": "Зав.",
+  "roster.roleSelectAria": "Роль для {name}",
+  "roster.editDisplayName": "Змінити ім’я",
+  "roster.saveDisplayName": "Зберегти",
+  "roster.cancelNameEdit": "Скасувати",
   "tenant.confirmDeleteClass": "Видалити клас «{name}» з усіма учнями й звітами?",
   "archive.title": "Архіви навчального року",
   "archive.emptyExpl":
@@ -1044,7 +1064,7 @@ export const AR_EXTRA: Record<string, string> = {
   "dash.statReportsRendered": "التقارير المُنشأة",
   "dash.downloadSchoolDataExcel": "تنزيل بيانات المدرسة (Excel)",
   "dash.addSchoolHint": "منظمة إضافية تملكها.",
-  "dash.addSchoolPlaceholder": "اسم مدرسة جديدة",
+  "dash.addSchoolPlaceholder": "اسم المدرسة",
   "dash.pdfLetterheadTitle": "ترويسة PDF (المالك)",
   "dash.pdfLetterheadHint":
     "شعار وشعار فرعي ونصل إلى اليمين. PNG أو JPEG أو WebP أفقي ~3∶1، بحد أقصى 4 ميغابايت.",
@@ -1124,6 +1144,10 @@ export const AR_EXTRA: Record<string, string> = {
   "roster.roleOwner": "مالك",
   "roster.roleTeacher": "معلّم",
   "roster.roleDeptShort": "رئيس قسم",
+  "roster.roleSelectAria": "الدور لـ {name}",
+  "roster.editDisplayName": "تعديل الاسم",
+  "roster.saveDisplayName": "حفظ",
+  "roster.cancelNameEdit": "إلغاء",
   "tenant.confirmDeleteClass": "حذف الفصل «{name}» وجميع التلاميذ والتقارير؟",
   "archive.title": "أرشيف السنة الدراسية",
   "archive.emptyExpl":

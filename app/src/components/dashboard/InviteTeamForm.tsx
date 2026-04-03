@@ -1,6 +1,8 @@
 "use client";
 
+import { Send, UserPlus } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 
 type Props = {
@@ -31,9 +33,8 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
         body: JSON.stringify({
           email: email.trim(),
           role: inviteRole,
-          ...(inviteRole === "teacher"
-            ? { first_name: firstName.trim(), last_name: lastName.trim() }
-            : {}),
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
         }),
       });
       const data = (await res.json().catch(() => ({}))) as {
@@ -72,10 +73,14 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
   const heading =
     variant === "owner" ? t("invite.headingOwner", { school: schoolName }) : t("invite.headingDh", { school: schoolName });
   const description = variant === "owner" ? t("invite.descriptionOwner") : t("invite.descriptionDh");
+  const namesRequired = variant === "department_head" || role === "teacher";
 
   return (
     <div className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
-      <h3 className="text-sm font-semibold text-zinc-900">{heading}</h3>
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+        <UserPlus className={ICON_INLINE} aria-hidden />
+        {heading}
+      </h3>
       <p className="mt-1 text-xs text-zinc-600">{description}</p>
       <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <label className="block min-w-[200px] flex-1 text-sm">
@@ -91,34 +96,32 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
             placeholder={t("invite.emailPlaceholder")}
           />
         </label>
-        {(variant === "department_head" || role === "teacher") ? (
-          <>
-            <label className="block min-w-[160px] text-sm">
-              <span className="text-zinc-600">{t("invite.firstName")}</span>
-              <input
-                type="text"
-                name="first_name"
-                required
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500"
-                placeholder={t("invite.firstNamePlaceholder")}
-              />
-            </label>
-            <label className="block min-w-[160px] text-sm">
-              <span className="text-zinc-600">{t("invite.lastName")}</span>
-              <input
-                type="text"
-                name="last_name"
-                required
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500"
-                placeholder={t("invite.lastNamePlaceholder")}
-              />
-            </label>
-          </>
-        ) : null}
+        <>
+          <label className="block min-w-[160px] text-sm">
+            <span className="text-zinc-600">{t("invite.firstName")}</span>
+            <input
+              type="text"
+              name="first_name"
+              required={namesRequired}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500"
+              placeholder={t("invite.firstNamePlaceholder")}
+            />
+          </label>
+          <label className="block min-w-[160px] text-sm">
+            <span className="text-zinc-600">{t("invite.lastName")}</span>
+            <input
+              type="text"
+              name="last_name"
+              required={namesRequired}
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500"
+              placeholder={t("invite.lastNamePlaceholder")}
+            />
+          </label>
+        </>
         {variant === "owner" ? (
           <label className="block text-sm">
             <span className="text-zinc-600">{t("invite.role")}</span>
@@ -140,8 +143,9 @@ export function InviteTeamForm({ tenantId, schoolName, variant }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-900 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-900 disabled:opacity-60"
         >
+          <Send className={ICON_INLINE} aria-hidden />
           {pending ? t("invite.adding") : variant === "department_head" ? t("invite.addTeacher") : t("invite.addMember")}
         </button>
       </form>

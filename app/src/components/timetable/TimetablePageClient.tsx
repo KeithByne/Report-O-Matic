@@ -1,8 +1,21 @@
 "use client";
 
+import {
+  BookOpen,
+  Building2,
+  CalendarDays,
+  Library,
+  PencilLine,
+  Printer,
+  RotateCcw,
+  Save,
+  Trash2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 import { visibleMonFriDayIndexesFromClasses } from "@/lib/timetable/visibleTimetableDays";
@@ -28,11 +41,11 @@ type ClassOpt = {
   active_weekdays?: string[];
 };
 
-type Props = { tenantId: string; schoolName: string; viewerRole: RomRole };
+type Props = { tenantId: string; schoolName: string; viewerRole: RomRole; embedded?: boolean };
 
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri"] as const;
 
-export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props) {
+export function TimetablePageClient({ tenantId, schoolName, viewerRole, embedded = false }: Props) {
   const { t, lang } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
 
@@ -229,47 +242,74 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
         {loadError}{" "}
-        <button type="button" className="font-semibold underline" onClick={() => void refresh()}>
-          Retry
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 font-semibold underline"
+          onClick={() => void refresh()}
+        >
+          <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          {t("common.retry")}
         </button>
       </div>
     );
   }
 
   if (!settings) {
-    return <div className="text-sm text-zinc-600">…</div>;
+    return <div className="text-sm text-zinc-600">{t("report.loading")}</div>;
   }
 
   const gridCols = settings.periods_am + 1 + settings.periods_pm;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-zinc-900">{t("timetable.title")}</h1>
-        <p className="mt-1 text-sm text-zinc-600">
-          {canEditGrid ? t("timetable.leadIntro") : t("timetable.teacherIntro")}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link
-            href={`/reports/${tenantId}`}
-            className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-          >
-            ← {t("nav.classesLanguage")}
-          </Link>
+      {embedded ? (
+        <div className="flex flex-wrap justify-end gap-2">
           <a
             href={pdfHref}
             target="_blank"
             rel="noreferrer"
-            className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
           >
+            <Printer className={ICON_INLINE} aria-hidden />
             {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
           </a>
         </div>
-      </div>
+      ) : (
+        <div>
+          <h1 className="flex items-center gap-2 text-xl font-semibold text-zinc-900">
+            <CalendarDays className={ICON_SECTION} aria-hidden />
+            {t("timetable.title")}
+          </h1>
+          <p className="mt-1 text-sm text-zinc-600">
+            {canEditGrid ? t("timetable.leadIntro") : t("timetable.teacherIntro")}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href={`/reports/${tenantId}`}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+            >
+              <Library className={ICON_INLINE} aria-hidden />
+              {t("nav.classesLanguage")}
+            </Link>
+            <a
+              href={pdfHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
+            >
+              <Printer className={ICON_INLINE} aria-hidden />
+              {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
+            </a>
+          </div>
+        </div>
+      )}
 
       {canEditLayout ? (
         <section className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-zinc-900">{schoolName}</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+            <Building2 className={ICON_SECTION} aria-hidden />
+            {schoolName}
+          </h2>
           <p className="mt-1 text-xs text-zinc-500">
             {t("dash.timetableRoomsLabel")} · {t("dash.timetablePeriodsAmLabel")} · {t("dash.timetablePeriodsPmLabel")} (1–6 each)
           </p>
@@ -317,8 +357,9 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
               type="button"
               disabled={busy}
               onClick={() => void saveLayout()}
-              className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
+              <Save className={ICON_INLINE} aria-hidden />
               {busy ? t("dash.timetableSavingLayout") : t("dash.timetableSaveLayout")}
             </button>
           </div>
@@ -337,7 +378,7 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
           <thead>
             <tr className="border-b border-zinc-200 bg-emerald-50/60">
               <th className="sticky left-0 z-[1] border-r border-zinc-200 bg-emerald-50/90 px-2 py-2 font-semibold text-zinc-800">
-                Day
+                {t("timetable.dayColumn")}
               </th>
               {Array.from({ length: gridCols }, (_, gc) => {
                 const isLunch = gc === settings.periods_am;
@@ -350,7 +391,9 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                 }
                 const isAm = gc < settings.periods_am;
                 const periodIndex = isAm ? gc : gc - 1;
-                const label = isAm ? `AM ${periodIndex + 1}` : `PM ${periodIndex - settings.periods_am + 1}`;
+                const label = isAm
+                  ? t("pdf.timetablePeriodAm", { n: periodIndex + 1 })
+                  : t("pdf.timetablePeriodPm", { n: periodIndex - settings.periods_am + 1 });
                 return (
                   <th key={`p-${gc}`} className="border-r border-zinc-200 px-1 py-2 text-center font-semibold text-zinc-800">
                     {label}
@@ -422,7 +465,9 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                               }`}
                               style={{ backgroundColor: bg }}
                             >
-                              <div className="text-[10px] font-semibold text-zinc-600">Room {r + 1}</div>
+                              <div className="text-[10px] font-semibold text-zinc-600">
+                                {t("pdf.timetablePageRoom", { n: r + 1 })}
+                              </div>
                               {slot ? (
                                 <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
                                   {(slot.class_name ?? "").trim() || "—"}
@@ -451,10 +496,17 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
       {modal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-zinc-200 bg-white p-5 shadow-xl">
-            <h3 className="text-sm font-semibold text-zinc-900">{t("timetable.editCell")}</h3>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <PencilLine className={ICON_SECTION} aria-hidden />
+              {t("timetable.editCell")}
+            </h3>
             <p className="mt-1 text-xs text-zinc-500">
-              {t(`weekday.${WEEKDAY_KEYS[modal.day]}`)} · period {modal.periodIndex + 1} of {periodTotal} · room row{" "}
-              {modal.roomIndex + 1}
+              {t("timetable.slotMetaLine", {
+                weekday: t(`weekday.${WEEKDAY_KEYS[modal.day]}`),
+                period: modal.periodIndex + 1,
+                total: periodTotal,
+                room: modal.roomIndex + 1,
+              })}
             </p>
             <div className="mt-4 space-y-3">
               <label className="block text-xs font-medium text-zinc-700">
@@ -488,8 +540,9 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                 return (
                   <Link
                     href={`/reports/${tenantId}/classes/${encodeURIComponent(classIdForLink)}`}
-                    className="inline-flex rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
                   >
+                    <BookOpen className={ICON_INLINE} aria-hidden />
                     {t("timetable.goToClass")}
                   </Link>
                 );
@@ -501,8 +554,9 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                 type="button"
                 disabled={busy}
                 onClick={() => void saveModal()}
-                className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
+                <Save className={ICON_INLINE} aria-hidden />
                 {t("timetable.saveSlot")}
               </button>
               {modal.slot ? (
@@ -510,8 +564,9 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                   type="button"
                   disabled={busy}
                   onClick={() => void clearModalSlot()}
-                  className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-50"
                 >
+                  <Trash2 className={ICON_INLINE} aria-hidden />
                   {t("timetable.clearSlot")}
                 </button>
               ) : null}
@@ -519,8 +574,9 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole }: Props)
                 type="button"
                 disabled={busy}
                 onClick={() => setModal(null)}
-                className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 disabled:opacity-50"
               >
+                <X className={ICON_INLINE} aria-hidden />
                 {t("timetable.cancel")}
               </button>
             </div>

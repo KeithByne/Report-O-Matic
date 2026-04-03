@@ -1,9 +1,11 @@
 "use client";
 
+import { BookMarked, Building2, LayoutDashboard, Library, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
+import { ICON_INLINE } from "@/components/ui/iconSizes";
 
 type Mode = "index" | "tenant" | "class" | "report";
 
@@ -18,30 +20,32 @@ type Props = {
 export function ReportsFlowHeader({ mode, title, tenantId, classId }: Props) {
   const { t } = useUiLanguage();
 
-  const links: { href: string; label: string }[] = [];
+  const links: { href: string; label: string; Icon: LucideIcon }[] = [];
   if (mode === "index") {
-    links.push({ href: "/dashboard", label: t("nav.backDashboard") });
+    links.push({ href: "/dashboard", label: t("nav.backDashboard"), Icon: LayoutDashboard });
   }
   if (mode === "tenant") {
-    links.push({ href: "/reports", label: t("nav.allSchools") });
-    links.push({ href: "/dashboard", label: t("nav.dashboard") });
+    links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    links.push({ href: "/dashboard", label: t("nav.dashboard"), Icon: LayoutDashboard });
   }
   if (mode === "class" && tenantId) {
-    links.push({ href: `/reports/${tenantId}`, label: t("nav.classesLanguage") });
-    links.push({ href: "/reports", label: t("nav.allSchools") });
-    links.push({ href: "/dashboard", label: t("nav.dashboard") });
+    links.push({ href: `/reports/${tenantId}`, label: t("nav.classesLanguage"), Icon: Library });
+    links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    links.push({ href: "/dashboard", label: t("nav.dashboard"), Icon: LayoutDashboard });
   }
   if (mode === "report" && tenantId && classId) {
     links.push({
       href: `/reports/${tenantId}/classes/${classId}`,
       label: t("nav.class"),
+      Icon: BookMarked,
     });
     links.push({
       href: `/reports/${tenantId}`,
       label: t("nav.classesLanguage"),
+      Icon: Library,
     });
-    links.push({ href: "/reports", label: t("nav.allSchools") });
-    links.push({ href: "/dashboard", label: t("nav.dashboard") });
+    links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    links.push({ href: "/dashboard", label: t("nav.dashboard"), Icon: LayoutDashboard });
   }
 
   return (
@@ -58,7 +62,12 @@ export function ReportsFlowHeader({ mode, title, tenantId, classId }: Props) {
         <div className="flex flex-wrap items-center gap-2">
           <GlobeLanguageSwitcher />
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline">
+            <Link
+              key={l.href}
+              href={l.href}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+            >
+              <l.Icon className={ICON_INLINE} aria-hidden />
               {l.label}
             </Link>
           ))}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { listClasses } from "@/lib/data/classesDb";
-import { listReportsForTenant } from "@/lib/data/reportsDb";
+import { listReportsForTenant, type ReportRow } from "@/lib/data/reportsDb";
 import { listStudents } from "@/lib/data/students";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
@@ -23,6 +23,71 @@ function safeFilename(s: string): string {
   return s.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 80) || "reports";
 }
 
+const GROUP_MODES = new Set(["term", "teacher", "class", "student"]);
+
+function termRank(r: ReportRow): number {
+  const p = r.inputs.report_period;
+  if (p === "first") return 0;
+  if (p === "second") return 1;
+  if (p === "third") return 2;
+  return 3;
+}
+
+function compareReportsForGroup(
+  a: ReportRow,
+  b: ReportRow,
+  group: string,
+  ctx: {
+    studentNameOf: (id: string) => string;
+    classNameOfReport: (r: ReportRow) => string;
+    authorOf: (r: ReportRow) => string;
+  },
+): number {
+  const { studentNameOf, classNameOfReport, authorOf } = ctx;
+  const sa = studentNameOf(a.student_id);
+  const sb = studentNameOf(b.student_id);
+  const ca = classNameOfReport(a);
+  const cb = classNameOfReport(b);
+  const ta = authorOf(a);
+  const tb = authorOf(b);
+  const ra = termRank(a);
+  const rb = termRank(b);
+
+  if (group === "term") {
+    if (ra !== rb) return ra - rb;
+    let c = ta.localeCompare(tb);
+    if (c !== 0) return c;
+    c = ca.localeCompare(cb);
+    if (c !== 0) return c;
+    return sa.localeCompare(sb);
+  }
+  if (group === "teacher") {
+    let c = ta.localeCompare(tb);
+    if (c !== 0) return c;
+    if (ra !== rb) return ra - rb;
+    c = ca.localeCompare(cb);
+    if (c !== 0) return c;
+    return sa.localeCompare(sb);
+  }
+  if (group === "class") {
+    let c = ca.localeCompare(cb);
+    if (c !== 0) return c;
+    if (ra !== rb) return ra - rb;
+    c = ta.localeCompare(tb);
+    if (c !== 0) return c;
+    return sa.localeCompare(sb);
+  }
+  if (group === "student") {
+    let c = sa.localeCompare(sb);
+    if (c !== 0) return c;
+    if (ra !== rb) return ra - rb;
+    c = ca.localeCompare(cb);
+    if (c !== 0) return c;
+    return ta.localeCompare(tb);
+  }
+  return String(b.updated_at).localeCompare(String(a.updated_at));
+}
+
 export async function GET(req: Request, context: { params: Promise<{ tenantId: string }> }) {
   const { tenantId } = await context.params;
   if (!isUuid(tenantId)) return NextResponse.json({ error: "Invalid organisation id." }, { status: 400 });
@@ -35,18 +100,9 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const url = new URL(req.url);
   const inline = url.searchParams.get("inline") === "1";
   const onlyFinal = url.searchParams.get("onlyFinal") === "1";
-  const authorRaw = url.searchParams.get("author")?.trim().toLowerCase() || "";
-  const order = (url.searchParams.get("order") || "").trim().toLowerCase();
+  const orderRaw = (url.searchParams.get("order") || "").trim().toLowerCase();
+  const group = GROUP_MODES.has(orderRaw) ? orderRaw : "term";
 
-  // Teachers can only batch-download their own authored reports.
-  const author =
-    role === "teacher"
-      ? gate.email.trim().toLowerCase()
-      : authorRaw && authorRaw.includes("@")
-        ? authorRaw
-        : gate.email.trim().toLowerCase();
-
-  // Visibility: teachers only see their assigned classes; owners/DH see all.
   const classes = await listClasses(tenantId, { viewerRole: role, viewerEmail: gate.email });
   const classById = new Map(classes.map((c) => [c.id, c] as const));
   const classIds = classes.map((c) => c.id);
@@ -56,19 +112,26 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   let reports = await listReportsForTenant(tenantId);
   const allowedStudents = new Set(students.map((s) => s.id));
   reports = reports.filter((r) => allowedStudents.has(r.student_id));
-  reports = reports.filter((r) => r.author_email.trim().toLowerCase() === author);
+
+  if (role === "teacher") {
+    const me = gate.email.trim().toLowerCase();
+    reports = reports.filter((r) => r.author_email.trim().toLowerCase() === me);
+  }
+
   if (onlyFinal) reports = reports.filter((r) => r.status === "final");
 
   const studentNameOf = (studentId: string) => (studentById.get(studentId)?.display_name || "").toLowerCase();
-  reports.sort((a, b) => {
-    if (order === "updated_asc") return String(a.updated_at).localeCompare(String(b.updated_at));
-    if (order === "student") return studentNameOf(a.student_id).localeCompare(studentNameOf(b.student_id));
-    // default: newest first
-    return String(b.updated_at).localeCompare(String(a.updated_at));
-  });
+  const classNameOfReport = (r: ReportRow) => {
+    const st = studentById.get(r.student_id);
+    const k = st ? classById.get(st.class_id) : null;
+    return (k?.name ?? "").toLowerCase();
+  };
+  const authorOf = (r: ReportRow) => r.author_email.trim().toLowerCase();
+
+  reports.sort((a, b) => compareReportsForGroup(a, b, group, { studentNameOf, classNameOfReport, authorOf }));
 
   if (reports.length === 0) {
-    return NextResponse.json({ error: "No reports found for this teacher." }, { status: 404 });
+    return NextResponse.json({ error: "No reports found." }, { status: 404 });
   }
 
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
@@ -110,7 +173,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   }
 
   const merged = await mergePdfBuffers(pdfs);
-  const fname = safeFilename(`${author}-reports`) + ".pdf";
+  const fname = safeFilename("bulk-reports") + ".pdf";
   return new NextResponse(new Uint8Array(merged), {
     status: 200,
     headers: {
@@ -119,4 +182,3 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     },
   });
 }
-

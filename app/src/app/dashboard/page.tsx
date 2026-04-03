@@ -81,7 +81,6 @@ export default async function DashboardPage() {
   return (
     <DashboardClientView
       email={session.email}
-      sessionExpMs={session.exp}
       loadError={loadError}
       memberships={memberships}
       rosterByTenant={rosterByTenant}

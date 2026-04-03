@@ -103,6 +103,7 @@ const RULES: Record<ReportLanguageCode, ReplaceRule[]> = {
   de: [...DE_SANITIZE, ...EN_SANITIZE],
   it: [...IT_SANITIZE, ...EN_SANITIZE],
   pt: [...PT_SANITIZE, ...EN_SANITIZE],
+  el: EN_SANITIZE,
   nl: EN_SANITIZE,
   pl: EN_SANITIZE,
   ro: EN_SANITIZE,

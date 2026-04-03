@@ -28,6 +28,7 @@ const LANGUAGE_INSTRUCTION: Record<ReportLanguageCode, string> = {
   it: "Italian",
   de: "German",
   pt: "Portuguese",
+  el: "Greek",
   nl: "Dutch",
   pl: "Polish",
   ro: "Romanian",

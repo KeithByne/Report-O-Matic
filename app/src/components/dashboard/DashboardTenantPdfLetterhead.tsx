@@ -1,6 +1,8 @@
 "use client";
 
+import { Building2, Eye, FileImage, Save, Trash2, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 
@@ -175,7 +177,10 @@ export function DashboardTenantPdfLetterhead({
   return (
     <>
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-zinc-900">{t("dash.pdfLetterheadTitle")}</h2>
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+          <FileImage className={ICON_INLINE} aria-hidden />
+          {t("dash.pdfLetterheadTitle")}
+        </h2>
         <p className="mt-1 text-sm text-zinc-600">{t("dash.pdfLetterheadHint")}</p>
         <ul className="mt-4 space-y-6">
           {tenants.map((ten) => {
@@ -185,7 +190,10 @@ export function DashboardTenantPdfLetterhead({
               : null;
             return (
               <li key={ten.tenantId} className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
-                <p className="font-medium text-zinc-900">{ten.tenantName}</p>
+                <p className="flex items-center gap-2 font-medium text-zinc-900">
+                  <Building2 className={`${ICON_INLINE} text-emerald-800/80`} aria-hidden />
+                  {ten.tenantName}
+                </p>
                 <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-start">
                   <div className="w-full shrink-0 lg:w-[140px]">
                     <p className="text-xs font-medium text-zinc-600">{t("dash.pdfLetterheadLogo")}</p>
@@ -209,7 +217,7 @@ export function DashboardTenantPdfLetterhead({
                     <p className="mt-2 text-xs text-zinc-500">{t("dash.pdfLetterheadLogoHint")}</p>
                     <div className="mt-2 flex flex-col gap-2">
                       <label
-                        className={`inline-block cursor-pointer rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-50 ${logoBusy !== null ? "pointer-events-none opacity-50" : ""}`}
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-50 ${logoBusy !== null ? "pointer-events-none opacity-50" : ""}`}
                       >
                         <input
                           type="file"
@@ -222,6 +230,7 @@ export function DashboardTenantPdfLetterhead({
                             if (file) void uploadLogo(ten.tenantId, file);
                           }}
                         />
+                        <Upload className={`${ICON_INLINE} shrink-0`} aria-hidden />
                         {logoBusy === ten.tenantId
                           ? t("dash.pdfLetterheadLogoUploading")
                           : t("dash.pdfLetterheadLogoPick")}
@@ -231,8 +240,9 @@ export function DashboardTenantPdfLetterhead({
                           type="button"
                           disabled={logoBusy !== null}
                           onClick={() => void removeLogo(ten.tenantId)}
-                          className="text-left text-xs font-medium text-red-700 hover:underline disabled:opacity-50"
+                          className="inline-flex items-center gap-1 text-left text-xs font-medium text-red-700 hover:underline disabled:opacity-50"
                         >
+                          <Trash2 className={`${ICON_INLINE} h-3.5 w-3.5 shrink-0`} aria-hidden />
                           {t("dash.pdfLetterheadLogoRemove")}
                         </button>
                       ) : null}
@@ -281,15 +291,17 @@ export function DashboardTenantPdfLetterhead({
                     type="button"
                     disabled={busy !== null}
                     onClick={() => void save(ten.tenantId)}
-                    className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-900 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-900 disabled:opacity-50"
                   >
+                    <Save className={ICON_INLINE} aria-hidden />
                     {busy === ten.tenantId ? t("dash.pdfLetterheadSaving") : t("dash.pdfLetterheadSave")}
                   </button>
                   <button
                     type="button"
                     onClick={() => openPreview(ten.tenantId)}
-                    className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
                   >
+                    <Eye className={ICON_INLINE} aria-hidden />
                     {t("dash.pdfLetterheadPreview")}
                   </button>
                 </div>
@@ -308,14 +320,16 @@ export function DashboardTenantPdfLetterhead({
         >
           <div className="flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-xl">
             <div className="flex shrink-0 items-center justify-between gap-2 border-b border-emerald-100 px-4 py-3">
-              <h2 id={dialogTitleId} className="text-sm font-semibold text-zinc-900">
+              <h2 id={dialogTitleId} className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+                <FileImage className={ICON_INLINE} aria-hidden />
                 {t("dash.pdfPreviewTitle")}
               </h2>
               <button
                 type="button"
                 onClick={() => setPreviewTenantId(null)}
-                className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
               >
+                <X className={ICON_INLINE} aria-hidden />
                 {t("dash.pdfPreviewClose")}
               </button>
             </div>
