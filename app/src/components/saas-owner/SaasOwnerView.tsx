@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
+import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 
@@ -341,10 +342,8 @@ export function SaasOwnerView({ viewerEmail }: { viewerEmail: string }) {
             </div>
           </div>
           <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+            <AppHeaderUserIdentity email={viewerEmail} roleLabel={t("dash.role.saas_platform")} />
             <GlobeLanguageSwitcher />
-            <div className="text-xs text-zinc-500">
-              {t("dash.signedInAs")} <span className="font-mono text-zinc-800">{viewerEmail}</span>
-            </div>
           </div>
         </div>
       </header>

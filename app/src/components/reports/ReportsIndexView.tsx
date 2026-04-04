@@ -8,6 +8,7 @@ import { ReportsFlowHeader } from "@/components/layout/ReportsFlowHeader";
 import type { MembershipWithTenant, RomRole } from "@/lib/data/memberships";
 
 type Props = {
+  viewerEmail: string;
   memberships: MembershipWithTenant[];
   loadError: string | null;
 };
@@ -25,12 +26,17 @@ function roleLabel(role: RomRole, t: (k: string) => string): string {
   }
 }
 
-export function ReportsIndexView({ memberships, loadError }: Props) {
+export function ReportsIndexView({ viewerEmail, memberships, loadError }: Props) {
   const { t } = useUiLanguage();
 
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
-      <ReportsFlowHeader mode="index" title={t("reports.title")} />
+      <ReportsFlowHeader
+        mode="index"
+        title={t("reports.title")}
+        userEmail={viewerEmail}
+        membershipRoles={memberships.map((m) => m.role)}
+      />
       <main className="mx-auto max-w-4xl px-5 py-8">
         <p className="flex items-center gap-2 text-sm text-zinc-600">
           <GraduationCap className={ICON_SECTION} aria-hidden />

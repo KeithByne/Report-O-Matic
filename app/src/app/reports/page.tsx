@@ -18,5 +18,7 @@ export default async function ReportsIndexPage() {
     loadError = e instanceof Error ? e.message : "Could not load schools.";
   }
 
-  return <ReportsIndexView memberships={memberships} loadError={loadError} />;
+  return (
+    <ReportsIndexView viewerEmail={session.email} memberships={memberships} loadError={loadError} />
+  );
 }

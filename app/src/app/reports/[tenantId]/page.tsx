@@ -60,6 +60,8 @@ export default async function ReportsTenantPage({
         title={schoolName}
         tenantId={tenantId}
         showAllSchoolsLink={role === "owner"}
+        userEmail={session.email}
+        viewerRole={role}
       />
       <main className="mx-auto max-w-4xl px-5 py-8">
         <TenantReportsHome

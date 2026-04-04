@@ -4,6 +4,7 @@ import Link from "next/link";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
+import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
 import type { RomRole } from "@/lib/data/memberships";
 import { packCustomerDisplayCents, type PackPriceTaxBasis } from "@/lib/finance/salesTax";
 
@@ -27,10 +28,24 @@ type TestAccessBanner = {
   testTrialExhausted: boolean;
 };
 
+function billingRoleLabel(role: RomRole, t: (k: string) => string): string {
+  switch (role) {
+    case "owner":
+      return t("dash.role.owner");
+    case "department_head":
+      return t("dash.role.department_head");
+    case "teacher":
+      return t("dash.role.teacher");
+    default:
+      return role;
+  }
+}
+
 export function TenantBillingView({
   tenantId,
   schoolName,
   role,
+  userEmail,
   accountCreditsRemaining,
   packs,
   packTaxDisplay,
@@ -39,6 +54,7 @@ export function TenantBillingView({
   tenantId: string;
   schoolName: string;
   role: RomRole;
+  userEmail: string;
   accountCreditsRemaining: number;
   packs: Pack[];
   packTaxDisplay: PackTaxDisplay;
@@ -49,14 +65,17 @@ export function TenantBillingView({
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <header className="border-b border-emerald-200/80 bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <div className="flex items-start gap-3">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-start justify-between gap-3 px-5 py-4">
+          <div className="flex min-w-0 items-start gap-3">
             <AppHeaderLogo />
-            <div>
+            <div className="min-w-0">
               <AppHeaderWordmark />
             </div>
           </div>
-          <GlobeLanguageSwitcher />
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <AppHeaderUserIdentity email={userEmail} roleLabel={billingRoleLabel(role, t)} />
+            <GlobeLanguageSwitcher />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-10">

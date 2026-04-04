@@ -39,6 +39,8 @@ export default async function ReportEditPage({
         tenantId={tenantId}
         classId={classId}
         showAllSchoolsLink={role === "owner"}
+        userEmail={session.email}
+        viewerRole={role}
       />
       <main className="mx-auto max-w-4xl px-5 py-8">
         <ReportEditor tenantId={tenantId} classId={classId} reportId={reportId} schoolName={schoolName} />

@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
+import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
+import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
+import type { RomRole } from "@/lib/data/memberships";
 
 const inputClassName =
   "mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500 read-only:border-zinc-200";
@@ -16,8 +20,32 @@ type ProfilePayload = {
   hasPassword: boolean;
 };
 
-export function ProfileEditor() {
+function roleLabel(role: RomRole, tr: (k: string) => string): string {
+  switch (role) {
+    case "owner":
+      return tr("dash.role.owner");
+    case "department_head":
+      return tr("dash.role.department_head");
+    case "teacher":
+      return tr("dash.role.teacher");
+    default:
+      return role;
+  }
+}
+
+export function ProfileEditor({
+  viewerEmail,
+  membershipRoles,
+}: {
+  viewerEmail: string;
+  membershipRoles: RomRole[];
+}) {
   const { t } = useUiLanguage();
+
+  const headerRoleLine = useMemo(() => {
+    const uniq = [...new Set(membershipRoles)];
+    return uniq.map((r) => roleLabel(r, t)).join(" · ");
+  }, [membershipRoles, t]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -106,7 +134,24 @@ export function ProfileEditor() {
     hasPassword && (newPassword.trim().length > 0 || emailWillChange);
 
   return (
-    <main className="mx-auto max-w-4xl space-y-6 px-5 py-8">
+    <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
+      <header className="border-b border-emerald-200/80 bg-white">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-start justify-between gap-3 px-5 py-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <AppHeaderLogo />
+            <div className="min-w-0">
+              <AppHeaderWordmark />
+              <h1 className="mt-2 text-lg font-semibold tracking-tight text-zinc-900">{t("profile.pageTitle")}</h1>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <AppHeaderUserIdentity email={viewerEmail} roleLabel={headerRoleLine} />
+            <GlobeLanguageSwitcher />
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-4xl space-y-6 px-5 py-8">
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-2 text-sm font-medium text-emerald-800 hover:text-emerald-950"
@@ -116,10 +161,10 @@ export function ProfileEditor() {
       </Link>
 
       <div className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5">
-        <h1 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
           <UserRound className={ICON_INLINE} aria-hidden />
-          {t("profile.pageTitle")}
-        </h1>
+          {t("profile.sectionAccount")}
+        </h2>
         <p className="mt-1 text-xs text-zinc-600">{t("profile.lead")}</p>
 
         {loading ? (
@@ -220,6 +265,7 @@ export function ProfileEditor() {
           </form>
         )}
       </div>
-    </main>
+      </main>
+    </div>
   );
 }

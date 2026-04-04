@@ -53,6 +53,7 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
       tenantId={tenantId}
       schoolName={schoolName}
       role={role}
+      userEmail={session.email}
       accountCreditsRemaining={accountCreditsRemaining}
       packs={(packs ?? []) as { id: string; name: string; price_cents: number; currency: string; report_credits: number }[]}
       packTaxDisplay={{ taxRatePercent, packTaxBasis, salesTaxLabel }}

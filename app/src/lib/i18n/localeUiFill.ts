@@ -1,5 +1,9 @@
 export const UI_FILL_ES: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
+  "brand.saasName": "Report-O-Matic",
+  "brand.tagline": "Flujo de informes escolares para profesores y administradores.",
+  "dash.role.saas_platform": "Plataforma SaaS",
+  "profile.sectionAccount": "Detalles de la cuenta",
   "timetable.dayColumn": "Día",
   "timetable.slotMetaLine": "{weekday} · periodo {period} de {total} · fila de aula {room}",
   "common.retry": "Reintentar",
@@ -208,6 +212,10 @@ export const UI_FILL_ES: Record<string, string> = {
 
 export const UI_FILL_FR: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
+  "brand.saasName": "Report-O-Matic",
+  "brand.tagline": "Flux de bulletins pour les équipes pédagogiques et les administrateurs.",
+  "dash.role.saas_platform": "Plateforme SaaS",
+  "profile.sectionAccount": "Détails du compte",
   "timetable.dayColumn": "Jour",
   "timetable.slotMetaLine": "{weekday} · période {period} sur {total} · rangée salle {room}",
   "common.retry": "Réessayer",
@@ -415,6 +423,10 @@ export const UI_FILL_FR: Record<string, string> = {
 
 export const UI_FILL_EL: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
+  "brand.saasName": "Report-O-Matic",
+  "brand.tagline": "Ροή σχολικών αναφορών για εκπαιδευτικούς και διαχειριστές.",
+  "dash.role.saas_platform": "Πλατφόρμα SaaS",
+  "profile.sectionAccount": "Στοιχεία λογαριασμού",
   "timetable.dayColumn": "Ημέρα",
   "timetable.slotMetaLine": "{weekday} · περίοδος {period} από {total} · σειρά αίθουσας {room}",
   "common.retry": "Επανάληψη",

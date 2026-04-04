@@ -45,6 +45,7 @@ import { TimetablePageClient } from "@/components/timetable/TimetablePageClient"
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
+import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -319,6 +320,11 @@ export function DashboardClientView({
     }
   }
 
+  const headerRoleLine = useMemo(() => {
+    const uniq = [...new Set(memberships.map((m) => m.role))];
+    return uniq.map((r) => roleLabel(r)).join(" · ");
+  }, [memberships, t]);
+
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <header className="border-b border-emerald-200/80 bg-white">
@@ -327,11 +333,15 @@ export function DashboardClientView({
         >
           {ownerSchoolMenuOnly ? (
             <>
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-start gap-3">
                 <AppHeaderLogo />
-                <span className="sr-only">{t("dash.title")}</span>
+                <div className="min-w-0">
+                  <AppHeaderWordmark />
+                  <h1 className="mt-2 text-sm font-semibold tracking-tight text-zinc-900">{t("dash.title")}</h1>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <AppHeaderUserIdentity email={email} roleLabel={headerRoleLine} />
                 <GlobeLanguageSwitcher />
                 <form action="/api/auth/sign-out" method="post">
                   <button
@@ -346,18 +356,18 @@ export function DashboardClientView({
             </>
           ) : (
             <>
-              <div className="flex items-start gap-3">
+              <div className="flex min-w-0 items-start gap-3">
                 <AppHeaderLogo />
-                <div>
+                <div className="min-w-0">
                   <AppHeaderWordmark />
-                  <p className="mt-2 text-xs font-medium uppercase tracking-wide text-zinc-500">{t("brand.subtitle")}</p>
-                  <h1 className="mt-1 flex items-center gap-2 text-lg font-semibold tracking-tight">
+                  <h1 className="mt-2 flex items-center gap-2 text-lg font-semibold tracking-tight text-zinc-900">
                     <LayoutDashboard className={ICON_INLINE} aria-hidden />
                     {t("dash.title")}
                   </h1>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <AppHeaderUserIdentity email={email} roleLabel={headerRoleLine} />
                 <GlobeLanguageSwitcher />
                 <form action="/api/auth/sign-out" method="post">
                   <button

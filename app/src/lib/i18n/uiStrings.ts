@@ -429,6 +429,9 @@ export const REPORT_SUBJECT_I18N: Record<SubjectCode, Record<UiLang, string>> = 
 
 const EN: UiMessages = {
   "brand.subtitle": "Report-O-Matic",
+  "brand.saasName": "Report-O-Matic",
+  "brand.tagline": "School report workflow for teachers and school admins.",
+  "dash.role.saas_platform": "SaaS platform",
   "nav.reports": "Reports",
   "nav.signOut": "Sign out",
   "nav.dashboard": "Dashboard",
@@ -500,6 +503,7 @@ const EN: UiMessages = {
   "dash.ownerBackToSchools": "Back to schools",
   "dash.ownerMenuClassesAndReports": "Classes and Reports",
   "profile.pageTitle": "Your account",
+  "profile.sectionAccount": "Account details",
   "profile.lead": "Update the name shown on your account, your sign-in email, and your password.",
   "profile.firstName": "First name",
   "profile.surname": "Surname",

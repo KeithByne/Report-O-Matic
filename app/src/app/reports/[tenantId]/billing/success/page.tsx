@@ -21,5 +21,7 @@ export default async function BillingSuccessPage({ params }: { params: Promise<{
 
   const schoolName = (await getTenantName(tenantId)) || "School";
 
-  return <BillingSuccessView tenantId={tenantId} schoolName={schoolName} />;
+  return (
+    <BillingSuccessView tenantId={tenantId} schoolName={schoolName} userEmail={session.email} viewerRole={role} />
+  );
 }
