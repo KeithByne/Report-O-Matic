@@ -6,10 +6,6 @@ import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { getTenantCreditBalance } from "@/lib/data/credits";
 
-function isUuid(s: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
-}
-
 function initialPanelsFromQuery(panel: string | undefined): TenantPanelId[] | undefined {
   if (!panel || typeof panel !== "string") return undefined;
   const out: TenantPanelId[] = [];
@@ -20,8 +16,15 @@ function initialPanelsFromQuery(panel: string | undefined): TenantPanelId[] | un
     .filter(Boolean)) {
     if (part === "welcome" || part === "overview") out.push("welcome");
     if (part === "bulk" || part === "downloads") out.push("bulk");
+    if (part === "classes") out.push("classes");
+    if (part === "language") out.push("language");
+    if (part === "timetable") out.push("timetable");
   }
   return out.length ? out : undefined;
+}
+
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 }
 
 export default async function ReportsTenantPage({
@@ -37,16 +40,6 @@ export default async function ReportsTenantPage({
   const sp = searchParams ? await searchParams : {};
   const rawPanel = sp.panel;
   const panelParam = Array.isArray(rawPanel) ? rawPanel[0] : rawPanel;
-  if (typeof panelParam === "string") {
-    const parts = panelParam
-      .toLowerCase()
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (parts.length > 0 && parts.every((p) => p === "classes")) {
-      redirect(`/reports/${tenantId}`);
-    }
-  }
   const initialOpenPanels = initialPanelsFromQuery(typeof panelParam === "string" ? panelParam : undefined);
 
   const token = (await cookies()).get("rom_session")?.value || "";

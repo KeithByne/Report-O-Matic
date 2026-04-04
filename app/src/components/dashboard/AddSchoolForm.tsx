@@ -9,9 +9,11 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 type AddSchoolFormProps = {
   /** Omit outer section + title (use inside another card). */
   embedded?: boolean;
+  /** When embedded, omit the default heading (parent supplies the section title). */
+  suppressEmbeddedHeading?: boolean;
 };
 
-export function AddSchoolForm({ embedded = false }: AddSchoolFormProps) {
+export function AddSchoolForm({ embedded = false, suppressEmbeddedHeading = false }: AddSchoolFormProps) {
   const router = useRouter();
   const { t } = useUiLanguage();
   const [name, setName] = useState("");
@@ -65,6 +67,9 @@ export function AddSchoolForm({ embedded = false }: AddSchoolFormProps) {
   );
 
   if (embedded) {
+    if (suppressEmbeddedHeading) {
+      return <div>{form}</div>;
+    }
     return (
       <div className="border-t border-emerald-100 pt-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">

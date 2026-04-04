@@ -18,13 +18,6 @@ type PanelProps = {
   schoolName: string;
 };
 
-function schoolAbbrev(name: string): string {
-  const alnum = name.replace(/[^a-zA-Z0-9]/g, "");
-  if (alnum.length >= 2) return alnum.slice(0, 2).toUpperCase();
-  if (alnum.length === 1) return `${alnum.toUpperCase()}·`;
-  return "··";
-}
-
 function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
   const cls = (ok: boolean | undefined) =>
     ok === undefined ? "text-zinc-400" : ok ? "text-emerald-600" : "text-red-600";
@@ -39,7 +32,7 @@ function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
   );
 }
 
-export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName }: PanelProps) {
+export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName: _schoolName }: PanelProps) {
   const { t } = useUiLanguage();
   const router = useRouter();
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -51,7 +44,6 @@ export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName }: Pa
 
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const isLead = viewerRole === "owner" || viewerRole === "department_head";
-  const abbrev = schoolAbbrev(schoolName);
   const bulkHref = `${base}/reports/pdf-batch?term=${bulkTerm}`;
 
   const refresh = useCallback(async () => {
@@ -126,16 +118,10 @@ export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName }: Pa
           </h2>
           <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-700">
             <span>{t("tenant.bulkDownloadAllReportsIn")}</span>
-            <span
-              className="inline-flex h-8 min-w-[2.5rem] items-center justify-center rounded-md border border-zinc-300 bg-zinc-50 px-2 font-mono text-sm font-semibold tracking-wider text-zinc-900"
-              aria-hidden
-            >
-              {abbrev}
-            </span>
             <select
               value={bulkTerm}
               onChange={(e) => setBulkTerm(e.target.value as "first" | "second" | "third")}
-              className="rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm font-medium text-zinc-900"
+              className="ml-[2ch] rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm font-medium text-zinc-900"
               aria-label={t("class.bulkDownloadTermLabel")}
             >
               <option value="first">{t("archive.term1")}</option>
@@ -176,14 +162,19 @@ export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName }: Pa
         )}
 
         <ul className="mt-4 divide-y divide-emerald-100">
-          {classes.map((c) => (
+          {classes.map((c) => {
+            const classOverviewHref = `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=overview`;
+            return (
             <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-              <div>
+              <Link
+                href={classOverviewHref}
+                className="min-w-0 flex-1 rounded-lg py-0.5 text-left outline-none ring-emerald-500/40 transition hover:bg-emerald-50/70 focus-visible:ring-2"
+              >
                 <span className="font-medium text-zinc-900">{c.name}</span>
                 <span className="ml-2 text-sm text-zinc-500">
                   {c.student_count} {c.student_count === 1 ? t("tenant.pupil") : t("tenant.pupils")}
                 </span>
-              </div>
+              </Link>
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className="inline-flex items-center"
@@ -193,7 +184,7 @@ export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName }: Pa
                   <TermReadiness terms={termByClass[c.id]} />
                 </span>
                 <Link
-                  href={`/reports/${tenantId}/classes/${c.id}`}
+                  href={classOverviewHref}
                   className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
                 >
                   <DoorOpen className={ICON_INLINE} aria-hidden />
@@ -212,7 +203,8 @@ export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName }: Pa
                 ) : null}
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
         {classes.length === 0 ? (
           <p className="mt-2 text-sm text-zinc-500">

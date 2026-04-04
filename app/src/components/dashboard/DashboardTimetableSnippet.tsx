@@ -7,9 +7,14 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 
-type Props = { tenantId: string; role: RomRole };
+type Props = {
+  tenantId: string;
+  role: RomRole;
+  /** Dashboard school workspace: open Timetable panel under the menu instead of leaving the page. */
+  onOpenTimetable?: () => void;
+};
 
-export function DashboardTimetableSnippet({ tenantId, role }: Props) {
+export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: Props) {
   const { t, lang } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}&inline=1`;
@@ -119,13 +124,24 @@ export function DashboardTimetableSnippet({ tenantId, role }: Props) {
         </div>
       ) : null}
       <div className={`flex flex-wrap gap-2 ${isOwner ? "mt-2" : "mt-1"}`}>
-        <Link
-          href={`/reports/${tenantId}/timetable`}
-          className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
-        >
-          <CalendarDays className={`${ICON_INLINE} h-3.5 w-3.5 opacity-90`} aria-hidden />
-          {role === "teacher" ? t("dash.myTimetable") : t("dash.timetable")}
-        </Link>
+        {onOpenTimetable && (role === "owner" || role === "department_head") ? (
+          <button
+            type="button"
+            onClick={onOpenTimetable}
+            className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+          >
+            <CalendarDays className={`${ICON_INLINE} h-3.5 w-3.5 opacity-90`} aria-hidden />
+            {t("dash.timetable")}
+          </button>
+        ) : (
+          <Link
+            href={`/reports/${encodeURIComponent(tenantId)}/timetable`}
+            className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+          >
+            <CalendarDays className={`${ICON_INLINE} h-3.5 w-3.5 opacity-90`} aria-hidden />
+            {role === "teacher" ? t("dash.myTimetable") : t("dash.timetable")}
+          </Link>
+        )}
         <a
           href={pdfHref}
           target="_blank"

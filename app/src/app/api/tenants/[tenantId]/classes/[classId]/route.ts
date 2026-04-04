@@ -4,7 +4,7 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import type { CefrLevel } from "@/lib/data/classesDb";
 import { canDeleteClass } from "@/lib/auth/resourceDelete";
 import { archiveScholasticYearAndResetReports } from "@/lib/data/classArchives";
-import { deleteClassInTenant, getClassInTenant, updateClass } from "@/lib/data/classesDb";
+import { deleteClassInTenant, enrichClassWithAssignedTeacherDisplay, getClassInTenant, updateClass } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -35,7 +35,8 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     if (!canAccessClass({ role, viewerEmail: gate.email, klass })) {
       return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
     }
-    return NextResponse.json({ class: klass });
+    const withNames = await enrichClassWithAssignedTeacherDisplay(tenantId, klass);
+    return NextResponse.json({ class: withNames });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to load class.";
     return NextResponse.json({ error: msg }, { status: 500 });
@@ -154,7 +155,8 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     }
 
     const klass = await updateClass(tenantId, classId, patch);
-    return NextResponse.json({ class: klass });
+    const withNames = await enrichClassWithAssignedTeacherDisplay(tenantId, klass);
+    return NextResponse.json({ class: withNames });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to update class.";
     return NextResponse.json({ error: msg }, { status: 500 });

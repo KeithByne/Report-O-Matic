@@ -14,10 +14,19 @@ function isUuid(s: string): boolean {
 
 export default async function ClassReportsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ tenantId: string; classId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { tenantId, classId } = await params;
+  const sp = searchParams ? await searchParams : {};
+  const rawPanel = sp.panel;
+  const panelParam = Array.isArray(rawPanel) ? rawPanel[0] : rawPanel;
+  const normalizedPanel = typeof panelParam === "string" ? panelParam.toLowerCase().trim() : "";
+  /** `panel=students` opens that section; `overview` or omitted = class overview (no section expanded). */
+  const initialOpenPanel =
+    normalizedPanel === "students" ? ("students" as const) : undefined;
   if (!isUuid(tenantId) || !isUuid(classId)) redirect("/reports");
 
   const token = (await cookies()).get("rom_session")?.value || "";
@@ -53,6 +62,7 @@ export default async function ClassReportsPage({
           schoolName={schoolName}
           className={cls.name}
           viewerRole={role}
+          initialOpenPanel={initialOpenPanel}
         />
       </main>
     </div>

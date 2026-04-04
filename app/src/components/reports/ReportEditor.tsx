@@ -314,7 +314,10 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
         {loadError}{" "}
-        <Link href={`/reports/${tenantId}/classes/${classId}`} className="font-medium text-red-950 underline">
+        <Link
+          href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?panel=overview`}
+          className="font-medium text-red-950 underline"
+        >
           {t("report.backClass")}
         </Link>
       </div>
@@ -340,7 +343,10 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
           </div>
           <p className="mt-1 text-sm text-zinc-600">{shortCourse ? t("report.pageIntroShort") : t("report.pageIntro")}</p>
         </div>
-        <Link href={`/reports/${tenantId}/classes/${classId}`} className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline">
+        <Link
+          href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?panel=overview`}
+          className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+        >
           {t("report.backClass")}
         </Link>
       </div>

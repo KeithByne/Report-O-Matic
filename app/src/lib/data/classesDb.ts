@@ -1,3 +1,4 @@
+import { getMembershipDisplayNameForEmail } from "@/lib/data/memberships";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import type { WeekdayKey } from "@/lib/activeWeekdays";
 import { normalizeActiveWeekdays, parseActiveWeekdaysFromDb } from "@/lib/activeWeekdays";
@@ -28,6 +29,24 @@ export type ClassRow = {
   active_weekdays: WeekdayKey[];
   created_at: string;
 };
+
+/** Class row plus membership display names for the assigned teacher (API responses). */
+export type ClassRowWithTeacherDisplay = ClassRow & {
+  assigned_teacher_first_name: string | null;
+  assigned_teacher_last_name: string | null;
+};
+
+export async function enrichClassWithAssignedTeacherDisplay(tenantId: string, klass: ClassRow): Promise<ClassRowWithTeacherDisplay> {
+  if (!klass.assigned_teacher_email?.trim()) {
+    return { ...klass, assigned_teacher_first_name: null, assigned_teacher_last_name: null };
+  }
+  const n = await getMembershipDisplayNameForEmail(tenantId, klass.assigned_teacher_email);
+  return {
+    ...klass,
+    assigned_teacher_first_name: n?.first_name ?? null,
+    assigned_teacher_last_name: n?.last_name ?? null,
+  };
+}
 
 const classSelect =
   "id, tenant_id, name, scholastic_year, cefr_level, default_subject, default_output_language, default_new_report_kind, assigned_teacher_email, active_weekdays, created_at";

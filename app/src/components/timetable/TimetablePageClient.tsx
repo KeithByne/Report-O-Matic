@@ -41,11 +41,24 @@ type ClassOpt = {
   active_weekdays?: string[];
 };
 
-type Props = { tenantId: string; schoolName: string; viewerRole: RomRole; embedded?: boolean };
+type Props = {
+  tenantId: string;
+  schoolName: string;
+  viewerRole: RomRole;
+  embedded?: boolean;
+  /** Owner on dashboard: open Classes and Reports panel under the menu (same as menu button). */
+  onOpenClassesAndReports?: () => void;
+};
 
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri"] as const;
 
-export function TimetablePageClient({ tenantId, schoolName, viewerRole, embedded = false }: Props) {
+export function TimetablePageClient({
+  tenantId,
+  schoolName,
+  viewerRole,
+  embedded = false,
+  onOpenClassesAndReports,
+}: Props) {
   const { t, lang } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
 
@@ -130,7 +143,9 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole, embedded
 
   function teacherLabelForEmail(email: string): string {
     const e = email.trim().toLowerCase();
-    return teachers.find((x) => x.email === e)?.label ?? email;
+    const lab = teachers.find((x) => x.email === e)?.label?.trim();
+    if (lab) return lab;
+    return t("class.teacherNameNotSet");
   }
 
   async function saveLayout() {
@@ -263,7 +278,27 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole, embedded
   return (
     <div className="space-y-6">
       {embedded ? (
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-2">
+            {viewerRole === "owner" && onOpenClassesAndReports ? (
+              <button
+                type="button"
+                onClick={onOpenClassesAndReports}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+              >
+                <BookOpen className={ICON_INLINE} aria-hidden />
+                {t("dash.ownerMenuClassesAndReports")}
+              </button>
+            ) : viewerRole === "owner" ? (
+              <Link
+                href={`/reports/${encodeURIComponent(tenantId)}?panel=classes`}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+              >
+                <BookOpen className={ICON_INLINE} aria-hidden />
+                {t("dash.ownerMenuClassesAndReports")}
+              </Link>
+            ) : null}
+          </div>
           <a
             href={pdfHref}
             target="_blank"
@@ -284,13 +319,23 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole, embedded
             {canEditGrid ? t("timetable.leadIntro") : t("timetable.teacherIntro")}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Link
-              href={`/reports/${tenantId}`}
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-            >
-              <Library className={ICON_INLINE} aria-hidden />
-              {t("nav.classesLanguage")}
-            </Link>
+            {viewerRole === "owner" ? (
+              <Link
+                href={`/reports/${encodeURIComponent(tenantId)}?panel=classes`}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+              >
+                <BookOpen className={ICON_INLINE} aria-hidden />
+                {t("dash.ownerMenuClassesAndReports")}
+              </Link>
+            ) : (
+              <Link
+                href={`/reports/${encodeURIComponent(tenantId)}`}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+              >
+                <Library className={ICON_INLINE} aria-hidden />
+                {t("nav.classesLanguage")}
+              </Link>
+            )}
             <a
               href={pdfHref}
               target="_blank"
@@ -539,7 +584,7 @@ export function TimetablePageClient({ tenantId, schoolName, viewerRole, embedded
                 if (!classIdForLink) return null;
                 return (
                   <Link
-                    href={`/reports/${tenantId}/classes/${encodeURIComponent(classIdForLink)}`}
+                    href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classIdForLink)}?panel=overview`}
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
                   >
                     <BookOpen className={ICON_INLINE} aria-hidden />

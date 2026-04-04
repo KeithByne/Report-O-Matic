@@ -40,7 +40,7 @@ export function ReportsFlowHeader({ mode, title, tenantId, classId, showAllSchoo
   }
   if (mode === "report" && tenantId && classId) {
     links.push({
-      href: `/reports/${tenantId}/classes/${classId}`,
+      href: `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?panel=overview`,
       label: t("nav.class"),
       Icon: BookMarked,
     });

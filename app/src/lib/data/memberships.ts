@@ -85,6 +85,27 @@ export async function getRoleForTenant(email: string, tenantId: string): Promise
   return r as RomRole;
 }
 
+/** First/last name on the membership row for a user in a tenant (for class settings display, etc.). */
+export async function getMembershipDisplayNameForEmail(
+  tenantId: string,
+  email: string,
+): Promise<{ first_name: string | null; last_name: string | null } | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const normalized = email.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from("memberships")
+    .select("first_name, last_name")
+    .eq("tenant_id", tenantId)
+    .eq("user_email", normalized)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    first_name: typeof (data as { first_name?: unknown }).first_name === "string" ? (data as { first_name: string }).first_name : null,
+    last_name: typeof (data as { last_name?: unknown }).last_name === "string" ? (data as { last_name: string }).last_name : null,
+  };
+}
+
 export type TenantMemberRow = {
   user_email: string;
   role: RomRole;

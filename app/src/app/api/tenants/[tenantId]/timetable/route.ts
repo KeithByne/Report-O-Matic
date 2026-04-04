@@ -15,11 +15,10 @@ function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 }
 
-function teacherLabel(m: { first_name: string | null; last_name: string | null; user_email: string }): string {
+function teacherLabel(m: { first_name: string | null; last_name: string | null }): string {
   const fn = (m.first_name ?? "").trim();
   const ln = (m.last_name ?? "").trim();
-  const name = `${fn} ${ln}`.trim();
-  return name || m.user_email;
+  return `${fn} ${ln}`.trim();
 }
 
 export async function GET(_req: Request, context: { params: Promise<{ tenantId: string }> }) {

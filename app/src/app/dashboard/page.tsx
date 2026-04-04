@@ -9,6 +9,7 @@ import {
   type TenantMemberRow,
 } from "@/lib/data/memberships";
 import { getOwnerCreditBalance } from "@/lib/data/credits";
+import { listClasses } from "@/lib/data/classesDb";
 import { getTeacherStatsForTenant, getTenantSummaryStats, type TeacherStats, type TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
 
 export default async function DashboardPage() {
@@ -66,6 +67,21 @@ export default async function DashboardPage() {
     teacherStatsByTenant = {};
   }
 
+  const teacherTenantIds = [...new Set(memberships.filter((m) => m.role === "teacher").map((m) => m.tenantId))];
+  const teacherClassIdByTenant: Record<string, string | null> = {};
+  if (teacherTenantIds.length > 0) {
+    await Promise.all(
+      teacherTenantIds.map(async (tid) => {
+        try {
+          const classes = await listClasses(tid, { viewerRole: "teacher", viewerEmail: session.email });
+          teacherClassIdByTenant[tid] = classes[0]?.id ?? null;
+        } catch {
+          teacherClassIdByTenant[tid] = null;
+        }
+      }),
+    );
+  }
+
   const isAccountOwner = memberships.some((m) => m.role === "owner");
   let ownerReportCredits: number | null = null;
   let firstOwnerTenantId: string | null = null;
@@ -88,6 +104,7 @@ export default async function DashboardPage() {
       teacherStatsByTenant={teacherStatsByTenant}
       ownerReportCredits={ownerReportCredits}
       firstOwnerTenantId={firstOwnerTenantId}
+      teacherClassIdByTenant={teacherClassIdByTenant}
     />
   );
 }

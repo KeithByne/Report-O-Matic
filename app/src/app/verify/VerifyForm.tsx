@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
+import { postSignInRedirectPath } from "@/lib/auth/saasOwnerShared";
 
 type Status = "idle" | "submitting" | "ok" | "err";
 
@@ -50,7 +51,7 @@ export function VerifyForm() {
 
       setStatus("ok");
       setMsg("Verified. Redirecting…");
-      setTimeout(() => router.push("/dashboard"), 500);
+      setTimeout(() => router.push(postSignInRedirectPath(email)), 500);
     } catch (err: unknown) {
       setStatus("err");
       setMsg(err instanceof Error ? err.message : "Verification failed.");

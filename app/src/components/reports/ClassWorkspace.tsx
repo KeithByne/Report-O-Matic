@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Archive,
   ArrowLeftRight,
   Download,
   FolderKanban,
@@ -13,7 +12,6 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ClassScholasticArchives } from "@/components/reports/ClassScholasticArchives";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -30,7 +28,6 @@ import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 
 type ClassWorkspacePanelId =
   | "settings"
-  | "archives"
   | "students"
   | "bulkDownload"
   | "movePupil"
@@ -38,7 +35,6 @@ type ClassWorkspacePanelId =
 
 const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
   settings: Settings2,
-  archives: Archive,
   students: Users,
   bulkDownload: Download,
   movePupil: ArrowLeftRight,
@@ -80,6 +76,9 @@ type ClassDetail = {
   default_output_language: string;
   default_new_report_kind?: ReportKind;
   assigned_teacher_email: string | null;
+  /** From membership; used for display (never show raw email in class settings). */
+  assigned_teacher_first_name?: string | null;
+  assigned_teacher_last_name?: string | null;
   active_weekdays: WeekdayKey[];
 };
 
@@ -95,11 +94,30 @@ type Props = {
   schoolName: string;
   className: string;
   viewerRole: ViewerRole;
+  /** From URL: `?panel=students` opens that section; `?panel=overview` or omitted = class overview (no section expanded). */
+  initialOpenPanel?: ClassWorkspacePanelId;
 };
 
 const CEFR = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 
-export function ClassWorkspace({ tenantId, classId, schoolName, className: initialClassName, viewerRole }: Props) {
+function formatTeacherNameParts(first: string | null | undefined, last: string | null | undefined): string | null {
+  const fn = (first ?? "").trim();
+  const ln = (last ?? "").trim();
+  const full = `${fn} ${ln}`.trim();
+  if (full) return full;
+  if (fn) return fn;
+  if (ln) return ln;
+  return null;
+}
+
+export function ClassWorkspace({
+  tenantId,
+  classId,
+  schoolName,
+  className: initialClassName,
+  viewerRole,
+  initialOpenPanel,
+}: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
@@ -201,8 +219,11 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [archiveRefresh, setArchiveRefresh] = useState(0);
-  const [openClassPanel, setOpenClassPanel] = useState<ClassWorkspacePanelId | null>(null);
+  const [openClassPanel, setOpenClassPanel] = useState<ClassWorkspacePanelId | null>(() => initialOpenPanel ?? null);
+
+  useEffect(() => {
+    setOpenClassPanel(initialOpenPanel ?? null);
+  }, [tenantId, classId, initialOpenPanel]);
 
   const toggleClassPanel = useCallback((id: ClassWorkspacePanelId) => {
     setOpenClassPanel((current) => (current === id ? null : id));
@@ -220,13 +241,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     const items: { id: ClassWorkspacePanelId; label: string; Icon: LucideIcon }[] = [
       { id: "settings", label: t("class.settingsTitle"), Icon: CLASS_PANEL_ICON.settings },
     ];
-    if (viewerRole === "owner") {
-      items.push({
-        id: "archives",
-        label: t("archive.title"),
-        Icon: CLASS_PANEL_ICON.archives,
-      });
-    }
     items.push(
       { id: "students", label: t("class.studentsTitle"), Icon: CLASS_PANEL_ICON.students },
       { id: "bulkDownload", label: t("class.panelBulkDownload"), Icon: CLASS_PANEL_ICON.bulkDownload },
@@ -334,13 +348,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     })();
   }, [base, viewerRole]);
 
-  function teacherLabel(t: TeacherOption): string {
-    const fn = (t.first_name ?? "").trim();
-    const ln = (t.last_name ?? "").trim();
-    const name = `${fn} ${ln}`.trim();
-    return name || t.email;
-  }
-
   useEffect(() => {
     if (viewerRole !== "owner" && viewerRole !== "department_head") return;
     void (async () => {
@@ -386,6 +393,19 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
     return t("class.duplicatePupilWarning", { locations });
   }, [duplicateNameMatches, classId, t]);
 
+  const assignedTeacherLabelInSettings = useMemo(() => {
+    if (!detail?.assigned_teacher_email?.trim()) return null;
+    const fromMembership = formatTeacherNameParts(
+      detail.assigned_teacher_first_name,
+      detail.assigned_teacher_last_name,
+    );
+    if (fromMembership) return fromMembership;
+    const em = detail.assigned_teacher_email.trim().toLowerCase();
+    const teach = teachers.find((x) => x.email === em);
+    if (teach) return formatTeacherNameParts(teach.first_name, teach.last_name) ?? t("class.teacherNameNotSet");
+    return t("class.teacherNameNotSet");
+  }, [detail, teachers, t]);
+
   async function saveClassSettings(e: React.FormEvent) {
     e.preventDefault();
     const isLead = viewerRole === "owner" || viewerRole === "department_head";
@@ -415,7 +435,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed");
       await loadClass();
-      setArchiveRefresh((n) => n + 1);
       await refreshStudents();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");
@@ -833,12 +852,12 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
                 <option value="">{t("class.notAssigned")}</option>
                 {assignTeacher && !teachers.some((x) => x.email === assignTeacher) ? (
                   <option value={assignTeacher}>
-                    {assignTeacher} {t("class.currentSuffix")}
+                    {assignedTeacherLabelInSettings ?? t("class.teacherNameNotSet")} {t("class.currentSuffix")}
                   </option>
                 ) : null}
                 {teachers.map((x) => (
                   <option key={x.email} value={x.email}>
-                    {teacherLabel(x)}
+                    {formatTeacherNameParts(x.first_name, x.last_name) ?? t("class.teacherNameNotSet")}
                   </option>
                 ))}
               </select>
@@ -847,13 +866,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           ) : detail?.assigned_teacher_email ? (
             <div className="sm:col-span-2">
               <h4 className="text-sm font-semibold text-zinc-900">{t("class.teacherHeading")}</h4>
-              <p className="mt-1 text-sm text-zinc-700">
-                {(() => {
-                  const em = detail.assigned_teacher_email?.trim().toLowerCase() || "";
-                  const teach = teachers.find((x) => x.email === em);
-                  return teach ? teacherLabel(teach) : detail.assigned_teacher_email;
-                })()}
-              </p>
+              <p className="mt-1 text-sm text-zinc-700">{assignedTeacherLabelInSettings}</p>
             </div>
           ) : null}
           <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
@@ -879,10 +892,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           </div>
         </form>
       </section>
-      ) : null}
-
-      {openClassPanel === "archives" && viewerRole === "owner" ? (
-        <ClassScholasticArchives key={archiveRefresh} classId={classId} apiBase={base} />
       ) : null}
 
       {openClassPanel === "students" ? (

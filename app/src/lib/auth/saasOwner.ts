@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
 import { getRomSessionEmail } from "@/lib/auth/getSession";
+import { isSaasOwnerEmail } from "@/lib/auth/saasOwnerShared";
 
-function normalizeEmail(s: string): string {
-  return s.trim().toLowerCase();
-}
-
-export function isSaasOwnerEmail(email: string): boolean {
-  const allow = process.env.ROM_SAAS_OWNER_EMAILS ?? "";
-  const list = allow
-    .split(",")
-    .map((x) => normalizeEmail(x))
-    .filter(Boolean);
-  if (list.length === 0) return false;
-  return list.includes(normalizeEmail(email));
-}
+export { isSaasOwnerEmail, postSignInRedirectPath, SAAS_OWNER_DASHBOARD_PATH } from "@/lib/auth/saasOwnerShared";
 
 export async function requireSaasOwner(): Promise<{ ok: true; email: string } | { ok: false; res: NextResponse }> {
   const email = await getRomSessionEmail();
@@ -23,4 +12,3 @@ export async function requireSaasOwner(): Promise<{ ok: true; email: string } | 
   }
   return { ok: true, email };
 }
-

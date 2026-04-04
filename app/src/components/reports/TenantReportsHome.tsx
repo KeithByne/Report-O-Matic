@@ -12,6 +12,7 @@ import {
   Sparkles,
   Trash2,
   UserPlus,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -36,7 +37,7 @@ type Props = {
   tenantId: string;
   schoolName: string;
   viewerRole: RomRole;
-  /** From `?panel=` on first load — opens matching section(s). (`classes` is not supported via URL.) */
+  /** From `?panel=` on first load — opens matching section(s). Use `classes`, `timetable`, `language`, `bulk`, `welcome`. */
   bootPanels?: TenantPanelId[];
 };
 
@@ -367,11 +368,18 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Link
-                    href={`/reports/${tenantId}/classes/${c.id}`}
+                    href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=overview`}
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
                   >
                     <DoorOpen className={ICON_INLINE} aria-hidden />
                     {t("tenant.openClass")}
+                  </Link>
+                  <Link
+                    href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=students`}
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+                  >
+                    <Users className={ICON_INLINE} aria-hidden />
+                    {t("class.studentsTitle")}
                   </Link>
                   {isLead ? (
                     <button
