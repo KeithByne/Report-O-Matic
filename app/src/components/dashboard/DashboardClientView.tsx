@@ -15,6 +15,7 @@ import {
   FileSpreadsheet,
   FolderKanban,
   GraduationCap,
+  Info,
   LayoutDashboard,
   LayoutList,
   Library,
@@ -57,6 +58,8 @@ type MyAgentLink = {
 };
 
 type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "classes" | "timetable";
+
+type TeacherWorkspacePanel = "info";
 
 export type DashboardClientViewProps = {
   email: string;
@@ -183,6 +186,11 @@ export function DashboardClientView({
   }, [visibleMemberships]);
 
   const [workspaceDashPanel, setWorkspaceDashPanel] = useState<WorkspaceDashPanel | null>(null);
+  const [teacherWorkspacePanel, setTeacherWorkspacePanel] = useState<TeacherWorkspacePanel | null>(null);
+
+  const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
+    setTeacherWorkspacePanel((current) => (current === panel ? null : panel));
+  }, []);
 
   useEffect(() => {
     if (!usesSchoolWorkspaceMenu) {
@@ -453,6 +461,46 @@ export function DashboardClientView({
             </div>
           ) : null}
 
+          {hasTeacherOnly && memberships.length > 0 && primaryMembership ? (
+            <div className="mt-5 border-t border-emerald-100 pt-5">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
+                <GraduationCap className={ICON_INLINE} aria-hidden />
+                {t("dash.teacherSectionMenuTitle")}
+              </h2>
+              <p className="mt-1 text-sm text-zinc-600">{t("dash.teacherSectionMenuHint")}</p>
+              <nav
+                className="mt-4 flex flex-wrap items-center gap-2"
+                aria-label={t("dash.teacherSectionMenuTitle")}
+              >
+                <button
+                  type="button"
+                  aria-pressed={teacherWorkspacePanel === "info"}
+                  onClick={() => toggleTeacherWorkspacePanel("info")}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    teacherWorkspacePanel === "info"
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                  }`}
+                >
+                  <Info className={ICON_INLINE} aria-hidden />
+                  {t("dash.teacherInformationButton")}
+                </button>
+                <Link
+                  href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}`}
+                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                >
+                  <Library className={ICON_INLINE} aria-hidden />
+                  {t("dash.reportsClasses")}
+                </Link>
+                {teacherWorkspacePanel ? (
+                  <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
+                    <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
+                  </span>
+                ) : null}
+              </nav>
+            </div>
+          ) : null}
+
           {hasOwner && memberships.length > 0 ? (
             <div className="mt-6 border-t border-emerald-100 pt-5">
               <div>
@@ -672,7 +720,7 @@ export function DashboardClientView({
                 <p className="mt-2 text-sm text-teal-900/90">{t("dash.dhBlurbBody")}</p>
               </section>
             ) : null}
-            {hasTeacherOnly ? (
+            {hasTeacherOnly && teacherWorkspacePanel === "info" ? (
               <section className="rounded-2xl border border-green-200 bg-green-50/80 p-5 shadow-sm">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-green-950">
                   <GraduationCap className={ICON_INLINE} aria-hidden />

@@ -19,6 +19,9 @@ export const NL_EXTRA: Record<string, string> = {
   "dash.teacherBlurbTitle": "Werkruimte docent",
   "dash.teacherBlurbBody":
     "Open via Rapporten een school en alleen klassen die aan uw e-mail zijn toegewezen. Op uw dashboard staan scholen waar u bij hoort; toewijzing gebeurt in het rapportencentrum.",
+  "dash.teacherSectionMenuTitle": "Docentdashboard",
+  "dash.teacherSectionMenuHint": "Kies een sectie voor hulp en tips hieronder.",
+  "dash.teacherInformationButton": "Informatie voor docenten",
   "dash.role.owner": "Eigenaar",
   "dash.role.department_head": "Afdelingshoofd",
   "dash.role.teacher": "Docent",
@@ -235,6 +238,9 @@ export const PL_EXTRA: Record<string, string> = {
   "dash.teacherBlurbTitle": "Przestrzeń nauczyciela",
   "dash.teacherBlurbBody":
     "W Sprawozdaniach otwierasz szkołę i tylko klasy przypisane do twojego e-maila. Na pulpicie widzisz szkoły, przypisanie jest w centrum sprawozdań.",
+  "dash.teacherSectionMenuTitle": "Panel nauczyciela",
+  "dash.teacherSectionMenuHint": "Wybierz sekcję, aby zobaczyć pomoc poniżej.",
+  "dash.teacherInformationButton": "Informacje dla nauczyciela",
   "dash.role.owner": "Właściciel",
   "dash.role.department_head": "Kierownik",
   "dash.role.teacher": "Nauczyciel",
@@ -448,6 +454,9 @@ export const RO_EXTRA: Record<string, string> = {
   "dash.teacherBlurbTitle": "Spațiu profesor",
   "dash.teacherBlurbBody":
     "Din Rapoarte deschideți o școală și doar clasele cu e-mailul dvs. Tabloul arată școlile; asignarea e în centrul de rapoarte.",
+  "dash.teacherSectionMenuTitle": "Panou profesor",
+  "dash.teacherSectionMenuHint": "Alegeți o secțiune pentru ajutor mai jos.",
+  "dash.teacherInformationButton": "Informații pentru profesor",
   "dash.role.owner": "Proprietar",
   "dash.role.department_head": "Șef departament",
   "dash.role.teacher": "Profesor",
@@ -657,6 +666,9 @@ export const RU_EXTRA: Record<string, string> = {
   "dash.teacherBlurbTitle": "Рабочее место учителя",
   "dash.teacherBlurbBody":
     "В разделе «Отчёты» откройте школу и только классы, назначенные на вашу почту. Назначение — в центре отчётов.",
+  "dash.teacherSectionMenuTitle": "Панель учителя",
+  "dash.teacherSectionMenuHint": "Выберите раздел, чтобы показать справку ниже.",
+  "dash.teacherInformationButton": "Сведения для учителя",
   "dash.role.owner": "Владелец",
   "dash.role.department_head": "Заведующий",
   "dash.role.teacher": "Учитель",
@@ -866,6 +878,9 @@ export const UK_EXTRA: Record<string, string> = {
   "dash.teacherBlurbTitle": "Робочий простір вчителя",
   "dash.teacherBlurbBody":
     "У розділі «Звіти» відкрийте школу й лише класи, призначені на вашу пошту.",
+  "dash.teacherSectionMenuTitle": "Панель вчителя",
+  "dash.teacherSectionMenuHint": "Оберіть розділ, щоб показати довідку нижче.",
+  "dash.teacherInformationButton": "Відомості для вчителя",
   "dash.role.owner": "Власник",
   "dash.role.department_head": "Завідувач",
   "dash.role.teacher": "Вчитель",
@@ -1075,6 +1090,9 @@ export const AR_EXTRA: Record<string, string> = {
   "dash.teacherBlurbTitle": "مساحة المعلّم",
   "dash.teacherBlurbBody":
     "من «التقارير» افتح مدرسة والفصول المرتبطة ببريدك فقط.",
+  "dash.teacherSectionMenuTitle": "لوحة المعلّم",
+  "dash.teacherSectionMenuHint": "اختر قسمًا لعرض المساعدة أدناه.",
+  "dash.teacherInformationButton": "معلومات المعلّم",
   "dash.role.owner": "مالك",
   "dash.role.department_head": "رئيس قسم",
   "dash.role.teacher": "معلّم",

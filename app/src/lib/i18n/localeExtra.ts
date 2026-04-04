@@ -28,6 +28,9 @@ export const IT_LABELS: Record<string, string> = {
   "dash.teacherBlurbTitle": "Area docente",
   "dash.teacherBlurbBody":
     "Usa Rapporti per aprire una scuola; vedrai solo le classi in cui la tua email è assegnata.",
+  "dash.teacherSectionMenuTitle": "Dashboard docente",
+  "dash.teacherSectionMenuHint": "Scegli una sezione per mostrare aiuto e suggerimenti sotto.",
+  "dash.teacherInformationButton": "Informazioni per il docente",
   "dash.yourSchools": "Le tue scuole",
   "dash.yourSchoolsHint": "Ruolo e azioni per organizzazione.",
   "dash.role.owner": "Proprietario",
@@ -328,6 +331,9 @@ export const PT_LABELS: Record<string, string> = {
   "dash.teacherBlurbTitle": "Área do professor",
   "dash.teacherBlurbBody":
     "Use Relatórios para abrir uma escola; só verá turmas onde o seu email está atribuído.",
+  "dash.teacherSectionMenuTitle": "Painel do professor",
+  "dash.teacherSectionMenuHint": "Escolha uma secção para ver a ajuda abaixo.",
+  "dash.teacherInformationButton": "Informação do professor",
   "dash.yourSchools": "As suas escolas",
   "dash.yourSchoolsHint": "Função e ações por organização.",
   "dash.role.owner": "Proprietário",
@@ -628,6 +634,9 @@ export const DE_LABELS: Record<string, string> = {
   "dash.teacherBlurbTitle": "Bereich Lehrkraft",
   "dash.teacherBlurbBody":
     "Öffnen Sie unter „Berichte“ eine Schule; Sie sehen nur Klassen, denen Ihre E-Mail zugewiesen ist.",
+  "dash.teacherSectionMenuTitle": "Lehrkraft-Dashboard",
+  "dash.teacherSectionMenuHint": "Wählen Sie einen Bereich für Hilfe und Tipps unten.",
+  "dash.teacherInformationButton": "Informationen für Lehrkräfte",
   "dash.yourSchools": "Ihre Schulen",
   "dash.yourSchoolsHint": "Rolle und Aktionen pro Organisation.",
   "dash.role.owner": "Inhaber",

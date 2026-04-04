@@ -462,6 +462,9 @@ const EN: UiMessages = {
   "dash.teacherBlurbTitle": "Teacher workspace",
   "dash.teacherBlurbBody":
     "Use Reports to open a school, then only classes assigned to your email by an owner or department head. Your dashboard lists schools you belong to; class assignment happens in the reports hub.",
+  "dash.teacherSectionMenuTitle": "Teacher dashboard",
+  "dash.teacherSectionMenuHint": "Choose a section to show help and tips below.",
+  "dash.teacherInformationButton": "Teacher's information",
   "dash.yourSchools": "Your schools",
   "dash.yourSchoolsHint": "Role, roster, and actions are per organisation.",
   "dash.schoolFocusTitle": "Choose a school",
@@ -1084,6 +1087,9 @@ const FR: UiMessages = {
   "dash.teacherBlurbTitle": "Espace enseignant",
   "dash.teacherBlurbBody":
     "Utilisez Rapports pour ouvrir une école, puis seulement les classes où votre e-mail est assigné.",
+  "dash.teacherSectionMenuTitle": "Tableau de bord enseignant",
+  "dash.teacherSectionMenuHint": "Choisissez une section pour afficher l’aide ci-dessous.",
+  "dash.teacherInformationButton": "Informations enseignant",
   "dash.yourSchools": "Vos écoles",
   "dash.yourSchoolsHint": "Rôle et actions par organisation.",
   "dash.schoolFocusTitle": "Choisir une école",
@@ -1500,6 +1506,9 @@ const ES: UiMessages = {
   "dash.teacherBlurbTitle": "Espacio del profesor",
   "dash.teacherBlurbBody":
     "Use Informes para abrir un centro; solo verá las clases asignadas a su correo.",
+  "dash.teacherSectionMenuTitle": "Panel del profesor",
+  "dash.teacherSectionMenuHint": "Elija una sección para ver la ayuda debajo.",
+  "dash.teacherInformationButton": "Información del profesor",
   "dash.yourSchools": "Sus centros",
   "dash.yourSchoolsHint": "Rol y acciones por organización.",
   "dash.schoolFocusTitle": "Elija un centro",
