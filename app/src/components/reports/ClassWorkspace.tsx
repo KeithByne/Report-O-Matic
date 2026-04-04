@@ -25,6 +25,8 @@ import {
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
+import type { RomRole } from "@/lib/data/memberships";
+import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 
 type ClassWorkspacePanelId =
   | "settings"
@@ -86,7 +88,12 @@ type ClassListRow = { id: string; name: string };
 
 type ViewerRole = "owner" | "department_head" | "teacher";
 
-type TeacherOption = { email: string; first_name: string | null; last_name: string | null };
+type TeacherOption = {
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role?: RomRole;
+};
 
 type Props = {
   tenantId: string;
@@ -436,6 +443,12 @@ export function ClassWorkspace({
       if (!res.ok) throw new Error(data.error || "Failed");
       await loadClass();
       await refreshStudents();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, { detail: { tenantId } }),
+        );
+      }
+      router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -855,11 +868,23 @@ export function ClassWorkspace({
                     {assignedTeacherLabelInSettings ?? t("class.teacherNameNotSet")} {t("class.currentSuffix")}
                   </option>
                 ) : null}
-                {teachers.map((x) => (
-                  <option key={x.email} value={x.email}>
-                    {formatTeacherNameParts(x.first_name, x.last_name) ?? t("class.teacherNameNotSet")}
-                  </option>
-                ))}
+                {teachers.map((x) => {
+                  const name = formatTeacherNameParts(x.first_name, x.last_name) ?? t("class.teacherNameNotSet");
+                  const roleSuffix =
+                    x.role === "owner"
+                      ? ` — ${t("roster.roleOwner")}`
+                      : x.role === "department_head"
+                        ? ` — ${t("roster.roleDeptShort")}`
+                        : x.role === "teacher"
+                          ? ` — ${t("roster.roleTeacher")}`
+                          : "";
+                  return (
+                    <option key={x.email} value={x.email}>
+                      {name}
+                      {roleSuffix}
+                    </option>
+                  );
+                })}
               </select>
               <p className="mt-1 text-xs text-zinc-500">{t("class.assignedTeacherHint")}</p>
             </div>

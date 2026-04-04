@@ -56,12 +56,12 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     }
 
     const members = await listMembersForTenant(tenantId);
-    const teacherMembers = members.filter((m) => m.role === "teacher");
-    const teachersForScope =
+    /** Labels for any assigned email (owner / DH / teacher), not only teacher role — matches class assignee list. */
+    const membersForLabels =
       role === "teacher"
-        ? teacherMembers.filter((m) => m.user_email.trim().toLowerCase() === gate.email.trim().toLowerCase())
-        : teacherMembers;
-    const teachers = teachersForScope.map((m) => ({
+        ? members.filter((m) => m.user_email.trim().toLowerCase() === gate.email.trim().toLowerCase())
+        : members;
+    const teachers = membersForLabels.map((m) => ({
       email: m.user_email.trim().toLowerCase(),
       label: teacherLabel(m),
     }));

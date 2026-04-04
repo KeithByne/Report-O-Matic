@@ -80,10 +80,10 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   }
 
   const members = await listMembersForTenant(tenantId);
-  const isTeacher = members.some((m) => m.user_email === teacher_email && m.role === "teacher");
-  if (!isTeacher) {
+  const onRoster = members.some((m) => m.user_email.trim().toLowerCase() === teacher_email);
+  if (!onRoster) {
     return NextResponse.json(
-      { error: "The class’s assigned teacher must be an invited teacher on the school roster." },
+      { error: "The class assignee must be a member of this school (owner, department head, or teacher)." },
       { status: 400 },
     );
   }

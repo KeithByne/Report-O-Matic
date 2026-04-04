@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
+import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 import { visibleMonFriDayIndexesFromClasses } from "@/lib/timetable/visibleTimetableDays";
 
@@ -109,6 +110,16 @@ export function TimetablePageClient({
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    const onClassSettingsSaved = (ev: Event) => {
+      const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
+      const id = ce.detail?.tenantId?.trim();
+      if (id && id === tenantId) void refresh();
+    };
+    window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+    return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+  }, [tenantId, refresh]);
 
   const periodTotal = settings ? settings.periods_am + settings.periods_pm : 0;
 

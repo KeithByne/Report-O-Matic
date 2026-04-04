@@ -21,6 +21,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
+import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
 import type { RomRole } from "@/lib/data/memberships";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -99,6 +100,16 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    const onClassSettingsSaved = (ev: Event) => {
+      const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
+      const id = ce.detail?.tenantId?.trim();
+      if (id && id === tenantId) void refresh();
+    };
+    window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+    return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+  }, [tenantId, refresh]);
 
   useEffect(() => {
     if (!bootPanels?.length) return;

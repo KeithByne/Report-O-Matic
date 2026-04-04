@@ -122,10 +122,10 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   }
 
   const members = await listMembersForTenant(tenantId);
-  const rosterOk = members.some((m) => m.user_email === teacher && m.role === "teacher");
+  const rosterOk = members.some((m) => m.user_email.trim().toLowerCase() === teacher);
   if (!rosterOk) {
     return NextResponse.json(
-      { error: "The class’s assigned teacher must be an invited teacher on the school roster." },
+      { error: "The class assignee must be a member of this school (owner, department head, or teacher)." },
       { status: 400 },
     );
   }

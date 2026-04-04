@@ -917,7 +917,8 @@ const EN: UiMessages = {
   "class.assignedTeacher": "Assigned teacher (must match invited teacher email)",
   "class.notAssigned": "— Not assigned —",
   "class.currentSuffix": "(current)",
-  "class.assignedTeacherHint": "Teachers only see classes assigned to them here. Invite teachers from the dashboard first.",
+  "class.assignedTeacherHint":
+    "Choose any school team member. Teachers only see classes assigned to them; owners and department heads can open every class in the school.",
   "class.assignmentLabel": "Class assignment:",
   "class.saveSettings": "Save class settings",
   "class.deleteClass": "Delete class",
@@ -1501,7 +1502,7 @@ const FR: UiMessages = {
   "class.notAssigned": "— Non assigné·e —",
   "class.currentSuffix": "(actuel)",
   "class.assignedTeacherHint":
-    "Les enseignants ne voient que les classes qui leur sont assignées. Invitez-les d’abord depuis le tableau de bord.",
+    "Choisissez tout membre de l’équipe. Les enseignants ne voient que les classes assignées ; les propriétaires et chefs de département voient toutes les classes.",
   "class.assignmentLabel": "Assignation de la classe :",
   "class.saveSettings": "Enregistrer les paramètres",
   "class.deleteClass": "Supprimer la classe",
@@ -1946,7 +1947,7 @@ const ES: UiMessages = {
   "class.notAssigned": "— Sin asignar —",
   "class.currentSuffix": "(actual)",
   "class.assignedTeacherHint":
-    "Los profesores solo ven las clases asignadas. Invite primero desde el panel.",
+    "Cualquier miembro del equipo puede elegirse. Los profesores solo ven las clases asignadas; titulares y jefes de departamento ven todas.",
   "class.assignmentLabel": "Asignación de la clase:",
   "class.saveSettings": "Guardar ajustes",
   "class.deleteClass": "Eliminar clase",

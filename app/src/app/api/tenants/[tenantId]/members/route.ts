@@ -29,13 +29,13 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
 
   try {
     const members = await listMembersForTenant(tenantId);
-    const teachers = members
-      .filter((m) => m.role === "teacher")
-      .map((m) => ({
-        email: m.user_email,
-        first_name: m.first_name,
-        last_name: m.last_name,
-      }));
+    /** Everyone in the school (any role) — used for class “assigned teacher” and similar pickers. */
+    const teachers = members.map((m) => ({
+      email: m.user_email.trim().toLowerCase(),
+      first_name: m.first_name,
+      last_name: m.last_name,
+      role: m.role,
+    }));
     return NextResponse.json({ members, teachers });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to load members.";
