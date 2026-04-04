@@ -63,7 +63,7 @@ const el = {
   "dash.teamRoster": "Ομάδα",
   "dash.inviteTeam": "Πρόσκληση ομάδας",
   "dash.inviteTeamHint":
-    "Οι ιδιοκτήτες προσθέτουν υπεύθυνους ή εκπαιδευτικούς. Οι υπεύθυνοι μόνο εκπαιδευτικούς. Σύνδεση με email και κωδικό.",
+    "Οι υπεύθυνοι τμήματος προσθέτουν εκπαιδευτικούς. Σύνδεση με το προσκεκλημένο email και κωδικό μίας χρήσης.",
   "dash.addSchoolTitle": "Προσθήκη άλλου σχολείου",
   "dash.addSchoolHint": "Δημιουργήστε επιπλέον οργανισμό του οποίου θα είστε ιδιοκτήτης.",
   "dash.addSchoolPlaceholder": "Όνομα σχολείου",
@@ -146,6 +146,14 @@ const el = {
     "Επιλογή τριμήνου, πλέγμα 0–10 και ΣΥΝ στην αναφορά κάθε μαθητή (όχι εδώ).",
   "class.bulkPdfWhichReports": "Η μαζική λήψη περιλαμβάνει",
   "class.bulkPdfAllReady": "Όλες οι έτοιμες αναφορές",
+  "class.groupDownloadBy": "Ομαδοποίηση λήψης κατά",
+  "class.groupDownloadThisClass": "Αυτή η τάξη",
+  "class.panelBulkDownload": "Μαζική λήψη",
+  "class.panelMovePupil": "Μετακίνηση μαθητή",
+  "class.bulkDownloadTermLabel": "Τρίμηνο",
+  "class.bulkDownloadSelectLabel": "Επιλέξτε",
+  "class.bulkDownloadPanelHint":
+    "Μόνο αυτή η τάξη: ένα PDF με την ολοκληρωμένη αναφορά κάθε μαθητή για το επιλεγμένο τρίμηνο (1, 2 ή 3).",
   "archive.title": "Αρχεία σχολικού έτους",
   "archive.emptyExpl":
     "Όταν αλλάζει το σχολικό έτος, οι αναφορές του προηγούμενου αποθηκεύονται εδώ. Οι μαθητές παραμένουν· οι αναφορές ξεκινούν από την αρχή.",

@@ -4,6 +4,8 @@ import {
   AlertTriangle,
   BookOpen,
   Briefcase,
+  CalendarDays,
+  Download,
   ArrowDown,
   Building2,
   ClipboardList,
@@ -11,6 +13,7 @@ import {
   FileCheck,
   FileImage,
   FileSpreadsheet,
+  FolderKanban,
   GraduationCap,
   LayoutDashboard,
   LayoutList,
@@ -28,16 +31,18 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AddSchoolForm } from "@/components/dashboard/AddSchoolForm";
+import { DashboardDhClassesPanel } from "@/components/dashboard/DashboardDhInlineSchoolPanels";
 import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTable";
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
+import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
-import { ICON_INLINE } from "@/components/ui/iconSizes";
+import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { TeacherStats, TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
@@ -51,7 +56,7 @@ type MyAgentLink = {
   payout_stripe_account_id?: string | null;
 };
 
-type OwnerDashPanel = "overview" | "pdf" | "invites";
+type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "classes" | "timetable";
 
 export type DashboardClientViewProps = {
   email: string;
@@ -99,8 +104,22 @@ export function DashboardClientView({
     );
   }, [memberships]);
 
+  /** Schools where this user is department head (alphabetical); used to pick a default workspace without a selector. */
+  const deptHeadSchools = useMemo(() => {
+    const byId = new Map<string, string>();
+    for (const m of memberships) {
+      if (m.role === "department_head" && !byId.has(m.tenantId)) {
+        byId.set(m.tenantId, m.tenantName);
+      }
+    }
+    return [...byId.entries()].sort((a, b) =>
+      a[1].localeCompare(b[1], undefined, { sensitivity: "base" }),
+    );
+  }, [memberships]);
+
   const [ownerFocusTenantId, setOwnerFocusTenantId] = useState<string | null>(null);
   const userClearedSchoolFocus = useRef(false);
+  const [dhFocusTenantId, setDhFocusTenantId] = useState<string | null>(null);
   const [agentStartupOpen, setAgentStartupOpen] = useState(false);
 
   useEffect(() => {
@@ -125,16 +144,33 @@ export function DashboardClientView({
   }, [hasOwner, memberships, uniqueSchools]);
 
   useEffect(() => {
+    if (hasOwner || !hasDeptHead) {
+      setDhFocusTenantId(null);
+      return;
+    }
+    const ids = deptHeadSchools.map(([id]) => id);
+    setDhFocusTenantId(ids.length > 0 ? ids[0] : null);
+  }, [hasOwner, hasDeptHead, deptHeadSchools]);
+
+  useEffect(() => {
     if (ownerFocusTenantId) setAgentStartupOpen(false);
   }, [ownerFocusTenantId]);
 
   const visibleMemberships = useMemo(() => {
-    if (!hasOwner || memberships.length === 0) return memberships;
-    if (!ownerFocusTenantId) return [];
-    return memberships.filter((m) => m.tenantId === ownerFocusTenantId);
-  }, [hasOwner, memberships, ownerFocusTenantId]);
+    if (memberships.length === 0) return [];
+    if (hasOwner) {
+      if (!ownerFocusTenantId) return [];
+      return memberships.filter((m) => m.tenantId === ownerFocusTenantId);
+    }
+    if (hasDeptHead) {
+      if (!dhFocusTenantId) return [];
+      return memberships.filter((m) => m.tenantId === dhFocusTenantId);
+    }
+    return memberships;
+  }, [hasOwner, hasDeptHead, memberships, ownerFocusTenantId, dhFocusTenantId]);
 
-  const ownerUsesSchoolMenu = hasOwner && visibleMemberships.length > 0;
+  const usesSchoolWorkspaceMenu = visibleMemberships.length > 0 && (hasOwner || hasDeptHead);
+  const deptHeadOnlyWorkspace = usesSchoolWorkspaceMenu && !hasOwner;
 
   const primaryMembership = useMemo(() => {
     if (visibleMemberships.length === 0) return null;
@@ -146,33 +182,45 @@ export function DashboardClientView({
     return best;
   }, [visibleMemberships]);
 
-  const [ownerDashPanel, setOwnerDashPanel] = useState<OwnerDashPanel | null>(null);
+  const [workspaceDashPanel, setWorkspaceDashPanel] = useState<WorkspaceDashPanel | null>(null);
 
   useEffect(() => {
-    setOwnerDashPanel(null);
-  }, [ownerFocusTenantId]);
+    if (!usesSchoolWorkspaceMenu) {
+      setWorkspaceDashPanel(null);
+      return;
+    }
+    if (!hasOwner) {
+      setWorkspaceDashPanel(null);
+      return;
+    }
+    setWorkspaceDashPanel("overview");
+  }, [usesSchoolWorkspaceMenu, hasOwner, ownerFocusTenantId, dhFocusTenantId]);
 
-  const toggleOwnerDashPanel = useCallback((panel: OwnerDashPanel) => {
-    setOwnerDashPanel((current) => (current === panel ? null : panel));
+  const toggleWorkspaceDashPanel = useCallback((panel: WorkspaceDashPanel) => {
+    setWorkspaceDashPanel((current) => (current === panel ? null : panel));
   }, []);
 
-  const showOwnerPdfTab = visibleMemberships.some((m) => m.role === "owner");
-  const showOwnerInvitesTab = visibleMemberships.some(
+  const showWorkspacePdfTab = visibleMemberships.some((m) => m.role === "owner");
+  const showWorkspaceInvitesTab = visibleMemberships.some(
+    (m) => m.role === "owner" || m.role === "department_head",
+  );
+  const showWorkspaceDownloadsTab = visibleMemberships.some(
     (m) => m.role === "owner" || m.role === "department_head",
   );
 
   const menuOverviewSummary = useMemo(() => {
-    if (!primaryMembership || primaryMembership.role !== "owner") return undefined;
+    if (!primaryMembership) return undefined;
+    if (primaryMembership.role !== "owner" && primaryMembership.role !== "department_head") return undefined;
     return summaryByTenant[primaryMembership.tenantId];
   }, [primaryMembership, summaryByTenant]);
 
   const refreshReportLangs = useCallback(async () => {
     const targets =
-      !hasOwner || memberships.length === 0
-        ? memberships
-        : visibleMemberships.length > 0
+      hasOwner || hasDeptHead
+        ? visibleMemberships.length > 0
           ? visibleMemberships
-          : [];
+          : []
+        : memberships;
     if (targets.length === 0) {
       setReportLangByTenant({});
       return;
@@ -187,7 +235,7 @@ export function DashboardClientView({
       }),
     );
     setReportLangByTenant(next);
-  }, [hasOwner, memberships, visibleMemberships]);
+  }, [hasOwner, hasDeptHead, memberships, visibleMemberships]);
 
   useEffect(() => {
     void refreshReportLangs();
@@ -257,13 +305,6 @@ export function DashboardClientView({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <GlobeLanguageSwitcher />
-            <Link
-              href="/reports"
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
-            >
-              <Library className={ICON_INLINE} aria-hidden />
-              {t("nav.reports")}
-            </Link>
             <form action="/api/auth/sign-out" method="post">
               <button
                 type="submit"
@@ -286,6 +327,131 @@ export function DashboardClientView({
             </span>
             <span className="min-w-0 break-all font-mono font-normal text-zinc-900">{email}</span>
           </h2>
+
+          {usesSchoolWorkspaceMenu && memberships.length > 0 && primaryMembership ? (
+            <div className="mt-5 border-t border-emerald-100 pt-5">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
+                {hasOwner ? (
+                  <Building2 className={ICON_INLINE} aria-hidden />
+                ) : (
+                  <FolderKanban className={ICON_INLINE} aria-hidden />
+                )}
+                {hasOwner ? t("dash.schoolWorkspaceMenuTitle") : t("tenant.sectionMenuTitle")}
+              </h2>
+              <p className="mt-1 text-sm text-zinc-600">
+                {hasOwner ? t("dash.schoolWorkspaceMenuHint") : t("tenant.sectionMenuHint")}
+              </p>
+              <nav
+                className="mt-4 flex flex-wrap gap-2"
+                aria-label={hasOwner ? t("dash.schoolWorkspaceMenuTitle") : t("tenant.sectionMenuTitle")}
+              >
+                <button
+                  type="button"
+                  aria-pressed={workspaceDashPanel === "overview"}
+                  onClick={() => toggleWorkspaceDashPanel("overview")}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    workspaceDashPanel === "overview"
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                  }`}
+                >
+                  <LayoutList className={ICON_INLINE} aria-hidden />
+                  {t("dash.panelOverview")}
+                </button>
+                {deptHeadOnlyWorkspace ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-pressed={workspaceDashPanel === "classes"}
+                      onClick={() => toggleWorkspaceDashPanel("classes")}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        workspaceDashPanel === "classes"
+                          ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                          : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                      }`}
+                    >
+                      <BookOpen className={ICON_INLINE} aria-hidden />
+                      {t("tenant.panelClasses")}
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={workspaceDashPanel === "timetable"}
+                      onClick={() => toggleWorkspaceDashPanel("timetable")}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        workspaceDashPanel === "timetable"
+                          ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                          : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                      }`}
+                    >
+                      <CalendarDays className={ICON_INLINE} aria-hidden />
+                      {t("tenant.panelTimetable")}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}`}
+                      className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                    >
+                      <BookOpen className={ICON_INLINE} aria-hidden />
+                      {t("tenant.panelClasses")}
+                    </Link>
+                    <Link
+                      href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}`}
+                      className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                    >
+                      <Library className={ICON_INLINE} aria-hidden />
+                      {t("nav.reports")}
+                    </Link>
+                  </>
+                )}
+                {showWorkspacePdfTab ? (
+                  <button
+                    type="button"
+                    aria-pressed={workspaceDashPanel === "pdf"}
+                    onClick={() => toggleWorkspaceDashPanel("pdf")}
+                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      workspaceDashPanel === "pdf"
+                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                    }`}
+                  >
+                    <FileImage className={ICON_INLINE} aria-hidden />
+                    {t("dash.panelPdfLetterhead")}
+                  </button>
+                ) : null}
+                {showWorkspaceInvitesTab ? (
+                  <button
+                    type="button"
+                    aria-pressed={workspaceDashPanel === "invites"}
+                    onClick={() => toggleWorkspaceDashPanel("invites")}
+                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      workspaceDashPanel === "invites"
+                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                    }`}
+                  >
+                    <UserPlus className={ICON_INLINE} aria-hidden />
+                    {t("dash.panelInviteTeam")}
+                  </button>
+                ) : null}
+                {showWorkspaceDownloadsTab && !deptHeadOnlyWorkspace ? (
+                  <Link
+                    href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}?panel=downloads`}
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                  >
+                    <Download className={ICON_INLINE} aria-hidden />
+                    {t("tenant.panelDownloads")}
+                  </Link>
+                ) : null}
+                {workspaceDashPanel ? (
+                  <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
+                    <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
+                  </span>
+                ) : null}
+              </nav>
+            </div>
+          ) : null}
 
           {hasOwner && memberships.length > 0 ? (
             <div className="mt-6 border-t border-emerald-100 pt-5">
@@ -497,7 +663,7 @@ export function DashboardClientView({
           </section>
         ) : (
           <>
-            {hasDeptHead && !hasOwner ? (
+            {hasDeptHead && !hasOwner && !usesSchoolWorkspaceMenu ? (
               <section className="rounded-2xl border border-teal-200 bg-teal-50/80 p-5 shadow-sm">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-teal-950">
                   <Briefcase className={ICON_INLINE} aria-hidden />
@@ -516,67 +682,9 @@ export function DashboardClientView({
               </section>
             ) : null}
 
-            {ownerUsesSchoolMenu ? (
+            {usesSchoolWorkspaceMenu ? (
               <>
-                <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-                  <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
-                    <Building2 className={ICON_INLINE} aria-hidden />
-                    {t("dash.schoolWorkspaceMenuTitle")}
-                  </h2>
-                  <p className="mt-1 text-sm text-zinc-600">{t("dash.schoolWorkspaceMenuHint")}</p>
-                  <nav className="mt-4 flex flex-wrap gap-2" aria-label={t("dash.schoolWorkspaceMenuTitle")}>
-                    <button
-                      type="button"
-                      aria-pressed={ownerDashPanel === "overview"}
-                      onClick={() => toggleOwnerDashPanel("overview")}
-                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                        ownerDashPanel === "overview"
-                          ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                          : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                      }`}
-                    >
-                      <LayoutList className={ICON_INLINE} aria-hidden />
-                      {t("dash.panelOverview")}
-                    </button>
-                    {showOwnerPdfTab ? (
-                      <button
-                        type="button"
-                        aria-pressed={ownerDashPanel === "pdf"}
-                        onClick={() => toggleOwnerDashPanel("pdf")}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                          ownerDashPanel === "pdf"
-                            ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                            : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                        }`}
-                      >
-                        <FileImage className={ICON_INLINE} aria-hidden />
-                        {t("dash.panelPdfLetterhead")}
-                      </button>
-                    ) : null}
-                    {showOwnerInvitesTab ? (
-                      <button
-                        type="button"
-                        aria-pressed={ownerDashPanel === "invites"}
-                        onClick={() => toggleOwnerDashPanel("invites")}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                          ownerDashPanel === "invites"
-                            ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                            : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                        }`}
-                      >
-                        <UserPlus className={ICON_INLINE} aria-hidden />
-                        {t("dash.panelInviteTeam")}
-                      </button>
-                    ) : null}
-                    {ownerDashPanel ? (
-                      <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
-                        <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
-                      </span>
-                    ) : null}
-                  </nav>
-                </section>
-
-                {ownerDashPanel === "overview" && primaryMembership ? (
+                {workspaceDashPanel === "overview" && primaryMembership ? (
                   <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
                     <h2 className="flex items-center gap-2 text-lg font-semibold text-zinc-900">
                       <Building2 className={ICON_INLINE} aria-hidden />
@@ -702,7 +810,7 @@ export function DashboardClientView({
                   </section>
                 ) : null}
 
-                {ownerDashPanel === "pdf" && showOwnerPdfTab ? (
+                {workspaceDashPanel === "pdf" && showWorkspacePdfTab ? (
                   <DashboardTenantPdfLetterhead
                     tenants={visibleMemberships
                       .filter((m) => m.role === "owner")
@@ -711,7 +819,7 @@ export function DashboardClientView({
                   />
                 ) : null}
 
-                {ownerDashPanel === "invites" && showOwnerInvitesTab ? (
+                {workspaceDashPanel === "invites" && showWorkspaceInvitesTab ? (
                   <section className="space-y-4">
                     <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
                       <UserPlus className={ICON_INLINE} aria-hidden />
@@ -740,10 +848,33 @@ export function DashboardClientView({
                       ))}
                   </section>
                 ) : null}
+
+                {deptHeadOnlyWorkspace && primaryMembership && workspaceDashPanel === "classes" ? (
+                  <DashboardDhClassesPanel
+                    tenantId={primaryMembership.tenantId}
+                    viewerRole={primaryMembership.role}
+                    schoolName={primaryMembership.tenantName}
+                  />
+                ) : null}
+
+                {deptHeadOnlyWorkspace && primaryMembership && workspaceDashPanel === "timetable" ? (
+                  <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5">
+                    <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-zinc-900">
+                      <CalendarDays className={ICON_SECTION} aria-hidden />
+                      {t("timetable.title")}
+                    </h2>
+                    <TimetablePageClient
+                      tenantId={primaryMembership.tenantId}
+                      schoolName={primaryMembership.tenantName}
+                      viewerRole={primaryMembership.role}
+                      embedded
+                    />
+                  </div>
+                ) : null}
               </>
             ) : null}
 
-            {!ownerUsesSchoolMenu ? (
+            {!usesSchoolWorkspaceMenu ? (
               <>
                 <DashboardTenantLanguage
                   tenants={visibleMemberships.map((m) => ({

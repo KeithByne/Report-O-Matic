@@ -7,9 +7,11 @@ import {
   DoorOpen,
   FolderKanban,
   Languages,
+  LayoutList,
   Plus,
   Sparkles,
   Trash2,
+  UserPlus,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,23 +30,25 @@ type ClassRow = {
   student_count: number;
 };
 
-type Props = { tenantId: string; schoolName: string; viewerRole: RomRole };
+export type TenantPanelId = "welcome" | "timetable" | "language" | "bulk" | "classes";
 
-type TenantPanelId = "welcome" | "timetable" | "language" | "bulk" | "classes";
+type Props = {
+  tenantId: string;
+  schoolName: string;
+  viewerRole: RomRole;
+  /** From `?panel=` on first load — opens matching section(s). (`classes` is not supported via URL.) */
+  bootPanels?: TenantPanelId[];
+};
 
 const PANEL_ICON: Record<TenantPanelId, LucideIcon> = {
-  welcome: Sparkles,
+  welcome: LayoutList,
   language: Languages,
   classes: BookOpen,
   bulk: Download,
   timetable: CalendarDays,
 };
 
-function initialOpenPanels(): Set<TenantPanelId> {
-  return new Set();
-}
-
-export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
+export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -54,16 +58,14 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
   const [bulkGroupBy, setBulkGroupBy] = useState<"term" | "teacher" | "class" | "student">("term");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [openPanels, setOpenPanels] = useState<Set<TenantPanelId>>(initialOpenPanels);
+  const [openPanels, setOpenPanels] = useState<Set<TenantPanelId>>(() => new Set());
 
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
 
   const togglePanel = useCallback((id: TenantPanelId) => {
     setOpenPanels((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+      if (prev.has(id) && prev.size === 1) return new Set();
+      return new Set([id]);
     });
   }, []);
 
@@ -96,6 +98,14 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!bootPanels?.length) return;
+    const lead = viewerRole === "owner" || viewerRole === "department_head";
+    const allowed = bootPanels.filter((panelId) => panelId !== "bulk" || lead);
+    if (!allowed.length) return;
+    setOpenPanels(new Set([allowed[allowed.length - 1]]));
+  }, [bootPanels, viewerRole]);
 
   async function saveLanguage(next: ReportLanguageCode) {
     setLang(next);
@@ -163,7 +173,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
 
   const menuItems = useMemo(() => {
     const items: { id: TenantPanelId; label: string; Icon: LucideIcon }[] = [
-      { id: "welcome", label: t("tenant.panelWelcome"), Icon: PANEL_ICON.welcome },
+      { id: "welcome", label: t("dash.panelOverview"), Icon: PANEL_ICON.welcome },
       { id: "language", label: t("tenant.panelLanguage"), Icon: PANEL_ICON.language },
       { id: "classes", label: t("tenant.panelClasses"), Icon: PANEL_ICON.classes },
       { id: "timetable", label: t("tenant.panelTimetable"), Icon: PANEL_ICON.timetable },
@@ -192,6 +202,15 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole }: Props) {
               {label}
             </button>
           ))}
+          {isLead ? (
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+            >
+              <UserPlus className={ICON_INLINE} aria-hidden />
+              {t("dash.panelInviteTeam")}
+            </Link>
+          ) : null}
         </nav>
       </section>
 

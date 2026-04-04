@@ -1,6 +1,6 @@
 "use client";
 
-import { BookMarked, Building2, LayoutDashboard, Library, type LucideIcon } from "lucide-react";
+import { BookMarked, Building2, LayoutDashboard, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
@@ -15,9 +15,11 @@ type Props = {
   title: string;
   tenantId?: string;
   classId?: string;
+  /** Multi-school hub at /reports — owners only; hide for department heads and teachers. */
+  showAllSchoolsLink?: boolean;
 };
 
-export function ReportsFlowHeader({ mode, title, tenantId, classId }: Props) {
+export function ReportsFlowHeader({ mode, title, tenantId, classId, showAllSchoolsLink }: Props) {
   const { t } = useUiLanguage();
 
   const links: { href: string; label: string; Icon: LucideIcon }[] = [];
@@ -25,12 +27,15 @@ export function ReportsFlowHeader({ mode, title, tenantId, classId }: Props) {
     links.push({ href: "/dashboard", label: t("nav.backDashboard"), Icon: LayoutDashboard });
   }
   if (mode === "tenant") {
-    links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    if (showAllSchoolsLink) {
+      links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    }
     links.push({ href: "/dashboard", label: t("nav.dashboard"), Icon: LayoutDashboard });
   }
   if (mode === "class" && tenantId) {
-    links.push({ href: `/reports/${tenantId}`, label: t("nav.classesLanguage"), Icon: Library });
-    links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    if (showAllSchoolsLink) {
+      links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    }
     links.push({ href: "/dashboard", label: t("nav.dashboard"), Icon: LayoutDashboard });
   }
   if (mode === "report" && tenantId && classId) {
@@ -39,12 +44,9 @@ export function ReportsFlowHeader({ mode, title, tenantId, classId }: Props) {
       label: t("nav.class"),
       Icon: BookMarked,
     });
-    links.push({
-      href: `/reports/${tenantId}`,
-      label: t("nav.classesLanguage"),
-      Icon: Library,
-    });
-    links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    if (showAllSchoolsLink) {
+      links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
+    }
     links.push({ href: "/dashboard", label: t("nav.dashboard"), Icon: LayoutDashboard });
   }
 

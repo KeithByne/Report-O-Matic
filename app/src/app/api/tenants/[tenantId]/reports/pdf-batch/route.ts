@@ -10,7 +10,12 @@ import { languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
-import { resolvedSubjectCode } from "@/lib/reportInputs";
+import {
+  parseClassBulkPdfTermFilter,
+  reportReadyForClassBulkPdf,
+  resolvedSubjectCode,
+  type ReportPeriod,
+} from "@/lib/reportInputs";
 import { isSubjectCode } from "@/lib/subjects";
 
 export const runtime = "nodejs";
@@ -102,6 +107,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const onlyFinal = url.searchParams.get("onlyFinal") === "1";
   const orderRaw = (url.searchParams.get("order") || "").trim().toLowerCase();
   const group = GROUP_MODES.has(orderRaw) ? orderRaw : "term";
+  const termFilter = parseClassBulkPdfTermFilter(url.searchParams.get("term"));
+  const classTermNotReadyMsg = "Every pupil needs a finished report for the selected term.";
 
   const classes = await listClasses(tenantId, { viewerRole: role, viewerEmail: gate.email });
   const classById = new Map(classes.map((c) => [c.id, c] as const));
@@ -119,6 +126,20 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   }
 
   if (onlyFinal) reports = reports.filter((r) => r.status === "final");
+
+  const rowReady = (r: ReportRow) =>
+    reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
+
+  if (termFilter !== "all") {
+    const period = termFilter as ReportPeriod;
+    const toMerge = reports.filter((r) => rowReady(r) && r.inputs.report_period === period);
+    for (const s of students) {
+      if (!toMerge.some((r) => r.student_id === s.id)) {
+        return NextResponse.json({ error: classTermNotReadyMsg }, { status: 409 });
+      }
+    }
+    reports = toMerge;
+  }
 
   const studentNameOf = (studentId: string) => (studentById.get(studentId)?.display_name || "").toLowerCase();
   const classNameOfReport = (r: ReportRow) => {
@@ -173,7 +194,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   }
 
   const merged = await mergePdfBuffers(pdfs);
-  const fname = safeFilename("bulk-reports") + ".pdf";
+  const fname =
+    safeFilename(termFilter !== "all" ? `bulk-reports-${termFilter}` : "bulk-reports") + ".pdf";
   return new NextResponse(new Uint8Array(merged), {
     status: 200,
     headers: {

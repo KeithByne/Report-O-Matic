@@ -33,7 +33,13 @@ export default async function ReportEditPage({
 
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
-      <ReportsFlowHeader mode="report" title={schoolName} tenantId={tenantId} classId={classId} />
+      <ReportsFlowHeader
+        mode="report"
+        title={schoolName}
+        tenantId={tenantId}
+        classId={classId}
+        showAllSchoolsLink={role === "owner"}
+      />
       <main className="mx-auto max-w-4xl px-5 py-8">
         <ReportEditor tenantId={tenantId} classId={classId} reportId={reportId} schoolName={schoolName} />
       </main>

@@ -486,7 +486,7 @@ const EN: UiMessages = {
   "dash.teamRoster": "Team roster",
   "dash.inviteTeam": "Invite team",
   "dash.inviteTeamHint":
-    "Owners can add department heads or teachers. Department heads can add teachers only. Everyone signs in with the invited email and a one-time code.",
+    "Department heads can add teachers. Everyone signs in with the invited email and one-time code.",
   "dash.agentSectionTitle": "Owner / Agent",
   "dash.agentSectionLead":
     "Your unique referral link for tracking signups and agent earnings. Set the Stripe account to pay when ready.",
@@ -621,10 +621,20 @@ const EN: UiMessages = {
   "tenant.panelBulk": "Bulk downloads",
   "tenant.panelDownloads": "Downloads",
   "tenant.panelClasses": "Classes",
+  "tenant.bulkDownloadAllReportsIn": "Bulk download all reports in",
+  "tenant.termReadinessHint": "Term readiness: 1, 2, 3 — green when every pupil has a finished report for that term.",
   "class.studentsHint":
     "Term selection, the 0–10 grade grid, and AI comments are on each pupil’s report page (not on this screen).",
   "class.bulkPdfWhichReports": "Bulk download includes",
   "class.bulkPdfAllReady": "All ready reports",
+  "class.groupDownloadBy": "Group Download by",
+  "class.groupDownloadThisClass": "This Class",
+  "class.panelBulkDownload": "Bulk download",
+  "class.panelMovePupil": "Move pupil",
+  "class.bulkDownloadTermLabel": "Term",
+  "class.bulkDownloadSelectLabel": "Select",
+  "class.bulkDownloadPanelHint":
+    "This class only: one PDF merging every pupil’s finished report for the term you select (Term 1, 2, or 3).",
   "archive.title": "Scholastic year archives",
   "archive.emptyExpl":
     "When an owner or department head changes the class scholastic year, the previous year's reports are saved here as read-only history. Pupils stay in the class; reports start fresh for the new year.",
@@ -1098,7 +1108,7 @@ const FR: UiMessages = {
   "dash.teamRoster": "Équipe",
   "dash.inviteTeam": "Inviter l’équipe",
   "dash.inviteTeamHint":
-    "Les propriétaires ajoutent chefs ou enseignants. Les chefs ajoutent des enseignants. Connexion par e-mail et code.",
+    "Les chefs de département ajoutent des enseignants. Connexion avec l’e-mail invité et un code à usage unique.",
   "dash.addSchoolTitle": "Ajouter une école",
   "dash.addSchoolHint": "Créer une organisation supplémentaire dont vous serez propriétaire.",
   "dash.addSchoolPlaceholder": "Nom de l'école",
@@ -1177,10 +1187,21 @@ const FR: UiMessages = {
   "tenant.panelBulk": "Téléchargements groupés",
   "tenant.panelDownloads": "Téléchargements",
   "tenant.panelClasses": "Classes",
+  "tenant.bulkDownloadAllReportsIn": "Télécharger tous les rapports pour",
+  "tenant.termReadinessHint":
+    "État par trimestre : 1, 2, 3 — vert lorsque chaque élève a un rapport terminé pour ce trimestre.",
   "class.studentsHint":
     "Choix du trimestre, grille 0–10 et commentaires IA sont sur la page rapport de chaque élève (pas ici).",
   "class.bulkPdfWhichReports": "Le PDF groupé inclut",
   "class.bulkPdfAllReady": "Tous les rapports prêts",
+  "class.groupDownloadBy": "Grouper le téléchargement par",
+  "class.groupDownloadThisClass": "Cette classe",
+  "class.panelBulkDownload": "Téléchargement groupé",
+  "class.panelMovePupil": "Déplacer un élève",
+  "class.bulkDownloadTermLabel": "Trimestre",
+  "class.bulkDownloadSelectLabel": "Choisir",
+  "class.bulkDownloadPanelHint":
+    "Uniquement cette classe : un PDF réunissant le rapport terminé de chaque élève pour le trimestre choisi (1, 2 ou 3).",
   "archive.title": "Archives d’année scolaire",
   "archive.emptyExpl":
     "Quand l’année scolaire change, les rapports de l’année terminée sont archivés ici. Les élèves restent ; les rapports repartent à zéro.",
@@ -1502,7 +1523,7 @@ const ES: UiMessages = {
   "dash.teamRoster": "Equipo",
   "dash.inviteTeam": "Invitar al equipo",
   "dash.inviteTeamHint":
-    "Los propietarios añaden jefes o profesores. Los jefes solo profesores. Acceso con correo y código.",
+    "Los jefes de departamento añaden profesores. Acceso con el correo invitado y código de un solo uso.",
   "dash.addSchoolTitle": "Añadir otro centro",
   "dash.addSchoolHint": "Cree otra organización de la que será propietario.",
   "dash.addSchoolPlaceholder": "Nombre del centro",
@@ -1581,10 +1602,21 @@ const ES: UiMessages = {
   "tenant.panelBulk": "Descargas masivas",
   "tenant.panelDownloads": "Descargas",
   "tenant.panelClasses": "Clases",
+  "tenant.bulkDownloadAllReportsIn": "Descargar todos los informes de",
+  "tenant.termReadinessHint":
+    "Estado por trimestre: 1, 2, 3 — verde cuando cada alumno tiene un informe terminado para ese trimestre.",
   "class.studentsHint":
     "Trimestre, cuadrícula 0–10 e IA están en el informe de cada alumno (no aquí).",
   "class.bulkPdfWhichReports": "La descarga incluye",
   "class.bulkPdfAllReady": "Todos los informes listos",
+  "class.groupDownloadBy": "Agrupar descarga por",
+  "class.groupDownloadThisClass": "Esta clase",
+  "class.panelBulkDownload": "Descarga agrupada",
+  "class.panelMovePupil": "Mover alumno",
+  "class.bulkDownloadTermLabel": "Trimestre",
+  "class.bulkDownloadSelectLabel": "Seleccionar",
+  "class.bulkDownloadPanelHint":
+    "Solo esta clase: un PDF con el informe terminado de cada alumno para el trimestre elegido (1, 2 o 3).",
   "archive.title": "Archivos del año escolar",
   "archive.emptyExpl":
     "Al cambiar el año escolar, los informes del año anterior se guardan aquí. Los alumnos permanecen; los informes se reinician.",

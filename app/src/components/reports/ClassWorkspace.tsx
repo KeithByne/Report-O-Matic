@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  Archive,
+  ArrowLeftRight,
+  Download,
+  FolderKanban,
+  Printer,
+  Settings2,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -8,14 +18,32 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import {
-  type ClassBulkPdfTermFilter,
   type ReportKind,
+  type ReportPeriod,
   isShortCourseReport,
   parseReportInputs,
   reportReadyForClassBulkPdf,
 } from "@/lib/reportInputs";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
+import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
+
+type ClassWorkspacePanelId =
+  | "settings"
+  | "archives"
+  | "students"
+  | "bulkDownload"
+  | "movePupil"
+  | "registerPreview";
+
+const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
+  settings: Settings2,
+  archives: Archive,
+  students: Users,
+  bulkDownload: Download,
+  movePupil: ArrowLeftRight,
+  registerPreview: Printer,
+};
 
 function normalizeScholasticYearLabel(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -76,8 +104,7 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const router = useRouter();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
-  const [batchOrder, setBatchOrder] = useState<"roster" | "student" | "updated_desc" | "updated_asc">("roster");
-  const [batchTermFilter, setBatchTermFilter] = useState<ClassBulkPdfTermFilter>("all");
+  const [batchTermFilter, setBatchTermFilter] = useState<ReportPeriod>("first");
 
   const [detail, setDetail] = useState<ClassDetail | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -99,21 +126,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       const rs = byStudent.get(s.id);
       if (!rs?.length) return { canDownload: false as const, message: notFinishedMsg };
     }
-    if (batchTermFilter === "all") {
-      if (
-        reports.some(
-          (r) =>
-            !reportReadyForClassBulkPdf({
-              status: r.status,
-              body: r.body ?? "",
-              inputs: parseReportInputs(r.inputs),
-            }),
-        )
-      ) {
-        return { canDownload: false as const, message: notFinishedMsg };
-      }
-      return { canDownload: true as const, message: null as string | null };
-    }
     const period = batchTermFilter;
     for (const s of students) {
       const ok = reports.some((r) => {
@@ -133,11 +145,9 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
 
   const batchHref = useMemo(() => {
     const qp = new URLSearchParams();
-    if (batchTermFilter !== "all") qp.set("term", batchTermFilter);
-    if (batchOrder !== "roster") qp.set("order", batchOrder);
-    const s = qp.toString();
-    return s ? `${batchBase}?${s}` : batchBase;
-  }, [batchBase, batchTermFilter, batchOrder]);
+    qp.set("term", batchTermFilter);
+    return `${batchBase}?${qp.toString()}`;
+  }, [batchBase, batchTermFilter]);
 
   const registerPdfHref = useMemo(() => {
     const qp = new URLSearchParams();
@@ -192,6 +202,49 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [archiveRefresh, setArchiveRefresh] = useState(0);
+  const [openClassPanel, setOpenClassPanel] = useState<ClassWorkspacePanelId | null>(null);
+
+  const toggleClassPanel = useCallback((id: ClassWorkspacePanelId) => {
+    setOpenClassPanel((current) => (current === id ? null : id));
+  }, []);
+
+  const classPanelButtonClass = useCallback(
+    (id: ClassWorkspacePanelId) =>
+      openClassPanel === id
+        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+        : "border-emerald-200 bg-white text-zinc-700 hover:bg-emerald-50/80",
+    [openClassPanel],
+  );
+
+  const classPanelMenuItems = useMemo(() => {
+    const items: { id: ClassWorkspacePanelId; label: string; Icon: LucideIcon }[] = [
+      { id: "settings", label: t("class.settingsTitle"), Icon: CLASS_PANEL_ICON.settings },
+    ];
+    if (viewerRole === "owner") {
+      items.push({
+        id: "archives",
+        label: t("archive.title"),
+        Icon: CLASS_PANEL_ICON.archives,
+      });
+    }
+    items.push(
+      { id: "students", label: t("class.studentsTitle"), Icon: CLASS_PANEL_ICON.students },
+      { id: "bulkDownload", label: t("class.panelBulkDownload"), Icon: CLASS_PANEL_ICON.bulkDownload },
+    );
+    if (viewerRole === "owner" || viewerRole === "department_head") {
+      items.push({
+        id: "movePupil",
+        label: t("class.panelMovePupil"),
+        Icon: CLASS_PANEL_ICON.movePupil,
+      });
+    }
+    items.push({
+      id: "registerPreview",
+      label: t("class.registerPreviewTitle"),
+      Icon: CLASS_PANEL_ICON.registerPreview,
+    });
+    return items;
+  }, [t, viewerRole]);
 
   const loadClass = useCallback(async () => {
     const reqId = ++loadClassRequestId.current;
@@ -560,6 +613,29 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
       ) : null}
 
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
+          <FolderKanban className={ICON_SECTION} aria-hidden />
+          {t("tenant.sectionMenuTitle")}
+        </h2>
+        <p className="mt-1 text-sm text-zinc-600">{t("tenant.sectionMenuHint")}</p>
+        <nav className="mt-4 flex flex-wrap gap-2" aria-label={t("tenant.sectionMenuTitle")}>
+          {classPanelMenuItems.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={openClassPanel === id}
+              onClick={() => toggleClassPanel(id)}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${classPanelButtonClass(id)}`}
+            >
+              <Icon className={ICON_INLINE} aria-hidden />
+              {label}
+            </button>
+          ))}
+        </nav>
+      </section>
+
+      {openClassPanel === "settings" ? (
+      <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">
           <span className="mr-1" aria-hidden>
             🌐
@@ -803,89 +879,16 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
           </div>
         </form>
       </section>
+      ) : null}
 
-      <ClassScholasticArchives key={archiveRefresh} classId={classId} apiBase={base} />
+      {openClassPanel === "archives" && viewerRole === "owner" ? (
+        <ClassScholasticArchives key={archiveRefresh} classId={classId} apiBase={base} />
+      ) : null}
 
+      {openClassPanel === "students" ? (
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <p className="mt-1 text-xs text-zinc-500">{t("class.studentsHint")}</p>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.bulkPdfWhichReports")}</span>
-            <select
-              value={batchTermFilter}
-              onChange={(e) => setBatchTermFilter(e.target.value as ClassBulkPdfTermFilter)}
-              className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-            >
-              <option value="all">{t("class.bulkPdfAllReady")}</option>
-              <option value="first">{t("archive.term1")}</option>
-              <option value="second">{t("archive.term2")}</option>
-              <option value="third">{t("archive.term3")}</option>
-            </select>
-          </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.bulkPdfOrderLabel")}</span>
-            <select
-              value={batchOrder}
-              onChange={(e) => setBatchOrder(e.target.value as typeof batchOrder)}
-              className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-            >
-              <option value="roster">{t("class.orderClassRoster")}</option>
-              <option value="student">{t("class.orderStudentName")}</option>
-              <option value="updated_desc">{t("class.orderUpdatedDesc")}</option>
-              <option value="updated_asc">{t("class.orderUpdatedAsc")}</option>
-            </select>
-          </label>
-          {classBulkPdfGate.canDownload ? (
-            <a
-              href={batchHref}
-              className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
-            >
-              {t("class.downloadClassPdfsOneFile")}
-            </a>
-          ) : (
-            <div className="flex flex-col gap-1">
-              <span
-                className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
-                title={classBulkPdfGate.message}
-              >
-                {t("class.downloadClassPdfsOneFile")}
-              </span>
-              <p className="max-w-md text-xs text-amber-800">{classBulkPdfGate.message}</p>
-            </div>
-          )}
-          {registerPdfGate.canPrint ? (
-            <a
-              href={registerPdfHref}
-              className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
-            >
-              {t("class.printRegister")}
-            </a>
-          ) : (
-            <div className="flex flex-col gap-1">
-              <span
-                className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
-                title={registerPdfGate.message}
-              >
-                {t("class.printRegister")}
-              </span>
-              <p className="max-w-md text-xs text-amber-800">{registerPdfGate.message}</p>
-            </div>
-          )}
-        </div>
-        {registerPdfGate.canPrint ? (
-          <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
-            <h4 className="text-sm font-semibold text-zinc-900">{t("class.registerPreviewTitle")}</h4>
-            <p className="mt-1 text-xs text-zinc-500">{t("class.registerPreviewHint")}</p>
-            <iframe
-              key={`reg-${students.map((s) => s.id).join(",")}-${(detail?.active_weekdays ?? []).join("")}-${uiLang}`}
-              title={t("class.registerPreviewTitle")}
-              src={registerPdfPreviewHref}
-              loading="lazy"
-              className="mt-3 h-[85vh] max-h-[920px] min-h-[480px] w-full rounded-lg border border-zinc-200 bg-zinc-50"
-            />
-          </div>
-        ) : null}
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.firstName")}</span>
@@ -936,59 +939,6 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
             </div>
           ) : null}
         </form>
-
-        {viewerRole === "owner" || viewerRole === "department_head" ? (
-          <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              {t("class.movePupilSectionTitle")}
-            </div>
-            <div className="mt-2 grid gap-3 sm:grid-cols-3">
-              <label className="text-sm">
-                <span className="text-zinc-600">{t("class.movePupilLabel")}</span>
-                <select
-                  value={moveStudentId}
-                  onChange={(e) => setMoveStudentId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                >
-                  <option value="">—</option>
-                  {students.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.display_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="text-sm">
-                <span className="text-zinc-600">{t("class.moveDestinationLabel")}</span>
-                <select
-                  value={moveToClassId}
-                  onChange={(e) => setMoveToClassId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                >
-                  <option value="">—</option>
-                  {allClasses
-                    .filter((c) => c.id !== classId)
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                </select>
-              </label>
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  disabled={busy !== null || !moveStudentId || !moveToClassId}
-                  onClick={() => void moveStudent()}
-                  className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
-                >
-                  {t("class.movePupilButton")}
-                </button>
-              </div>
-            </div>
-            <p className="mt-2 text-xs text-zinc-500">{t("class.movePupilFootnote")}</p>
-          </div>
-        ) : null}
 
         <ul className="mt-4 divide-y divide-emerald-100">
           {students.map((s) => (
@@ -1096,6 +1046,135 @@ export function ClassWorkspace({ tenantId, classId, schoolName, className: initi
         </ul>
         {students.length === 0 ? <p className="mt-2 text-sm text-zinc-500">{t("class.noPupils")}</p> : null}
       </section>
+      ) : null}
+
+      {openClassPanel === "bulkDownload" ? (
+        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-zinc-900">{t("class.panelBulkDownload")}</h3>
+          <p className="mt-1 text-xs text-zinc-500">{t("class.bulkDownloadPanelHint")}</p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+            <label className="inline-flex flex-row flex-wrap items-center gap-[2ch] text-sm">
+              <span className="shrink-0 text-zinc-600">{t("class.bulkDownloadSelectLabel")}</span>
+              <select
+                value={batchTermFilter}
+                onChange={(e) => setBatchTermFilter(e.target.value as ReportPeriod)}
+                className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="first">{t("archive.term1")}</option>
+                <option value="second">{t("archive.term2")}</option>
+                <option value="third">{t("archive.term3")}</option>
+              </select>
+            </label>
+            {classBulkPdfGate.canDownload ? (
+              <a
+                href={batchHref}
+                className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+              >
+                {t("class.downloadClassPdfsOneFile")}
+              </a>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <span
+                  className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
+                  title={classBulkPdfGate.message}
+                >
+                  {t("class.downloadClassPdfsOneFile")}
+                </span>
+                <p className="max-w-md text-xs text-amber-800">{classBulkPdfGate.message}</p>
+              </div>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {openClassPanel === "movePupil" && (viewerRole === "owner" || viewerRole === "department_head") ? (
+        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-zinc-900">{t("class.movePupilSectionTitle")}</h3>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <label className="text-sm">
+              <span className="text-zinc-600">{t("class.movePupilLabel")}</span>
+              <select
+                value={moveStudentId}
+                onChange={(e) => setMoveStudentId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">—</option>
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.display_name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="text-zinc-600">{t("class.moveDestinationLabel")}</span>
+              <select
+                value={moveToClassId}
+                onChange={(e) => setMoveToClassId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">—</option>
+                {allClasses
+                  .filter((c) => c.id !== classId)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <div className="flex items-end">
+              <button
+                type="button"
+                disabled={busy !== null || !moveStudentId || !moveToClassId}
+                onClick={() => void moveStudent()}
+                className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
+              >
+                {t("class.movePupilButton")}
+              </button>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-zinc-500">{t("class.movePupilFootnote")}</p>
+        </section>
+      ) : null}
+
+      {openClassPanel === "registerPreview" ? (
+        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-zinc-900">{t("class.registerPreviewTitle")}</h3>
+          <p className="mt-1 text-xs text-zinc-500">{t("class.registerPreviewHint")}</p>
+          <div className="mt-3 flex flex-wrap items-end gap-2">
+            {registerPdfGate.canPrint ? (
+              <a
+                href={registerPdfHref}
+                className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
+              >
+                {t("class.printRegister")}
+              </a>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <span
+                  className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
+                  title={registerPdfGate.message}
+                >
+                  {t("class.printRegister")}
+                </span>
+                <p className="max-w-md text-xs text-amber-800">{registerPdfGate.message}</p>
+              </div>
+            )}
+          </div>
+          {registerPdfGate.canPrint ? (
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
+              <iframe
+                key={`reg-${students.map((s) => s.id).join(",")}-${(detail?.active_weekdays ?? []).join("")}-${uiLang}`}
+                title={t("class.registerPreviewTitle")}
+                src={registerPdfPreviewHref}
+                loading="lazy"
+                className="h-[85vh] max-h-[920px] min-h-[480px] w-full rounded-lg border border-zinc-200 bg-zinc-50"
+              />
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }

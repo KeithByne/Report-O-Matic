@@ -24,7 +24,12 @@ export default async function TimetablePage({ params }: { params: Promise<{ tena
 
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
-      <ReportsFlowHeader mode="tenant" title={schoolName} tenantId={tenantId} />
+      <ReportsFlowHeader
+        mode="tenant"
+        title={schoolName}
+        tenantId={tenantId}
+        showAllSchoolsLink={role === "owner"}
+      />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5">
         <TimetablePageClient tenantId={tenantId} schoolName={schoolName} viewerRole={role} />
       </main>

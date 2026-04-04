@@ -27,7 +27,7 @@ export const NL_EXTRA: Record<string, string> = {
   "dash.roleDesc.department_head": "Docenten uitnodigen, schooltaal, alle klassen en rapporten, docenten toewijzen.",
   "dash.roleDesc.teacher": "Klassen en rapporten waar u als docent bent toegewezen.",
   "dash.inviteTeamHint":
-    "Eigenaren voegen afdelingshoofden of docenten toe. Afdelingshoofden alleen docenten. Iedereen logt in met de uitgenodigde e-mail en een eenmalige code.",
+    "Afdelingshoofden voegen docenten toe. Iedereen logt in met de uitgenodigde e-mail en een eenmalige code.",
   "dash.agentSectionTitle": "Eigenaar / Agent",
   "dash.agentSectionLead":
     "Uw unieke verwijzingslink voor aanmeldingen en agentvergoeding. Koppel het Stripe-account voor uitbetaling wanneer u klaar bent.",
@@ -98,6 +98,14 @@ export const NL_EXTRA: Record<string, string> = {
     "Trimesterkeuze, het cijferrooster 0–10 en AI-opmerkingen staan op de rapportpagina van elke leerling (niet op dit scherm).",
   "class.bulkPdfWhichReports": "Bulkdownload bevat",
   "class.bulkPdfAllReady": "Alle gereed zijnde rapporten",
+  "class.groupDownloadBy": "Groepsdownload op",
+  "class.groupDownloadThisClass": "Deze klas",
+  "class.panelBulkDownload": "Groepsdownload",
+  "class.panelMovePupil": "Leerling verplaatsen",
+  "class.bulkDownloadTermLabel": "Trimester",
+  "class.bulkDownloadSelectLabel": "Selecteer",
+  "class.bulkDownloadPanelHint":
+    "Alleen deze klas: één PDF met het afgeronde rapport van elke leerling voor het gekozen trimester (1, 2 of 3).",
   "invite.headingOwner": "Uitnodigen voor {school}",
   "invite.headingDh": "Docenten uitnodigen — {school}",
   "invite.descriptionOwner":
@@ -235,7 +243,7 @@ export const PL_EXTRA: Record<string, string> = {
   "dash.roleDesc.department_head": "Zapraszanie nauczycieli, język szkoły, wszystkie klasy i raporty, przypisania.",
   "dash.roleDesc.teacher": "Klasy i raporty, w których jesteś przypisany jako nauczyciel.",
   "dash.inviteTeamHint":
-    "Właściciele dodają kierowników lub nauczycieli. Kierownicy — tylko nauczycieli. Logowanie zaproszonym e-mailem i kodem jednorazowym.",
+    "Kierownicy dodają nauczycieli. Logowanie zaproszonym e-mailem i kodem jednorazowym.",
   "dash.agentSectionTitle": "Właściciel / agent",
   "dash.agentSectionLead":
     "Unikalny link polecający. Podłącz konto Stripe do wypłat, gdy będziesz gotów.",
@@ -304,6 +312,14 @@ export const PL_EXTRA: Record<string, string> = {
     "Wybór semestru, siatka 0–10 i AI są na stronie sprawozdania ucznia (nie tutaj).",
   "class.bulkPdfWhichReports": "Zbiorczy PDF zawiera",
   "class.bulkPdfAllReady": "Wszystkie gotowe sprawozdania",
+  "class.groupDownloadBy": "Pobieranie grupowe według",
+  "class.groupDownloadThisClass": "Ta klasa",
+  "class.panelBulkDownload": "Pobieranie zbiorcze",
+  "class.panelMovePupil": "Przenieś ucznia",
+  "class.bulkDownloadTermLabel": "Semestr",
+  "class.bulkDownloadSelectLabel": "Wybierz",
+  "class.bulkDownloadPanelHint":
+    "Tylko ta klasa: jeden PDF ze złożonym sprawozdaniem każdego ucznia dla wybranego semestru (1, 2 lub 3).",
   "invite.headingOwner": "Zaproszenie do {school}",
   "invite.headingDh": "Zaproszenie nauczycieli — {school}",
   "invite.descriptionOwner":
@@ -440,7 +456,7 @@ export const RO_EXTRA: Record<string, string> = {
   "dash.roleDesc.department_head": "Invitați profesori, limba școlii, toate clasele și rapoartele.",
   "dash.roleDesc.teacher": "Clase și rapoarte unde sunți asignat.",
   "dash.inviteTeamHint":
-    "Proprietarii adaugă șefi sau profesori. Șefii doar profesori. Autentificare cu e-mailul invitat și cod unic.",
+    "Șefii de departament adaugă profesori. Autentificare cu e-mailul invitat și cod unic.",
   "dash.agentSectionTitle": "Proprietar / Agent",
   "dash.agentSectionLead": "Link unic de recomandare. Conectați Stripe pentru plăți când sunteți gata.",
   "dash.agentRefresh": "Reîmprospătare",
@@ -506,6 +522,14 @@ export const RO_EXTRA: Record<string, string> = {
   "class.studentsHint": "Termenul, grila 0–10 și AI sunt pe pagina raportului fiecărui elev.",
   "class.bulkPdfWhichReports": "PDF-ul în masă include",
   "class.bulkPdfAllReady": "Toate rapoartele gata",
+  "class.groupDownloadBy": "Grupare descărcare după",
+  "class.groupDownloadThisClass": "Această clasă",
+  "class.panelBulkDownload": "Descărcare grupată",
+  "class.panelMovePupil": "Mută elevul",
+  "class.bulkDownloadTermLabel": "Trimestru",
+  "class.bulkDownloadSelectLabel": "Selectați",
+  "class.bulkDownloadPanelHint":
+    "Doar această clasă: un PDF cu raportul finalizat al fiecărui elev pentru trimestrul ales (1, 2 sau 3).",
   "invite.headingOwner": "Invitație la {school}",
   "invite.headingDh": "Invitați profesori — {school}",
   "invite.descriptionOwner": "Adăugați șefi sau profesori pe e-mail. Aceeași adresă la autentificare (cod unic).",
@@ -641,7 +665,7 @@ export const RU_EXTRA: Record<string, string> = {
   "dash.roleDesc.department_head": "Приглашение учителей, язык школы, все классы и отчёты.",
   "dash.roleDesc.teacher": "Классы и отчёты, где вы назначены учителем.",
   "dash.inviteTeamHint":
-    "Владельцы добавляют заведующих или учителей. Заведующие — только учителей. Вход по приглашённой почте и одноразовому коду.",
+    "Заведующие добавляют учителей. Вход по приглашённой почте и одноразовому коду.",
   "dash.agentSectionTitle": "Владелец / агент",
   "dash.agentSectionLead": "Уникальная реферальная ссылка. Подключите Stripe для выплат.",
   "dash.agentRefresh": "Обновить",
@@ -708,6 +732,14 @@ export const RU_EXTRA: Record<string, string> = {
   "class.studentsHint": "Триместр, сетка 0–10 и ИИ — на странице отчёта ученика.",
   "class.bulkPdfWhichReports": "Сводный PDF включает",
   "class.bulkPdfAllReady": "Все готовые отчёты",
+  "class.groupDownloadBy": "Группировать скачивание по",
+  "class.groupDownloadThisClass": "Этот класс",
+  "class.panelBulkDownload": "Сводная загрузка",
+  "class.panelMovePupil": "Перевести ученика",
+  "class.bulkDownloadTermLabel": "Четверть",
+  "class.bulkDownloadSelectLabel": "Выберите",
+  "class.bulkDownloadPanelHint":
+    "Только этот класс: один PDF с готовыми отчётами всех учеников за выбранный период (1, 2 или 3).",
   "invite.headingOwner": "Приглашение в {school}",
   "invite.headingDh": "Пригласить учителей — {school}",
   "invite.descriptionOwner": "Добавьте заведующих или учителей по почте. Вход с тем же адресом (одноразовый код).",
@@ -842,7 +874,7 @@ export const UK_EXTRA: Record<string, string> = {
   "dash.roleDesc.department_head": "Запрошення вчителів, мова школи, усі класи й звіти.",
   "dash.roleDesc.teacher": "Класи й звіти, де ви призначені вчителем.",
   "dash.inviteTeamHint":
-    "Власники додають завідувачів або вчителів. Завідувачі — лише вчителів. Вхід запрошеною поштою й одноразовим кодом.",
+    "Завідувачі додають вчителів. Вхід запрошеною поштою й одноразовим кодом.",
   "dash.agentSectionTitle": "Власник / агент",
   "dash.agentSectionLead": "Унікальне реферальне посилання. Підключіть Stripe для виплат.",
   "dash.agentRefresh": "Оновити",
@@ -909,6 +941,14 @@ export const UK_EXTRA: Record<string, string> = {
   "class.studentsHint": "Триместр, сітка 0–10 і ШІ — на сторінці звіту учня.",
   "class.bulkPdfWhichReports": "Зведений PDF містить",
   "class.bulkPdfAllReady": "Усі готові звіти",
+  "class.groupDownloadBy": "Групувати завантаження за",
+  "class.groupDownloadThisClass": "Цей клас",
+  "class.panelBulkDownload": "Групове завантаження",
+  "class.panelMovePupil": "Перемістити учня",
+  "class.bulkDownloadTermLabel": "Чверть",
+  "class.bulkDownloadSelectLabel": "Виберіть",
+  "class.bulkDownloadPanelHint":
+    "Лише цей клас: один PDF із завершеним звітом кожного учня за обраною чвертю (1, 2 або 3).",
   "invite.headingOwner": "Запрошення до {school}",
   "invite.headingDh": "Запросити вчителів — {school}",
   "invite.descriptionOwner": "Додайте завідувачів або вчителів е-поштою. Вхід тією ж адресою (одноразовий код).",
@@ -1043,7 +1083,7 @@ export const AR_EXTRA: Record<string, string> = {
   "dash.roleDesc.department_head": "دعوة المعلمين، لغة المدرسة، كل الفصول والتقارير.",
   "dash.roleDesc.teacher": "الفصول والتقارير حيث تمّ تعيينك معلّمًا.",
   "dash.inviteTeamHint":
-    "يضيف المالكون رؤساء أقسام أو معلمين. رؤساء الأقسام يضيفون معلمين فقط. تسجيل الدخول بالبريد المدعو ورمز لمرة واحدة.",
+    "رؤساء الأقسام يضيفون معلمين. تسجيل الدخول بالبريد المدعو ورمز لمرة واحدة.",
   "dash.agentSectionTitle": "مالك / وكيل",
   "dash.agentSectionLead": "رابط الإحالة الفريد. اربط حساب Stripe للدفع عند الجاهزية.",
   "dash.agentRefresh": "تحديث",
@@ -1110,6 +1150,14 @@ export const AR_EXTRA: Record<string, string> = {
   "class.studentsHint": "اختيار الفصل والشبكة 0–10 والذكاء الاصطناعي في صفحة تقرير كل تلميذ.",
   "class.bulkPdfWhichReports": "التنزيل المجمع يشمل",
   "class.bulkPdfAllReady": "كل التقارير الجاهزة",
+  "class.groupDownloadBy": "تجميع التنزيل حسب",
+  "class.groupDownloadThisClass": "هذا الصف",
+  "class.panelBulkDownload": "تنزيل جماعي",
+  "class.panelMovePupil": "نقل تلميذ",
+  "class.bulkDownloadTermLabel": "الفصل",
+  "class.bulkDownloadSelectLabel": "اختر",
+  "class.bulkDownloadPanelHint":
+    "هذا الصف فقط: ملف PDF واحد يضم تقرير كل تلميذ الجاهز للفصل الدراسي المختار (1 أو 2 أو 3).",
   "invite.headingOwner": "دعوة إلى {school}",
   "invite.headingDh": "دعوة المعلمين — {school}",
   "invite.descriptionOwner": "أضف رؤساء أقسام أو معلمين بالبريد. نفس العنوان لتسجيل الدخول (رمز لمرة واحدة).",
