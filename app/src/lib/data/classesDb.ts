@@ -50,8 +50,11 @@ export async function enrichClassWithAssignedTeacherDisplay(tenantId: string, kl
   };
 }
 
-const classSelect =
-  "id, tenant_id, name, scholastic_year, cefr_level, default_subject, default_output_language, default_new_report_kind, default_new_report_period, assigned_teacher_email, active_weekdays, created_at";
+/**
+ * Use `*` so reads succeed before optional migrations (e.g. `default_new_report_period`) exist on the DB.
+ * `mapClassRow` defaults any missing fields.
+ */
+const classSelect = "*";
 
 function parseReportKind(raw: unknown): ReportKind {
   return raw === "short_course" ? "short_course" : "standard";
@@ -116,7 +119,6 @@ export async function insertClass(opts: {
     default_subject: opts.defaultSubject && isSubjectCode(opts.defaultSubject) ? opts.defaultSubject : "efl",
     default_output_language: opts.defaultOutputLanguage ?? "en",
     default_new_report_kind: "standard",
-    default_new_report_period: "first",
     assigned_teacher_email: opts.assignedTeacherEmail?.trim().toLowerCase() ?? null,
     active_weekdays: [],
   };
