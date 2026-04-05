@@ -55,11 +55,6 @@ export type ReportInputs = {
   /** Override class subject; null = use class default. */
   subject_code: SubjectCode | null;
   optional_teacher_notes: string;
-  /**
-   * When true, that term received estimated values (copied from the report’s focus term into
-   * still-empty cells) so the grid is complete; excluded from the official year average on the PDF.
-   */
-  supposed_terms?: [boolean, boolean, boolean];
 };
 
 export function isShortCourseReport(inputs: ReportInputs): boolean {
@@ -82,7 +77,6 @@ export function emptyReportInputs(): ReportInputs {
     report_period: "first",
     subject_code: null,
     optional_teacher_notes: "",
-    supposed_terms: [false, false, false],
   };
 }
 
@@ -95,7 +89,6 @@ export function emptyShortCourseReportInputs(): ReportInputs {
     report_period: "first",
     subject_code: null,
     optional_teacher_notes: "",
-    supposed_terms: [false, false, false],
   };
 }
 
@@ -137,55 +130,7 @@ export function parseReportInputs(raw: unknown): ReportInputs {
     base.terms = parsed;
   }
 
-  const st = o.supposed_terms;
-  if (Array.isArray(st) && st.length === 3) {
-    base.supposed_terms = [
-      st[0] === true,
-      st[1] === true,
-      st[2] === true,
-    ];
-  }
-
   return base;
-}
-
-/**
- * For standard reports focused on term 2 or 3: for each earlier term, copy the focus term’s numeric
- * values into the same metrics only where the earlier term still has no value. Does not add or change
- * cells for metrics left empty in the focus term. Marks affected earlier terms so the PDF can label
- * them estimated and exclude them from the year average.
- */
-export function applySupposedGradesForPriorTerms(inputs: ReportInputs): ReportInputs {
-  if (isShortCourseReport(inputs)) return inputs;
-  const focusIdx = focusTermIndex(inputs.report_period);
-  const prev = inputs.supposed_terms ?? [false, false, false];
-  const supposed: [boolean, boolean, boolean] = [prev[0], prev[1], prev[2]];
-  const nextTerms: [TermGrades, TermGrades, TermGrades] = [
-    { ...inputs.terms[0] },
-    { ...inputs.terms[1] },
-    { ...inputs.terms[2] },
-  ];
-  const focus = nextTerms[focusIdx];
-
-  for (let t = 0; t < focusIdx; t++) {
-    let filledAny = false;
-    for (const k of KEYS) {
-      const priorVal = nextTerms[t][k];
-      const curVal = focus[k];
-      if ((priorVal === null || priorVal === undefined) && curVal !== null && curVal !== undefined) {
-        nextTerms[t][k] = curVal;
-        filledAny = true;
-      }
-    }
-    if (filledAny) supposed[t] = true;
-  }
-  return { ...inputs, terms: nextTerms, supposed_terms: supposed };
-}
-
-export function hasAnySupposedTerm(inputs: ReportInputs): boolean {
-  const s = inputs.supposed_terms;
-  if (!s) return false;
-  return s[0] || s[1] || s[2];
 }
 
 /** AI reliability hint: standard uses full grid; short course uses the focused term only (16 cells). */
@@ -209,26 +154,6 @@ export function yearAveragePercent(inputs: ReportInputs): number | null {
   if (isShortCourseReport(inputs)) return null;
   const vals: number[] = [];
   for (let t = 0; t < 3; t++) {
-    for (const k of KEYS) {
-      const v = inputs.terms[t][k];
-      if (v !== null && v !== undefined) vals.push(v);
-    }
-  }
-  if (vals.length === 0) return null;
-  const sum = vals.reduce((a, b) => a + b, 0);
-  return (sum / (vals.length * 10)) * 100;
-}
-
-/**
- * Year average for PDF / official display: ignores terms marked estimated (copied into prior terms)
- * so they do not inflate or distort the end-of-year figure.
- */
-export function yearAveragePercentExcludingSupposed(inputs: ReportInputs): number | null {
-  if (isShortCourseReport(inputs)) return null;
-  const supposed = inputs.supposed_terms ?? [false, false, false];
-  const vals: number[] = [];
-  for (let t = 0; t < 3; t++) {
-    if (supposed[t]) continue;
     for (const k of KEYS) {
       const v = inputs.terms[t][k];
       if (v !== null && v !== undefined) vals.push(v);
@@ -346,9 +271,8 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
   }
   lines.push(`Report period (term focus): ${inputs.report_period}`);
   const termLabel = ["Term 1", "Term 2", "Term 3"];
-  const supposed = inputs.supposed_terms ?? [false, false, false];
   for (let t = 0; t < 3; t++) {
-    lines.push(`--- ${termLabel[t]}${supposed[t] ? " (estimated — copied from report focus term where earlier term had no input)" : ""} ---`);
+    lines.push(`--- ${termLabel[t]} ---`);
     let currentDiv: MetricDivisionKey | "" = "";
     for (const m of DATASET4_METRICS) {
       if (m.divisionKey !== currentDiv) {
@@ -361,10 +285,8 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
     const pct = termAveragePercent(inputs.terms[t]);
     lines.push(`Term ${t + 1} aggregate: ${pct === null ? "—" : formatPercentSigFigs(pct, 2)}`);
   }
-  const yearPct = yearAveragePercentExcludingSupposed(inputs);
-  lines.push(
-    `Year aggregate (excluding estimated prior terms): ${yearPct === null ? "—" : formatPercentSigFigs(yearPct, 2)}`,
-  );
+  const yearPct = yearAveragePercent(inputs);
+  lines.push(`Year aggregate: ${yearPct === null ? "—" : formatPercentSigFigs(yearPct, 2)}`);
   return lines.join("\n");
 }
 

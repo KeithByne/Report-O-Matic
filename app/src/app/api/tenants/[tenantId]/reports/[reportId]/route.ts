@@ -4,7 +4,7 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { ReportInputs } from "@/lib/reportInputs";
-import { applySupposedGradesForPriorTerms, parseReportInputs } from "@/lib/reportInputs";
+import { parseReportInputs } from "@/lib/reportInputs";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { getTenantDefaultReportLanguage } from "@/lib/data/tenantLanguage";
@@ -103,9 +103,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     const c = body.output_language.trim();
     if (c && isReportLanguageCode(c)) patch.output_language = c;
   }
-  if (body.inputs !== undefined) {
-    patch.inputs = applySupposedGradesForPriorTerms(parseReportInputs(body.inputs));
-  }
+  if (body.inputs !== undefined) patch.inputs = parseReportInputs(body.inputs);
 
   const mergedBody = patch.body !== undefined ? patch.body : existing.body;
   const mergedOut: ReportLanguageCode = patch.output_language ?? existing.output_language;

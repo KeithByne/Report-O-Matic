@@ -7,12 +7,7 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import { insertReport, listReportsForTenant } from "@/lib/data/reportsDb";
 import { getStudentInTenant, listStudents } from "@/lib/data/students";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import {
-  applySupposedGradesForPriorTerms,
-  emptyReportInputs,
-  emptyShortCourseReportInputs,
-  parseReportInputs,
-} from "@/lib/reportInputs";
+import { emptyReportInputs, emptyShortCourseReportInputs, parseReportInputs } from "@/lib/reportInputs";
 import { getTenantCreditBalance } from "@/lib/data/credits";
 
 function isUuid(s: string): boolean {
@@ -103,11 +98,11 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const inputs = wantShort
     ? emptyShortCourseReportInputs()
     : body.inputs !== undefined
-      ? applySupposedGradesForPriorTerms(parseReportInputs(body.inputs))
-      : applySupposedGradesForPriorTerms({
+      ? parseReportInputs(body.inputs)
+      : {
           ...emptyReportInputs(),
           report_period: klass.default_new_report_period,
-        });
+        };
 
   try {
     const report = await insertReport({

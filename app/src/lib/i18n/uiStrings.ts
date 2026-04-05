@@ -799,11 +799,8 @@ const EN: UiMessages = {
   "pdf.gradesSectionIntroShortCourse":
     "Numerical ratings use a 0–10 scale for this short course period only (single observation).",
   "pdf.gradesTermAverage": "{term} average: {value}",
-  "pdf.gradesTermAverageSupposed": "{term} average: {value} (estimated)",
   "pdf.gradesShortCourseAverage": "{term} average: {value}",
-  "pdf.gradesYearAverage": "Year average (excluding estimated prior terms): {value}",
-  "pdf.supposedGradesFootnote":
-    "Values marked as estimated were copied from this report’s focus term into the same metrics in earlier terms only where no score had been entered yet. Nothing is filled for metrics left empty in the focus term. The year average above excludes those earlier terms so it does not read as a full end-of-year aggregate.",
+  "pdf.gradesYearAverage": "Year average (excluding estimated terms): {value}",
   "pdf.shortCourseReportFocus": "Short course",
   "pdf.metaReportFocus": "Report focus",
   "pdf.defaultReportTitleSuffix": "Report",
@@ -1420,11 +1417,8 @@ const FR: UiMessages = {
   "pdf.gradesSectionIntroShortCourse":
     "Notes chiffrées sur une échelle 0 à 10 pour cette période de cours court uniquement (observation unique).",
   "pdf.gradesTermAverage": "Moyenne du {term} : {value}",
-  "pdf.gradesTermAverageSupposed": "Moyenne du {term} : {value} (estimée)",
   "pdf.gradesShortCourseAverage": "Moyenne du {term} : {value}",
   "pdf.gradesYearAverage": "Moyenne de l’année (hors trimestres estimés) : {value}",
-  "pdf.supposedGradesFootnote":
-    "Les valeurs indiquées comme estimées reprennent celles du trimestre du présent rapport pour les mêmes critères, uniquement lorsque le trimestre antérieur n’avait pas encore de note. Aucune valeur n’est ajoutée pour les critères laissés vides dans le trimestre du rapport. La moyenne d’année ci-dessus exclut ces trimestres afin de ne pas représenter une moyenne annuelle complète.",
   "pdf.shortCourseReportFocus": "Cours court",
   "pdf.metaReportFocus": "Période du rapport",
   "pdf.defaultReportTitleSuffix": "Rapport",
@@ -1885,11 +1879,8 @@ const ES: UiMessages = {
   "pdf.gradesSectionIntroShortCourse":
     "Calificaciones numéricas en escala 0–10 solo para este periodo de curso corto (una observación).",
   "pdf.gradesTermAverage": "Media del {term}: {value}",
-  "pdf.gradesTermAverageSupposed": "Media del {term}: {value} (estimada)",
   "pdf.gradesShortCourseAverage": "Media del {term}: {value}",
   "pdf.gradesYearAverage": "Media del año (excl. trimestres estimados): {value}",
-  "pdf.supposedGradesFootnote":
-    "Las calificaciones marcadas como estimadas copian las del trimestre de este informe en los mismos criterios solo donde el trimestre anterior no tenía nota. No se rellenan criterios vacíos en el trimestre del informe. La media anual anterior excluye esos trimestres para no representar un resultado anual completo.",
   "pdf.shortCourseReportFocus": "Curso corto",
   "pdf.metaReportFocus": "Periodo del informe",
   "pdf.defaultReportTitleSuffix": "Informe",
