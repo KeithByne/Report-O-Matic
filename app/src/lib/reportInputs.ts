@@ -210,16 +210,22 @@ export function focusTermComplete(inputs: ReportInputs): boolean {
 }
 
 /**
- * Classes dashboard term readiness (1/2/3): report is focused on `period` and the rubric for that
- * focus term is complete. Does not require a parent PDF comment — teachers may save grades before AI.
+ * Classes dashboard term readiness (1/2/3): the stored rubric has all 16 cells filled for that term’s
+ * column (`terms[0|1|2]`), independent of `report_period`. Teachers often change the focus dropdown
+ * after finishing a term; completed columns must still count toward 1/2/3.
  */
 export function reportTermReadyForClassesDashboard(r: { inputs: ReportInputs }, period: ReportPeriod): boolean {
   const inputs = r.inputs;
-  if (inputs.report_period !== period) return false;
   if (isShortCourseReport(inputs)) {
-    return period === "first" && focusTermComplete(inputs);
+    if (period !== "first") return false;
+    return focusTermComplete(inputs);
   }
-  return focusTermComplete(inputs);
+  const idx = focusTermIndex(period);
+  const term = inputs.terms[idx];
+  for (const k of KEYS) {
+    if (term[k] === null || term[k] === undefined) return false;
+  }
+  return true;
 }
 
 /**
