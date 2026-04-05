@@ -20,6 +20,7 @@ import {
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { metricLabel, reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
+import { REPORT_AI_SAVED_EVENT, type ReportAiSavedDetail } from "@/lib/appEvents";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 
 type Student = {
@@ -337,6 +338,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "AI failed");
       await load();
+      window.dispatchEvent(
+        new CustomEvent<ReportAiSavedDetail>(REPORT_AI_SAVED_EVENT, { detail: { tenantId } }),
+      );
       router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");

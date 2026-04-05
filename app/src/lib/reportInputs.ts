@@ -55,6 +55,11 @@ export type ReportInputs = {
   /** Override class subject; null = use class default. */
   subject_code: SubjectCode | null;
   optional_teacher_notes: string;
+  /**
+   * After a successful “Generate comment and save data” (AI) run, the term index (0–2) is set true.
+   * Classes readiness uses this so the indicator does not depend on all 16 rubric cells being filled.
+   */
+  comment_generated_for_terms?: [boolean, boolean, boolean];
 };
 
 export function isShortCourseReport(inputs: ReportInputs): boolean {
@@ -128,6 +133,11 @@ export function parseReportInputs(raw: unknown): ReportInputs {
       }
     }
     base.terms = parsed;
+  }
+
+  const cgt = o.comment_generated_for_terms;
+  if (Array.isArray(cgt) && cgt.length === 3) {
+    base.comment_generated_for_terms = [cgt[0] === true, cgt[1] === true, cgt[2] === true];
   }
 
   return base;
@@ -210,22 +220,27 @@ export function focusTermComplete(inputs: ReportInputs): boolean {
 }
 
 /**
- * Classes dashboard term readiness (1/2/3): the stored rubric has all 16 cells filled for that term’s
- * column (`terms[0|1|2]`), independent of `report_period`. Teachers often change the focus dropdown
- * after finishing a term; completed columns must still count toward 1/2/3.
+ * Classes dashboard term readiness (1/2/3): term is “done” if AI set `comment_generated_for_terms[idx]`,
+ * or (legacy) non-empty parent `body` with `report_period === period`. PATCH merges stored inputs so AI
+ * flags are not dropped when the client omits them in JSON.
  */
-export function reportTermReadyForClassesDashboard(r: { inputs: ReportInputs }, period: ReportPeriod): boolean {
+export function reportTermReadyForClassesDashboard(
+  r: { inputs: ReportInputs; body: string },
+  period: ReportPeriod,
+): boolean {
   const inputs = r.inputs;
+  const bodyOk = r.body.trim().length > 0;
   if (isShortCourseReport(inputs)) {
     if (period !== "first") return false;
-    return focusTermComplete(inputs);
+    if (inputs.comment_generated_for_terms?.[0] === true) return true;
+    return bodyOk;
   }
   const idx = focusTermIndex(period);
-  const term = inputs.terms[idx];
-  for (const k of KEYS) {
-    if (term[k] === null || term[k] === undefined) return false;
-  }
-  return true;
+  if (inputs.comment_generated_for_terms?.[idx] === true) return true;
+  // Legacy / current cycle: parent-facing text saved for this report’s active term (must not be blocked
+  // when comment_generated_for_terms exists but a PATCH omitted preserving flags — see report PATCH merge).
+  if (bodyOk && inputs.report_period === period) return true;
+  return false;
 }
 
 /**

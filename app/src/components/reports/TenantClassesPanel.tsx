@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
-import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
+import {
+  CLASS_SETTINGS_SAVED_EVENT,
+  REPORT_AI_SAVED_EVENT,
+  type ClassSettingsSavedDetail,
+  type ReportAiSavedDetail,
+} from "@/lib/appEvents";
 import type { RomRole } from "@/lib/data/memberships";
 
 type ClassRow = { id: string; name: string; student_count: number };
@@ -24,7 +29,7 @@ function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
   const cls = (ok: boolean | undefined) =>
     ok === undefined ? "text-zinc-400" : ok ? "text-emerald-600" : "text-red-600";
   return (
-    <span className="inline-flex items-center font-mono text-sm tabular-nums">
+    <span className="inline-flex items-center font-mono text-sm font-bold tabular-nums">
       <span className={cls(terms?.first)}>1</span>
       <span className="text-zinc-900">/</span>
       <span className={cls(terms?.second)}>2</span>
@@ -56,8 +61,8 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     setLoadError(null);
     try {
       const [resClasses, resTerms] = await Promise.all([
-        fetch(`${base}/classes`),
-        fetch(`${base}/classes/term-completion`),
+        fetch(`${base}/classes`, { cache: "no-store" }),
+        fetch(`${base}/classes/term-completion`, { cache: "no-store" }),
       ]);
       const dataC = await resClasses.json().catch(() => ({}));
       if (!resClasses.ok) throw new Error(dataC.error || "Failed to load classes");
@@ -83,8 +88,17 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       const id = ce.detail?.tenantId?.trim();
       if (id && id === tenantId && active) void refresh();
     };
+    const onReportAiSaved = (ev: Event) => {
+      const ce = ev as CustomEvent<ReportAiSavedDetail>;
+      const id = ce.detail?.tenantId?.trim();
+      if (id && id === tenantId) void refresh();
+    };
     window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
-    return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+    window.addEventListener(REPORT_AI_SAVED_EVENT, onReportAiSaved);
+    return () => {
+      window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+      window.removeEventListener(REPORT_AI_SAVED_EVENT, onReportAiSaved);
+    };
   }, [tenantId, active, refresh]);
 
   async function addClass(e: React.FormEvent) {

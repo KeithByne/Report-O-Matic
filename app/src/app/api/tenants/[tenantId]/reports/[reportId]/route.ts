@@ -103,7 +103,11 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     const c = body.output_language.trim();
     if (c && isReportLanguageCode(c)) patch.output_language = c;
   }
-  if (body.inputs !== undefined) patch.inputs = parseReportInputs(body.inputs);
+  if (body.inputs !== undefined) {
+    const prevIn = parseReportInputs(existing.inputs);
+    const nextIn = parseReportInputs(body.inputs);
+    patch.inputs = { ...prevIn, ...nextIn };
+  }
 
   const mergedBody = patch.body !== undefined ? patch.body : existing.body;
   const mergedOut: ReportLanguageCode = patch.output_language ?? existing.output_language;

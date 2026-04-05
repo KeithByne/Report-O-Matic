@@ -9,7 +9,8 @@ import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { logOpenAiUsageEvent } from "@/lib/data/openaiUsageEvents";
 import { getReport, updateReport } from "@/lib/data/reportsDb";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { focusTermComplete, parseReportInputs } from "@/lib/reportInputs";
+import type { ReportInputs } from "@/lib/reportInputs";
+import { focusTermComplete, focusTermIndex, isShortCourseReport, parseReportInputs } from "@/lib/reportInputs";
 import { isSubjectCode } from "@/lib/subjects";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
@@ -120,11 +121,20 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       });
     }
     const inputsParsed = parseReportInputs(report.inputs);
+    const termIdx = isShortCourseReport(inputsParsed) ? 0 : focusTermIndex(inputsParsed.report_period);
+    const prevFlags = inputsParsed.comment_generated_for_terms;
+    const nextFlags: [boolean, boolean, boolean] = prevFlags
+      ? [prevFlags[0], prevFlags[1], prevFlags[2]]
+      : [false, false, false];
+    nextFlags[termIdx] = true;
+    const mergedInputs: ReportInputs = { ...inputsParsed, comment_generated_for_terms: nextFlags };
+
     const markFinal = focusTermComplete(inputsParsed) && pdfBody.trim().length > 0;
     const updated = await updateReport(tenantId, reportId, {
       body: pdfBody,
       body_teacher_preview: teacherPreview,
       teacher_preview_language: teacherLang,
+      inputs: mergedInputs,
       ...(markFinal ? { status: "final" as const } : {}),
     });
 
