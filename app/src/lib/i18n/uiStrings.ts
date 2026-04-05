@@ -755,8 +755,12 @@ const EN: UiMessages = {
   "report.aiTitle": "AI comment (Prompt A1–style, 0–10 dataset)",
   "report.aiHint":
     "Requires OPENAI_API_KEY. Writes the parent/PDF comment first, then translates it into your teacher preview language. Uses first name only.",
+  "report.aiHintCombined":
+    "Saves your report data (grades and settings) on the server, then generates the parent/PDF comment and teacher preview. Requires OPENAI_API_KEY. Uses first name only.",
   "report.aiFillHint": "Fill all 48 grade cells (0–10) for the most reliable draft.",
   "report.generateAi": "Generate AI comments",
+  "report.generateCommentAndSaveData": "Generate comment and save data",
+  "report.generatingCommentAndSave": "Saving and generating…",
   "report.generating": "Generating…",
   "report.backClass": "← Back to class",
   "report.backStudents": "Back to students",
@@ -1358,9 +1362,13 @@ const FR: UiMessages = {
   "report.aiTitle": "Commentaire IA (jeu 0–10)",
   "report.aiHint":
     "Nécessite OPENAI_API_KEY. Écrit d’abord le commentaire parents, puis le traduit. Prénom seulement.",
+  "report.aiHintCombined":
+    "Enregistre d’abord les données du rapport (notes et paramètres), puis génère le commentaire parents/PDF et l’aperçu enseignant. Nécessite OPENAI_API_KEY. Prénom seulement.",
   "report.aiFillHint":
     "Remplissez les 48 notes (0–10) pour un brouillon plus fiable.",
   "report.generateAi": "Générer les commentaires IA",
+  "report.generateCommentAndSaveData": "Générer le commentaire et enregistrer les données",
+  "report.generatingCommentAndSave": "Enregistrement et génération…",
   "report.generating": "Génération…",
   "report.backClass": "← Retour à la classe",
   "report.backStudents": "Retour aux élèves",
@@ -1808,8 +1816,12 @@ const ES: UiMessages = {
   "report.aiTitle": "Comentario IA (datos 0–10)",
   "report.aiHint":
     "Requiere OPENAI_API_KEY. Escribe el comentario para familias y luego lo traduce. Solo nombre.",
+  "report.aiHintCombined":
+    "Guarda primero los datos del informe (notas y ajustes) en el servidor y luego genera el comentario para familias/PDF y la vista del profesor. Requiere OPENAI_API_KEY. Solo el nombre.",
   "report.aiFillHint": "Rellene las 48 celdas (0–10) para un borrador más fiable.",
   "report.generateAi": "Generar comentarios IA",
+  "report.generateCommentAndSaveData": "Generar comentario y guardar datos",
+  "report.generatingCommentAndSave": "Guardando y generando…",
   "report.generating": "Generando…",
   "report.backClass": "← Volver a la clase",
   "report.backStudents": "Volver a los alumnos",

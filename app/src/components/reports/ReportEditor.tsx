@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import {
@@ -137,6 +138,7 @@ function GradeSelect({
 
 export function ReportEditor({ tenantId, classId, reportId, schoolName, studentId }: Props) {
   const { lang, t } = useUiLanguage();
+  const router = useRouter();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
 
   function termHeading(idx: 0 | 1 | 2): string {
@@ -237,33 +239,6 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     }
   }
 
-  async function saveReport() {
-    setBusy("save");
-    try {
-      const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          status: nextReportStatusFromContent({
-            prev: report?.status || "draft",
-            body: report?.body ?? "",
-            inputs,
-          }),
-          output_language: outputLanguage,
-          teacher_preview_language: teacherPreviewLanguage,
-          inputs,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
-      await load();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
-    } finally {
-      setBusy(null);
-    }
-  }
-
   async function persistTeacherLanguage(next: ReportLanguageCode) {
     setTeacherPreviewLanguage(next);
     setBusy("sync-lang");
@@ -303,7 +278,8 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     }
   }
 
-  async function runAi() {
+  /** Saves report inputs (grades, languages, etc.) to the server, then runs AI; both must succeed before returning. */
+  async function generateCommentAndSaveData() {
     setBusy("ai");
     try {
       const saveRes = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, {
@@ -331,6 +307,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "AI failed");
       await load();
+      router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -639,14 +616,6 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => void saveReport()}
-            disabled={busy !== null}
-            className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {t("report.saveReport")}
-          </button>
-          <button
-            type="button"
             onClick={() => {
               setPdfPreviewKey((k) => k + 1);
               setPdfPreviewOpen(true);
@@ -711,16 +680,16 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       <section className="rounded-2xl border border-amber-100 bg-amber-50/80 p-5">
         <h3 className="text-sm font-semibold text-amber-950">{t("report.aiTitle")}</h3>
         <p className="mt-1 text-xs text-amber-900/80">
-          {t("report.aiHint")}{" "}
+          {t("report.aiHintCombined")}{" "}
           {!gridCompleteForAi ? (shortCourse ? t("report.aiFillHintShort") : t("report.aiFillHint")) : null}
         </p>
         <button
           type="button"
-          onClick={() => void runAi()}
+          onClick={() => void generateCommentAndSaveData()}
           disabled={busy !== null}
           className="mt-3 rounded-lg bg-amber-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
-          {busy === "ai" ? t("report.generating") : t("report.generateAi")}
+          {busy === "ai" ? t("report.generatingCommentAndSave") : t("report.generateCommentAndSaveData")}
         </button>
       </section>
     </div>

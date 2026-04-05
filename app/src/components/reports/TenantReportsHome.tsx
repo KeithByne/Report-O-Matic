@@ -12,9 +12,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
+import { classesListHref } from "@/lib/app/classesNavigation";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -42,6 +43,7 @@ const PANEL_ICON: Record<TenantPanelId, LucideIcon> = {
 
 export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
+  const router = useRouter();
   const [lang, setLang] = useState<ReportLanguageCode>("en");
   const [teacherOnlyFinal, setTeacherOnlyFinal] = useState(false);
   const [bulkGroupBy, setBulkGroupBy] = useState<"term" | "teacher" | "class" | "student">("term");
@@ -100,8 +102,13 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
     const lead = viewerRole === "owner" || viewerRole === "department_head";
     const allowed = bootPanels.filter((panelId) => panelId !== "bulk" || lead);
     if (!allowed.length) return;
-    setOpenPanels(new Set([allowed[allowed.length - 1]]));
-  }, [bootPanels, viewerRole]);
+    const last = allowed[allowed.length - 1];
+    if (last === "classes") {
+      router.push(classesListHref(tenantId, viewerRole));
+      return;
+    }
+    setOpenPanels(new Set([last]));
+  }, [bootPanels, viewerRole, tenantId, router]);
 
   async function saveLanguage(next: ReportLanguageCode) {
     setLang(next);
@@ -149,17 +156,28 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
         </h2>
         <p className="mt-1 text-sm text-zinc-600">{t("tenant.sectionMenuHint")}</p>
         <nav className="mt-4 flex flex-wrap gap-2" aria-label={t("tenant.sectionMenuTitle")}>
-          {menuItems.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => togglePanel(id)}
-              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${panelButtonClass(id)}`}
-            >
-              <Icon className={ICON_INLINE} aria-hidden />
-              {label}
-            </button>
-          ))}
+          {menuItems.map(({ id, label, Icon }) =>
+            id === "classes" ? (
+              <Link
+                key={id}
+                href={classesListHref(tenantId, viewerRole)}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+              >
+                <Icon className={ICON_INLINE} aria-hidden />
+                {label}
+              </Link>
+            ) : (
+              <button
+                key={id}
+                type="button"
+                onClick={() => togglePanel(id)}
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${panelButtonClass(id)}`}
+              >
+                <Icon className={ICON_INLINE} aria-hidden />
+                {label}
+              </button>
+            ),
+          )}
           {isLead ? (
             <Link
               href="/dashboard"
@@ -283,8 +301,6 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
           </div>
         </section>
       ) : null}
-
-      <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active={openPanels.has("classes")} />
     </div>
   );
 }

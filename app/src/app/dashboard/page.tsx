@@ -13,7 +13,15 @@ import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/use
 import { listClasses } from "@/lib/data/classesDb";
 import { getTeacherStatsForTenant, getTenantSummaryStats, type TeacherStats, type TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
 
-export default async function DashboardPage() {
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const token = (await cookies()).get("rom_session")?.value || "";
   const session = token ? verifySession(token) : null;
   if (!session) redirect("/landing.html");
@@ -103,6 +111,17 @@ export default async function DashboardPage() {
     }
   }
 
+  const sp = searchParams ? await searchParams : {};
+  const panelRaw = sp.panel;
+  const panelParam = Array.isArray(panelRaw) ? panelRaw[0] : panelRaw;
+  const tenantRaw = sp.tenant;
+  const tenantParam = Array.isArray(tenantRaw) ? tenantRaw[0] : tenantRaw;
+  const wantsClassesPanel =
+    typeof panelParam === "string" && panelParam.toLowerCase().trim() === "classes";
+  const bootClassesTenantId =
+    typeof tenantParam === "string" && isUuid(tenantParam.trim()) ? tenantParam.trim() : null;
+  const bootOpenClassesPanel = wantsClassesPanel && bootClassesTenantId ? bootClassesTenantId : null;
+
   return (
     <DashboardClientView
       email={session.email}
@@ -115,6 +134,7 @@ export default async function DashboardPage() {
       ownerReportCredits={ownerReportCredits}
       firstOwnerTenantId={firstOwnerTenantId}
       teacherClassIdByTenant={teacherClassIdByTenant}
+      bootOpenClassesPanel={bootOpenClassesPanel}
     />
   );
 }

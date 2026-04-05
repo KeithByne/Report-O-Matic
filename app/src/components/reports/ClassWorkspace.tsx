@@ -24,6 +24,7 @@ import {
 } from "@/lib/reportInputs";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
+import { classesListHref } from "@/lib/app/classesNavigation";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -942,7 +943,7 @@ export function ClassWorkspace({
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <Link
-          href={`/reports/${encodeURIComponent(tenantId)}?panel=classes`}
+          href={classesListHref(tenantId, viewerRole)}
           className="mt-1 inline-block text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
         >
           {t("class.backToClassesList")}

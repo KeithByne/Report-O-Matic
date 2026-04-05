@@ -30,6 +30,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AddSchoolForm } from "@/components/dashboard/AddSchoolForm";
 import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
@@ -38,6 +39,7 @@ import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTabl
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
+import { classesListHref } from "@/lib/app/classesNavigation";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
 import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
@@ -77,6 +79,8 @@ export type DashboardClientViewProps = {
   firstOwnerTenantId: string | null;
   /** First class id per tenant for teacher deep-links (class view + Students panel). */
   teacherClassIdByTenant: Record<string, string | null>;
+  /** From `/dashboard?panel=classes&tenant=` — open that school’s Classes workspace card once. */
+  bootOpenClassesPanel?: string | null;
 };
 
 export function DashboardClientView({
@@ -90,15 +94,18 @@ export function DashboardClientView({
   ownerReportCredits,
   firstOwnerTenantId,
   teacherClassIdByTenant,
+  bootOpenClassesPanel = null,
 }: DashboardClientViewProps) {
   const { t } = useUiLanguage();
+  const router = useRouter();
+  const classesBootApplied = useRef(false);
 
   const reportsClassesHref = (tenantId: string, role: MembershipWithTenant["role"]) => {
     const cid = teacherClassIdByTenant[tenantId];
     if (role === "teacher" && cid) {
       return `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(cid)}?panel=overview`;
     }
-    return `/reports/${encodeURIComponent(tenantId)}?panel=classes`;
+    return classesListHref(tenantId, role);
   };
 
   const hasOwner = memberships.some((m) => m.role === "owner");
@@ -223,11 +230,29 @@ export function DashboardClientView({
   useEffect(() => {
     if (!usesSchoolWorkspaceMenu) {
       setWorkspaceDashPanel(null);
+    }
+  }, [usesSchoolWorkspaceMenu]);
+
+  useEffect(() => {
+    if (classesBootApplied.current || !bootOpenClassesPanel) return;
+    const tenant = bootOpenClassesPanel;
+    const m = memberships.find((x) => x.tenantId === tenant);
+    if (!m) return;
+    classesBootApplied.current = true;
+    if (m.role === "teacher") {
+      router.replace(`/reports/${encodeURIComponent(tenant)}?panel=classes`);
       return;
     }
-    // Owner and DH: no panel selected until the user picks one (or follows a link-only control).
-    setWorkspaceDashPanel(null);
-  }, [usesSchoolWorkspaceMenu, ownerFocusTenantId, dhFocusTenantId]);
+    queueMicrotask(() => {
+      if (m.role === "owner") {
+        userClearedSchoolFocus.current = false;
+        setOwnerFocusTenantId(tenant);
+      } else if (m.role === "department_head") {
+        setDhFocusTenantId(tenant);
+      }
+      setWorkspaceDashPanel("classes");
+    });
+  }, [bootOpenClassesPanel, memberships, router]);
 
   const toggleWorkspaceDashPanel = useCallback((panel: WorkspaceDashPanel) => {
     setWorkspaceDashPanel((current) => (current === panel ? null : panel));
@@ -627,6 +652,7 @@ export function DashboardClientView({
                             e.preventDefault();
                             userClearedSchoolFocus.current = true;
                             setOwnerFocusTenantId(null);
+                            setWorkspaceDashPanel(null);
                           }
                         }}
                       >
@@ -638,6 +664,7 @@ export function DashboardClientView({
                           onChange={() => {
                             userClearedSchoolFocus.current = false;
                             setOwnerFocusTenantId(tenantId);
+                            setWorkspaceDashPanel(null);
                           }}
                         />
                         <span className="min-w-0 flex-1 font-medium text-zinc-900">{tenantName}</span>
@@ -675,6 +702,7 @@ export function DashboardClientView({
                 onClick={() => {
                   userClearedSchoolFocus.current = true;
                   setOwnerFocusTenantId(null);
+                  setWorkspaceDashPanel(null);
                 }}
                 className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-900 hover:underline"
               >

@@ -36,7 +36,7 @@ function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
 
 /**
  * Single school “Classes” card: list, term readiness, bulk PDF by term, add/delete (leads), open class + students links.
- * Used on `/reports/[tenant]?panel=classes` and on the dashboard workspace — same behaviour everywhere.
+ * Shown on the dashboard workspace for leads; teachers open the same component via `/reports/[tenant]?panel=classes`.
  */
 export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClassesPanelProps) {
   const { t } = useUiLanguage();

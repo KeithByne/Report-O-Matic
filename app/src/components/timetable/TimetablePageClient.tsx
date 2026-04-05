@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
+import { classesListHref } from "@/lib/app/classesNavigation";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 import { visibleMonFriDayIndexesFromClasses } from "@/lib/timetable/visibleTimetableDays";
@@ -300,9 +301,9 @@ export function TimetablePageClient({
                 <BookOpen className={ICON_INLINE} aria-hidden />
                 {t("dash.ownerMenuClassesAndReports")}
               </button>
-            ) : viewerRole === "owner" ? (
+            ) : viewerRole === "owner" || viewerRole === "department_head" ? (
               <Link
-                href={`/reports/${encodeURIComponent(tenantId)}?panel=classes`}
+                href={classesListHref(tenantId, viewerRole)}
                 className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
               >
                 <BookOpen className={ICON_INLINE} aria-hidden />
@@ -330,9 +331,9 @@ export function TimetablePageClient({
             {canEditGrid ? t("timetable.leadIntro") : t("timetable.teacherIntro")}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {viewerRole === "owner" ? (
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
               <Link
-                href={`/reports/${encodeURIComponent(tenantId)}?panel=classes`}
+                href={classesListHref(tenantId, viewerRole)}
                 className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
               >
                 <BookOpen className={ICON_INLINE} aria-hidden />

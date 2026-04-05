@@ -50,6 +50,13 @@ export default async function ReportsTenantPage({
   const role = await getRoleForTenant(session.email, tenantId);
   if (!role) redirect("/reports");
 
+  if (
+    (role === "owner" || role === "department_head") &&
+    initialOpenPanels?.includes("classes")
+  ) {
+    redirect(`/dashboard?panel=classes&tenant=${encodeURIComponent(tenantId)}`);
+  }
+
   const schoolName = (await getTenantName(tenantId)) || "School";
   const credits = await getTenantCreditBalance(tenantId);
   if (credits <= 0) redirect(`/reports/${tenantId}/billing`);
