@@ -56,8 +56,8 @@ export type ReportInputs = {
   subject_code: SubjectCode | null;
   optional_teacher_notes: string;
   /**
-   * When true, that term’s rubric was auto-filled with neutral placeholders so later-term
-   * reporting does not distort aggregates; not real assessed grades.
+   * When true, that term received estimated values (copied from the report’s focus term into
+   * still-empty cells) so the grid is complete; excluded from the official year average on the PDF.
    */
   supposed_terms?: [boolean, boolean, boolean];
 };
@@ -149,12 +149,11 @@ export function parseReportInputs(raw: unknown): ReportInputs {
   return base;
 }
 
-/** Neutral placeholder for auto-filled prior terms (mid-scale; excluded from official year average when flagged). */
-const SUPPOSED_PLACEHOLDER_SCORE = 5 as const;
-
 /**
- * For standard reports focused on term 2 or 3, fill any still-empty cells in earlier terms with a neutral
- * placeholder and mark those terms as “supposed” so PDFs and aggregates can treat them distinctly.
+ * For standard reports focused on term 2 or 3: for each earlier term, copy the focus term’s numeric
+ * values into the same metrics only where the earlier term still has no value. Does not add or change
+ * cells for metrics left empty in the focus term. Marks affected earlier terms so the PDF can label
+ * them estimated and exclude them from the year average.
  */
 export function applySupposedGradesForPriorTerms(inputs: ReportInputs): ReportInputs {
   if (isShortCourseReport(inputs)) return inputs;
@@ -166,11 +165,15 @@ export function applySupposedGradesForPriorTerms(inputs: ReportInputs): ReportIn
     { ...inputs.terms[1] },
     { ...inputs.terms[2] },
   ];
+  const focus = nextTerms[focusIdx];
+
   for (let t = 0; t < focusIdx; t++) {
     let filledAny = false;
     for (const k of KEYS) {
-      if (nextTerms[t][k] === null || nextTerms[t][k] === undefined) {
-        nextTerms[t][k] = SUPPOSED_PLACEHOLDER_SCORE;
+      const priorVal = nextTerms[t][k];
+      const curVal = focus[k];
+      if ((priorVal === null || priorVal === undefined) && curVal !== null && curVal !== undefined) {
+        nextTerms[t][k] = curVal;
         filledAny = true;
       }
     }
@@ -217,8 +220,8 @@ export function yearAveragePercent(inputs: ReportInputs): number | null {
 }
 
 /**
- * Year average for PDF / official display: ignores terms marked as “supposed” so placeholders do not
- * inflate or distort the end-of-year figure.
+ * Year average for PDF / official display: ignores terms marked estimated (copied into prior terms)
+ * so they do not inflate or distort the end-of-year figure.
  */
 export function yearAveragePercentExcludingSupposed(inputs: ReportInputs): number | null {
   if (isShortCourseReport(inputs)) return null;
@@ -345,7 +348,7 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
   const termLabel = ["Term 1", "Term 2", "Term 3"];
   const supposed = inputs.supposed_terms ?? [false, false, false];
   for (let t = 0; t < 3; t++) {
-    lines.push(`--- ${termLabel[t]}${supposed[t] ? " (supposed grades — placeholders only)" : ""} ---`);
+    lines.push(`--- ${termLabel[t]}${supposed[t] ? " (estimated — copied from report focus term where earlier term had no input)" : ""} ---`);
     let currentDiv: MetricDivisionKey | "" = "";
     for (const m of DATASET4_METRICS) {
       if (m.divisionKey !== currentDiv) {
@@ -360,7 +363,7 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
   }
   const yearPct = yearAveragePercentExcludingSupposed(inputs);
   lines.push(
-    `Year aggregate (excluding supposed placeholder terms): ${yearPct === null ? "—" : formatPercentSigFigs(yearPct, 2)}`,
+    `Year aggregate (excluding estimated prior terms): ${yearPct === null ? "—" : formatPercentSigFigs(yearPct, 2)}`,
   );
   return lines.join("\n");
 }

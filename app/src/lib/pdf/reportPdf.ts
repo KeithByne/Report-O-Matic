@@ -539,7 +539,7 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
 
 
 export function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 9) {
+  if (REPORT_PDF_LAYOUT_VERSION !== 10) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
   return renderReportPdfLayoutV4(ctx);
