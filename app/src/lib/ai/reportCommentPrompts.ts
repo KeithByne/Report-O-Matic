@@ -25,6 +25,14 @@ export function standardReportSequentialDataRules(): string {
 - Do not preview, promise, or hedge about results or themes that would belong to a future term relative to the focused period.`;
 }
 
+/** Voice: parents should read this as their child's teacher speaking, not an anonymous report. */
+export function teacherPerspectiveVoiceRules(langName: string): string {
+  return `Voice and perspective (mandatory):
+- Write as the class teacher writing to parents in ${langName}. Use **first person** where natural — singular ("I") and/or plural ("we" for the class or teaching team) as appropriate in ${langName}. The comment should sound like a person who teaches this child, not a distant official bulletin.
+- Prefer active, direct phrasing ("I have seen…", "In our lessons…", "I am pleased that…") over heavy passive or impersonal constructions ("It has been observed…", "The student was noted to…", "Attention should be given to…"), which read as third-party or detached. Adapt these examples to natural ${langName}; do not leave them in English if the comment is not English.
+- A little passive is acceptable for variety, but do not rely on it as the main voice. Do not write as a neutral narrator or examiner describing the student from outside the classroom.`;
+}
+
 /** Short-course snapshot: no discussion of missing rubric cells or invented metrics. */
 export function shortCourseReportDataCompletenessRules(): string {
   return `Incomplete data (mandatory):
@@ -63,11 +71,13 @@ export function buildStandardReportDraftPrompts(ctx: ReportDraftPromptContext): 
 } {
   const cefrBlock = homeworkAdviceRestrictionForCefr(ctx.classCefrLevel);
   const sequentialBlock = standardReportSequentialDataRules();
+  const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
   const system = `You write school report comments for parents (English as a foreign language / similar contexts). 
 The report narrative must be written entirely in ${ctx.langName}. Do not use another language for the main text.
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
 Use only the student's first name (${ctx.studentFirstName}) — do not use or invent a surname.
 Base the appraisal solely on the numerical 0–10 lines supplied; each line is an in-scope topic. Be fair and specific.
+${voiceBlock}
 ${sequentialBlock}${cefrBlock ? `\n${cefrBlock}` : ""}`;
 
   const user = [
@@ -82,8 +92,8 @@ ${sequentialBlock}${cefrBlock ? `\n${cefrBlock}` : ""}`;
     ctx.existingBody
       ? `Revise or replace this draft (keep facts consistent with the dataset and the sequential-term rules; do not introduce later terms or missing scores):\n${ctx.existingBody}`
       : cefrBlock
-        ? "Write a complete comment: opening strength, honest middle where grades are low, end positive with in-lesson next steps only (no homework or independent work at home). Use only scored metrics and terms that appear in the data for the focused report period; do not mention rubric dimensions absent from the structured data; do not discuss later terms."
-        : "Write a complete comment: opening strength, honest middle where grades are low, end positive with next steps. Use only scored metrics and terms that appear in the data for the focused report period; do not mention rubric dimensions that are absent from the structured data; do not discuss later terms.",
+        ? "Write a complete comment: opening strength, honest middle where grades are low, end positive with in-lesson next steps only (no homework or independent work at home). Use a first-person teacher voice throughout (see system instructions). Use only scored metrics and terms that appear in the data for the focused report period; do not mention rubric dimensions absent from the structured data; do not discuss later terms."
+        : "Write a complete comment: opening strength, honest middle where grades are low, end positive with next steps. Use a first-person teacher voice throughout (see system instructions). Use only scored metrics and terms that appear in the data for the focused report period; do not mention rubric dimensions that are absent from the structured data; do not discuss later terms.",
   ]
     .filter(Boolean)
     .join("\n\n");

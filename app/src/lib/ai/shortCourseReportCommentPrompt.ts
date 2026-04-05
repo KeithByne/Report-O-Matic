@@ -7,6 +7,7 @@ import type { ReportDraftPromptContext } from "@/lib/ai/reportCommentPrompts";
 import {
   homeworkAdviceRestrictionForCefr,
   shortCourseReportDataCompletenessRules,
+  teacherPerspectiveVoiceRules,
 } from "@/lib/ai/reportCommentPrompts";
 
 /** Matches standard report draft temperature; `max_tokens` stays in `generateReportDraft.ts`. */
@@ -19,6 +20,7 @@ export function buildShortCourseReportDraftPrompts(ctx: ReportDraftPromptContext
 } {
   const cefrBlock = homeworkAdviceRestrictionForCefr(ctx.classCefrLevel);
   const dataCompletenessBlock = shortCourseReportDataCompletenessRules();
+  const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
   const selfImproveLine = cefrBlock
     ? "Frame any improvement suggestions around effort and participation during the course sessions only — not tasks or practice outside scheduled class time."
     : "Any comments about what the student can do to improve are made in the context of what the student can do for themselves.";
@@ -31,6 +33,7 @@ The report narrative must be written entirely in ${ctx.langName}. Do not use ano
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
 Use only the student's first name (${ctx.studentFirstName}) — do not use or invent a surname.
 Base the appraisal solely on the numerical 0–10 lines supplied; each line is an in-scope topic. Be fair and specific.
+${voiceBlock}
 ${dataCompletenessBlock}
 In the comment text itself, never use the English word "term" or calendar labels for school reporting slices (e.g. trimester, trimestre, semester, Schultrimester, "marking period"). Refer only to the course or the programme. Write in ${ctx.langName} without importing phrasing from year-long school reports.${cefrBlock ? `\n${cefrBlock}` : ""}`;
 
@@ -46,8 +49,8 @@ In the comment text itself, never use the English word "term" or calendar labels
     ctx.existingBody
       ? `Revise or replace this draft (keep facts consistent with the dataset):\n${ctx.existingBody}`
       : cefrBlock
-        ? "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and a positive closing focused on what happened in the course — no homework or independent study at home, no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher. Only discuss rubric dimensions that appear as scored lines in the data; do not name or imply any unscored area."
-        : "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and ideas the student can use going forward — no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher. Only discuss rubric dimensions that appear as scored lines in the data; do not name or imply any unscored area.",
+        ? "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and a positive closing focused on what happened in the course — no homework or independent study at home, no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher. Use a first-person teacher voice throughout (see system instructions). Only discuss rubric dimensions that appear as scored lines in the data; do not name or imply any unscored area."
+        : "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and ideas the student can use going forward — no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher. Use a first-person teacher voice throughout (see system instructions). Only discuss rubric dimensions that appear as scored lines in the data; do not name or imply any unscored area.",
   ]
     .filter(Boolean)
     .join("\n\n");
