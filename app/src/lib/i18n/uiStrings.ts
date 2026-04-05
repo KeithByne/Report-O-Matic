@@ -799,8 +799,11 @@ const EN: UiMessages = {
   "pdf.gradesSectionIntroShortCourse":
     "Numerical ratings use a 0–10 scale for this short course period only (single observation).",
   "pdf.gradesTermAverage": "{term} average: {value}",
+  "pdf.gradesTermAverageSupposed": "{term} average: {value} (supposed grades)",
   "pdf.gradesShortCourseAverage": "{term} average: {value}",
-  "pdf.gradesYearAverage": "Year average: {value}",
+  "pdf.gradesYearAverage": "Year average (excluding supposed placeholder terms): {value}",
+  "pdf.supposedGradesFootnote":
+    "“Supposed grades” are neutral placeholders entered for earlier terms when no rubric was recorded yet. They keep the structured grid complete for this report; the year average above excludes those terms so it does not read as a full end-of-year aggregate.",
   "pdf.shortCourseReportFocus": "Short course",
   "pdf.metaReportFocus": "Report focus",
   "pdf.defaultReportTitleSuffix": "Report",
@@ -1408,8 +1411,11 @@ const FR: UiMessages = {
   "pdf.gradesSectionIntroShortCourse":
     "Notes chiffrées sur une échelle 0 à 10 pour cette période de cours court uniquement (observation unique).",
   "pdf.gradesTermAverage": "Moyenne du {term} : {value}",
+  "pdf.gradesTermAverageSupposed": "Moyenne du {term} : {value} (notes supposées)",
   "pdf.gradesShortCourseAverage": "Moyenne du {term} : {value}",
-  "pdf.gradesYearAverage": "Moyenne de l’année : {value}",
+  "pdf.gradesYearAverage": "Moyenne de l’année (hors trimestres en notes supposées) : {value}",
+  "pdf.supposedGradesFootnote":
+    "Les « notes supposées » sont des valeurs neutres saisies pour les trimestres antérieurs lorsqu’aucune grille n’avait encore été renseignée. Elles complètent le tableau pour ce rapport ; la moyenne d’année ci-dessus les exclut afin de ne pas passer pour une moyenne annuelle complète.",
   "pdf.shortCourseReportFocus": "Cours court",
   "pdf.metaReportFocus": "Période du rapport",
   "pdf.defaultReportTitleSuffix": "Rapport",
@@ -1861,8 +1867,11 @@ const ES: UiMessages = {
   "pdf.gradesSectionIntroShortCourse":
     "Calificaciones numéricas en escala 0–10 solo para este periodo de curso corto (una observación).",
   "pdf.gradesTermAverage": "Media del {term}: {value}",
+  "pdf.gradesTermAverageSupposed": "Media del {term}: {value} (notas supuestas)",
   "pdf.gradesShortCourseAverage": "Media del {term}: {value}",
-  "pdf.gradesYearAverage": "Media del año: {value}",
+  "pdf.gradesYearAverage": "Media del año (excl. trimestres con notas supuestas): {value}",
+  "pdf.supposedGradesFootnote":
+    "Las «notas supuestas» son valores neutros para trimestres anteriores cuando aún no había rúbrica. Completan la cuadrícula en este informe; la media anual anterior excluye esos trimestres para no parecer un resultado anual completo.",
   "pdf.shortCourseReportFocus": "Curso corto",
   "pdf.metaReportFocus": "Periodo del informe",
   "pdf.defaultReportTitleSuffix": "Informe",

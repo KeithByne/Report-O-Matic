@@ -7,9 +7,10 @@ import type { ReportInputs, ReportPeriod } from "@/lib/reportInputs";
 import {
   DATASET4_METRICS,
   formatPercentSigFigs,
+  hasAnySupposedTerm,
   isShortCourseReport,
   termAveragePercent,
-  yearAveragePercent,
+  yearAveragePercentExcludingSupposed,
   type MetricDivisionKey,
 } from "@/lib/reportInputs";
 
@@ -516,10 +517,20 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
   } else {
     for (let t = 0; t < 3; t++) {
       const pct = termAveragePercent(inputs.terms[t]);
-      doc.text(translate(lang, "pdf.gradesTermAverage", { term: termHeaders[t], value: fmtPct(pct) }));
+      const supposed = inputs.supposed_terms?.[t];
+      doc.text(
+        supposed
+          ? translate(lang, "pdf.gradesTermAverageSupposed", { term: termHeaders[t], value: fmtPct(pct) })
+          : translate(lang, "pdf.gradesTermAverage", { term: termHeaders[t], value: fmtPct(pct) }),
+      );
     }
-    const yearPct = yearAveragePercent(inputs);
+    const yearPct = yearAveragePercentExcludingSupposed(inputs);
     doc.text(translate(lang, "pdf.gradesYearAverage", { value: fmtPct(yearPct) }));
+    if (hasAnySupposedTerm(inputs)) {
+      doc.moveDown(0.35);
+      applyTypo(doc, typo.gradesFooter);
+      doc.text(translate(lang, "pdf.supposedGradesFootnote"), marginPt, doc.y, { width: usableW });
+    }
   }
 
   return doc.y;
@@ -528,7 +539,7 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
 
 
 export function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 8) {
+  if (REPORT_PDF_LAYOUT_VERSION !== 9) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
   return renderReportPdfLayoutV4(ctx);

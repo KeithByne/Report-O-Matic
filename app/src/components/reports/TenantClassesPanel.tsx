@@ -3,7 +3,7 @@
 import { BookOpen, DoorOpen, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -69,9 +69,12 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     }
   }, [base]);
 
+  const wasActiveRef = useRef(false);
   useEffect(() => {
-    if (!active) return;
-    void refresh();
+    if (active && !wasActiveRef.current) {
+      void refresh();
+    }
+    wasActiveRef.current = active;
   }, [active, refresh]);
 
   useEffect(() => {
