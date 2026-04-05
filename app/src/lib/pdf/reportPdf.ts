@@ -203,6 +203,9 @@ function gradesTableFitsOnePage(startY: number, visible: (typeof DATASET4_METRIC
   const limit = heightPt - marginPt - tableSpec.pageBreakReserve;
   for (const m of visible) {
     if (m.divisionKey !== currentDivision) {
+      if (currentDivision !== "") {
+        y += tableSpec.divisionBetweenBlocksPt;
+      }
       currentDivision = m.divisionKey;
       y += tableSpec.rowHeight - 2;
     }
@@ -225,6 +228,7 @@ function computeDivisionBlockSegments(
     if (m.divisionKey !== currentDivision) {
       if (currentDivision !== "" && blockTop >= 0) {
         segments.push({ top: blockTop, bottom: y });
+        y += tableSpec.divisionBetweenBlocksPt;
       }
       currentDivision = m.divisionKey;
       blockTop = y;
@@ -246,12 +250,13 @@ function drawDivisionBlockBoxes(doc: PdfDoc, startY: number, usableW: number, vi
   const x = marginPt + inset;
   const w = usableW - 2 * inset;
   const r = divisionBoxSpec.cornerRadiusPt;
+  const pad = divisionBoxSpec.contentPaddingPt;
   doc.save();
   doc.lineWidth(divisionBoxSpec.strokeWidthPt).strokeColor(divisionBoxSpec.strokeColor).lineJoin("round");
   for (const seg of segments) {
     const h = seg.bottom - seg.top;
     if (h <= 0) continue;
-    doc.roundedRect(x, seg.top, w, h, r).stroke();
+    doc.roundedRect(x, seg.top - pad, w, h + 2 * pad, r).stroke();
   }
   doc.restore();
 }
@@ -474,6 +479,18 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
   let currentDivision: MetricDivisionKey | "" = "";
   for (const m of visible) {
     if (m.divisionKey !== currentDivision) {
+      if (currentDivision !== "") {
+        y += tableSpec.divisionSeparatorAbovePt;
+        doc.save();
+        doc
+          .moveTo(marginPt, y)
+          .lineTo(widthPt - marginPt, y)
+          .strokeColor(typo.divider.stroke)
+          .lineWidth(typo.divider.lineWidth)
+          .stroke();
+        doc.restore();
+        y += tableSpec.divisionSeparatorBelowPt;
+      }
       currentDivision = m.divisionKey;
       applyTypo(doc, typo.gradesDivision);
       doc.text(metricDivisionLabel(lang, m.divisionKey), x0, y, { width: usableW });

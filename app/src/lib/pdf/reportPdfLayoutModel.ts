@@ -46,10 +46,10 @@ export const PDF_TYPOGRAPHY_V1 = {
   generatedStamp: { fontSize: 8, font: "Helvetica" as const, fill: "#94a3b8" },
   gradesSectionTitle: { fontSize: 13, font: "Helvetica-Bold" as const, fill: "#0f172a" },
   gradesSectionIntro: { fontSize: 10, font: "Helvetica" as const, fill: "#475569", lineGap: 2 },
-  /** Academic grid — body at 14 pt for readability */
-  gradesHeader: { fontSize: 14, font: "Helvetica-Bold" as const, fill: "#111" },
+  /** Academic grid — titles and scores at 12 pt */
+  gradesHeader: { fontSize: 12, font: "Helvetica-Bold" as const, fill: "#111" },
   gradesDivision: { fontSize: 12, font: "Helvetica-Bold" as const, fill: "#333" },
-  gradesCellLabel: { fontSize: 14, font: "Helvetica" as const, fill: "#111" },
+  gradesCellLabel: { fontSize: 12, font: "Helvetica" as const, fill: "#111" },
   gradesFooter: { fontSize: 12, font: "Helvetica" as const, fill: "#444" },
   signatureLabel: { fontSize: 10, font: "Helvetica-Bold" as const, fill: "#334155" },
   divider: { stroke: "#cbd5e1", lineWidth: 0.5 },
@@ -58,8 +58,15 @@ export const PDF_TYPOGRAPHY_V1 = {
 /** Grade grid layout tokens (column ratios and row heights). */
 export const PDF_GRADES_TABLE_SPEC_V1 = {
   colLabelRatio: 0.52,
-  rowHeight: 19,
-  headerHeight: 22,
+  /** Metric data row height (12 pt text). */
+  rowHeight: 17,
+  /** Table header row (Dimension / terms). */
+  headerHeight: 20,
+  /** Space inserted between criteria blocks (before the next division heading). */
+  divisionBetweenBlocksPt: 12,
+  /** Gap above / below the separator rule between criteria (sum ≈ divisionBetweenBlocksPt). */
+  divisionSeparatorAbovePt: 4,
+  divisionSeparatorBelowPt: 8,
   /** Reserve bottom space on a page for term-average lines + signature box */
   pageBreakReserve: 165,
 } as const;
@@ -70,6 +77,8 @@ export const PDF_GRADES_DIVISION_BOX_V1 = {
   strokeWidthPt: 1.15,
   /** Inset from the grades table left/right edges (full-width box). */
   insetPt: 1,
+  /** Padding between the stroke and the text inside each criteria block. */
+  contentPaddingPt: 4,
   strokeColor: "#94a3b8",
 } as const;
 
