@@ -941,7 +941,13 @@ export function ClassWorkspace({
       {openClassPanel === "students" ? (
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
-        <p className="mt-1 text-xs text-zinc-500">{t("class.studentsHint")}</p>
+        <Link
+          href={`/reports/${encodeURIComponent(tenantId)}?panel=classes`}
+          className="mt-1 inline-block text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+        >
+          {t("class.backToClassesList")}
+        </Link>
+        <p className="mt-2 text-xs text-zinc-500">{t("class.studentsHint")}</p>
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.firstName")}</span>
