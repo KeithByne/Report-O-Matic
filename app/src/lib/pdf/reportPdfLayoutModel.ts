@@ -8,7 +8,7 @@
  * For visual tweaks inside the same structure, adjust `PDF_TYPOGRAPHY_V1` / `PDF_PAGE_SPEC`.
  */
 
-export const REPORT_PDF_LAYOUT_VERSION = 10;
+export const REPORT_PDF_LAYOUT_VERSION = 11;
 
 /** Stable id embedded in PDF metadata and logs; change when the layout is not the same document shape. */
 export const REPORT_PDF_LAYOUT_ID = "report-a4-v8" as const;
@@ -56,6 +56,9 @@ export const PDF_TYPOGRAPHY_V1 = {
   signatureLabel: { fontSize: 10, font: "Helvetica-Bold" as const, fill: "#334155" },
   divider: { stroke: "#cbd5e1", lineWidth: 0.5 },
 } as const;
+
+/** Estimated / copied prior-term scores on the grades table (readable green on white). */
+export const PDF_GRADES_ESTIMATED_FILL = "#15803d";
 
 /** Grade grid layout tokens (column ratios and row heights). */
 export const PDF_GRADES_TABLE_SPEC_V1 = {
