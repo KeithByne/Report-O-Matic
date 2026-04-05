@@ -210,6 +210,19 @@ export function focusTermComplete(inputs: ReportInputs): boolean {
 }
 
 /**
+ * Classes dashboard term readiness (1/2/3): report is focused on `period` and the rubric for that
+ * focus term is complete. Does not require a parent PDF comment — teachers may save grades before AI.
+ */
+export function reportTermReadyForClassesDashboard(r: { inputs: ReportInputs }, period: ReportPeriod): boolean {
+  const inputs = r.inputs;
+  if (inputs.report_period !== period) return false;
+  if (isShortCourseReport(inputs)) {
+    return period === "first" && focusTermComplete(inputs);
+  }
+  return focusTermComplete(inputs);
+}
+
+/**
  * Class bulk PDF: include when the report has parent-facing text and is either marked final,
  * or (draft) has a complete grade grid for the report period.
  */

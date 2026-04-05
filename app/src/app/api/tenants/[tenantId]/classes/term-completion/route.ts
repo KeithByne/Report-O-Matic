@@ -4,7 +4,7 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import { listClasses } from "@/lib/data/classesDb";
 import { listReportsForTenant } from "@/lib/data/reportsDb";
 import { listStudents } from "@/lib/data/students";
-import { reportReadyForClassBulkPdf, type ReportPeriod } from "@/lib/reportInputs";
+import { reportTermReadyForClassesDashboard, type ReportPeriod } from "@/lib/reportInputs";
 
 export const runtime = "nodejs";
 
@@ -59,9 +59,7 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
         let ok = true;
         for (const sid of sids) {
           const rs = byStudent.get(sid) ?? [];
-          const has = rs.some(
-            (r) => r.inputs.report_period === period && reportReadyForClassBulkPdf(r),
-          );
+          const has = rs.some((r) => reportTermReadyForClassesDashboard(r, period));
           if (!has) {
             ok = false;
             break;
