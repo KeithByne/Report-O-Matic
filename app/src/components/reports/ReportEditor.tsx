@@ -74,31 +74,56 @@ function reportPeriodToTermIndex(rp: ReportPeriod): 0 | 1 | 2 {
   return 2;
 }
 
+/** Prior term scores for the same metric, for teacher guidance (standard reports only). */
+function priorTermGuidanceLine(
+  terms: ReportInputs["terms"],
+  focusTermIndex: 0 | 1 | 2,
+  key: Dataset4MetricKey,
+  termLabel: (idx: 0 | 1 | 2) => string,
+): string | null {
+  const parts: string[] = [];
+  for (let i = 0; i < focusTermIndex; i++) {
+    const v = terms[i][key];
+    if (v !== null && v !== undefined) {
+      parts.push(`${termLabel(i as 0 | 1 | 2)}: ${v}`);
+    }
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
 function GradeSelect({
   value,
   onChange,
+  priorGuidance,
 }: {
   value: number | null;
   onChange: (n: number | null) => void;
+  /** Shown under the field when earlier term(s) have scores (reference only). */
+  priorGuidance?: string | null;
 }) {
   return (
-    <select
-      value={value === null ? "" : String(value)}
-      onChange={(e) => {
-        const v = e.target.value;
-        onChange(v === "" ? null : parseInt(v, 10));
-      }}
-      className={`mt-1 w-full min-w-[4.5rem] rounded-lg border px-2 py-1.5 text-sm ${
-        value === null ? "border-emerald-200/70 bg-emerald-50/50 text-zinc-500" : "border-emerald-400 bg-emerald-50 text-emerald-950"
-      }`}
-    >
-      <option value="">—</option>
-      {Array.from({ length: 11 }, (_, n) => (
-        <option key={n} value={String(n)}>
-          {n}
-        </option>
-      ))}
-    </select>
+    <div className="min-w-0">
+      <select
+        value={value === null ? "" : String(value)}
+        onChange={(e) => {
+          const v = e.target.value;
+          onChange(v === "" ? null : parseInt(v, 10));
+        }}
+        className={`mt-1 w-full min-w-[4.5rem] rounded-lg border px-2 py-1.5 text-sm ${
+          value === null ? "border-emerald-200/70 bg-emerald-50/50 text-zinc-500" : "border-emerald-400 bg-emerald-50 text-emerald-950"
+        }`}
+      >
+        <option value="">—</option>
+        {Array.from({ length: 11 }, (_, n) => (
+          <option key={n} value={String(n)}>
+            {n}
+          </option>
+        ))}
+      </select>
+      {priorGuidance ? (
+        <p className="mt-1 text-[10px] leading-snug text-zinc-500 sm:text-[11px]">{priorGuidance}</p>
+      ) : null}
+    </div>
   );
 }
 
@@ -541,11 +566,14 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           <p className="text-sm font-semibold text-zinc-900">
             {shortCourse ? t("report.shortCourseTermHeading") : `${termHeading(focusTermIndex)}${t("report.termInputs")}`}
           </p>
+          {!shortCourse && focusTermIndex > 0 ? (
+            <p className="mt-1 text-xs text-zinc-500">{t("report.priorTermsGuidanceHint")}</p>
+          ) : null}
           <div className="space-y-4">
             {([0, 1, 2, 3] as const).map((rowIdx) => {
               const row = DATASET4_METRICS.slice(rowIdx * 4, rowIdx * 4 + 4);
               return (
-                <div key={rowIdx} className="grid grid-cols-4 gap-3 items-end">
+                <div key={rowIdx} className="grid grid-cols-4 gap-3 items-start">
                   {row.map((m) => (
                     <div key={m.key} className="flex min-w-0 flex-col">
                       <span className="mb-1 text-[11px] leading-tight text-zinc-700 sm:text-sm">
@@ -554,6 +582,11 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
                       <GradeSelect
                         value={inputs.terms[focusTermIndex][m.key]}
                         onChange={(n) => setTermGrade(focusTermIndex, m.key, n)}
+                        priorGuidance={
+                          shortCourse
+                            ? undefined
+                            : priorTermGuidanceLine(inputs.terms, focusTermIndex, m.key, termHeading)
+                        }
                       />
                     </div>
                   ))}

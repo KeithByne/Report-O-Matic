@@ -732,6 +732,8 @@ const EN: UiMessages = {
   "report.termGradesTitle": "Term grades (0–10)",
   "report.termGradesHint":
     "Choose which term you are reporting on, then enter grades below. AI and PDF use this same term. Switch the dropdown to edit another term's grades.",
+  "report.priorTermsGuidanceHint":
+    "Scores from earlier term(s) in the year appear under each field when present, for your reference only.",
   "report.termForReport": "Term for this report",
   "report.termFirst": "First term",
   "report.termSecond": "Second term",
@@ -1333,6 +1335,8 @@ const FR: UiMessages = {
   "report.termGradesTitle": "Notes du trimestre (0–10)",
   "report.termGradesHint":
     "Choisissez le trimestre du rapport, puis saisissez les notes. L’IA et le PDF utilisent le même trimestre.",
+  "report.priorTermsGuidanceHint":
+    "Les notes des trimestres précédents de l’année s’affichent sous chaque champ lorsqu’elles existent, à titre indicatif uniquement.",
   "report.termForReport": "Trimestre de ce rapport",
   "report.termFirst": "Premier trimestre",
   "report.termSecond": "Deuxième trimestre",
@@ -1781,6 +1785,8 @@ const ES: UiMessages = {
   "report.termGradesTitle": "Notas del trimestre (0–10)",
   "report.termGradesHint":
     "Elija el trimestre del informe y escriba las notas. La IA y el PDF usan el mismo trimestre.",
+  "report.priorTermsGuidanceHint":
+    "Las notas de trimestres anteriores del curso aparecen bajo cada campo cuando existen, solo como referencia.",
   "report.termForReport": "Trimestre de este informe",
   "report.termFirst": "Primer trimestre",
   "report.termSecond": "Segundo trimestre",
