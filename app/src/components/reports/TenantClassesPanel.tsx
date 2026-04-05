@@ -1,21 +1,23 @@
 "use client";
 
-import { BookOpen, DoorOpen, Plus, Trash2 } from "lucide-react";
+import { BookOpen, DoorOpen, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
+import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import type { RomRole } from "@/lib/data/memberships";
 
 type ClassRow = { id: string; name: string; student_count: number };
 
 type TermCompletion = { first: boolean; second: boolean; third: boolean };
 
-type PanelProps = {
+export type TenantClassesPanelProps = {
   tenantId: string;
   viewerRole: RomRole;
-  schoolName: string;
+  /** When true (panel visible), class list and term readiness are loaded; refetch each time this becomes true. */
+  active: boolean;
 };
 
 function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
@@ -32,7 +34,11 @@ function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
   );
 }
 
-export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName: _schoolName }: PanelProps) {
+/**
+ * Single school “Classes” card: list, term readiness, bulk PDF by term, add/delete (leads), open class + students links.
+ * Used on `/reports/[tenant]?panel=classes` and on the dashboard workspace — same behaviour everywhere.
+ */
+export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClassesPanelProps) {
   const { t } = useUiLanguage();
   const router = useRouter();
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -64,8 +70,19 @@ export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName: _sch
   }, [base]);
 
   useEffect(() => {
+    if (!active) return;
     void refresh();
-  }, [refresh]);
+  }, [active, refresh]);
+
+  useEffect(() => {
+    const onClassSettingsSaved = (ev: Event) => {
+      const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
+      const id = ce.detail?.tenantId?.trim();
+      if (id && id === tenantId && active) void refresh();
+    };
+    window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+    return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+  }, [tenantId, active, refresh]);
 
   async function addClass(e: React.FormEvent) {
     e.preventDefault();
@@ -104,6 +121,8 @@ export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName: _sch
       setBusy(null);
     }
   }
+
+  if (!active) return null;
 
   return (
     <>
@@ -164,45 +183,53 @@ export function DashboardDhClassesPanel({ tenantId, viewerRole, schoolName: _sch
         <ul className="mt-4 divide-y divide-emerald-100">
           {classes.map((c) => {
             const classOverviewHref = `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=overview`;
+            const classStudentsHref = `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=students`;
             return (
-            <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-              <Link
-                href={classOverviewHref}
-                className="min-w-0 flex-1 rounded-lg py-0.5 text-left outline-none ring-emerald-500/40 transition hover:bg-emerald-50/70 focus-visible:ring-2"
-              >
-                <span className="font-medium text-zinc-900">{c.name}</span>
-                <span className="ml-2 text-sm text-zinc-500">
-                  {c.student_count} {c.student_count === 1 ? t("tenant.pupil") : t("tenant.pupils")}
-                </span>
-              </Link>
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className="inline-flex items-center"
-                  title={t("tenant.termReadinessHint")}
-                  aria-label={t("tenant.termReadinessHint")}
-                >
-                  <TermReadiness terms={termByClass[c.id]} />
-                </span>
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <Link
                   href={classOverviewHref}
-                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+                  className="min-w-0 flex-1 rounded-lg py-0.5 text-left outline-none ring-emerald-500/40 transition hover:bg-emerald-50/70 focus-visible:ring-2"
                 >
-                  <DoorOpen className={ICON_INLINE} aria-hidden />
-                  {t("tenant.openClass")}
+                  <span className="font-medium text-zinc-900">{c.name}</span>
+                  <span className="ml-2 text-sm text-zinc-500">
+                    {c.student_count} {c.student_count === 1 ? t("tenant.pupil") : t("tenant.pupils")}
+                  </span>
                 </Link>
-                {isLead ? (
-                  <button
-                    type="button"
-                    disabled={busy !== null}
-                    onClick={() => void deleteClass(c.id, c.name)}
-                    className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className="inline-flex items-center"
+                    title={t("tenant.termReadinessHint")}
+                    aria-label={t("tenant.termReadinessHint")}
                   >
-                    <Trash2 className={ICON_INLINE} aria-hidden />
-                    {t("tenant.delete")}
-                  </button>
-                ) : null}
-              </div>
-            </li>
+                    <TermReadiness terms={termByClass[c.id]} />
+                  </span>
+                  <Link
+                    href={classOverviewHref}
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+                  >
+                    <DoorOpen className={ICON_INLINE} aria-hidden />
+                    {t("tenant.openClass")}
+                  </Link>
+                  <Link
+                    href={classStudentsHref}
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+                  >
+                    <Users className={ICON_INLINE} aria-hidden />
+                    {t("class.studentsTitle")}
+                  </Link>
+                  {isLead ? (
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => void deleteClass(c.id, c.name)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
+                    >
+                      <Trash2 className={ICON_INLINE} aria-hidden />
+                      {t("tenant.delete")}
+                    </button>
+                  ) : null}
+                </div>
+              </li>
             );
           })}
         </ul>

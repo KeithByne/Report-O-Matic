@@ -4,33 +4,23 @@ import {
   BookOpen,
   CalendarDays,
   Download,
-  DoorOpen,
   FolderKanban,
   Languages,
   LayoutList,
-  Plus,
   Sparkles,
-  Trash2,
   UserPlus,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
 import type { RomRole } from "@/lib/data/memberships";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-
-type ClassRow = {
-  id: string;
-  name: string;
-  student_count: number;
-};
 
 export type TenantPanelId = "welcome" | "timetable" | "language" | "bulk" | "classes";
 
@@ -52,10 +42,7 @@ const PANEL_ICON: Record<TenantPanelId, LucideIcon> = {
 
 export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
-  const router = useRouter();
-  const [classes, setClasses] = useState<ClassRow[]>([]);
   const [lang, setLang] = useState<ReportLanguageCode>("en");
-  const [newClassName, setNewClassName] = useState("");
   const [teacherOnlyFinal, setTeacherOnlyFinal] = useState(false);
   const [bulkGroupBy, setBulkGroupBy] = useState<"term" | "teacher" | "class" | "student">("term");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -82,12 +69,9 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
   const refresh = useCallback(async () => {
     setLoadError(null);
     try {
-      const [cRes, sRes] = await Promise.all([fetch(`${base}/classes`), fetch(`${base}/settings`)]);
-      const cData = await cRes.json().catch(() => ({}));
+      const sRes = await fetch(`${base}/settings`);
       const sData = await sRes.json().catch(() => ({}));
-      if (!cRes.ok) throw new Error(cData.error || "Failed to load classes");
       if (!sRes.ok) throw new Error(sData.error || "Failed to load settings");
-      setClasses(cData.classes ?? []);
       if (typeof sData.default_report_language === "string") {
         const code = sData.default_report_language as ReportLanguageCode;
         if (REPORT_LANGUAGES.some((x) => x.code === code)) setLang(code);
@@ -137,28 +121,6 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
     }
   }
 
-  async function addClass(e: React.FormEvent) {
-    e.preventDefault();
-    const name = newClassName.trim();
-    if (!name) return;
-    setBusy("class");
-    try {
-      const res = await fetch(`${base}/classes`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
-      setNewClassName("");
-      await refresh();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
-    } finally {
-      setBusy(null);
-    }
-  }
-
   const isLead = viewerRole === "owner" || viewerRole === "department_head";
   const teacherBatchHref = useMemo(() => {
     const qp = new URLSearchParams();
@@ -166,22 +128,6 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
     qp.set("order", bulkGroupBy);
     return `${base}/reports/pdf-batch?${qp.toString()}`;
   }, [base, bulkGroupBy, teacherOnlyFinal]);
-
-  async function deleteClass(classId: string, name: string) {
-    if (!confirm(t("tenant.confirmDeleteClass", { name }))) return;
-    setBusy("del-class");
-    try {
-      const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, { method: "DELETE" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
-      await refresh();
-      router.refresh();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
-    } finally {
-      setBusy(null);
-    }
-  }
 
   const menuItems = useMemo(() => {
     const items: { id: TenantPanelId; label: string; Icon: LucideIcon }[] = [
@@ -338,82 +284,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
         </section>
       ) : null}
 
-      {openPanels.has("classes") ? (
-        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-            <BookOpen className={ICON_SECTION} aria-hidden />
-            {t("tenant.classesTitle")}
-          </h2>
-          {isLead ? (
-            <form onSubmit={addClass} className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-              <label className="text-sm">
-                <span className="text-zinc-600">{t("tenant.newClassName")}</span>
-                <input
-                  value={newClassName}
-                  onChange={(e) => setNewClassName(e.target.value)}
-                  className="mt-1 block min-w-[14rem] rounded-lg border border-emerald-200 px-3 py-2"
-                  placeholder={t("tenant.newClassPlaceholder")}
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={busy !== null}
-                className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-              >
-                <Plus className={ICON_INLINE} aria-hidden />
-                {t("tenant.createClass")}
-              </button>
-            </form>
-          ) : (
-            <p className="mt-2 text-sm text-zinc-500">{t("tenant.onlyLeadsCreate")}</p>
-          )}
-
-          <ul className="mt-4 divide-y divide-emerald-100">
-            {classes.map((c) => (
-              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <div>
-                  <span className="font-medium text-zinc-900">{c.name}</span>
-                  <span className="ml-2 text-sm text-zinc-500">
-                    {c.student_count} {c.student_count === 1 ? t("tenant.pupil") : t("tenant.pupils")}
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=overview`}
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
-                  >
-                    <DoorOpen className={ICON_INLINE} aria-hidden />
-                    {t("tenant.openClass")}
-                  </Link>
-                  <Link
-                    href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=students`}
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
-                  >
-                    <Users className={ICON_INLINE} aria-hidden />
-                    {t("class.studentsTitle")}
-                  </Link>
-                  {isLead ? (
-                    <button
-                      type="button"
-                      disabled={busy !== null}
-                      onClick={() => void deleteClass(c.id, c.name)}
-                      className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
-                    >
-                      <Trash2 className={ICON_INLINE} aria-hidden />
-                      {t("tenant.delete")}
-                    </button>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-          {classes.length === 0 ? (
-            <p className="mt-2 text-sm text-zinc-500">
-              {isLead ? t("tenant.noClassesLead") : t("tenant.noClassesTeacher")}
-            </p>
-          ) : null}
-        </section>
-      ) : null}
+      <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active={openPanels.has("classes")} />
     </div>
   );
 }

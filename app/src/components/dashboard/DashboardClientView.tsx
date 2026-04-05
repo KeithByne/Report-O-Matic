@@ -32,7 +32,7 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AddSchoolForm } from "@/components/dashboard/AddSchoolForm";
-import { DashboardDhClassesPanel } from "@/components/dashboard/DashboardDhInlineSchoolPanels";
+import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
 import { DashboardScholasticArchivesOverview } from "@/components/dashboard/DashboardScholasticArchivesOverview";
 import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTable";
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
@@ -1255,10 +1255,10 @@ export function DashboardClientView({
                 {primaryMembership &&
                 workspaceDashPanel === "classes" &&
                 (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
-                  <DashboardDhClassesPanel
+                  <TenantClassesPanel
                     tenantId={primaryMembership.tenantId}
                     viewerRole={primaryMembership.role}
-                    schoolName={primaryMembership.tenantName}
+                    active={workspaceDashPanel === "classes"}
                   />
                 ) : null}
 
