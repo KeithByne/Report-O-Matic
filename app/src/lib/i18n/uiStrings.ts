@@ -757,6 +757,7 @@ const EN: UiMessages = {
   "report.generateAi": "Generate AI comments",
   "report.generating": "Generating…",
   "report.backClass": "← Back to class",
+  "report.backStudents": "Back to students",
   "report.pageTitle": "Individual student report",
   "report.pageIntro":
     "Class, subject, and year are set on the class screen; adjust here only when you need an override. Grades use your Prompt A1 titles (0–10) per term.",
@@ -1355,6 +1356,7 @@ const FR: UiMessages = {
   "report.generateAi": "Générer les commentaires IA",
   "report.generating": "Génération…",
   "report.backClass": "← Retour à la classe",
+  "report.backStudents": "Retour aux élèves",
   "report.pageTitle": "Rapport individuel",
   "report.pageIntro":
     "Classe, matière et année se règlent sur l’écran Classe ; ajustez ici seulement si besoin.",
@@ -1798,6 +1800,7 @@ const ES: UiMessages = {
   "report.generateAi": "Generar comentarios IA",
   "report.generating": "Generando…",
   "report.backClass": "← Volver a la clase",
+  "report.backStudents": "Volver a los alumnos",
   "report.pageTitle": "Informe individual",
   "report.pageIntro":
     "Clase, materia y año se configuran en la pantalla Clase; ajuste aquí solo si hace falta.",

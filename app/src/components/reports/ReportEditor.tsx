@@ -598,7 +598,13 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
             </div>
           </div>
         </div>
-        <p className="mt-2 text-xs text-zinc-500">{t("report.pdfPreviewHint")}</p>
+        <Link
+          href={classPageHrefForStudent(tenantId, classId, studentId)}
+          className="mt-4 inline-block text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+        >
+          {t("report.backStudents")}
+        </Link>
+        <p className="mt-3 text-xs text-zinc-500">{t("report.pdfPreviewHint")}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"

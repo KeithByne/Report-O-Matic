@@ -493,12 +493,18 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
       }
       currentDivision = m.divisionKey;
       applyTypo(doc, typo.gradesDivision);
-      doc.text(metricDivisionLabel(lang, m.divisionKey), x0, y, { width: usableW });
+      const indentDivisionTitle = doc.widthOfString("n");
+      doc.text(metricDivisionLabel(lang, m.divisionKey), x0 + indentDivisionTitle, y, {
+        width: usableW - indentDivisionTitle,
+      });
       y += rowH - 2;
       doc.font("Helvetica").fillColor(typo.gradesCellLabel.fill);
     }
-    doc.fontSize(typo.gradesCellLabel.fontSize);
-    doc.text(metricLabel(lang, m.key), x0, y, { width: colLabelW - 4 });
+    applyTypo(doc, typo.gradesCellLabel);
+    const indentMetricRow = doc.widthOfString("n") * 2;
+    doc.text(metricLabel(lang, m.key), x0 + indentMetricRow, y, {
+      width: colLabelW - 4 - indentMetricRow,
+    });
     const termCount = shortCourse ? 1 : 3;
     for (let ti = 0; ti < termCount; ti++) {
       const t = shortCourse ? 0 : ti;
