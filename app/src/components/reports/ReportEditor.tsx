@@ -722,9 +722,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         </div>
       ) : null}
 
-      <section className="rounded-2xl border border-amber-100 bg-amber-50/80 p-5">
-        <h3 className="text-sm font-semibold text-amber-950">{t("report.aiTitle")}</h3>
-        <p className="mt-1 text-xs text-amber-900/80">
+      <section className="rounded-2xl border-2 border-purple-400 bg-gradient-to-br from-violet-200 via-purple-100 to-fuchsia-100 p-5 shadow-md ring-1 ring-purple-300/70">
+        <h3 className="text-sm font-semibold text-purple-950">{t("report.aiTitle")}</h3>
+        <p className="mt-1 text-xs text-purple-950/90">
           {t("report.aiHintCombined")}{" "}
           {!gridCompleteForAi ? (shortCourse ? t("report.aiFillHintShort") : t("report.aiFillHint")) : null}
         </p>
@@ -732,7 +732,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           type="button"
           onClick={() => void generateCommentAndSaveData()}
           disabled={busy !== null}
-          className="mt-3 rounded-lg bg-amber-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="mt-3 rounded-lg bg-purple-700 px-4 py-2 text-sm font-medium text-white shadow-md shadow-purple-900/25 transition-colors hover:bg-purple-900 disabled:opacity-50"
         >
           {busy === "ai" ? t("report.generatingCommentAndSave") : t("report.generateCommentAndSaveData")}
         </button>
