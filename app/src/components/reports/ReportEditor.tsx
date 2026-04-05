@@ -95,21 +95,25 @@ function GradeSelect({
   value,
   onChange,
   priorGuidance,
+  reserveGuidanceSlot,
 }: {
   value: number | null;
   onChange: (n: number | null) => void;
   /** Shown under the field when earlier term(s) have scores (reference only). */
   priorGuidance?: string | null;
+  /** When true, keep a fixed band under the select so the grid stays aligned when some cells have guidance. */
+  reserveGuidanceSlot?: boolean;
 }) {
+  const showSlot = Boolean(reserveGuidanceSlot);
   return (
-    <div className="min-w-0">
+    <div className="flex min-w-0 flex-col">
       <select
         value={value === null ? "" : String(value)}
         onChange={(e) => {
           const v = e.target.value;
           onChange(v === "" ? null : parseInt(v, 10));
         }}
-        className={`mt-1 w-full min-w-[4.5rem] rounded-lg border px-2 py-1.5 text-sm ${
+        className={`h-9 w-full min-w-[4.5rem] shrink-0 rounded-lg border px-2 text-sm ${
           value === null ? "border-emerald-200/70 bg-emerald-50/50 text-zinc-500" : "border-emerald-400 bg-emerald-50 text-emerald-950"
         }`}
       >
@@ -120,8 +124,12 @@ function GradeSelect({
           </option>
         ))}
       </select>
-      {priorGuidance ? (
-        <p className="mt-1 text-[10px] leading-snug text-zinc-500 sm:text-[11px]">{priorGuidance}</p>
+      {showSlot ? (
+        <div className="mt-1 min-h-[2.25rem] sm:min-h-[2.5rem]">
+          {priorGuidance ? (
+            <p className="text-[10px] leading-snug text-zinc-500 sm:text-[11px]">{priorGuidance}</p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
@@ -569,30 +577,26 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           {!shortCourse && focusTermIndex > 0 ? (
             <p className="mt-1 text-xs text-zinc-500">{t("report.priorTermsGuidanceHint")}</p>
           ) : null}
-          <div className="space-y-4">
-            {([0, 1, 2, 3] as const).map((rowIdx) => {
-              const row = DATASET4_METRICS.slice(rowIdx * 4, rowIdx * 4 + 4);
-              return (
-                <div key={rowIdx} className="grid grid-cols-4 gap-3 items-start">
-                  {row.map((m) => (
-                    <div key={m.key} className="flex min-w-0 flex-col">
-                      <span className="mb-1 text-[11px] leading-tight text-zinc-700 sm:text-sm">
-                        {metricLabel(lang, m.key)}
-                      </span>
-                      <GradeSelect
-                        value={inputs.terms[focusTermIndex][m.key]}
-                        onChange={(n) => setTermGrade(focusTermIndex, m.key, n)}
-                        priorGuidance={
-                          shortCourse
-                            ? undefined
-                            : priorTermGuidanceLine(inputs.terms, focusTermIndex, m.key, termHeading)
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-4">
+            {DATASET4_METRICS.map((m) => (
+              <div key={m.key} className="flex min-w-0 flex-col">
+                <span className="mb-1 flex min-h-[3rem] items-end">
+                  <span className="line-clamp-3 text-[11px] leading-tight text-zinc-700 sm:text-sm">
+                    {metricLabel(lang, m.key)}
+                  </span>
+                </span>
+                <GradeSelect
+                  value={inputs.terms[focusTermIndex][m.key]}
+                  onChange={(n) => setTermGrade(focusTermIndex, m.key, n)}
+                  reserveGuidanceSlot={!shortCourse}
+                  priorGuidance={
+                    shortCourse
+                      ? undefined
+                      : priorTermGuidanceLine(inputs.terms, focusTermIndex, m.key, termHeading)
+                  }
+                />
+              </div>
+            ))}
           </div>
         </div>
       </section>
