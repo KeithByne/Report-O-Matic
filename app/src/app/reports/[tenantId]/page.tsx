@@ -4,6 +4,7 @@ import { ReportsFlowHeader } from "@/components/layout/ReportsFlowHeader";
 import { TenantReportsHome, type TenantPanelId } from "@/components/reports/TenantReportsHome";
 import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 import { getTenantCreditBalance } from "@/lib/data/credits";
 
 function initialPanelsFromQuery(panel: string | undefined): TenantPanelId[] | undefined {
@@ -53,6 +54,13 @@ export default async function ReportsTenantPage({
   const credits = await getTenantCreditBalance(tenantId);
   if (credits <= 0) redirect(`/reports/${tenantId}/billing`);
 
+  let userDisplayName = "";
+  try {
+    userDisplayName = formatDisplayNameFromProfile(await getProfileForEmail(session.email));
+  } catch {
+    userDisplayName = "";
+  }
+
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <ReportsFlowHeader
@@ -60,7 +68,7 @@ export default async function ReportsTenantPage({
         title={schoolName}
         tenantId={tenantId}
         showAllSchoolsLink={role === "owner"}
-        userEmail={session.email}
+        userDisplayName={userDisplayName}
         viewerRole={role}
       />
       <main className="mx-auto max-w-4xl px-5 py-8">

@@ -44,8 +44,7 @@ import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
-import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
+import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -66,6 +65,7 @@ type TeacherWorkspacePanel = "language" | "schools" | "downloads";
 
 export type DashboardClientViewProps = {
   email: string;
+  userDisplayName: string;
   loadError: string | null;
   memberships: MembershipWithTenant[];
   rosterByTenant: Record<string, TenantMemberRow[]>;
@@ -81,6 +81,7 @@ export type DashboardClientViewProps = {
 
 export function DashboardClientView({
   email,
+  userDisplayName,
   loadError,
   memberships,
   rosterByTenant,
@@ -333,17 +334,14 @@ export function DashboardClientView({
         >
           {ownerSchoolMenuOnly ? (
             <>
-              <div className="flex min-w-0 items-start gap-3">
-                <AppHeaderLogo />
-                <div className="min-w-0">
-                  <AppHeaderWordmark />
-                  <h1 className="mt-2 text-sm font-semibold tracking-tight text-zinc-900">{t("dash.title")}</h1>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <AppHeaderUserIdentity email={email} roleLabel={headerRoleLine} />
+              <AppHeaderLeftCluster
+                roleLabel={headerRoleLine}
+                userDisplayName={userDisplayName}
+                pageTitle={t("dash.title")}
+              />
+              <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
                 <GlobeLanguageSwitcher />
-                <form action="/api/auth/sign-out" method="post">
+                <form action="/api/auth/sign-out" method="post" className="shrink-0">
                   <button
                     type="submit"
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 shadow-sm hover:bg-emerald-50/60"
@@ -356,20 +354,14 @@ export function DashboardClientView({
             </>
           ) : (
             <>
-              <div className="flex min-w-0 items-start gap-3">
-                <AppHeaderLogo />
-                <div className="min-w-0">
-                  <AppHeaderWordmark />
-                  <h1 className="mt-2 flex items-center gap-2 text-lg font-semibold tracking-tight text-zinc-900">
-                    <LayoutDashboard className={ICON_INLINE} aria-hidden />
-                    {t("dash.title")}
-                  </h1>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <AppHeaderUserIdentity email={email} roleLabel={headerRoleLine} />
+              <AppHeaderLeftCluster
+                roleLabel={headerRoleLine}
+                userDisplayName={userDisplayName}
+                pageTitle={t("dash.title")}
+              />
+              <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
                 <GlobeLanguageSwitcher />
-                <form action="/api/auth/sign-out" method="post">
+                <form action="/api/auth/sign-out" method="post" className="shrink-0">
                   <button
                     type="submit"
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 shadow-sm hover:bg-emerald-50/60"

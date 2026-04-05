@@ -103,6 +103,8 @@ type Props = {
   viewerRole: ViewerRole;
   /** From URL: `?panel=students` opens that section; `?panel=overview` or omitted = class overview (no section expanded). */
   initialOpenPanel?: ClassWorkspacePanelId;
+  /** From URL `?student=uuid` (e.g. back from a report): scroll to and highlight that pupil in the list. */
+  initialFocusStudentId?: string | null;
 };
 
 const CEFR = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
@@ -124,6 +126,7 @@ export function ClassWorkspace({
   className: initialClassName,
   viewerRole,
   initialOpenPanel,
+  initialFocusStudentId,
 }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
@@ -213,6 +216,7 @@ export function ClassWorkspace({
   /** Mon→Sun order; avoids Set + ensures PATCH/GET stay aligned. */
   const [activeDays, setActiveDays] = useState<WeekdayKey[]>([]);
   const loadClassRequestId = useRef(0);
+  const didScrollToFocusStudent = useRef(false);
 
   const [newFirst, setNewFirst] = useState("");
   const [newLast, setNewLast] = useState("");
@@ -231,6 +235,21 @@ export function ClassWorkspace({
   useEffect(() => {
     setOpenClassPanel(initialOpenPanel ?? null);
   }, [tenantId, classId, initialOpenPanel]);
+
+  useEffect(() => {
+    didScrollToFocusStudent.current = false;
+  }, [tenantId, classId, initialFocusStudentId]);
+
+  useEffect(() => {
+    const sid = initialFocusStudentId?.trim();
+    if (!sid || didScrollToFocusStudent.current) return;
+    if (!students.some((s) => s.id === sid)) return;
+    didScrollToFocusStudent.current = true;
+    const t = window.setTimeout(() => {
+      document.getElementById(`class-student-row-${sid}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+    return () => window.clearTimeout(t);
+  }, [students, initialFocusStudentId]);
 
   const toggleClassPanel = useCallback((id: ClassWorkspacePanelId) => {
     setOpenClassPanel((current) => (current === id ? null : id));
@@ -976,7 +995,15 @@ export function ClassWorkspace({
 
         <ul className="mt-4 divide-y divide-emerald-100">
           {students.map((s) => (
-            <li key={s.id} className="py-3">
+            <li
+              key={s.id}
+              id={`class-student-row-${s.id}`}
+              className={`py-3 ${
+                initialFocusStudentId && s.id === initialFocusStudentId
+                  ? "scroll-mt-24 rounded-lg bg-emerald-50/80 px-2 ring-2 ring-emerald-400/50"
+                  : ""
+              }`}
+            >
               {editingStudentId === s.id ? (
                 <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
                   <div className="grid gap-3 sm:grid-cols-3">

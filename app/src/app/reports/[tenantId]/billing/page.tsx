@@ -6,6 +6,7 @@ import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { getOwnerCreditBalance, getTenantCreditBalance } from "@/lib/data/credits";
 import { getPackPriceTaxBasis, getSalesTaxLabelForCustomers, getSalesTaxRatePercent } from "@/lib/finance/salesTax";
 import { getServiceSupabase } from "@/lib/supabase/service";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -48,12 +49,19 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
   const testCreditsRemaining = Number((tenantFlags as { test_credits_remaining?: number } | null)?.test_credits_remaining ?? 0);
   const testTrialExhausted = isTestAccess && testCreditsRemaining <= 0;
 
+  let userDisplayName = "";
+  try {
+    userDisplayName = formatDisplayNameFromProfile(await getProfileForEmail(session.email));
+  } catch {
+    userDisplayName = "";
+  }
+
   return (
     <TenantBillingView
       tenantId={tenantId}
       schoolName={schoolName}
       role={role}
-      userEmail={session.email}
+      userDisplayName={userDisplayName}
       accountCreditsRemaining={accountCreditsRemaining}
       packs={(packs ?? []) as { id: string; name: string; price_cents: number; currency: string; report_credits: number }[]}
       packTaxDisplay={{ taxRatePercent, packTaxBasis, salesTaxLabel }}

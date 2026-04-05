@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/session";
 import { BillingSuccessView } from "@/components/billing/BillingSuccessView";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -21,7 +22,14 @@ export default async function BillingSuccessPage({ params }: { params: Promise<{
 
   const schoolName = (await getTenantName(tenantId)) || "School";
 
+  let userDisplayName = "";
+  try {
+    userDisplayName = formatDisplayNameFromProfile(await getProfileForEmail(session.email));
+  } catch {
+    userDisplayName = "";
+  }
+
   return (
-    <BillingSuccessView tenantId={tenantId} schoolName={schoolName} userEmail={session.email} viewerRole={role} />
+    <BillingSuccessView tenantId={tenantId} schoolName={schoolName} userDisplayName={userDisplayName} viewerRole={role} />
   );
 }

@@ -1,7 +1,7 @@
 export const UI_FILL_ES: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
   "brand.saasName": "Report-O-Matic",
-  "brand.tagline": "Flujo de informes escolares para profesores y administradores.",
+  "header.nameNotSet": "—",
   "dash.role.saas_platform": "Plataforma SaaS",
   "profile.sectionAccount": "Detalles de la cuenta",
   "timetable.dayColumn": "Día",
@@ -213,7 +213,7 @@ export const UI_FILL_ES: Record<string, string> = {
 export const UI_FILL_FR: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
   "brand.saasName": "Report-O-Matic",
-  "brand.tagline": "Flux de bulletins pour les équipes pédagogiques et les administrateurs.",
+  "header.nameNotSet": "—",
   "dash.role.saas_platform": "Plateforme SaaS",
   "profile.sectionAccount": "Détails du compte",
   "timetable.dayColumn": "Jour",
@@ -424,7 +424,7 @@ export const UI_FILL_FR: Record<string, string> = {
 export const UI_FILL_EL: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
   "brand.saasName": "Report-O-Matic",
-  "brand.tagline": "Ροή σχολικών αναφορών για εκπαιδευτικούς και διαχειριστές.",
+  "header.nameNotSet": "—",
   "dash.role.saas_platform": "Πλατφόρμα SaaS",
   "profile.sectionAccount": "Στοιχεία λογαριασμού",
   "timetable.dayColumn": "Ημέρα",

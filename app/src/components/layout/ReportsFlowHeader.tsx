@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
-import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
+import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 
@@ -20,8 +19,8 @@ type Props = {
   classId?: string;
   /** Multi-school hub at /reports — owners only; hide for department heads and teachers. */
   showAllSchoolsLink?: boolean;
-  /** Signed-in user (session email). */
-  userEmail: string;
+  /** Display name from profile (not email). */
+  userDisplayName: string;
   /** Role in the current school context (tenant/class/report flows). */
   viewerRole?: RomRole | null;
   /** On /reports index, summarise roles across all school memberships. */
@@ -47,7 +46,7 @@ export function ReportsFlowHeader({
   tenantId,
   classId,
   showAllSchoolsLink,
-  userEmail,
+  userDisplayName,
   viewerRole,
   membershipRoles,
 }: Props) {
@@ -91,31 +90,20 @@ export function ReportsFlowHeader({
 
   return (
     <header className="border-b border-emerald-200/80 bg-white">
-      <div className="mx-auto flex max-w-4xl flex-wrap items-start justify-between gap-3 px-5 py-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <AppHeaderLogo />
-          <div className="min-w-0">
-            <AppHeaderWordmark />
-            <h1 className="mt-2 text-lg font-semibold tracking-tight text-zinc-900">{title}</h1>
-          </div>
-        </div>
-        <div className="flex w-full min-w-0 flex-col items-stretch gap-2 sm:ml-auto sm:w-auto sm:max-w-[min(100%,24rem)] sm:items-end">
-          <div className="flex flex-wrap items-center justify-end gap-2 sm:justify-end">
-            <AppHeaderUserIdentity email={userEmail} roleLabel={roleLine} />
-            <GlobeLanguageSwitcher />
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
-              >
-                <l.Icon className={ICON_INLINE} aria-hidden />
-                {l.label}
-              </Link>
-            ))}
-          </div>
+      <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
+        <AppHeaderLeftCluster roleLabel={roleLine} userDisplayName={userDisplayName} pageTitle={title} />
+        <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
+          <GlobeLanguageSwitcher />
+          {links.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+            >
+              <l.Icon className={ICON_INLINE} aria-hidden />
+              {l.label}
+            </Link>
+          ))}
         </div>
       </div>
     </header>

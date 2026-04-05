@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/session";
 import { isSaasOwnerEmail } from "@/lib/auth/saasOwner";
 import { SaasOwnerTenantView } from "@/components/saas-owner/SaasOwnerTenantView";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 
 export default async function SaasOwnerTenantPage({ params }: { params: Promise<{ tenantId: string }> }) {
   const { tenantId } = await params;
@@ -11,5 +12,12 @@ export default async function SaasOwnerTenantPage({ params }: { params: Promise<
   if (!session) redirect("/landing.html");
   if (!isSaasOwnerEmail(session.email)) redirect("/dashboard");
 
-  return <SaasOwnerTenantView tenantId={tenantId} viewerEmail={session.email} />;
+  let userDisplayName = "";
+  try {
+    userDisplayName = formatDisplayNameFromProfile(await getProfileForEmail(session.email));
+  } catch {
+    userDisplayName = "";
+  }
+
+  return <SaasOwnerTenantView tenantId={tenantId} userDisplayName={userDisplayName} />;
 }

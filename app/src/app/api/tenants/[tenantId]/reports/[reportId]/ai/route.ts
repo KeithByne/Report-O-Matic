@@ -91,6 +91,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       classDefaultSubject,
       inputs: report.inputs,
       extraNotes,
+      classCefrLevel: klass?.cefr_level ?? null,
     });
     if (usage.draft) {
       await logOpenAiUsageEvent({

@@ -7,6 +7,7 @@ import { ReportsFlowHeader } from "@/components/layout/ReportsFlowHeader";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { getTenantCreditBalance } from "@/lib/data/credits";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -24,9 +25,13 @@ export default async function ClassReportsPage({
   const rawPanel = sp.panel;
   const panelParam = Array.isArray(rawPanel) ? rawPanel[0] : rawPanel;
   const normalizedPanel = typeof panelParam === "string" ? panelParam.toLowerCase().trim() : "";
-  /** `panel=students` opens that section; `overview` or omitted = class overview (no section expanded). */
+  const rawStudent = sp.student;
+  const studentParam = Array.isArray(rawStudent) ? rawStudent[0] : rawStudent;
+  const studentIdFromUrl =
+    typeof studentParam === "string" && isUuid(studentParam.trim()) ? studentParam.trim() : null;
+  /** `panel=students` or `student=` opens pupils; `overview` or omitted = class overview (no section expanded). */
   const initialOpenPanel =
-    normalizedPanel === "students" ? ("students" as const) : undefined;
+    normalizedPanel === "students" || studentIdFromUrl ? ("students" as const) : undefined;
   if (!isUuid(tenantId) || !isUuid(classId)) redirect("/reports");
 
   const token = (await cookies()).get("rom_session")?.value || "";
@@ -46,6 +51,13 @@ export default async function ClassReportsPage({
   const credits = await getTenantCreditBalance(tenantId);
   if (credits <= 0) redirect(`/reports/${tenantId}/billing`);
 
+  let userDisplayName = "";
+  try {
+    userDisplayName = formatDisplayNameFromProfile(await getProfileForEmail(session.email));
+  } catch {
+    userDisplayName = "";
+  }
+
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <ReportsFlowHeader
@@ -54,7 +66,7 @@ export default async function ClassReportsPage({
         tenantId={tenantId}
         classId={classId}
         showAllSchoolsLink={role === "owner"}
-        userEmail={session.email}
+        userDisplayName={userDisplayName}
         viewerRole={role}
       />
       <main className="mx-auto max-w-4xl px-5 py-8">
@@ -65,6 +77,7 @@ export default async function ClassReportsPage({
           className={cls.name}
           viewerRole={role}
           initialOpenPanel={initialOpenPanel}
+          initialFocusStudentId={studentIdFromUrl}
         />
       </main>
     </div>

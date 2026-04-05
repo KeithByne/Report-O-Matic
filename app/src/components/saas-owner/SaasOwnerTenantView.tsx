@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
-import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
+import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 
@@ -46,7 +45,7 @@ function memberRoleHeading(role: string, t: (key: string) => string): string {
   }
 }
 
-export function SaasOwnerTenantView({ tenantId, viewerEmail }: { tenantId: string; viewerEmail: string }) {
+export function SaasOwnerTenantView({ tenantId, userDisplayName }: { tenantId: string; userDisplayName: string }) {
   const { t } = useUiLanguage();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -85,17 +84,13 @@ export function SaasOwnerTenantView({ tenantId, viewerEmail }: { tenantId: strin
   return (
     <div className="min-h-screen bg-emerald-100/80 text-zinc-950">
       <header className="border-b border-emerald-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-4">
-          <div className="flex items-start gap-3">
-            <AppHeaderLogo />
-            <div>
-              <AppHeaderWordmark />
-              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("saas.platformBadge")}</div>
-              <div className="mt-1 text-lg font-semibold tracking-tight">{t("saas.schoolDetailsTitle")}</div>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
-            <AppHeaderUserIdentity email={viewerEmail} roleLabel={t("dash.role.saas_platform")} />
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
+          <AppHeaderLeftCluster
+            roleLabel={t("dash.role.saas_platform")}
+            userDisplayName={userDisplayName}
+            pageTitle={t("saas.schoolDetailsTitle")}
+          />
+          <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
             <GlobeLanguageSwitcher />
           </div>
         </div>

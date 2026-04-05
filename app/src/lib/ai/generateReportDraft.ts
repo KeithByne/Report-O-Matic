@@ -9,6 +9,7 @@ import {
   resolvedSubjectCode,
   resolvedSubjectLabel,
 } from "@/lib/reportInputs";
+import type { CefrLevel } from "@/lib/data/classesDb";
 import type { SubjectCode } from "@/lib/subjects";
 import type { OpenAiUsage } from "@/lib/ai/openaiCost";
 import {
@@ -50,6 +51,8 @@ export async function generateSchoolReportDraft(opts: {
   inputs: ReportInputs;
   existingBody?: string;
   extraNotes?: string;
+  /** Class CEFR; A1–B1 triggers no-homework instructions in the draft prompt. */
+  classCefrLevel?: CefrLevel | null;
 }): Promise<{ text: string; usage: OpenAiUsage | null }> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey?.trim()) {
@@ -76,6 +79,7 @@ export async function generateSchoolReportDraft(opts: {
     datasetBlock,
     extraNotes: opts.extraNotes,
     existingBody: opts.existingBody,
+    classCefrLevel: opts.classCefrLevel,
   };
 
   const { system, user, temperature } = isShortCourseReport(inputs)
@@ -196,6 +200,7 @@ export async function generateSchoolReportDraftPair(opts: {
   classDefaultSubject: SubjectCode;
   inputs: ReportInputs;
   extraNotes?: string;
+  classCefrLevel?: CefrLevel | null;
 }): Promise<{
   pdfBody: string;
   teacherPreview: string;
@@ -211,6 +216,7 @@ export async function generateSchoolReportDraftPair(opts: {
     classDefaultSubject: opts.classDefaultSubject,
     inputs: opts.inputs,
     extraNotes: opts.extraNotes,
+    classCefrLevel: opts.classCefrLevel,
   };
   const draft = await generateSchoolReportDraft({
     ...common,

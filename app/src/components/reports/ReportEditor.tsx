@@ -51,7 +51,21 @@ type Report = {
   updated_at: string;
 };
 
-type Props = { tenantId: string; classId: string; reportId: string; schoolName: string };
+type Props = {
+  tenantId: string;
+  classId: string;
+  reportId: string;
+  schoolName: string;
+  /** For “Back to class” — opens class pupils list focused on this student. */
+  studentId: string;
+};
+
+function classPageHrefForStudent(tenantId: string, classId: string, studentId: string): string {
+  const q = new URLSearchParams();
+  q.set("panel", "students");
+  q.set("student", studentId);
+  return `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?${q.toString()}`;
+}
 
 function reportPeriodToTermIndex(rp: ReportPeriod): 0 | 1 | 2 {
   if (rp === "first") return 0;
@@ -87,7 +101,7 @@ function GradeSelect({
   );
 }
 
-export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props) {
+export function ReportEditor({ tenantId, classId, reportId, schoolName, studentId }: Props) {
   const { lang, t } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
 
@@ -315,7 +329,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
         {loadError}{" "}
         <Link
-          href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?panel=overview`}
+          href={classPageHrefForStudent(tenantId, classId, studentId)}
           className="font-medium text-red-950 underline"
         >
           {t("report.backClass")}
@@ -344,7 +358,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName }: Props)
           <p className="mt-1 text-sm text-zinc-600">{shortCourse ? t("report.pageIntroShort") : t("report.pageIntro")}</p>
         </div>
         <Link
-          href={`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?panel=overview`}
+          href={classPageHrefForStudent(tenantId, classId, studentId)}
           className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
         >
           {t("report.backClass")}

@@ -8,7 +8,7 @@ import { ReportsFlowHeader } from "@/components/layout/ReportsFlowHeader";
 import type { MembershipWithTenant, RomRole } from "@/lib/data/memberships";
 
 type Props = {
-  viewerEmail: string;
+  userDisplayName: string;
   memberships: MembershipWithTenant[];
   loadError: string | null;
 };
@@ -26,7 +26,7 @@ function roleLabel(role: RomRole, t: (k: string) => string): string {
   }
 }
 
-export function ReportsIndexView({ viewerEmail, memberships, loadError }: Props) {
+export function ReportsIndexView({ userDisplayName, memberships, loadError }: Props) {
   const { t } = useUiLanguage();
 
   return (
@@ -34,7 +34,7 @@ export function ReportsIndexView({ viewerEmail, memberships, loadError }: Props)
       <ReportsFlowHeader
         mode="index"
         title={t("reports.title")}
-        userEmail={viewerEmail}
+        userDisplayName={userDisplayName}
         membershipRoles={memberships.map((m) => m.role)}
       />
       <main className="mx-auto max-w-4xl px-5 py-8">

@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
-import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
+import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
@@ -34,10 +33,10 @@ function roleLabel(role: RomRole, tr: (k: string) => string): string {
 }
 
 export function ProfileEditor({
-  viewerEmail,
+  userDisplayName,
   membershipRoles,
 }: {
-  viewerEmail: string;
+  userDisplayName: string;
   membershipRoles: RomRole[];
 }) {
   const { t } = useUiLanguage();
@@ -136,16 +135,13 @@ export function ProfileEditor({
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <header className="border-b border-emerald-200/80 bg-white">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-start justify-between gap-3 px-5 py-4">
-          <div className="flex min-w-0 items-start gap-3">
-            <AppHeaderLogo />
-            <div className="min-w-0">
-              <AppHeaderWordmark />
-              <h1 className="mt-2 text-lg font-semibold tracking-tight text-zinc-900">{t("profile.pageTitle")}</h1>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <AppHeaderUserIdentity email={viewerEmail} roleLabel={headerRoleLine} />
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
+          <AppHeaderLeftCluster
+            roleLabel={headerRoleLine}
+            userDisplayName={userDisplayName}
+            pageTitle={t("profile.pageTitle")}
+          />
+          <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
             <GlobeLanguageSwitcher />
           </div>
         </div>

@@ -5,6 +5,8 @@ import { ReportEditor } from "@/components/reports/ReportEditor";
 import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { getTenantCreditBalance } from "@/lib/data/credits";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
+import { getReport } from "@/lib/data/reportsDb";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -31,6 +33,16 @@ export default async function ReportEditPage({
   const credits = await getTenantCreditBalance(tenantId);
   if (credits <= 0) redirect(`/reports/${tenantId}/billing`);
 
+  const reportRow = await getReport(tenantId, reportId);
+  if (!reportRow) redirect(`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?panel=students`);
+
+  let userDisplayName = "";
+  try {
+    userDisplayName = formatDisplayNameFromProfile(await getProfileForEmail(session.email));
+  } catch {
+    userDisplayName = "";
+  }
+
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <ReportsFlowHeader
@@ -39,11 +51,17 @@ export default async function ReportEditPage({
         tenantId={tenantId}
         classId={classId}
         showAllSchoolsLink={role === "owner"}
-        userEmail={session.email}
+        userDisplayName={userDisplayName}
         viewerRole={role}
       />
       <main className="mx-auto max-w-4xl px-5 py-8">
-        <ReportEditor tenantId={tenantId} classId={classId} reportId={reportId} schoolName={schoolName} />
+        <ReportEditor
+          tenantId={tenantId}
+          classId={classId}
+          reportId={reportId}
+          schoolName={schoolName}
+          studentId={reportRow.student_id}
+        />
       </main>
     </div>
   );

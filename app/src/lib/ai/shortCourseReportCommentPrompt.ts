@@ -4,6 +4,7 @@
  */
 
 import type { ReportDraftPromptContext } from "@/lib/ai/reportCommentPrompts";
+import { homeworkAdviceRestrictionForCefr } from "@/lib/ai/reportCommentPrompts";
 
 /** Matches standard report draft temperature; `max_tokens` stays in `generateReportDraft.ts`. */
 export const SHORT_COURSE_REPORT_DRAFT_TEMPERATURE = 0.55;
@@ -13,16 +14,20 @@ export function buildShortCourseReportDraftPrompts(ctx: ReportDraftPromptContext
   user: string;
   temperature: number;
 } {
+  const cefrBlock = homeworkAdviceRestrictionForCefr(ctx.classCefrLevel);
+  const selfImproveLine = cefrBlock
+    ? "Frame any improvement suggestions around effort and participation during the course sessions only — not tasks or practice outside scheduled class time."
+    : "Any comments about what the student can do to improve are made in the context of what the student can do for themselves.";
   const system = `You write school report comments for parents (English as a foreign language / similar contexts). 
 The student has attended a stand-alone course of short duration. 
 The comments are written in a context of how the student has evolved during the short course.
 The student will not be returning to any future courses.
-Any comments about what the student can do to improve are made in the context of what the student can do for themselves.
+${selfImproveLine}
 The report narrative must be written entirely in ${ctx.langName}. Do not use another language for the main text.
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
 Use only the student's first name (${ctx.studentFirstName}) — do not use or invent a surname.
 Base the appraisal on the numerical 0–10 dataset supplied; be fair and specific.
-In the comment text itself, never use the English word "term" or calendar labels for school reporting slices (e.g. trimester, trimestre, semester, Schultrimester, "marking period"). Refer only to the course or the programme. Write in ${ctx.langName} without importing phrasing from year-long school reports.`;
+In the comment text itself, never use the English word "term" or calendar labels for school reporting slices (e.g. trimester, trimestre, semester, Schultrimester, "marking period"). Refer only to the course or the programme. Write in ${ctx.langName} without importing phrasing from year-long school reports.${cefrBlock ? `\n${cefrBlock}` : ""}`;
 
   const user = [
     `School: ${ctx.schoolName}`,
@@ -35,7 +40,9 @@ In the comment text itself, never use the English word "term" or calendar labels
       : "",
     ctx.existingBody
       ? `Revise or replace this draft (keep facts consistent with the dataset):\n${ctx.existingBody}`
-      : "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and ideas the student can use going forward — no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher.",
+      : cefrBlock
+        ? "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and a positive closing focused on what happened in the course — no homework or independent study at home, no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher."
+        : "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and ideas the student can use going forward — no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher.",
   ]
     .filter(Boolean)
     .join("\n\n");

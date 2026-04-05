@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/session";
 import { ProfileEditor } from "@/components/dashboard/ProfileEditor";
 import { getMembershipsForEmail, type RomRole } from "@/lib/data/memberships";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 
 export default async function ProfilePage() {
   const token = (await cookies()).get("rom_session")?.value || "";
@@ -17,5 +18,12 @@ export default async function ProfilePage() {
     membershipRoles = [];
   }
 
-  return <ProfileEditor viewerEmail={session.email} membershipRoles={membershipRoles} />;
+  let userDisplayName = "";
+  try {
+    userDisplayName = formatDisplayNameFromProfile(await getProfileForEmail(session.email));
+  } catch {
+    userDisplayName = "";
+  }
+
+  return <ProfileEditor userDisplayName={userDisplayName} membershipRoles={membershipRoles} />;
 }

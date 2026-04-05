@@ -4,6 +4,7 @@ import { ReportsFlowHeader } from "@/components/layout/ReportsFlowHeader";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
 import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -22,6 +23,13 @@ export default async function TimetablePage({ params }: { params: Promise<{ tena
 
   const schoolName = (await getTenantName(tenantId)) || "School";
 
+  let userDisplayName = "";
+  try {
+    userDisplayName = formatDisplayNameFromProfile(await getProfileForEmail(session.email));
+  } catch {
+    userDisplayName = "";
+  }
+
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <ReportsFlowHeader
@@ -29,7 +37,7 @@ export default async function TimetablePage({ params }: { params: Promise<{ tena
         title={schoolName}
         tenantId={tenantId}
         showAllSchoolsLink={role === "owner"}
-        userEmail={session.email}
+        userDisplayName={userDisplayName}
         viewerRole={role}
       />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5">

@@ -9,6 +9,7 @@ import {
   type TenantMemberRow,
 } from "@/lib/data/memberships";
 import { getOwnerCreditBalance } from "@/lib/data/credits";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 import { listClasses } from "@/lib/data/classesDb";
 import { getTeacherStatsForTenant, getTenantSummaryStats, type TeacherStats, type TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
 
@@ -82,6 +83,14 @@ export default async function DashboardPage() {
     );
   }
 
+  let userDisplayName = "";
+  try {
+    const profile = await getProfileForEmail(session.email);
+    userDisplayName = formatDisplayNameFromProfile(profile);
+  } catch {
+    userDisplayName = "";
+  }
+
   const isAccountOwner = memberships.some((m) => m.role === "owner");
   let ownerReportCredits: number | null = null;
   let firstOwnerTenantId: string | null = null;
@@ -97,6 +106,7 @@ export default async function DashboardPage() {
   return (
     <DashboardClientView
       email={session.email}
+      userDisplayName={userDisplayName}
       loadError={loadError}
       memberships={memberships}
       rosterByTenant={rosterByTenant}

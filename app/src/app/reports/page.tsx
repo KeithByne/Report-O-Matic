@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ReportsIndexView } from "@/components/reports/ReportsIndexView";
 import { verifySession } from "@/lib/auth/session";
 import { getMembershipsForEmail, type MembershipWithTenant } from "@/lib/data/memberships";
+import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 
 export default async function ReportsIndexPage() {
   const token = (await cookies()).get("rom_session")?.value || "";
@@ -18,7 +19,19 @@ export default async function ReportsIndexPage() {
     loadError = e instanceof Error ? e.message : "Could not load schools.";
   }
 
+  let userDisplayName = "";
+  try {
+    const profile = await getProfileForEmail(session.email);
+    userDisplayName = formatDisplayNameFromProfile(profile);
+  } catch {
+    userDisplayName = "";
+  }
+
   return (
-    <ReportsIndexView viewerEmail={session.email} memberships={memberships} loadError={loadError} />
+    <ReportsIndexView
+      userDisplayName={userDisplayName}
+      memberships={memberships}
+      loadError={loadError}
+    />
   );
 }

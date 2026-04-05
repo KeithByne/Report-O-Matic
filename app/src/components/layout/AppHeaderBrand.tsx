@@ -34,10 +34,7 @@ export function AppHeaderLogo({ size = "md" }: { size?: "sm" | "md" }) {
 export function AppHeaderWordmark() {
   const { t } = useUiLanguage();
   return (
-    <div>
-      <div className="text-lg font-semibold leading-none tracking-tight text-zinc-900">{t("brand.saasName")}</div>
-      <p className="mt-1 text-xs font-medium uppercase tracking-wide text-zinc-500">{t("brand.tagline")}</p>
-    </div>
+    <div className="text-lg font-semibold leading-none tracking-tight text-zinc-900">{t("brand.saasName")}</div>
   );
 }
 

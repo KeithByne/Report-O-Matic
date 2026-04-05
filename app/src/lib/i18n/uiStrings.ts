@@ -430,7 +430,7 @@ export const REPORT_SUBJECT_I18N: Record<SubjectCode, Record<UiLang, string>> = 
 const EN: UiMessages = {
   "brand.subtitle": "Report-O-Matic",
   "brand.saasName": "Report-O-Matic",
-  "brand.tagline": "School report workflow for teachers and school admins.",
+  "header.nameNotSet": "—",
   "dash.role.saas_platform": "SaaS platform",
   "nav.reports": "Reports",
   "nav.signOut": "Sign out",

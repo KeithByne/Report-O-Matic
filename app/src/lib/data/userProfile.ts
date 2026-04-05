@@ -17,6 +17,18 @@ export type UserProfileRow = {
   lastName: string | null;
 };
 
+/** First + last from profile rows; empty string if none set (never the email). */
+export function formatDisplayNameFromProfile(p: UserProfileRow | null): string {
+  if (!p) return "";
+  const fn = (p.firstName ?? "").trim();
+  const ln = (p.lastName ?? "").trim();
+  const full = `${fn} ${ln}`.trim();
+  if (full) return full;
+  if (fn) return fn;
+  if (ln) return ln;
+  return "";
+}
+
 export async function getProfileForEmail(email: string): Promise<UserProfileRow | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;

@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
-import { AppHeaderUserIdentity } from "@/components/layout/AppHeaderUserIdentity";
+import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import type { RomRole } from "@/lib/data/memberships";
 import { packCustomerDisplayCents, type PackPriceTaxBasis } from "@/lib/finance/salesTax";
 
@@ -45,7 +44,7 @@ export function TenantBillingView({
   tenantId,
   schoolName,
   role,
-  userEmail,
+  userDisplayName,
   accountCreditsRemaining,
   packs,
   packTaxDisplay,
@@ -54,7 +53,7 @@ export function TenantBillingView({
   tenantId: string;
   schoolName: string;
   role: RomRole;
-  userEmail: string;
+  userDisplayName: string;
   accountCreditsRemaining: number;
   packs: Pack[];
   packTaxDisplay: PackTaxDisplay;
@@ -65,23 +64,20 @@ export function TenantBillingView({
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
       <header className="border-b border-emerald-200/80 bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-start justify-between gap-3 px-5 py-4">
-          <div className="flex min-w-0 items-start gap-3">
-            <AppHeaderLogo />
-            <div className="min-w-0">
-              <AppHeaderWordmark />
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <AppHeaderUserIdentity email={userEmail} roleLabel={billingRoleLabel(role, t)} />
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
+          <AppHeaderLeftCluster
+            roleLabel={billingRoleLabel(role, t)}
+            userDisplayName={userDisplayName}
+            pageTitle={t("billing.title")}
+          />
+          <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
             <GlobeLanguageSwitcher />
           </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-10">
         <div className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-900">{t("billing.title")}</h1>
-          <p className="mt-2 text-sm text-zinc-600">
+          <p className="text-sm text-zinc-600">
             {role === "owner" ? (
               <>
                 {t("billing.leadOwnerLine1")} <strong>{t("billing.leadOwnerAccount")}</strong>{" "}
