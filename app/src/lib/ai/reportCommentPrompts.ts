@@ -33,6 +33,14 @@ export function teacherPerspectiveVoiceRules(langName: string): string {
 - A little passive is acceptable for variety, but do not rely on it as the main voice. Do not write as a neutral narrator or examiner describing the student from outside the classroom.`;
 }
 
+/** No letter sign-offs or fill-in lines — the app stores one narrative body only. */
+export function reportCommentNoLetterClosingRules(): string {
+  return `No letter endings or placeholders (mandatory):
+- This text is only the **body** of the report comment for parents. Do **not** add email or letter-style closings (e.g. "Kind regards", "Best wishes", "Sincerely", "Cordialement", "Mit freundlichen Grüßen") or a blank line followed by such a closing.
+- Do **not** output lines meant for the teacher to complete later, such as "[Your name]", "[Your position]", "[Name]", "[Title]", "[Signature]", or any bracketed placeholder. Do not invite the user to fill in names or roles after generation.
+- End on the last sentence of substantive feedback about the student; nothing after that.`;
+}
+
 /** Short-course snapshot: no discussion of missing rubric cells or invented metrics. */
 export function shortCourseReportDataCompletenessRules(): string {
   return `Incomplete data (mandatory):
@@ -72,12 +80,14 @@ export function buildStandardReportDraftPrompts(ctx: ReportDraftPromptContext): 
   const cefrBlock = homeworkAdviceRestrictionForCefr(ctx.classCefrLevel);
   const sequentialBlock = standardReportSequentialDataRules();
   const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
+  const noClosingBlock = reportCommentNoLetterClosingRules();
   const system = `You write school report comments for parents (English as a foreign language / similar contexts). 
 The report narrative must be written entirely in ${ctx.langName}. Do not use another language for the main text.
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
 Use only the student's first name (${ctx.studentFirstName}) — do not use or invent a surname.
 Base the appraisal solely on the numerical 0–10 lines supplied; each line is an in-scope topic. Be fair and specific.
 ${voiceBlock}
+${noClosingBlock}
 ${sequentialBlock}${cefrBlock ? `\n${cefrBlock}` : ""}`;
 
   const user = [

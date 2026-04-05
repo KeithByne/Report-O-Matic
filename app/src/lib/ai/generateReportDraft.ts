@@ -21,6 +21,7 @@ import {
   sanitizeShortCourseAiComment,
   shortCourseCommentStillContainsPeriodVocabulary,
 } from "@/lib/ai/shortCourseAiOutputGuard";
+import { stripReportCommentLetterArtifacts } from "@/lib/ai/reportCommentOutputSanitize";
 
 const LANGUAGE_INSTRUCTION: Record<ReportLanguageCode, string> = {
   en: "British English",
@@ -135,6 +136,7 @@ export async function generateSchoolReportDraft(opts: {
     }
   }
 
+  text = stripReportCommentLetterArtifacts(text);
   if (text.length > 1400) text = text.slice(0, 1400);
   return { text, usage };
 }
@@ -167,6 +169,7 @@ Translate the entire comment faithfully from ${fromName} into ${toName}.
 Preserve meaning, tone, and structure — including first-person teacher voice where the source uses it; do not shift into impersonal or passive style unless the source does.
 Do not add facts or change the appraisal.
 Do not introduce grades, terms, or outcomes that are not already stated in the source text.
+Do not add letter closings ("Kind regards", etc.), signatures, or bracketed placeholders such as [Your name] or [Your position]; omit them if present in the source and never add new ones.
 Maximum length 1400 characters. Plain paragraphs only (no markdown).`;
 
   const completion = await openai.chat.completions.create({
@@ -180,6 +183,7 @@ Maximum length 1400 characters. Plain paragraphs only (no markdown).`;
   });
   let out = completion.choices[0]?.message?.content?.trim();
   if (!out) throw new Error("The model returned no translation.");
+  out = stripReportCommentLetterArtifacts(out);
   if (out.length > 1400) out = out.slice(0, 1400);
   const usage = completion.usage
     ? {
