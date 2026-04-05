@@ -1,7 +1,5 @@
 import PDFDocument from "pdfkit";
 
-import { isReportLanguageCode, UI_LOCALE_BCP47 } from "@/lib/i18n/reportLanguages";
-
 import { isUiLang, metricDivisionLabel, metricLabel, translate, type UiLang } from "@/lib/i18n/uiStrings";
 
 import type { ReportInputs, ReportPeriod } from "@/lib/reportInputs";
@@ -22,6 +20,10 @@ import {
   PDF_GRADES_TABLE_SPEC_V1,
 
   PDF_GRADES_DIVISION_BOX_V1,
+
+  PDF_COMMENT_BOX_V1,
+
+  PDF_MM_TO_PT,
 
   PDF_LETTERHEAD_BLOCK_SPEC_V1,
 
@@ -162,26 +164,6 @@ function reportFocusLabel(inputs: ReportInputs, lang: UiLang): string {
 
 
 
-function fmtDate(d: Date, outputLangCode: string): string {
-
-  const code = isReportLanguageCode(outputLangCode) ? outputLangCode : "en";
-
-  const loc = UI_LOCALE_BCP47[code];
-
-  try {
-
-    return d.toLocaleString(loc, { dateStyle: "medium", timeStyle: "short" });
-
-  } catch {
-
-    return d.toISOString();
-
-  }
-
-}
-
-
-
 type PdfDoc = InstanceType<typeof PDFDocument>;
 
 
@@ -195,6 +177,8 @@ const typo = PDF_TYPOGRAPHY_V1;
 const tableSpec = PDF_GRADES_TABLE_SPEC_V1;
 
 const divisionBoxSpec = PDF_GRADES_DIVISION_BOX_V1;
+
+const commentBoxSpec = PDF_COMMENT_BOX_V1;
 
 /** Mirrors `drawGradesTable` row advancement to detect whether the grid fits below the reserve without a page break. */
 function gradesTableFitsOnePage(startY: number, visible: (typeof DATASET4_METRICS)[number][]): boolean {
@@ -677,29 +661,41 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
     doc.addPage();
 
     const narrative = ctx.body.trim() || translate(lang, "pdf.emptyParentComment");
+    const page2UsableW = widthPt - marginPt * 2;
+    const commentInnerPad = commentBoxSpec.innerMarginMm * PDF_MM_TO_PT;
+    const textInnerW = page2UsableW - 2 * commentInnerPad;
 
-    applyTypo(doc, typo.narrative);
-
-    doc.text(narrative, {
-
-      align: "left",
-
-      lineGap: typo.narrative.lineGap,
-
+    applyTypo(doc, typo.teacherCommentHeading);
+    doc.text(translate(lang, "pdf.teacherCommentHeading"), marginPt, doc.y, {
+      width: page2UsableW,
+      underline: true,
     });
+    doc.moveDown(0.55);
 
+    const commentBoxTop = doc.y;
+    applyTypo(doc, typo.narrative);
+    const commentTextHeight = doc.heightOfString(narrative, {
+      width: textInnerW,
+      lineGap: typo.narrative.lineGap,
+    });
+    const commentBoxH = commentTextHeight + 2 * commentInnerPad;
 
+    doc.save();
+    doc
+      .lineWidth(commentBoxSpec.strokeWidthPt)
+      .strokeColor(commentBoxSpec.strokeColor)
+      .lineJoin("round")
+      .roundedRect(marginPt, commentBoxTop, page2UsableW, commentBoxH, commentBoxSpec.cornerRadiusPt)
+      .stroke();
+    doc.restore();
+
+    doc.text(narrative, marginPt + commentInnerPad, commentBoxTop + commentInnerPad, {
+      width: textInnerW,
+      lineGap: typo.narrative.lineGap,
+    });
+    doc.y = commentBoxTop + commentBoxH;
 
     doc.moveDown(1);
-
-    applyTypo(doc, typo.generatedStamp);
-
-    doc.text(
-      translate(lang, "pdf.generatedStamp", { datetime: fmtDate(ctx.generatedAt, ctx.outputLanguageCode) }),
-      { align: "center" },
-    );
-
-
 
     drawTeacherSignatureFoot(doc, sigLabel);
 

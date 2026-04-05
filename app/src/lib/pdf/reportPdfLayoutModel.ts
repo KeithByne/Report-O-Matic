@@ -41,7 +41,9 @@ export const PDF_TYPOGRAPHY_V1 = {
   reportSubtitle: { fontSize: 11, font: "Helvetica-Bold" as const, fill: "#334155" },
   studentLine: { fontSize: 10, font: "Helvetica" as const, fill: "#475569" },
   metaLine: { fontSize: 9, font: "Helvetica" as const, fill: "#334155" },
-  /** Parent / OpenAI comment on page 2 */
+  /** Page 2 — heading above the comment box */
+  teacherCommentHeading: { fontSize: 13, font: "Helvetica-Bold" as const, fill: "#0f172a" },
+  /** Parent / OpenAI comment body inside the box on page 2 */
   narrative: { fontSize: 14, font: "Helvetica" as const, fill: "#0f172a", lineGap: 4 },
   generatedStamp: { fontSize: 8, font: "Helvetica" as const, fill: "#94a3b8" },
   gradesSectionTitle: { fontSize: 13, font: "Helvetica-Bold" as const, fill: "#0f172a" },
@@ -82,6 +84,18 @@ export const PDF_GRADES_DIVISION_BOX_V1 = {
   strokeColor: "#94a3b8",
 } as const;
 
+/** Page 2 — rounded frame around the teacher comment text. */
+export const PDF_COMMENT_BOX_V1 = {
+  cornerRadiusPt: 4,
+  strokeWidthPt: 1,
+  strokeColor: "#94a3b8",
+  /** Space between the stroke and the comment text (typographic “margin”). */
+  innerMarginMm: 4,
+} as const;
+
+/** Convert mm to PDF points (1 in = 72 pt, 1 in = 25.4 mm). */
+export const PDF_MM_TO_PT = 72 / 25.4;
+
 /** Page 1: letterhead, context, academic record, teacher signature. */
 export const REPORT_PDF_PAGE1_SECTIONS = [
   "letterhead_block",
@@ -97,8 +111,8 @@ export const REPORT_PDF_PAGE1_SECTIONS = [
 
 export type ReportPdfPage1Section = (typeof REPORT_PDF_PAGE1_SECTIONS)[number];
 
-/** Page 2: parent-facing comment only, then footer + teacher signature. */
-export const REPORT_PDF_PAGE2_SECTIONS = ["parent_comment", "generated_stamp", "teacher_signature"] as const;
+/** Page 2: parent-facing comment, then teacher signature. */
+export const REPORT_PDF_PAGE2_SECTIONS = ["parent_comment", "teacher_signature"] as const;
 
 export type ReportPdfPage2Section = (typeof REPORT_PDF_PAGE2_SECTIONS)[number];
 
