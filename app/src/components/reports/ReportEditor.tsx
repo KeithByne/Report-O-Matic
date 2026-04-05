@@ -598,13 +598,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
             </div>
           </div>
         </div>
-        <Link
-          href={classPageHrefForStudent(tenantId, classId, studentId)}
-          className="mt-4 inline-block text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
-        >
-          {t("report.backStudents")}
-        </Link>
-        <p className="mt-3 text-xs text-zinc-500">{t("report.pdfPreviewHint")}</p>
+        <p className="mt-4 text-xs text-zinc-500">{t("report.pdfPreviewHint")}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
@@ -640,6 +634,15 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           </button>
         </div>
       </section>
+
+      <div className="flex justify-center sm:justify-start">
+        <Link
+          href={classPageHrefForStudent(tenantId, classId, studentId)}
+          className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+        >
+          {t("report.backToClass")}
+        </Link>
+      </div>
 
       {pdfPreviewOpen ? (
         <div
