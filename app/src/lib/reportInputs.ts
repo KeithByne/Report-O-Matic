@@ -265,6 +265,13 @@ export function focusTermIndex(reportPeriod: ReportPeriod): 0 | 1 | 2 {
   return 2;
 }
 
+/** Display label for class list / buttons: 1 = first term, 2 = second, 3 = third. */
+export function reportPeriodTermNumber(period: ReportPeriod): 1 | 2 | 3 {
+  if (period === "first") return 1;
+  if (period === "second") return 2;
+  return 3;
+}
+
 /** All rubric cells filled for the term selected as report period (Term 1 / 2 / 3). */
 export function focusTermComplete(inputs: ReportInputs): boolean {
   const t = inputs.terms[focusTermIndex(inputs.report_period)];

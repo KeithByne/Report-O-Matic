@@ -20,6 +20,7 @@ import {
   type ReportPeriod,
   isShortCourseReport,
   parseReportInputs,
+  reportPeriodTermNumber,
   reportReadyForClassBulkPdf,
 } from "@/lib/reportInputs";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
@@ -78,6 +79,7 @@ type ClassDetail = {
   default_subject: string;
   default_output_language: string;
   default_new_report_kind?: ReportKind;
+  default_new_report_period?: ReportPeriod;
   assigned_teacher_email: string | null;
   /** From membership; used for display (never show raw email in class settings). */
   assigned_teacher_first_name?: string | null;
@@ -208,6 +210,7 @@ export function ClassWorkspace({
   const [defSubject, setDefSubject] = useState<SubjectCode>("efl");
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [defNewReportKind, setDefNewReportKind] = useState<ReportKind>("standard");
+  const [defNewReportPeriod, setDefNewReportPeriod] = useState<ReportPeriod>("first");
   const [assignTeacher, setAssignTeacher] = useState("");
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [allClasses, setAllClasses] = useState<ClassListRow[]>([]);
@@ -302,6 +305,11 @@ export function ClassWorkspace({
       setDefSubject((c.default_subject as SubjectCode) || "efl");
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
+      setDefNewReportPeriod(
+        c.default_new_report_period === "second" || c.default_new_report_period === "third"
+          ? c.default_new_report_period
+          : "first",
+      );
       setAssignTeacher(c.assigned_teacher_email?.trim() ?? "");
       const aw = Array.isArray(c.active_weekdays) ? c.active_weekdays : [];
       const keySet = new Set(
@@ -455,6 +463,7 @@ export function ClassWorkspace({
           default_subject: defSubject,
           default_output_language: defLang,
           default_new_report_kind: defNewReportKind,
+          default_new_report_period: defNewReportPeriod,
           active_weekdays: activeDays,
           assigned_teacher_email: assignTeacher.trim() ? assignTeacher.trim().toLowerCase() : null,
         }),
@@ -471,6 +480,29 @@ export function ClassWorkspace({
       router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function saveDefaultNewReportPeriod(next: ReportPeriod) {
+    const isLead = viewerRole === "owner" || viewerRole === "department_head";
+    if (!isLead) return;
+    setDefNewReportPeriod(next);
+    setBusy("preset-period");
+    try {
+      const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ default_new_report_period: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      await loadClass();
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed");
+      await loadClass();
     } finally {
       setBusy(null);
     }
@@ -949,6 +981,35 @@ export function ClassWorkspace({
           {t("class.backToClassesList")}
         </Link>
         <p className="mt-2 text-xs text-zinc-500">{t("class.studentsHint")}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-[2ch] gap-y-2 text-sm">
+          <span className="text-zinc-600">{t("class.makeReportsForLabel")}</span>
+          {viewerRole === "owner" || viewerRole === "department_head" ? (
+            <select
+              value={defNewReportPeriod}
+              onChange={(e) => void saveDefaultNewReportPeriod(e.target.value as ReportPeriod)}
+              disabled={busy !== null || defNewReportKind === "short_course"}
+              title={
+                defNewReportKind === "short_course" ? t("class.makeReportsForDisabledShortCourse") : undefined
+              }
+              className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-50"
+            >
+              <option value="first">{t("class.newReportPeriodFirst")}</option>
+              <option value="second">{t("class.newReportPeriodSecond")}</option>
+              <option value="third">{t("class.newReportPeriodThird")}</option>
+            </select>
+          ) : defNewReportKind === "short_course" ? (
+            <span className="text-sm text-zinc-400">—</span>
+          ) : (
+            <span className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+              {defNewReportPeriod === "first"
+                ? t("class.newReportPeriodFirst")
+                : defNewReportPeriod === "second"
+                  ? t("class.newReportPeriodSecond")
+                  : t("class.newReportPeriodThird")}
+            </span>
+          )}
+        </div>
+        <p className="mt-1 text-xs text-zinc-500">{t("class.makeReportsForHint")}</p>
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.firstName")}</span>
@@ -1079,15 +1140,34 @@ export function ClassWorkspace({
                     </button>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    {reportsByStudent(s.id).map((r) => (
-                      <Link
-                        key={r.id}
-                        href={`/reports/${tenantId}/classes/${classId}/reports/${r.id}`}
-                        className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm text-zinc-800 hover:bg-emerald-100"
-                      >
-                        {isShortCourseReport(parseReportInputs(r.inputs)) ? t("class.shortCourseReportLink") : t("class.report")}
-                      </Link>
-                    ))}
+                    {reportsByStudent(s.id).map((r) => {
+                      const repInputs = parseReportInputs(r.inputs);
+                      if (isShortCourseReport(repInputs)) {
+                        return (
+                          <Link
+                            key={r.id}
+                            href={`/reports/${tenantId}/classes/${classId}/reports/${r.id}`}
+                            className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm text-zinc-800 hover:bg-emerald-100"
+                            aria-label={t("class.shortCourseReportLink")}
+                          >
+                            {t("class.shortCourseReportLink")}
+                          </Link>
+                        );
+                      }
+                      const n = reportPeriodTermNumber(repInputs.report_period);
+                      const aria = t("class.reportEditTermAria", { n });
+                      return (
+                        <Link
+                          key={r.id}
+                          href={`/reports/${tenantId}/classes/${classId}/reports/${r.id}`}
+                          className="inline-flex min-w-[2.25rem] items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-semibold tabular-nums text-zinc-800 hover:bg-emerald-100"
+                          aria-label={aria}
+                          title={aria}
+                        >
+                          {String(n)}
+                        </Link>
+                      );
+                    })}
                     <button
                       type="button"
                       onClick={() => void createReport(s.id)}

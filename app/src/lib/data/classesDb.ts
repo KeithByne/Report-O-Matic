@@ -6,7 +6,7 @@ import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { RomRole } from "@/lib/data/memberships";
 import type { SubjectCode } from "@/lib/subjects";
 import { isSubjectCode } from "@/lib/subjects";
-import type { ReportKind } from "@/lib/reportInputs";
+import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { syncTimetableSlotsTeacherForClass } from "@/lib/data/timetableDb";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
@@ -25,6 +25,8 @@ export type ClassRow = {
   default_subject: SubjectCode;
   default_output_language: ReportLanguageCode;
   default_new_report_kind: ReportKind;
+  /** Default `report_period` for new standard reports created for pupils in this class. */
+  default_new_report_period: ReportPeriod;
   assigned_teacher_email: string | null;
   active_weekdays: WeekdayKey[];
   created_at: string;
@@ -49,10 +51,15 @@ export async function enrichClassWithAssignedTeacherDisplay(tenantId: string, kl
 }
 
 const classSelect =
-  "id, tenant_id, name, scholastic_year, cefr_level, default_subject, default_output_language, default_new_report_kind, assigned_teacher_email, active_weekdays, created_at";
+  "id, tenant_id, name, scholastic_year, cefr_level, default_subject, default_output_language, default_new_report_kind, default_new_report_period, assigned_teacher_email, active_weekdays, created_at";
 
 function parseReportKind(raw: unknown): ReportKind {
   return raw === "short_course" ? "short_course" : "standard";
+}
+
+export function parseDefaultNewReportPeriod(raw: unknown): ReportPeriod {
+  if (raw === "second" || raw === "third") return raw;
+  return "first";
 }
 
 function mapClassRow(raw: Record<string, unknown>): ClassRow {
@@ -65,6 +72,7 @@ function mapClassRow(raw: Record<string, unknown>): ClassRow {
     default_subject: raw.default_subject as SubjectCode,
     default_output_language: raw.default_output_language as ReportLanguageCode,
     default_new_report_kind: parseReportKind(raw.default_new_report_kind),
+    default_new_report_period: parseDefaultNewReportPeriod(raw.default_new_report_period),
     assigned_teacher_email: (raw.assigned_teacher_email as string | null) ?? null,
     active_weekdays: parseActiveWeekdaysFromDb(raw.active_weekdays),
     created_at: raw.created_at as string,
@@ -108,6 +116,7 @@ export async function insertClass(opts: {
     default_subject: opts.defaultSubject && isSubjectCode(opts.defaultSubject) ? opts.defaultSubject : "efl",
     default_output_language: opts.defaultOutputLanguage ?? "en",
     default_new_report_kind: "standard",
+    default_new_report_period: "first",
     assigned_teacher_email: opts.assignedTeacherEmail?.trim().toLowerCase() ?? null,
     active_weekdays: [],
   };
@@ -139,6 +148,7 @@ export async function updateClass(
     default_subject?: SubjectCode;
     default_output_language?: ReportLanguageCode;
     default_new_report_kind?: ReportKind;
+    default_new_report_period?: ReportPeriod;
     assigned_teacher_email?: string | null;
     active_weekdays?: WeekdayKey[];
   },
@@ -161,6 +171,9 @@ export async function updateClass(
   if (patch.default_output_language !== undefined) row.default_output_language = patch.default_output_language;
   if (patch.default_new_report_kind !== undefined) {
     row.default_new_report_kind = patch.default_new_report_kind === "short_course" ? "short_course" : "standard";
+  }
+  if (patch.default_new_report_period !== undefined) {
+    row.default_new_report_period = patch.default_new_report_period;
   }
   if (patch.assigned_teacher_email !== undefined) {
     row.assigned_teacher_email = patch.assigned_teacher_email?.trim().toLowerCase() || null;

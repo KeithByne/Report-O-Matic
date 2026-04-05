@@ -104,7 +104,10 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     ? emptyShortCourseReportInputs()
     : body.inputs !== undefined
       ? applySupposedGradesForPriorTerms(parseReportInputs(body.inputs))
-      : emptyReportInputs();
+      : applySupposedGradesForPriorTerms({
+          ...emptyReportInputs(),
+          report_period: klass.default_new_report_period,
+        });
 
   try {
     const report = await insertReport({

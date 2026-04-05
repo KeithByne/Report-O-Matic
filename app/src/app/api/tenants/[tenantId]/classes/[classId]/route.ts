@@ -10,7 +10,7 @@ import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isSubjectCode } from "@/lib/subjects";
 import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
-import type { ReportKind } from "@/lib/reportInputs";
+import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -70,6 +70,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       body.default_subject !== undefined ||
       body.default_output_language !== undefined ||
       body.default_new_report_kind !== undefined ||
+      body.default_new_report_period !== undefined ||
       body.active_weekdays !== undefined
     ) {
       return NextResponse.json(
@@ -107,6 +108,9 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   }
   if (body.default_new_report_kind === "standard" || body.default_new_report_kind === "short_course") {
     patch.default_new_report_kind = body.default_new_report_kind as ReportKind;
+  }
+  if (body.default_new_report_period === "first" || body.default_new_report_period === "second" || body.default_new_report_period === "third") {
+    patch.default_new_report_period = body.default_new_report_period as ReportPeriod;
   }
   if (body.assigned_teacher_email !== undefined) {
     if (role !== "owner" && role !== "department_head") {

@@ -953,6 +953,15 @@ const EN: UiMessages = {
   "class.reportKindStandard": "Standard (three terms)",
   "class.reportKindShortCourse": "Short course (one period)",
   "class.shortCourseReportLink": "Short course",
+  "class.makeReportsForLabel": "Make reports for",
+  "class.makeReportsForHint":
+    "Preset term focus for new standard reports (+ New report). Not used when the class default is short course. You can change the term on each pupil’s report form.",
+  "class.makeReportsForDisabledShortCourse":
+    "Set the class default to standard (three terms) to choose a term preset.",
+  "class.newReportPeriodFirst": "First Term",
+  "class.newReportPeriodSecond": "Second Term",
+  "class.newReportPeriodThird": "Third Term",
+  "class.reportEditTermAria": "Edit report for term {n}",
   "class.deletePupil": "Delete pupil",
   "class.editPupil": "Edit",
   "class.savePupilEdits": "Save",
@@ -1551,6 +1560,15 @@ const FR: UiMessages = {
   "class.reportKindStandard": "Standard (trois trimestres)",
   "class.reportKindShortCourse": "Cours court (une période)",
   "class.shortCourseReportLink": "Cours court",
+  "class.makeReportsForLabel": "Rédiger les rapports pour",
+  "class.makeReportsForHint":
+    "Trimestre par défaut pour les nouveaux rapports standard (+ Nouveau rapport). Inutile si le défaut de la classe est cours court. Vous pouvez changer le trimestre sur le formulaire de chaque élève.",
+  "class.makeReportsForDisabledShortCourse":
+    "Passez le type par défaut en standard (trois trimestres) pour régler un trimestre prédéfini.",
+  "class.newReportPeriodFirst": "Premier trimestre",
+  "class.newReportPeriodSecond": "Deuxième trimestre",
+  "class.newReportPeriodThird": "Troisième trimestre",
+  "class.reportEditTermAria": "Modifier le rapport pour le trimestre {n}",
   "class.deletePupil": "Supprimer l’élève",
   "class.editPupil": "Modifier",
   "class.savePupilEdits": "Enregistrer",
@@ -2010,6 +2028,15 @@ const ES: UiMessages = {
   "class.reportKindStandard": "Estándar (tres trimestres)",
   "class.reportKindShortCourse": "Curso corto (un periodo)",
   "class.shortCourseReportLink": "Curso corto",
+  "class.makeReportsForLabel": "Informes para",
+  "class.makeReportsForHint":
+    "Periodo por defecto para nuevos informes estándar (+ Nuevo informe). No aplica si el tipo por defecto de la clase es curso corto. Puede cambiar el trimestre en el formulario de cada alumno.",
+  "class.makeReportsForDisabledShortCourse":
+    "Configure el tipo por defecto como estándar (tres trimestres) para elegir un trimestre predeterminado.",
+  "class.newReportPeriodFirst": "Primer trimestre",
+  "class.newReportPeriodSecond": "Segundo trimestre",
+  "class.newReportPeriodThird": "Tercer trimestre",
+  "class.reportEditTermAria": "Editar informe del trimestre {n}",
   "class.deletePupil": "Eliminar alumno",
   "class.editPupil": "Editar",
   "class.savePupilEdits": "Guardar",
