@@ -4,9 +4,16 @@ import { isReportLanguageCode, UI_LOCALE_BCP47 } from "@/lib/i18n/reportLanguage
 
 import { isUiLang, metricDivisionLabel, metricLabel, translate, type UiLang } from "@/lib/i18n/uiStrings";
 
-import type { MetricDivisionKey, ReportInputs, ReportPeriod } from "@/lib/reportInputs";
+import type { ReportInputs, ReportPeriod } from "@/lib/reportInputs";
 
-import { DATASET4_METRICS, isShortCourseReport, termAveragePercent } from "@/lib/reportInputs";
+import {
+  DATASET4_METRICS,
+  formatPercentSigFigs,
+  isShortCourseReport,
+  termAveragePercent,
+  yearAveragePercent,
+  type MetricDivisionKey,
+} from "@/lib/reportInputs";
 
 import { pdfTeacherSignatureLabel } from "@/lib/pdf/pdfTeacherSignature";
 
@@ -358,6 +365,14 @@ function drawTeacherSignatureFoot(doc: PdfDoc, label: string): void {
 
 
 
+/** Metrics with at least one entered score (per term); empty cells are omitted from the row when the row is shown. */
+function metricsApplicableForPdf(inputs: ReportInputs, shortCourse: boolean): (typeof DATASET4_METRICS)[number][] {
+  return DATASET4_METRICS.filter((m) => {
+    if (shortCourse) return inputs.terms[0][m.key] != null;
+    return [0, 1, 2].some((ti) => inputs.terms[ti][m.key] != null);
+  });
+}
+
 function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang: UiLang): number {
   const usableW = widthPt - marginPt * 2;
   const colLabelW = usableW * tableSpec.colLabelRatio;
@@ -390,9 +405,10 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
   }
   y += headerH;
 
+  const visible = metricsApplicableForPdf(inputs, shortCourse);
   doc.font("Helvetica");
   let currentDivision: MetricDivisionKey | "" = "";
-  for (const m of DATASET4_METRICS) {
+  for (const m of visible) {
     if (m.divisionKey !== currentDivision) {
       currentDivision = m.divisionKey;
       applyTypo(doc, typo.gradesDivision);
@@ -406,7 +422,7 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
     for (let ti = 0; ti < termCount; ti++) {
       const t = shortCourse ? 0 : ti;
       const v = inputs.terms[t][m.key];
-      const cell = v === null || v === undefined ? "—" : String(v);
+      const cell = v === null || v === undefined ? "" : String(v);
       const xi = shortCourse ? x1 : ti === 0 ? x1 : ti === 1 ? x2 : x3;
       doc.text(cell, xi, y, { width: colTermW, align: "center" });
     }
@@ -420,18 +436,19 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
   doc.x = marginPt;
   doc.y = y + 10;
   applyTypo(doc, typo.gradesFooter);
+  const fmtPct = (pct: number | null) => (pct === null ? "—" : formatPercentSigFigs(pct, 2));
   if (shortCourse) {
     const pct = termAveragePercent(inputs.terms[0]);
-    const valueStr = pct === null ? "—" : `${pct.toFixed(2)}%`;
     doc.text(
-      translate(lang, "pdf.gradesShortCourseAverage", { term: shortHeader, value: valueStr }),
+      translate(lang, "pdf.gradesShortCourseAverage", { term: shortHeader, value: fmtPct(pct) }),
     );
   } else {
     for (let t = 0; t < 3; t++) {
       const pct = termAveragePercent(inputs.terms[t]);
-      const valueStr = pct === null ? "—" : `${pct.toFixed(2)}%`;
-      doc.text(translate(lang, "pdf.gradesTermAverage", { term: termHeaders[t], value: valueStr }));
+      doc.text(translate(lang, "pdf.gradesTermAverage", { term: termHeaders[t], value: fmtPct(pct) }));
     }
+    const yearPct = yearAveragePercent(inputs);
+    doc.text(translate(lang, "pdf.gradesYearAverage", { value: fmtPct(yearPct) }));
   }
 
   return doc.y;
@@ -561,21 +578,6 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
     applyTypo(doc, typo.gradesSectionTitle);
 
     doc.text(translate(lang, "pdf.gradesSectionTitle"), { align: "left" });
-
-    doc.moveDown(0.25);
-
-    applyTypo(doc, typo.gradesSectionIntro);
-
-    doc.text(
-      translate(
-        lang,
-        isShortCourseReport(ctx.inputs) ? "pdf.gradesSectionIntroShortCourse" : "pdf.gradesSectionIntro",
-      ),
-      {
-        align: "left",
-        lineGap: typo.gradesSectionIntro.lineGap,
-      },
-    );
 
     doc.moveDown(0.65);
 

@@ -14,6 +14,7 @@ import {
   nextReportStatusFromContent,
   parseReportInputs,
   rubricCompleteForAi,
+  formatPercentSigFigs,
   termAveragePercent,
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -531,7 +532,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           <p className={`mt-2 text-xs text-zinc-500 ${shortCourse ? "mt-0" : ""}`}>
             {t("report.termTotal")}{" "}
             <span className="font-semibold text-zinc-800">
-              {focusTermAvg === null ? "—" : `${focusTermAvg.toFixed(2)}%`}
+              {focusTermAvg === null ? "—" : formatPercentSigFigs(focusTermAvg, 2)}
             </span>
           </p>
         </div>

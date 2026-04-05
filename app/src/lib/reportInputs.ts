@@ -138,11 +138,43 @@ export function rubricCompleteForAi(inputs: ReportInputs): boolean {
   return isShortCourseReport(inputs) ? focusTermComplete(inputs) : allTermsComplete(inputs);
 }
 
+/**
+ * Mean of entered 0–10 scores for the term, as a percentage (100% = all 10s).
+ * Null entries are treated as not applicable and excluded. Returns null if none entered.
+ */
 export function termAveragePercent(term: TermGrades): number | null {
   const vals = KEYS.map((k) => term[k]).filter((v): v is number => v !== null && v !== undefined);
-  if (vals.length !== 16) return null;
+  if (vals.length === 0) return null;
   const sum = vals.reduce((a, b) => a + b, 0);
-  return Math.round((sum / 160) * 10000) / 100;
+  return (sum / (vals.length * 10)) * 100;
+}
+
+/** Mean of all entered scores across terms 1–3, as a percentage. Null if none entered. */
+export function yearAveragePercent(inputs: ReportInputs): number | null {
+  if (isShortCourseReport(inputs)) return null;
+  const vals: number[] = [];
+  for (let t = 0; t < 3; t++) {
+    for (const k of KEYS) {
+      const v = inputs.terms[t][k];
+      if (v !== null && v !== undefined) vals.push(v);
+    }
+  }
+  if (vals.length === 0) return null;
+  const sum = vals.reduce((a, b) => a + b, 0);
+  return (sum / (vals.length * 10)) * 100;
+}
+
+/** Format a 0–100 percentage for display with `sig` significant figures (e.g. 2 → 87%, 8.7%). */
+export function formatPercentSigFigs(percent: number, sig: number): string {
+  if (!Number.isFinite(percent)) return "—";
+  if (percent === 0) return "0%";
+  const p = Math.abs(percent);
+  const exp = Math.floor(Math.log10(p));
+  const magnitude = Math.pow(10, sig - 1 - exp);
+  const rounded = Math.round(percent * magnitude) / magnitude;
+  if (Math.abs(rounded - Math.round(rounded)) < 1e-9) return `${Math.round(rounded)}%`;
+  const s = String(rounded);
+  return `${s}%`;
 }
 
 export function allTermsComplete(inputs: ReportInputs): boolean {
@@ -227,7 +259,7 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
       lines.push(`- ${m.label}: ${v === null || v === undefined ? "—" : String(v)} (0–10)`);
     }
     const pct = termAveragePercent(inputs.terms[t]);
-    lines.push(`Course aggregate (if complete): ${pct === null ? "—" : `${pct.toFixed(2)}%`}`);
+    lines.push(`Course aggregate: ${pct === null ? "—" : formatPercentSigFigs(pct, 2)}`);
     return lines.join("\n");
   }
   lines.push(`Report period (term focus): ${inputs.report_period}`);
@@ -244,8 +276,10 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
       lines.push(`- ${m.label}: ${v === null || v === undefined ? "—" : String(v)} (0–10)`);
     }
     const pct = termAveragePercent(inputs.terms[t]);
-    lines.push(`Term ${t + 1} aggregate (if complete): ${pct === null ? "—" : `${pct.toFixed(2)}%`}`);
+    lines.push(`Term ${t + 1} aggregate: ${pct === null ? "—" : formatPercentSigFigs(pct, 2)}`);
   }
+  const yearPct = yearAveragePercent(inputs);
+  lines.push(`Year aggregate: ${yearPct === null ? "—" : formatPercentSigFigs(yearPct, 2)}`);
   return lines.join("\n");
 }
 
