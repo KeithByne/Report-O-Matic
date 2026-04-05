@@ -278,6 +278,36 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     }
   }
 
+  /** Persists rubric grades and report inputs (same payload shape as before AI). */
+  async function saveGrades() {
+    if (!report) return;
+    setBusy("grades");
+    try {
+      const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          status: nextReportStatusFromContent({
+            prev: report.status,
+            body: report.body ?? "",
+            inputs,
+          }),
+          output_language: outputLanguage,
+          teacher_preview_language: teacherPreviewLanguage,
+          inputs,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed to save grades");
+      await load();
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   /** Saves report inputs (grades, languages, etc.) to the server, then runs AI; both must succeed before returning. */
   async function generateCommentAndSaveData() {
     setBusy("ai");
@@ -575,6 +605,17 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mt-6 flex justify-end border-t border-emerald-100 pt-4">
+          <button
+            type="button"
+            onClick={() => void saveGrades()}
+            disabled={busy !== null}
+            className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {busy === "grades" ? t("report.savingGrades") : t("report.saveGrades")}
+          </button>
         </div>
       </section>
 

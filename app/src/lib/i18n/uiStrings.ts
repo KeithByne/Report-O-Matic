@@ -740,6 +740,8 @@ const EN: UiMessages = {
   "report.termThird": "Third term",
   "report.termTotal": "Term total (all 16 cells):",
   "report.termInputs": "— report inputs",
+  "report.saveGrades": "Save grades",
+  "report.savingGrades": "Saving grades…",
   "report.optionalNotes": "Optional notes (for AI only)",
   "report.optionalNotesHint":
     "Not shown on the PDF. Saved with the report and sent to the AI with the grades when you generate the parent comment, as background to respect.",
@@ -1356,6 +1358,8 @@ const FR: UiMessages = {
   "report.termThird": "Troisième trimestre",
   "report.termTotal": "Total du trimestre (16 cases) :",
   "report.termInputs": "— saisie du rapport",
+  "report.saveGrades": "Enregistrer les notes",
+  "report.savingGrades": "Enregistrement des notes…",
   "report.optionalNotes": "Notes optionnelles (pour l’IA uniquement)",
   "report.optionalNotesHint":
     "N’apparaissent pas sur le PDF. Enregistrées avec le rapport et envoyées à l’IA avec les notes lors de la génération du commentaire, comme contexte.",
@@ -1819,6 +1823,8 @@ const ES: UiMessages = {
   "report.termThird": "Tercer trimestre",
   "report.termTotal": "Total del trimestre (16 celdas):",
   "report.termInputs": "— datos del informe",
+  "report.saveGrades": "Guardar notas",
+  "report.savingGrades": "Guardando notas…",
   "report.optionalNotes": "Notas opcionales (solo para la IA)",
   "report.optionalNotesHint":
     "No se muestran en el PDF. Se guardan con el informe y se envían a la IA con las notas al generar el comentario, como contexto.",
