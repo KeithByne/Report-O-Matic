@@ -64,6 +64,15 @@ export const PDF_GRADES_TABLE_SPEC_V1 = {
   pageBreakReserve: 165,
 } as const;
 
+/** Rounded rectangles around each term (or short-course) data column — stroke scales with ~14 pt cell text. */
+export const PDF_GRADES_TERM_BOX_V1 = {
+  cornerRadiusPt: 3.5,
+  strokeWidthPt: 1.15,
+  /** Inset from column edges so adjacent term boxes do not double-stroke the gutter. */
+  columnInsetPt: 0.85,
+  strokeColor: "#94a3b8",
+} as const;
+
 /** Page 1: letterhead, context, academic record, teacher signature. */
 export const REPORT_PDF_PAGE1_SECTIONS = [
   "letterhead_block",

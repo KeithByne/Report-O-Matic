@@ -21,6 +21,8 @@ import {
 
   PDF_GRADES_TABLE_SPEC_V1,
 
+  PDF_GRADES_TERM_BOX_V1,
+
   PDF_LETTERHEAD_BLOCK_SPEC_V1,
 
   PDF_PAGE_SPEC,
@@ -192,7 +194,69 @@ const typo = PDF_TYPOGRAPHY_V1;
 
 const tableSpec = PDF_GRADES_TABLE_SPEC_V1;
 
+const termBoxSpec = PDF_GRADES_TERM_BOX_V1;
 
+/** Mirrors `drawGradesTable` row advancement to detect whether the grid fits below the reserve without a page break. */
+function gradesTableFitsOnePage(startY: number, visible: (typeof DATASET4_METRICS)[number][]): boolean {
+  let y = startY + tableSpec.headerHeight;
+  let currentDivision: MetricDivisionKey | "" = "";
+  const limit = heightPt - marginPt - tableSpec.pageBreakReserve;
+  for (const m of visible) {
+    if (m.divisionKey !== currentDivision) {
+      currentDivision = m.divisionKey;
+      y += tableSpec.rowHeight - 2;
+    }
+    y += tableSpec.rowHeight;
+    if (y > limit) return false;
+  }
+  return true;
+}
+
+function gradesTableBodyBottomY(startY: number, visible: (typeof DATASET4_METRICS)[number][]): number {
+  let y = startY + tableSpec.headerHeight;
+  let currentDivision: MetricDivisionKey | "" = "";
+  for (const m of visible) {
+    if (m.divisionKey !== currentDivision) {
+      currentDivision = m.divisionKey;
+      y += tableSpec.rowHeight - 2;
+    }
+    y += tableSpec.rowHeight;
+  }
+  return y;
+}
+
+/** Rounded rectangles behind term / short-course score columns (drawn before text). */
+function drawTermDataColumnBoxes(
+  doc: PdfDoc,
+  args: {
+    startY: number;
+    colTermW: number;
+    x1: number;
+    x2: number;
+    x3: number;
+    shortCourse: boolean;
+    visible: (typeof DATASET4_METRICS)[number][];
+  },
+): void {
+  const { startY, colTermW, x1, x2, x3, shortCourse, visible } = args;
+  if (visible.length === 0 || !gradesTableFitsOnePage(startY, visible)) return;
+  const bottomY = gradesTableBodyBottomY(startY, visible);
+  const h = bottomY - startY;
+  if (h <= 0) return;
+  const inset = termBoxSpec.columnInsetPt;
+  const w = colTermW - 2 * inset;
+  const r = termBoxSpec.cornerRadiusPt;
+  doc.save();
+  doc.lineWidth(termBoxSpec.strokeWidthPt).strokeColor(termBoxSpec.strokeColor).lineJoin("round");
+  if (shortCourse) {
+    doc.roundedRect(x1 + inset, startY, w, h, r).stroke();
+  } else {
+    doc.roundedRect(x1 + inset, startY, w, h, r).stroke();
+    doc.roundedRect(x2 + inset, startY, w, h, r).stroke();
+    doc.roundedRect(x3 + inset, startY, w, h, r).stroke();
+  }
+  doc.restore();
+}
 
 function applyTypo(
 
@@ -390,6 +454,9 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
   ] as const;
   const shortHeader = translate(lang, "pdf.gradesShortCourseCol");
 
+  const visible = metricsApplicableForPdf(inputs, shortCourse);
+  drawTermDataColumnBoxes(doc, { startY, colTermW, x1, x2, x3, shortCourse, visible });
+
   let y = startY;
   const rowH = tableSpec.rowHeight;
   const headerH = tableSpec.headerHeight;
@@ -405,7 +472,6 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
   }
   y += headerH;
 
-  const visible = metricsApplicableForPdf(inputs, shortCourse);
   doc.font("Helvetica");
   let currentDivision: MetricDivisionKey | "" = "";
   for (const m of visible) {
