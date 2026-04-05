@@ -21,7 +21,7 @@ import {
 
   PDF_GRADES_TABLE_SPEC_V1,
 
-  PDF_GRADES_TERM_BOX_V1,
+  PDF_GRADES_DIVISION_BOX_V1,
 
   PDF_LETTERHEAD_BLOCK_SPEC_V1,
 
@@ -194,7 +194,7 @@ const typo = PDF_TYPOGRAPHY_V1;
 
 const tableSpec = PDF_GRADES_TABLE_SPEC_V1;
 
-const termBoxSpec = PDF_GRADES_TERM_BOX_V1;
+const divisionBoxSpec = PDF_GRADES_DIVISION_BOX_V1;
 
 /** Mirrors `drawGradesTable` row advancement to detect whether the grid fits below the reserve without a page break. */
 function gradesTableFitsOnePage(startY: number, visible: (typeof DATASET4_METRICS)[number][]): boolean {
@@ -212,48 +212,46 @@ function gradesTableFitsOnePage(startY: number, visible: (typeof DATASET4_METRIC
   return true;
 }
 
-function gradesTableBodyBottomY(startY: number, visible: (typeof DATASET4_METRICS)[number][]): number {
+/** Vertical spans for each criteria division block (division heading + its metric rows), matching `drawGradesTable`. */
+function computeDivisionBlockSegments(
+  startY: number,
+  visible: (typeof DATASET4_METRICS)[number][],
+): { top: number; bottom: number }[] {
   let y = startY + tableSpec.headerHeight;
   let currentDivision: MetricDivisionKey | "" = "";
+  let blockTop = -1;
+  const segments: { top: number; bottom: number }[] = [];
   for (const m of visible) {
     if (m.divisionKey !== currentDivision) {
+      if (currentDivision !== "" && blockTop >= 0) {
+        segments.push({ top: blockTop, bottom: y });
+      }
       currentDivision = m.divisionKey;
+      blockTop = y;
       y += tableSpec.rowHeight - 2;
     }
     y += tableSpec.rowHeight;
   }
-  return y;
+  if (currentDivision !== "" && blockTop >= 0) {
+    segments.push({ top: blockTop, bottom: y });
+  }
+  return segments;
 }
 
-/** Rounded rectangles behind term / short-course score columns (drawn before text). */
-function drawTermDataColumnBoxes(
-  doc: PdfDoc,
-  args: {
-    startY: number;
-    colTermW: number;
-    x1: number;
-    x2: number;
-    x3: number;
-    shortCourse: boolean;
-    visible: (typeof DATASET4_METRICS)[number][];
-  },
-): void {
-  const { startY, colTermW, x1, x2, x3, shortCourse, visible } = args;
+/** Rounded rectangles behind each criteria section (classroom behaviour, direct skills, indirect skills). */
+function drawDivisionBlockBoxes(doc: PdfDoc, startY: number, usableW: number, visible: (typeof DATASET4_METRICS)[number][]): void {
   if (visible.length === 0 || !gradesTableFitsOnePage(startY, visible)) return;
-  const bottomY = gradesTableBodyBottomY(startY, visible);
-  const h = bottomY - startY;
-  if (h <= 0) return;
-  const inset = termBoxSpec.columnInsetPt;
-  const w = colTermW - 2 * inset;
-  const r = termBoxSpec.cornerRadiusPt;
+  const segments = computeDivisionBlockSegments(startY, visible);
+  const inset = divisionBoxSpec.insetPt;
+  const x = marginPt + inset;
+  const w = usableW - 2 * inset;
+  const r = divisionBoxSpec.cornerRadiusPt;
   doc.save();
-  doc.lineWidth(termBoxSpec.strokeWidthPt).strokeColor(termBoxSpec.strokeColor).lineJoin("round");
-  if (shortCourse) {
-    doc.roundedRect(x1 + inset, startY, w, h, r).stroke();
-  } else {
-    doc.roundedRect(x1 + inset, startY, w, h, r).stroke();
-    doc.roundedRect(x2 + inset, startY, w, h, r).stroke();
-    doc.roundedRect(x3 + inset, startY, w, h, r).stroke();
+  doc.lineWidth(divisionBoxSpec.strokeWidthPt).strokeColor(divisionBoxSpec.strokeColor).lineJoin("round");
+  for (const seg of segments) {
+    const h = seg.bottom - seg.top;
+    if (h <= 0) continue;
+    doc.roundedRect(x, seg.top, w, h, r).stroke();
   }
   doc.restore();
 }
@@ -455,7 +453,7 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
   const shortHeader = translate(lang, "pdf.gradesShortCourseCol");
 
   const visible = metricsApplicableForPdf(inputs, shortCourse);
-  drawTermDataColumnBoxes(doc, { startY, colTermW, x1, x2, x3, shortCourse, visible });
+  drawDivisionBlockBoxes(doc, startY, usableW, visible);
 
   let y = startY;
   const rowH = tableSpec.rowHeight;
