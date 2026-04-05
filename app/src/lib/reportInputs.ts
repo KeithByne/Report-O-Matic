@@ -283,44 +283,50 @@ export function parseClassBulkPdfTermFilter(raw: string | null | undefined): Cla
   return "all";
 }
 
-/** Flatten 0–10 grid into plaintext for OpenAI (rubric + headers only; teacher prose notes are in the prompt separately). */
+/**
+ * Append only metrics that have a numeric score so OpenAI does not see unscored skill names
+ * (avoids comments about homework, reading, etc. when those cells were left empty).
+ */
+function appendScoredMetricsForTerm(lines: string[], inputs: ReportInputs, termIdx: 0 | 1 | 2): boolean {
+  let currentDiv: MetricDivisionKey | "" = "";
+  let any = false;
+  for (const m of DATASET4_METRICS) {
+    const v = inputs.terms[termIdx][m.key];
+    if (v === null || v === undefined) continue;
+    any = true;
+    if (m.divisionKey !== currentDiv) {
+      currentDiv = m.divisionKey;
+      lines.push(`[${METRIC_DIVISION_LABEL_EN[m.divisionKey]}]`);
+    }
+    lines.push(`- ${m.label}: ${String(v)} (0–10)`);
+  }
+  return any;
+}
+
+/** Flatten 0–10 grid into plaintext for OpenAI (only scored metrics; teacher prose notes are in the prompt separately). */
 export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved: string): string {
   const lines: string[] = [];
   lines.push(`Subject: ${subjectResolved}`);
   if (isShortCourseReport(inputs)) {
-    lines.push(`Short course — single 0–10 rubric below (all scores describe this course only).`);
-    let currentDiv: MetricDivisionKey | "" = "";
-    const t = 0;
-    for (const m of DATASET4_METRICS) {
-      if (m.divisionKey !== currentDiv) {
-        currentDiv = m.divisionKey;
-        lines.push(`[${METRIC_DIVISION_LABEL_EN[m.divisionKey]}]`);
-      }
-      const v = inputs.terms[t][m.key];
-      lines.push(`- ${m.label}: ${v === null || v === undefined ? "—" : String(v)} (0–10)`);
-    }
+    lines.push(`Short course — numeric scores below are the only rubric areas in scope for this comment.`);
+    const t = 0 as const;
+    const any = appendScoredMetricsForTerm(lines, inputs, t);
+    if (!any) lines.push("(No 0–10 scores recorded for this course.)");
     const pct = termAveragePercent(inputs.terms[t]);
-    lines.push(`Course aggregate: ${pct === null ? "—" : formatPercentSigFigs(pct, 2)}`);
+    if (pct !== null) lines.push(`Course aggregate: ${formatPercentSigFigs(pct, 2)}`);
     return lines.join("\n");
   }
   lines.push(`Report period (term focus): ${inputs.report_period}`);
   const termLabel = ["Term 1", "Term 2", "Term 3"];
   for (let t = 0; t < 3; t++) {
     lines.push(`--- ${termLabel[t]} ---`);
-    let currentDiv: MetricDivisionKey | "" = "";
-    for (const m of DATASET4_METRICS) {
-      if (m.divisionKey !== currentDiv) {
-        currentDiv = m.divisionKey;
-        lines.push(`[${METRIC_DIVISION_LABEL_EN[m.divisionKey]}]`);
-      }
-      const v = inputs.terms[t][m.key];
-      lines.push(`- ${m.label}: ${v === null || v === undefined ? "—" : String(v)} (0–10)`);
-    }
+    const any = appendScoredMetricsForTerm(lines, inputs, t as 0 | 1 | 2);
+    if (!any) lines.push("(No numeric scores recorded for this term.)");
     const pct = termAveragePercent(inputs.terms[t]);
-    lines.push(`Term ${t + 1} aggregate: ${pct === null ? "—" : formatPercentSigFigs(pct, 2)}`);
+    if (pct !== null) lines.push(`Term ${t + 1} aggregate: ${formatPercentSigFigs(pct, 2)}`);
   }
   const yearPct = yearAveragePercent(inputs);
-  lines.push(`Year aggregate: ${yearPct === null ? "—" : formatPercentSigFigs(yearPct, 2)}`);
+  if (yearPct !== null) lines.push(`Year aggregate: ${formatPercentSigFigs(yearPct, 2)}`);
   return lines.join("\n");
 }
 
