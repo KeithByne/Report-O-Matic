@@ -158,7 +158,7 @@ export const IT_LABELS: Record<string, string> = {
   "report.backClass": "← Torna alla classe",
   "report.pageTitle": "Rapporto individuale",
   "report.pageIntro":
-    "Classe, materia e anno si impostano nella schermata Classe; regola qui solo se serve.",
+    "Classe, materia e anno si impostano nella schermata Classe; regola qui solo se serve. Titoli dei criteri (0–10), ad es. grammatica e vocabolario in Abilità indirette, per trimestre.",
   "report.loading": "Caricamento…",
   "report.genderMale": "Uomo",
   "report.genderFemale": "Donna",
@@ -468,7 +468,7 @@ export const PT_LABELS: Record<string, string> = {
   "report.backClass": "← Voltar à turma",
   "report.pageTitle": "Relatório individual",
   "report.pageIntro":
-    "Turma, disciplina e ano configuram-se no ecrã Turma; ajuste aqui só se precisar.",
+    "Turma, disciplina e ano configuram-se no ecrã Turma; ajuste aqui só se precisar. Critérios (0–10), p.ex. gramática e vocabulário em competências indiretas, por trimestre.",
   "report.loading": "A carregar…",
   "report.genderMale": "Homem",
   "report.genderFemale": "Mulher",
@@ -778,7 +778,7 @@ export const DE_LABELS: Record<string, string> = {
   "report.backClass": "← Zurück zur Klasse",
   "report.pageTitle": "Einzelbericht Schüler",
   "report.pageIntro":
-    "Klasse, Fach und Jahr werden auf der Klassenansicht gesetzt; hier nur bei Bedarf anpassen. Noten nutzen Ihre Prompt-A1-Bezeichnungen (0–10) pro Trimester.",
+    "Klasse, Fach und Jahr werden auf der Klassenansicht gesetzt; hier nur bei Bedarf anpassen. Noten nutzen die Standard-Kriterienbezeichnungen (0–10), z. B. Grammatik und Wortschatz bei indirekten Fertigkeiten, pro Trimester.",
   "report.loading": "Wird geladen…",
   "report.genderMale": "Männlich",
   "report.genderFemale": "Weiblich",

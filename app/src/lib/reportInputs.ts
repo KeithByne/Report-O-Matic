@@ -31,8 +31,8 @@ export const DATASET4_METRICS = [
   { key: "listening", label: "Listening", divisionKey: "direct_skills" },
   { key: "speaking", label: "Speaking", divisionKey: "direct_skills" },
   { key: "pronunciation", label: "Pronunciation", divisionKey: "indirect_skills" },
-  { key: "handwriting", label: "Handwriting", divisionKey: "indirect_skills" },
-  { key: "audio_comprehension", label: "Audio Comprehension", divisionKey: "indirect_skills" },
+  { key: "handwriting", label: "Grammar", divisionKey: "indirect_skills" },
+  { key: "audio_comprehension", label: "Vocabulary", divisionKey: "indirect_skills" },
   { key: "reading_comprehension", label: "Reading Comprehension", divisionKey: "indirect_skills" },
 ] as const;
 
