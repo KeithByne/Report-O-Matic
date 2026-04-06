@@ -16,6 +16,8 @@ function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_req: Request, context: { params: Promise<{ tenantId: string; reportId: string }> }) {
   const { tenantId, reportId } = await context.params;
   if (!isUuid(tenantId) || !isUuid(reportId)) {

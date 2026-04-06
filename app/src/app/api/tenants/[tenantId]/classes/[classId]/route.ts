@@ -104,7 +104,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   if (typeof body.default_subject === "string" && isSubjectCode(body.default_subject) && isLead) {
     patch.default_subject = body.default_subject;
   }
-  if (typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language)) {
+  if (typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language) && isLead) {
     patch.default_output_language = body.default_output_language as ReportLanguageCode;
   }
   if (body.default_new_report_kind === "standard" || body.default_new_report_kind === "short_course") {
@@ -161,10 +161,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
 
     const klass = await updateClass(tenantId, classId, patch);
 
-    if (
-      patch.default_output_language !== undefined &&
-      patch.default_output_language !== existing.default_output_language
-    ) {
+    if (isLead && patch.default_output_language !== undefined) {
       await syncReportsLanguagesAfterClassOutputDefaultChange(
         tenantId,
         classId,

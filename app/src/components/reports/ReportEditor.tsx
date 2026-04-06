@@ -175,7 +175,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
   const load = useCallback(async () => {
     setLoadError(null);
     try {
-      const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`);
+      const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed to load report");
       const rep = data.report as Report;
