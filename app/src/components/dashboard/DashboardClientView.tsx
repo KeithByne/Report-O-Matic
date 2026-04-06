@@ -19,6 +19,7 @@ import {
   LayoutDashboard,
   LayoutList,
   Library,
+  NotebookText,
   LogOut,
   RefreshCw,
   RotateCcw,
@@ -96,7 +97,7 @@ export function DashboardClientView({
   teacherClassIdByTenant,
   bootOpenClassesPanel = null,
 }: DashboardClientViewProps) {
-  const { t } = useUiLanguage();
+  const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const classesBootApplied = useRef(false);
 
@@ -213,6 +214,11 @@ export function DashboardClientView({
     }
     return best;
   }, [visibleMemberships]);
+
+  const teacherRegistersPdfHref = useMemo(() => {
+    if (!primaryMembership) return "";
+    return `/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
+  }, [primaryMembership, uiLang]);
 
   const [workspaceDashPanel, setWorkspaceDashPanel] = useState<WorkspaceDashPanel | null>(null);
   const [teacherWorkspacePanel, setTeacherWorkspacePanel] = useState<TeacherWorkspacePanel | null>(null);
@@ -591,6 +597,13 @@ export function DashboardClientView({
                     <Library className={ICON_INLINE} aria-hidden />
                     {t("dash.reportsClasses")}
                   </Link>
+                  <a
+                    href={teacherRegistersPdfHref}
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                  >
+                    <NotebookText className={ICON_INLINE} aria-hidden />
+                    {t("dash.teacherMenuDownloadRegisters")}
+                  </a>
                   <button
                     type="button"
                     aria-pressed={teacherWorkspacePanel === "downloads"}
