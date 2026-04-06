@@ -475,6 +475,13 @@ const EN: UiMessages = {
   "dash.teacherDownloadsRegisters": "Print registers",
   "dash.teacherDownloadsRegistersHint": "One PDF containing the register for each of your classes.",
   "dash.teacherMenuDownloadRegisters": "Download Registers",
+  "dash.teacherRegistersCalloutTitle": "Attendance registers",
+  "dash.teacherRegistersCalloutHint":
+    "One PDF with a register for every class assigned to you. No report term to choose and reports do not need to be finished.",
+  "dash.teacherDownloadsAllReportsTeacherHint":
+    "All report periods in one file — each PDF shows the current text (draft or final).",
+  "dash.teacherDownloadsBulkReportsEmpty":
+    "No reports to download yet — open Reports & classes and work on at least one pupil report.",
   "dash.teacherDownloadsTimetable": "Print timetable",
   "dash.teacherDownloadsTimetableHint": "Your weekly lesson grid at this school.",
   "dash.teacherDownloadsAllReports": "Print all reports",
@@ -1171,6 +1178,13 @@ const FR: UiMessages = {
   "dash.teacherDownloadsRegisters": "Imprimer les registres",
   "dash.teacherDownloadsRegistersHint": "Un PDF avec un registre par classe qui vous est assignée.",
   "dash.teacherMenuDownloadRegisters": "Télécharger les registres",
+  "dash.teacherRegistersCalloutTitle": "Registres de présence",
+  "dash.teacherRegistersCalloutHint":
+    "Un PDF avec un registre pour chaque classe qui vous est assignée. Pas de trimestre à choisir et les bulletins n’ont pas besoin d’être terminés.",
+  "dash.teacherDownloadsAllReportsTeacherHint":
+    "Toutes les périodes dans un fichier — chaque PDF reflète le texte actuel (brouillon ou final).",
+  "dash.teacherDownloadsBulkReportsEmpty":
+    "Aucun rapport à télécharger pour l’instant — ouvrez Rapports et classes et rédigez au moins un bulletin.",
   "dash.teacherDownloadsTimetable": "Imprimer l’emploi du temps",
   "dash.teacherDownloadsTimetableHint": "Votre grille de la semaine dans cet établissement.",
   "dash.teacherDownloadsAllReports": "Imprimer tous les rapports",
@@ -1638,6 +1652,13 @@ const ES: UiMessages = {
   "dash.teacherDownloadsRegisters": "Imprimir registros",
   "dash.teacherDownloadsRegistersHint": "Un PDF con un registro por cada clase asignada.",
   "dash.teacherMenuDownloadRegisters": "Descargar registros",
+  "dash.teacherRegistersCalloutTitle": "Registros de asistencia",
+  "dash.teacherRegistersCalloutHint":
+    "Un PDF con un registro por cada clase asignada. Sin elegir trimestre y sin necesidad de tener los informes terminados.",
+  "dash.teacherDownloadsAllReportsTeacherHint":
+    "Todos los períodos en un archivo: cada PDF muestra el texto actual (borrador o final).",
+  "dash.teacherDownloadsBulkReportsEmpty":
+    "Aún no hay informes para descargar — abra Informes y clases y redacte al menos uno.",
   "dash.teacherDownloadsTimetable": "Imprimir horario",
   "dash.teacherDownloadsTimetableHint": "Su cuadrícula semanal en este centro.",
   "dash.teacherDownloadsAllReports": "Imprimir todos los informes",

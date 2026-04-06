@@ -48,6 +48,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const inline = url.searchParams.get("inline") === "1";
   const order = (url.searchParams.get("order") || "").trim().toLowerCase();
   const termFilter = parseClassBulkPdfTermFilter(url.searchParams.get("term"));
+  const anyStatus = url.searchParams.get("anyStatus") === "1";
 
   const classNotFinishedMsg =
     "You can't download all the class reports until they are all finished.";
@@ -66,32 +67,41 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const rowReady = (r: (typeof reports)[number]) =>
     reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
 
-  const byStudent = new Map<string, typeof reports>();
-  for (const r of reports) {
-    const arr = byStudent.get(r.student_id) ?? [];
-    arr.push(r);
-    byStudent.set(r.student_id, arr);
-  }
-  for (const s of students) {
-    const rs = byStudent.get(s.id);
-    if (!rs?.length) {
-      return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
-    }
-  }
-
+  const me = gate.email.trim().toLowerCase();
   let toMerge: typeof reports;
-  if (termFilter === "all") {
-    if (reports.some((r) => !rowReady(r))) {
-      return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
+
+  if (role === "teacher" && anyStatus && termFilter === "all") {
+    toMerge = reports.filter((r) => r.author_email.trim().toLowerCase() === me);
+    if (toMerge.length === 0) {
+      return NextResponse.json({ error: "No reports found for this class." }, { status: 404 });
     }
-    toMerge = reports;
   } else {
-    const period: ReportPeriod = termFilter;
-    toMerge = reports.filter((r) => rowReady(r) && r.inputs.report_period === period);
+    const byStudent = new Map<string, typeof reports>();
+    for (const r of reports) {
+      const arr = byStudent.get(r.student_id) ?? [];
+      arr.push(r);
+      byStudent.set(r.student_id, arr);
+    }
     for (const s of students) {
-      const has = toMerge.some((r) => r.student_id === s.id);
-      if (!has) {
-        return NextResponse.json({ error: classTermNotReadyMsg }, { status: 409 });
+      const rs = byStudent.get(s.id);
+      if (!rs?.length) {
+        return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
+      }
+    }
+
+    if (termFilter === "all") {
+      if (reports.some((r) => !rowReady(r))) {
+        return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
+      }
+      toMerge = reports;
+    } else {
+      const period: ReportPeriod = termFilter;
+      toMerge = reports.filter((r) => rowReady(r) && r.inputs.report_period === period);
+      for (const s of students) {
+        const has = toMerge.some((r) => r.student_id === s.id);
+        if (!has) {
+          return NextResponse.json({ error: classTermNotReadyMsg }, { status: 409 });
+        }
       }
     }
   }

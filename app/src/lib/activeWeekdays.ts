@@ -32,6 +32,13 @@ export function parseActiveWeekdaysFromDb(raw: unknown): WeekdayKey[] {
   return normalizeActiveWeekdays(step);
 }
 
+/** Default meeting days when none are set yet — still produce a printable register grid. */
+export const REGISTER_FALLBACK_WEEKDAYS: WeekdayKey[] = ["mon", "tue", "wed", "thu", "fri"];
+
+export function effectiveActiveWeekdaysForRegister(activeWeekdays: WeekdayKey[]): WeekdayKey[] {
+  return activeWeekdays.length > 0 ? activeWeekdays : REGISTER_FALLBACK_WEEKDAYS;
+}
+
 /** Five-week register: one column per class meeting in that window. */
 export function registerSessionColumnCount(activeWeekdays: WeekdayKey[]): number {
   return activeWeekdays.length * 5;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { registerSessionColumnCount } from "@/lib/activeWeekdays";
+import { effectiveActiveWeekdaysForRegister, registerSessionColumnCount } from "@/lib/activeWeekdays";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { listClasses } from "@/lib/data/classesDb";
@@ -50,8 +50,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const pdfs: Buffer[] = [];
 
   for (const klass of classes) {
-    const sessionCount = registerSessionColumnCount(klass.active_weekdays);
-    if (sessionCount === 0) continue;
+    const weekdaysForPdf = effectiveActiveWeekdaysForRegister(klass.active_weekdays);
+    const sessionCount = registerSessionColumnCount(weekdaysForPdf);
 
     const students = await listStudents(tenantId, klass.id);
     if (students.length === 0) continue;
@@ -68,7 +68,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         className: klass.name,
         students: studentRows,
         sessionColumnCount: sessionCount,
-        activeWeekdays: klass.active_weekdays,
+        activeWeekdays: weekdaysForPdf,
         uiLang,
       });
       pdfs.push(pdf);
@@ -80,8 +80,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   if (pdfs.length === 0) {
     return NextResponse.json(
       {
-        error:
-          "No printable registers — add pupils and set class meeting days, or ensure at least one weekday is selected per class.",
+        error: "No printable registers — add at least one pupil to a class assigned to you.",
       },
       { status: 409 },
     );

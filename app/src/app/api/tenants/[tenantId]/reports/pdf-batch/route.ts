@@ -105,6 +105,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const url = new URL(req.url);
   const inline = url.searchParams.get("inline") === "1";
   const onlyFinal = url.searchParams.get("onlyFinal") === "1";
+  /** Teachers only: include draft and incomplete reports (current content on PDF). */
+  const anyStatus = url.searchParams.get("anyStatus") === "1";
   const orderRaw = (url.searchParams.get("order") || "").trim().toLowerCase();
   const group = GROUP_MODES.has(orderRaw) ? orderRaw : "term";
   const termFilter = parseClassBulkPdfTermFilter(url.searchParams.get("term"));
@@ -125,9 +127,10 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   if (role === "teacher") {
     const me = gate.email.trim().toLowerCase();
-    reports = reports
-      .filter((r) => r.author_email.trim().toLowerCase() === me)
-      .filter((r) => r.status === "final" && rowReady(r));
+    reports = reports.filter((r) => r.author_email.trim().toLowerCase() === me);
+    if (!anyStatus) {
+      reports = reports.filter((r) => r.status === "final" && rowReady(r));
+    }
     if (termFilter !== "all") {
       const period = termFilter as ReportPeriod;
       reports = reports.filter((r) => r.inputs.report_period === period);

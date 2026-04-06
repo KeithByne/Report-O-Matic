@@ -112,6 +112,7 @@ export function DashboardClientView({
   const hasOwner = memberships.some((m) => m.role === "owner");
   const hasDeptHead = memberships.some((m) => m.role === "department_head");
   const hasTeacherOnly = memberships.length > 0 && memberships.every((m) => m.role === "teacher");
+  const teacherMemberships = useMemo(() => memberships.filter((m) => m.role === "teacher"), [memberships]);
 
   const [reportLangByTenant, setReportLangByTenant] = useState<Record<string, ReportLanguageCode>>({});
   const [myAgent, setMyAgent] = useState<MyAgentLink | null>(null);
@@ -214,11 +215,6 @@ export function DashboardClientView({
     }
     return best;
   }, [visibleMemberships]);
-
-  const teacherRegistersPdfHref = useMemo(() => {
-    if (!primaryMembership) return "";
-    return `/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
-  }, [primaryMembership, uiLang]);
 
   const [workspaceDashPanel, setWorkspaceDashPanel] = useState<WorkspaceDashPanel | null>(null);
   const [teacherWorkspacePanel, setTeacherWorkspacePanel] = useState<TeacherWorkspacePanel | null>(null);
@@ -420,6 +416,29 @@ export function DashboardClientView({
             <span className="min-w-0 break-all font-mono font-normal text-zinc-900">{email}</span>
           </h2>
 
+          {teacherMemberships.length > 0 ? (
+            <div className="mt-5 rounded-xl border border-emerald-300/70 bg-gradient-to-br from-emerald-50/95 to-white p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
+                <NotebookText className={ICON_INLINE} aria-hidden />
+                {t("dash.teacherRegistersCalloutTitle")}
+              </h3>
+              <p className="mt-1 text-sm text-zinc-700">{t("dash.teacherRegistersCalloutHint")}</p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                {teacherMemberships.map((m) => (
+                  <a
+                    key={m.tenantId}
+                    href={`/api/tenants/${encodeURIComponent(m.tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 sm:min-w-[14rem]"
+                  >
+                    <Download className={ICON_INLINE} aria-hidden />
+                    {teacherMemberships.length > 1 ? `${m.tenantName} — ` : null}
+                    {t("dash.teacherMenuDownloadRegisters")}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {hasOwner && memberships.length > 0 ? (
             <p className="mt-4 text-sm">
               <Link
@@ -597,13 +616,6 @@ export function DashboardClientView({
                     <Library className={ICON_INLINE} aria-hidden />
                     {t("dash.reportsClasses")}
                   </Link>
-                  <a
-                    href={teacherRegistersPdfHref}
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
-                  >
-                    <NotebookText className={ICON_INLINE} aria-hidden />
-                    {t("dash.teacherMenuDownloadRegisters")}
-                  </a>
                   <button
                     type="button"
                     aria-pressed={teacherWorkspacePanel === "downloads"}
@@ -1098,7 +1110,11 @@ export function DashboardClientView({
                 ) : null}
 
                 {teacherWorkspacePanel === "downloads" && primaryMembership ? (
-                  <TeacherDownloadsCard key="teacher-downloads" tenantId={primaryMembership.tenantId} />
+                  <TeacherDownloadsCard
+                    key="teacher-downloads"
+                    tenantId={primaryMembership.tenantId}
+                    isTeacher={primaryMembership.role === "teacher"}
+                  />
                 ) : null}
               </>
             ) : null}

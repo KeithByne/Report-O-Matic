@@ -47,6 +47,13 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const allowedStudents = new Set(students.map((s) => s.id));
     const reports = reportsAll.filter((r) => allowedStudents.has(r.student_id));
 
+    const me = gate.email.trim().toLowerCase();
+    const anyStatus = url.searchParams.get("anyStatus") === "1";
+    if (anyStatus) {
+      const mine = reports.filter((r) => r.author_email.trim().toLowerCase() === me);
+      return NextResponse.json({ ready: mine.length > 0 });
+    }
+
     const rowReady = (r: (typeof reports)[number]) =>
       reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
 
@@ -66,10 +73,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   }
 
   const termFilter = parseClassBulkPdfTermFilter(url.searchParams.get("term"));
-  if (termFilter === "all") {
-    return NextResponse.json({ error: "term or classId is required." }, { status: 400 });
-  }
-  const period = termFilter as ReportPeriod;
+  const anyStatus = url.searchParams.get("anyStatus") === "1";
 
   const classes = await listClasses(tenantId, { viewerRole: "teacher", viewerEmail: gate.email });
   const classIds = classes.map((c) => c.id);
@@ -83,6 +87,16 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   const rowReady = (r: (typeof reports)[number]) =>
     reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
+
+  if (termFilter === "all" && anyStatus) {
+    const mine = reports.filter((r) => r.author_email.trim().toLowerCase() === me);
+    return NextResponse.json({ ready: mine.length > 0 });
+  }
+
+  if (termFilter === "all") {
+    return NextResponse.json({ error: "term or classId is required." }, { status: 400 });
+  }
+  const period = termFilter as ReportPeriod;
 
   const forTerm = reports
     .filter((r) => r.author_email.trim().toLowerCase() === me)

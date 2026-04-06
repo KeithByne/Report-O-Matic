@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { registerSessionColumnCount } from "@/lib/activeWeekdays";
+import { effectiveActiveWeekdaysForRegister, registerSessionColumnCount } from "@/lib/activeWeekdays";
 import { canAccessClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
@@ -38,13 +38,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
   }
 
-  const sessionCount = registerSessionColumnCount(klass.active_weekdays);
-  if (sessionCount === 0) {
-    return NextResponse.json(
-      { error: "Choose at least one weekday the class meets (class settings) before printing the register." },
-      { status: 409 },
-    );
-  }
+  const weekdaysForPdf = effectiveActiveWeekdaysForRegister(klass.active_weekdays);
+  const sessionCount = registerSessionColumnCount(weekdaysForPdf);
 
   const students = await listStudents(tenantId, classId);
   if (students.length === 0) {
@@ -73,7 +68,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       className: klass.name,
       students: studentRows,
       sessionColumnCount: sessionCount,
-      activeWeekdays: klass.active_weekdays,
+      activeWeekdays: weekdaysForPdf,
       uiLang,
     });
     const fname = `${safeFilename(klass.name || "class")}-register.pdf`;

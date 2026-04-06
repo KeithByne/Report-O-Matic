@@ -13,9 +13,9 @@ type ClassRow = {
   default_new_report_kind?: "standard" | "short_course";
 };
 
-type Props = { tenantId: string };
+type Props = { tenantId: string; isTeacher?: boolean };
 
-export function TeacherDownloadsCard({ tenantId }: Props) {
+export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -58,24 +58,40 @@ export function TeacherDownloadsCard({ tenantId }: Props) {
   const teacherReportsHref = useMemo(() => {
     if (allShortCourse) {
       if (!reportsClassId) return "";
-      return `${base}/classes/${encodeURIComponent(reportsClassId)}/pdf-batch?term=all`;
+      const qp = new URLSearchParams();
+      qp.set("term", "all");
+      if (isTeacher) qp.set("anyStatus", "1");
+      return `${base}/classes/${encodeURIComponent(reportsClassId)}/pdf-batch?${qp.toString()}`;
+    }
+    if (isTeacher) {
+      const qp = new URLSearchParams();
+      qp.set("term", "all");
+      qp.set("order", "class");
+      qp.set("anyStatus", "1");
+      return `${base}/reports/pdf-batch?${qp.toString()}`;
     }
     const qp = new URLSearchParams();
     qp.set("term", reportsTerm);
     qp.set("order", "term");
     return `${base}/reports/pdf-batch?${qp.toString()}`;
-  }, [allShortCourse, base, reportsClassId, reportsTerm]);
+  }, [allShortCourse, base, reportsClassId, reportsTerm, isTeacher]);
 
   const bulkReadyUrl = useMemo(() => {
     if (!teacherReportsHref) return "";
     if (allShortCourse && reportsClassId) {
+      if (isTeacher) {
+        return `${base}/teacher/bulk-reports-ready?classId=${encodeURIComponent(reportsClassId)}&anyStatus=1`;
+      }
       return `${base}/teacher/bulk-reports-ready?classId=${encodeURIComponent(reportsClassId)}`;
     }
     if (!allShortCourse) {
+      if (isTeacher) {
+        return `${base}/teacher/bulk-reports-ready?term=all&anyStatus=1`;
+      }
       return `${base}/teacher/bulk-reports-ready?term=${encodeURIComponent(reportsTerm)}`;
     }
     return "";
-  }, [allShortCourse, base, reportsClassId, reportsTerm, teacherReportsHref]);
+  }, [allShortCourse, base, reportsClassId, reportsTerm, teacherReportsHref, isTeacher]);
 
   const [bulkReportsReady, setBulkReportsReady] = useState<boolean | null>(null);
 
@@ -175,6 +191,8 @@ export function TeacherDownloadsCard({ tenantId }: Props) {
                   ))}
                 </select>
               </label>
+            ) : isTeacher ? (
+              <p className="max-w-md text-xs text-zinc-500">{t("dash.teacherDownloadsAllReportsTeacherHint")}</p>
             ) : (
               <label className="flex flex-col gap-1 text-sm sm:min-w-[10rem]">
                 <span className="text-zinc-600">{t("class.bulkDownloadTermLabel")}</span>
@@ -205,7 +223,9 @@ export function TeacherDownloadsCard({ tenantId }: Props) {
                     {bulkReportsReady === null ? t("dash.teacherDownloadsChecking") : t("dash.teacherDownloadsPdf")}
                   </span>
                   {bulkReportsReady === false ? (
-                    <p className="max-w-md text-xs text-amber-800">{t("dash.teacherDownloadsReportsNotReady")}</p>
+                    <p className="max-w-md text-xs text-amber-800">
+                      {isTeacher ? t("dash.teacherDownloadsBulkReportsEmpty") : t("dash.teacherDownloadsReportsNotReady")}
+                    </p>
                   ) : null}
                 </div>
               )
