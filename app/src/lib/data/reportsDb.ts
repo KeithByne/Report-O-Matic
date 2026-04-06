@@ -139,3 +139,44 @@ export async function updateReport(
   if (error) throw new Error(formatErr(error));
   return rowFromDb(data as Record<string, unknown>);
 }
+
+/**
+ * When class `default_output_language` changes: set every pupil report’s parent/PDF `output_language`
+ * to the new default. If `teacher_preview_language` still matched the **previous** class default, move it
+ * to the new language too (custom preview languages are left unchanged).
+ */
+export async function syncReportsLanguagesAfterClassOutputDefaultChange(
+  tenantId: string,
+  classId: string,
+  newClassOutputLanguage: ReportLanguageCode,
+  previousClassOutputLanguage: ReportLanguageCode,
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const { data: studs, error: sErr } = await supabase
+    .from("students")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("class_id", classId);
+  if (sErr) throw new Error(formatErr(sErr));
+  const ids = (studs ?? []).map((r) => r.id as string);
+  if (ids.length === 0) return;
+  const now = new Date().toISOString();
+  const chunkSize = 400;
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const slice = ids.slice(i, i + chunkSize);
+    const { error: outErr } = await supabase
+      .from("reports")
+      .update({ output_language: newClassOutputLanguage, updated_at: now })
+      .eq("tenant_id", tenantId)
+      .in("student_id", slice);
+    if (outErr) throw new Error(formatErr(outErr));
+    const { error: prevErr } = await supabase
+      .from("reports")
+      .update({ teacher_preview_language: newClassOutputLanguage, updated_at: now })
+      .eq("tenant_id", tenantId)
+      .in("student_id", slice)
+      .eq("teacher_preview_language", previousClassOutputLanguage);
+    if (prevErr) throw new Error(formatErr(prevErr));
+  }
+}
