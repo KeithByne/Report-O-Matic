@@ -59,10 +59,10 @@ export function SaasOwnerTenantView({ tenantId, userDisplayName }: { tenantId: s
       try {
         const res = await fetch(`/api/saas-owner/tenants/${encodeURIComponent(tenantId)}/details`, { cache: "no-store" });
         const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json.error || "Failed");
+        if (!res.ok) throw new Error(json.error || t("common.failed"));
         if (!cancelled) setData(json as TenantDetails);
       } catch (e: unknown) {
-        if (!cancelled) setErr(e instanceof Error ? e.message : "Failed");
+        if (!cancelled) setErr(e instanceof Error ? e.message : t("common.failed"));
       } finally {
         if (!cancelled) setBusy(false);
       }
@@ -70,7 +70,7 @@ export function SaasOwnerTenantView({ tenantId, userDisplayName }: { tenantId: s
     return () => {
       cancelled = true;
     };
-  }, [tenantId]);
+  }, [tenantId, t]);
 
   const byRole = useMemo(() => groupByRole(data?.memberships ?? []), [data?.memberships]);
   const memberLabelByEmail = useMemo(() => {

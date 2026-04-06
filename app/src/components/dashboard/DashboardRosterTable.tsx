@@ -64,10 +64,10 @@ export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster
         body: JSON.stringify({ user_email: email }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -95,11 +95,11 @@ export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setEditingNameForEmail(null);
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -116,7 +116,7 @@ export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster
         body: JSON.stringify({ user_email: email, role: nextRole }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       router.refresh();
     } catch (e: unknown) {
       setRoleEdits((prev) => {
@@ -124,7 +124,7 @@ export function DashboardRosterTable({ tenantId, viewerRole, viewerEmail, roster
         delete next[norm];
         return next;
       });
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }

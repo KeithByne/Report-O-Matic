@@ -177,12 +177,12 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     try {
       const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to load report");
+      if (!res.ok) throw new Error(data.error || t("report.errLoadReport"));
       const rep = data.report as Report;
       const st = data.student as Student;
       const cl = data.class as ClassInfo | null;
       if (st.class_id !== classId) {
-        setLoadError("This report does not belong to the class in the URL.");
+        setLoadError(t("report.wrongClass"));
         return;
       }
       setStudent(st);
@@ -208,9 +208,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         st.gender === "male" || st.gender === "female" || st.gender === "non_binary" ? st.gender : "",
       );
     } catch (e: unknown) {
-      setLoadError(e instanceof Error ? e.message : "Load failed");
+      setLoadError(e instanceof Error ? e.message : t("report.loadFailed"));
     }
-  }, [base, classId, reportId]);
+  }, [base, classId, reportId, t]);
 
   useEffect(() => {
     void load();
@@ -232,7 +232,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     const fn = editFirst.trim();
     const ln = editLast.trim();
     if (!fn || !ln) {
-      alert("First name and last name are required.");
+      alert(t("report.errorNamesRequired"));
       return;
     }
     setBusy("student");
@@ -247,10 +247,10 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to update student");
+      if (!res.ok) throw new Error(data.error || t("report.errUpdateStudent"));
       await load();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -273,11 +273,11 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to update PDF language");
+      if (!res.ok) throw new Error(data.error || t("report.errUpdatePdfLang"));
       await load();
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
       await load();
     } finally {
       setBusy(null);
@@ -294,10 +294,10 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         body: JSON.stringify({ teacher_preview_language: next }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to update teacher preview");
+      if (!res.ok) throw new Error(data.error || t("report.errUpdateTeacherPreview"));
       await load();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
       await load();
     } finally {
       setBusy(null);
@@ -305,7 +305,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
   }
 
   async function removeCommentPreviews() {
-    if (!confirm("Remove both generated comments (PDF and teacher preview)?")) return;
+    if (!confirm(t("report.confirmClearComments"))) return;
     setBusy("clear");
     try {
       const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, {
@@ -314,10 +314,10 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         body: JSON.stringify({ body: "", body_teacher_preview: "", status: "draft" }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       await load();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -343,11 +343,11 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to save grades");
+      if (!res.ok) throw new Error(data.error || t("report.errSaveGrades"));
       await load();
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -372,7 +372,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         }),
       });
       const saveData = await saveRes.json().catch(() => ({}));
-      if (!saveRes.ok) throw new Error(saveData.error || "Save failed before AI");
+      if (!saveRes.ok) throw new Error(saveData.error || t("report.errSaveBeforeAi"));
 
       const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}/ai`, {
         method: "POST",
@@ -380,14 +380,14 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         body: JSON.stringify({ notes: inputs.optional_teacher_notes || undefined }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "AI failed");
+      if (!res.ok) throw new Error(data.error || t("report.errAi"));
       await load();
       window.dispatchEvent(
         new CustomEvent<ReportAiSavedDetail>(REPORT_AI_SAVED_EVENT, { detail: { tenantId } }),
       );
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -514,7 +514,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
             >
               {REPORT_LANGUAGES.map((o) => (
                 <option key={o.code} value={o.code}>
-                  {o.label}
+                  {reportLanguageOptionLabel(lang, o.code)}
                 </option>
               ))}
             </select>

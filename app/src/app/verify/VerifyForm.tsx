@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
+import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { postSignInRedirectPath } from "@/lib/auth/saasOwnerShared";
 
 type Status = "idle" | "submitting" | "ok" | "err";
 
 export function VerifyForm() {
+  const { t } = useUiLanguage();
   const sp = useSearchParams();
   const router = useRouter();
 
@@ -30,12 +32,12 @@ export function VerifyForm() {
     const c = code.trim();
     if (!email || !challenge) {
       setStatus("err");
-      setMsg("Missing email or challenge. Please return to the landing page and request a new code.");
+      setMsg(t("auth.errMissingVerifyParams"));
       return;
     }
     if (!/^\d{6,7}$/.test(c)) {
       setStatus("err");
-      setMsg("Please enter the 6–7 digit code from your email.");
+      setMsg(t("auth.errCodeDigits"));
       return;
     }
 
@@ -47,14 +49,15 @@ export function VerifyForm() {
         body: JSON.stringify({ email, challenge_id: challenge, code: c }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error((data && (data.error || data.message)) || "Verification failed.");
+      if (!res.ok)
+        throw new Error((data && (data.error || data.message)) || t("auth.errVerificationFailed"));
 
       setStatus("ok");
-      setMsg("Verified. Redirecting…");
+      setMsg(t("auth.verifyOk"));
       setTimeout(() => router.push(postSignInRedirectPath(email)), 500);
     } catch (err: unknown) {
       setStatus("err");
-      setMsg(err instanceof Error ? err.message : "Verification failed.");
+      setMsg(err instanceof Error ? err.message : t("auth.errVerificationFailed"));
     }
   }
 
@@ -70,32 +73,24 @@ export function VerifyForm() {
           </div>
         </div>
         <div className="mb-4">
-          <h1 className="text-xl font-bold tracking-tight">Enter your security code</h1>
+          <h1 className="text-xl font-bold tracking-tight">{t("auth.verifyTitle")}</h1>
           <p className="text-sm text-zinc-600 mt-1">
-            {email ? (
-              <>
-                We sent a code to <span className="font-medium">{email}</span>.
-              </>
-            ) : (
-              <>Return to the landing page and request a new code.</>
-            )}
+            {email ? t("auth.verifySentTo", { email }) : t("auth.verifyReturnLanding")}
           </p>
           {email ? (
-            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">
-              The email can take up to a minute to arrive. If you don’t see it, check your spam or junk folder.
-            </p>
+            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{t("auth.emailDelayHint")}</p>
           ) : null}
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block">
-            <span className="block text-xs font-medium text-zinc-600">Security code</span>
+            <span className="block text-xs font-medium text-zinc-600">{t("auth.securityCode")}</span>
             <input
               value={code}
               onChange={(e) => setCode(e.target.value)}
               inputMode="numeric"
               autoComplete="one-time-code"
-              placeholder="123456"
+              placeholder={t("auth.codePlaceholder")}
               className="mt-1 w-full rounded-xl border border-emerald-200 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
             />
           </label>
@@ -105,7 +100,7 @@ export function VerifyForm() {
             disabled={status === "submitting"}
             className="w-full rounded-xl bg-emerald-700 text-white font-semibold py-2.5 shadow-sm hover:bg-emerald-800 disabled:opacity-60"
           >
-            {status === "submitting" ? "Verifying…" : "Verify"}
+            {status === "submitting" ? t("auth.verifying") : t("auth.verify")}
           </button>
         </form>
 
@@ -126,8 +121,8 @@ export function VerifyForm() {
 
         <div className="mt-4 text-xs text-zinc-500">
           <div>
-            <span className="font-medium">Challenge</span>:{" "}
-            <span className="font-mono break-all">{challenge || "(missing)"}</span>
+            <span className="font-medium">{t("auth.challengeDebug")}</span>:{" "}
+            <span className="font-mono break-all">{challenge || t("auth.challengeMissing")}</span>
           </div>
         </div>
       </div>

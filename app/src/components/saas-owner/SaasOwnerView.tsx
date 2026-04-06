@@ -178,10 +178,10 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
         if (query) u.searchParams.set("q", query);
         const res = await fetch(u.toString(), { cache: "no-store" });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed");
+        if (!res.ok) throw new Error(data.error || t("common.failed"));
         if (!cancelled) setHits((data.tenants ?? []) as TenantHit[]);
       } catch (e: unknown) {
-        if (!cancelled) setErr(e instanceof Error ? e.message : "Failed");
+        if (!cancelled) setErr(e instanceof Error ? e.message : t("common.failed"));
       } finally {
         if (!cancelled) setBusy(false);
       }
@@ -189,7 +189,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
     return () => {
       cancelled = true;
     };
-  }, [query]);
+  }, [query, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -202,10 +202,10 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
         if (agent) u.searchParams.set("agent", agent.toLowerCase());
         const res = await fetch(u.toString(), { cache: "no-store" });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed");
+        if (!res.ok) throw new Error(data.error || t("common.failed"));
         if (!cancelled) setFin(data as FinanceSummary);
       } catch (e: unknown) {
-        if (!cancelled) setFinErr(e instanceof Error ? e.message : "Failed");
+        if (!cancelled) setFinErr(e instanceof Error ? e.message : t("common.failed"));
       } finally {
         if (!cancelled) setFinBusy(false);
       }
@@ -213,7 +213,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
     return () => {
       cancelled = true;
     };
-  }, [range, agent]);
+  }, [range, agent, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -225,10 +225,10 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
         u.searchParams.set("range", spendRange);
         const res = await fetch(u.toString(), { cache: "no-store" });
         const data = (await res.json().catch(() => ({}))) as OpenAiSpendSummary & { error?: string };
-        if (!res.ok) throw new Error(data.error || "Failed");
+        if (!res.ok) throw new Error(data.error || t("common.failed"));
         if (!cancelled) setSpend(data as OpenAiSpendSummary);
       } catch (e: unknown) {
-        if (!cancelled) setSpendErr(e instanceof Error ? e.message : "Failed");
+        if (!cancelled) setSpendErr(e instanceof Error ? e.message : t("common.failed"));
       } finally {
         if (!cancelled) setSpendBusy(false);
       }
@@ -236,7 +236,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
     return () => {
       cancelled = true;
     };
-  }, [spendRange, spendTick]);
+  }, [spendRange, spendTick, t]);
 
   async function refreshPacks() {
     setPacksBusy(true);
@@ -244,7 +244,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
     try {
       const res = await fetch("/api/saas-owner/packs", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       const rows = (data.packs ?? []) as CreditPack[];
       setPacks(rows);
       setPackEdits((prev) => {
@@ -255,7 +255,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
         return next;
       });
     } catch (e: unknown) {
-      setPacksErr(e instanceof Error ? e.message : "Failed");
+      setPacksErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setPacksBusy(false);
     }
@@ -267,7 +267,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
     try {
       const res = await fetch("/api/saas-owner/agents", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       const rows = (data.agents ?? []) as AgentLink[];
       setAgents(rows);
       setAgentEdits((prev) => {
@@ -278,7 +278,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
         return next;
       });
     } catch (e: unknown) {
-      setAgentsErr(e instanceof Error ? e.message : "Failed");
+      setAgentsErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setAgentsBusy(false);
     }
@@ -293,10 +293,10 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
       if (earnStatus) u.searchParams.set("status", earnStatus);
       const res = await fetch(u.toString(), { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setEarnings((data.earnings ?? []) as ReferralEarning[]);
     } catch (e: unknown) {
-      setEarnErr(e instanceof Error ? e.message : "Failed");
+      setEarnErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setEarnBusy(false);
     }
@@ -319,10 +319,10 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
         body: JSON.stringify({}),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setTestLinkUrl(String(data.link_url || ""));
     } catch (e: unknown) {
-      setTestLinkErr(e instanceof Error ? e.message : "Failed");
+      setTestLinkErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setTestLinkBusy(false);
     }
@@ -489,7 +489,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
                                 body: JSON.stringify({ id: p.id, ...patch }),
                               });
                               const data = await res.json().catch(() => ({}));
-                              if (!res.ok) throw new Error(data.error || "Failed");
+                              if (!res.ok) throw new Error(data.error || t("common.failed"));
                               await refreshPacks();
                               setPackEdits((m) => ({ ...m, [p.id]: {} }));
                             } catch (err: unknown) {
@@ -567,7 +567,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
                         body: JSON.stringify({ agent_email: newAgentEmail, display_name: newAgentName }),
                       });
                       const data = await res.json().catch(() => ({}));
-                      if (!res.ok) throw new Error(data.error || "Failed");
+                      if (!res.ok) throw new Error(data.error || t("common.failed"));
                       setNewAgentEmail("");
                       setNewAgentName("");
                       await refreshAgents();
@@ -672,7 +672,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
                                 body: JSON.stringify({ code: a.code, ...patch }),
                               });
                               const data = await res.json().catch(() => ({}));
-                              if (!res.ok) throw new Error(data.error || "Failed");
+                              if (!res.ok) throw new Error(data.error || t("common.failed"));
                               await refreshAgents();
                               setAgentEdits((m) => ({ ...m, [a.code]: {} }));
                             } catch (err: unknown) {
@@ -786,7 +786,7 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
                                 body: JSON.stringify({ id: e.id, status: next }),
                               });
                               const data = await res.json().catch(() => ({}));
-                              if (!res.ok) throw new Error(data.error || "Failed");
+                              if (!res.ok) throw new Error(data.error || t("common.failed"));
                               await refreshEarnings();
                             } catch (err: unknown) {
                               alert(err instanceof Error ? err.message : t("common.failed"));

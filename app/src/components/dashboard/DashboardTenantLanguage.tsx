@@ -35,10 +35,10 @@ export function DashboardTenantLanguage({
         body: JSON.stringify({ default_report_language: code }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       onLanguageSaved(tenantId, code);
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }

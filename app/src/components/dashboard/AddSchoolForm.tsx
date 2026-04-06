@@ -31,11 +31,11 @@ export function AddSchoolForm({ embedded = false, suppressEmbeddedHeading = fals
         body: JSON.stringify({ name: n }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setName("");
       router.refresh();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed");
+      alert(err instanceof Error ? err.message : t("common.failed"));
     } finally {
       setBusy(false);
     }

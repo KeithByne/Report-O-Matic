@@ -296,7 +296,7 @@ export function ClassWorkspace({
       const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`);
       const data = await res.json().catch(() => ({}));
       if (reqId !== loadClassRequestId.current) return;
-      if (!res.ok) throw new Error(data.error || "Failed to load class");
+      if (!res.ok) throw new Error(data.error || t("class.errLoadClass"));
       const c = data.class as ClassDetail;
       setDetail(c);
       setCName(c.name);
@@ -318,9 +318,9 @@ export function ClassWorkspace({
       setActiveDays(WEEKDAY_KEYS.filter((k) => keySet.has(k)));
     } catch (e: unknown) {
       if (reqId !== loadClassRequestId.current) return;
-      setLoadError(e instanceof Error ? e.message : "Failed to load class");
+      setLoadError(e instanceof Error ? e.message : t("class.errLoadClass"));
     }
-  }, [base, classId]);
+  }, [base, classId, t]);
 
   const refreshOrgStudents = useCallback(async () => {
     try {
@@ -343,16 +343,16 @@ export function ClassWorkspace({
       ]);
       const sData = await sRes.json().catch(() => ({}));
       const rData = await rRes.json().catch(() => ({}));
-      if (!sRes.ok) throw new Error(sData.error || "Failed to load students");
-      if (!rRes.ok) throw new Error(rData.error || "Failed to load reports");
+      if (!sRes.ok) throw new Error(sData.error || t("class.errLoadStudents"));
+      if (!rRes.ok) throw new Error(rData.error || t("class.errLoadReports"));
       setStudents(sData.students ?? []);
       const all = (rData.reports ?? []) as Report[];
       const sid = new Set((sData.students ?? []).map((x: Student) => x.id));
       setReports(all.filter((r) => sid.has(r.student_id)));
     } catch (e: unknown) {
-      setLoadError(e instanceof Error ? e.message : "Load failed");
+      setLoadError(e instanceof Error ? e.message : t("common.loadFailed"));
     }
-  }, [base, classId]);
+  }, [base, classId, t]);
 
   useEffect(() => {
     void loadClass();
@@ -469,7 +469,7 @@ export function ClassWorkspace({
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       await loadClass();
       await refreshStudents();
       if (typeof window !== "undefined") {
@@ -481,7 +481,7 @@ export function ClassWorkspace({
       }
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -499,11 +499,11 @@ export function ClassWorkspace({
         body: JSON.stringify({ default_new_report_period: next }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       await loadClass();
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
       await loadClass();
     } finally {
       setBusy(null);
@@ -531,14 +531,14 @@ export function ClassWorkspace({
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setNewFirst("");
       setNewLast("");
       setNewGender("");
       await refreshStudents();
       await refreshOrgStudents();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -559,12 +559,12 @@ export function ClassWorkspace({
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       const rep = data.report as { id: string };
       await refreshStudents();
       router.push(`/reports/${tenantId}/classes/${classId}/reports/${rep.id}`);
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -582,13 +582,13 @@ export function ClassWorkspace({
     try {
       const res = await fetch(`${base}/students/${encodeURIComponent(studentId)}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setEditingStudentId((id) => (id === studentId ? null : id));
       await refreshStudents();
       await refreshOrgStudents();
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -626,13 +626,13 @@ export function ClassWorkspace({
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setEditingStudentId(null);
       await refreshStudents();
       await refreshOrgStudents();
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -655,14 +655,14 @@ export function ClassWorkspace({
         body: JSON.stringify({ class_id: moveToClassId }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setMoveStudentId("");
       setMoveToClassId("");
       await refreshStudents();
       await refreshOrgStudents();
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -674,11 +674,11 @@ export function ClassWorkspace({
     try {
       const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       router.push(`/reports/${tenantId}`);
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }

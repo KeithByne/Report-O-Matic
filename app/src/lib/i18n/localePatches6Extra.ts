@@ -225,6 +225,10 @@ export const NL_EXTRA: Record<string, string> = {
   "class.printRegister": "Registratie afdrukken",
   "class.printRegisterNeedDays": "Kies eerst in klasinstellingen op welke dagen de les is.",
   "class.printRegisterNeedStudents": "Voeg leerlingen toe voordat u de registratie afdrukt.",
+  "report.errLoadReport": "Rapport laden mislukt.",
+  "report.errUpdateStudent": "Leerling bijwerken mislukt.",
+  "report.errUpdatePdfLang": "PDF-taal bijwerken mislukt.",
+  "report.errSaveGrades": "Cijfers opslaan mislukt.",
 };
 
 export const PL_EXTRA: Record<string, string> = {
@@ -447,6 +451,10 @@ export const PL_EXTRA: Record<string, string> = {
   "class.printRegister": "Drukuj dziennik",
   "class.printRegisterNeedDays": "Najpierw wybierz dni zajęć w ustawieniach klasy.",
   "class.printRegisterNeedStudents": "Dodaj uczniów przed drukowaniem dziennika.",
+  "report.errLoadReport": "Nie można wczytać sprawozdania.",
+  "report.errUpdateStudent": "Nie można zaktualizować ucznia.",
+  "report.errUpdatePdfLang": "Nie można zaktualizować języka PDF.",
+  "report.errSaveGrades": "Nie można zapisać ocen.",
 };
 
 export const RO_EXTRA: Record<string, string> = {
@@ -664,6 +672,10 @@ export const RO_EXTRA: Record<string, string> = {
   "class.printRegister": "Tipărește registrul",
   "class.printRegisterNeedDays": "Alegeți zilele în setările clasei.",
   "class.printRegisterNeedStudents": "Adăugați elevi înainte de tipărire.",
+  "report.errLoadReport": "Nu s-a putut încărca raportul.",
+  "report.errUpdateStudent": "Nu s-a putut actualiza elevul.",
+  "report.errUpdatePdfLang": "Nu s-a putut actualiza limba PDF.",
+  "report.errSaveGrades": "Nu s-au putut salva notele.",
   "tenant.noClassesLead": "Nicio clasă — creați una mai sus.",
 };
 
@@ -883,6 +895,10 @@ export const RU_EXTRA: Record<string, string> = {
   "class.printRegister": "Печать журнала",
   "class.printRegisterNeedDays": "Сначала выберите дни в настройках класса.",
   "class.printRegisterNeedStudents": "Добавьте учеников перед печатью.",
+  "report.errLoadReport": "Не удалось загрузить отчёт.",
+  "report.errUpdateStudent": "Не удалось обновить данные ученика.",
+  "report.errUpdatePdfLang": "Не удалось обновить язык PDF.",
+  "report.errSaveGrades": "Не удалось сохранить оценки.",
 };
 
 export const UK_EXTRA: Record<string, string> = {
@@ -1101,6 +1117,10 @@ export const UK_EXTRA: Record<string, string> = {
   "class.printRegister": "Друк журналу",
   "class.printRegisterNeedDays": "Спочатку оберіть дні в налаштуваннях класу.",
   "class.printRegisterNeedStudents": "Додайте учнів перед друком.",
+  "report.errLoadReport": "Не вдалося завантажити звіт.",
+  "report.errUpdateStudent": "Не вдалося оновити дані учня.",
+  "report.errUpdatePdfLang": "Не вдалося оновити мову PDF.",
+  "report.errSaveGrades": "Не вдалося зберегти оцінки.",
 };
 
 export const AR_EXTRA: Record<string, string> = {
@@ -1319,4 +1339,8 @@ export const AR_EXTRA: Record<string, string> = {
   "class.printRegister": "طباعة السجل",
   "class.printRegisterNeedDays": "اختر أيام الفصل في الإعدادات أولاً.",
   "class.printRegisterNeedStudents": "أضف تلاميذ قبل طباعة السجل.",
+  "report.errLoadReport": "تعذّر تحميل التقرير.",
+  "report.errUpdateStudent": "تعذّر تحديث بيانات التلميذ.",
+  "report.errUpdatePdfLang": "تعذّر تحديث لغة الـ PDF.",
+  "report.errSaveGrades": "تعذّر حفظ الدرجات.",
 };

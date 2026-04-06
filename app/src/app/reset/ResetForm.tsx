@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
+import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 
 type Status = "idle" | "submitting" | "ok" | "err";
 
 export function ResetForm() {
+  const { t } = useUiLanguage();
   const sp = useSearchParams();
   const router = useRouter();
 
@@ -30,30 +32,30 @@ export function ResetForm() {
 
     if (!email) {
       setStatus("err");
-      setMsg("Missing email. Please return to the landing page and start a reset again.");
+      setMsg(t("auth.errMissingEmail"));
       return;
     }
     if (!challenge) {
       setStatus("err");
-      setMsg("Missing reset challenge. Please return to the landing page and start a reset again.");
+      setMsg(t("auth.errMissingResetChallenge"));
       return;
     }
     const c = code.trim();
     if (!/^\d{6,7}$/.test(c)) {
       setStatus("err");
-      setMsg("Please enter the 6–7 digit reset code from your email.");
+      setMsg(t("auth.errResetCodeDigits"));
       return;
     }
     const p1 = pw1.trim();
     const p2 = pw2.trim();
     if (p1.length < 8) {
       setStatus("err");
-      setMsg("Your new password must be at least 8 characters.");
+      setMsg(t("auth.errPasswordShort"));
       return;
     }
     if (p1 !== p2) {
       setStatus("err");
-      setMsg("Passwords do not match.");
+      setMsg(t("auth.errPasswordMismatch"));
       return;
     }
 
@@ -65,13 +67,14 @@ export function ResetForm() {
         body: JSON.stringify({ email, challenge_id: challenge, code: c, new_password: p1 }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error((data && (data.error || data.message)) || "Reset failed.");
+      if (!res.ok)
+        throw new Error((data && (data.error || data.message)) || t("auth.errResetFailed"));
       setStatus("ok");
-      setMsg("Password reset. Redirecting…");
+      setMsg(t("auth.resetOk"));
       setTimeout(() => router.push("/landing.html"), 700);
     } catch (e: unknown) {
       setStatus("err");
-      setMsg(e instanceof Error ? e.message : "Reset failed.");
+      setMsg(e instanceof Error ? e.message : t("auth.errResetFailed"));
     }
   }
 
@@ -87,56 +90,48 @@ export function ResetForm() {
           </div>
         </div>
         <div className="mb-4">
-          <h1 className="text-xl font-bold tracking-tight">Reset your password</h1>
+          <h1 className="text-xl font-bold tracking-tight">{t("auth.resetTitle")}</h1>
           <p className="text-sm text-zinc-600 mt-1">
-            {email ? (
-              <>
-                Enter the code sent to <span className="font-medium">{email}</span> and choose a new password.
-              </>
-            ) : (
-              <>Return to the landing page and start the reset again.</>
-            )}
+            {email ? t("auth.resetLead", { email }) : t("auth.resetReturnLanding")}
           </p>
           {email ? (
-            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">
-              The email can take up to a minute to arrive. If you don’t see it, check your spam or junk folder.
-            </p>
+            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{t("auth.emailDelayHint")}</p>
           ) : null}
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block">
-            <span className="block text-xs font-medium text-zinc-600">Reset code</span>
+            <span className="block text-xs font-medium text-zinc-600">{t("auth.resetCode")}</span>
             <input
               value={code}
               onChange={(e) => setCode(e.target.value)}
               inputMode="numeric"
               autoComplete="one-time-code"
-              placeholder="123456"
+              placeholder={t("auth.codePlaceholder")}
               className="mt-1 w-full rounded-xl border border-emerald-200 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
             />
           </label>
 
           <label className="block">
-            <span className="block text-xs font-medium text-zinc-600">New password</span>
+            <span className="block text-xs font-medium text-zinc-600">{t("auth.newPassword")}</span>
             <input
               value={pw1}
               onChange={(e) => setPw1(e.target.value)}
               type="password"
               autoComplete="new-password"
-              placeholder="At least 8 characters"
+              placeholder={t("auth.newPasswordPlaceholder")}
               className="mt-1 w-full rounded-xl border border-emerald-200 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
             />
           </label>
 
           <label className="block">
-            <span className="block text-xs font-medium text-zinc-600">Confirm new password</span>
+            <span className="block text-xs font-medium text-zinc-600">{t("auth.confirmPassword")}</span>
             <input
               value={pw2}
               onChange={(e) => setPw2(e.target.value)}
               type="password"
               autoComplete="new-password"
-              placeholder="Repeat your new password"
+              placeholder={t("auth.confirmPasswordPlaceholder")}
               className="mt-1 w-full rounded-xl border border-emerald-200 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
             />
           </label>
@@ -146,7 +141,7 @@ export function ResetForm() {
             disabled={status === "submitting"}
             className="w-full rounded-xl bg-emerald-700 text-white font-semibold py-2.5 shadow-sm hover:bg-emerald-800 disabled:opacity-60"
           >
-            {status === "submitting" ? "Resetting…" : "Reset password"}
+            {status === "submitting" ? t("auth.resetting") : t("auth.resetPassword")}
           </button>
         </form>
 
@@ -155,7 +150,7 @@ export function ResetForm() {
           onClick={() => router.push("/landing.html")}
           className="mt-3 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
         >
-          Back to sign-in
+          {t("auth.backToSignIn")}
         </button>
 
         {msg ? (
@@ -175,12 +170,11 @@ export function ResetForm() {
 
         <div className="mt-4 text-xs text-zinc-500">
           <div>
-            <span className="font-medium">Challenge</span>:{" "}
-            <span className="font-mono break-all">{challenge || "(missing)"}</span>
+            <span className="font-medium">{t("auth.challengeDebug")}</span>:{" "}
+            <span className="font-mono break-all">{challenge || t("auth.challengeMissing")}</span>
           </div>
         </div>
       </div>
     </div>
   );
 }
-

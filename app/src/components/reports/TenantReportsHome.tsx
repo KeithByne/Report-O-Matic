@@ -73,15 +73,15 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
     try {
       const sRes = await fetch(`${base}/settings`);
       const sData = await sRes.json().catch(() => ({}));
-      if (!sRes.ok) throw new Error(sData.error || "Failed to load settings");
+      if (!sRes.ok) throw new Error(sData.error || t("tenant.errLoadSettings"));
       if (typeof sData.default_report_language === "string") {
         const code = sData.default_report_language as ReportLanguageCode;
         if (REPORT_LANGUAGES.some((x) => x.code === code)) setLang(code);
       }
     } catch (e: unknown) {
-      setLoadError(e instanceof Error ? e.message : "Load failed");
+      setLoadError(e instanceof Error ? e.message : t("common.loadFailed"));
     }
-  }, [base]);
+  }, [base, t]);
 
   useEffect(() => {
     void refresh();
@@ -120,9 +120,9 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
         body: JSON.stringify({ default_report_language: next }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to save");
+      if (!res.ok) throw new Error(data.error || t("tenant.errSaveSettings"));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }

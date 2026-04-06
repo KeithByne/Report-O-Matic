@@ -65,18 +65,18 @@ export function ProfileEditor({
     try {
       const res = await fetch("/api/me/profile", { method: "GET" });
       const data = (await res.json().catch(() => ({}))) as ProfilePayload & { error?: string };
-      if (!res.ok) throw new Error(data.error || "Could not load profile.");
+      if (!res.ok) throw new Error(data.error || t("common.loadFailed"));
       setSessionEmail(data.email);
       setFirstName(data.firstName ?? "");
       setLastName(data.lastName ?? "");
       setEmail(data.email);
       setHasPassword(data.hasPassword);
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Could not load profile.");
+      setErr(e instanceof Error ? e.message : t("common.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
@@ -112,7 +112,7 @@ export function ProfileEditor({
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; requireSignIn?: boolean; error?: string };
-      if (!res.ok) throw new Error(data.error || "Save failed.");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       if (data.requireSignIn) {
         window.location.href = "/landing.html";
         return;
@@ -122,7 +122,7 @@ export function ProfileEditor({
       setNewPassword("");
       await load();
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Save failed.");
+      setErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setSaving(false);
     }

@@ -64,10 +64,10 @@ export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: P
         body: JSON.stringify({ room_count: rc, periods_am: periodsAm, periods_pm: periodsPm }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error || "Failed");
+      if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
       alert(t("dash.timetableLayoutSaved"));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(false);
     }

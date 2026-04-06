@@ -127,13 +127,13 @@ export function ClassScholasticArchives({ classId, apiBase }: Props) {
     try {
       const res = await fetch(`${apiBase}/classes/${encodeURIComponent(classId)}/archives`);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to load archives");
+      if (!res.ok) throw new Error(data.error || t("common.loadFailed"));
       setArchives(data.archives ?? []);
     } catch (e: unknown) {
-      setLoadError(e instanceof Error ? e.message : "Failed");
+      setLoadError(e instanceof Error ? e.message : t("common.loadFailed"));
       setArchives([]);
     }
-  }, [apiBase, classId]);
+  }, [apiBase, classId, t]);
 
   useEffect(() => {
     void refresh();
@@ -144,14 +144,14 @@ export function ClassScholasticArchives({ classId, apiBase }: Props) {
     try {
       const res = await fetch(`${apiBase}/classes/${encodeURIComponent(classId)}/archives/${encodeURIComponent(id)}`);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setModal({
         payload: data.payload as ClassScholasticArchivePayload,
         label: data.archive.scholastic_year_label as string,
         archivedAt: data.archive.archived_at as string,
       });
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusyId(null);
     }

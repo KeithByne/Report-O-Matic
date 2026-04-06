@@ -65,14 +65,14 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
         fetch(`${base}/classes/term-completion`, { cache: "no-store" }),
       ]);
       const dataC = await resClasses.json().catch(() => ({}));
-      if (!resClasses.ok) throw new Error(dataC.error || "Failed to load classes");
+      if (!resClasses.ok) throw new Error(dataC.error || t("tenant.errLoadClasses"));
       setClasses(dataC.classes ?? []);
       const dataT = await resTerms.json().catch(() => ({}));
       if (resTerms.ok) setTermByClass(dataT.byClassId ?? {});
     } catch (e: unknown) {
-      setLoadError(e instanceof Error ? e.message : "Load failed");
+      setLoadError(e instanceof Error ? e.message : t("common.loadFailed"));
     }
-  }, [base]);
+  }, [base, t]);
 
   const wasActiveRef = useRef(false);
   useEffect(() => {
@@ -113,11 +113,11 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
         body: JSON.stringify({ name }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setNewClassName("");
       await refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -129,11 +129,11 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     try {
       const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       await refresh();
       router.refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }

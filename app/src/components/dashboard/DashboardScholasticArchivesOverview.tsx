@@ -24,7 +24,7 @@ export function DashboardScholasticArchivesOverview({ tenantId }: { tenantId: st
     try {
       const res = await fetch(`${base}/classes`);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("tenant.errLoadClasses"));
       const rows = (data.classes ?? []) as ClassRow[];
       setClasses(rows);
       setSelectedId((prev) => {
@@ -32,11 +32,11 @@ export function DashboardScholasticArchivesOverview({ tenantId }: { tenantId: st
         return rows[0]?.id ?? "";
       });
     } catch (e: unknown) {
-      setLoadError(e instanceof Error ? e.message : "Failed");
+      setLoadError(e instanceof Error ? e.message : t("common.loadFailed"));
     } finally {
       setClassesLoading(false);
     }
-  }, [base]);
+  }, [base, t]);
 
   useEffect(() => {
     if (!open) return;

@@ -96,7 +96,7 @@ export function DashboardTenantPdfLetterhead({
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       const lh = data.pdf_letterhead as typeof data.pdf_letterhead;
       if (lh && typeof lh === "object") {
         setByTenant((prev) => ({
@@ -112,7 +112,7 @@ export function DashboardTenantPdfLetterhead({
         }));
       }
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(null);
     }
@@ -128,14 +128,14 @@ export function DashboardTenantPdfLetterhead({
         body: fd,
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Upload failed");
+      if (!res.ok) throw new Error(data.error || t("common.uploadFailed"));
       setByTenant((prev) => ({
         ...prev,
         [tenantId]: { ...(prev[tenantId] ?? emptyLh), has_logo: true },
       }));
       setLogoKey((k) => k + 1);
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setLogoBusy(null);
     }
@@ -148,14 +148,14 @@ export function DashboardTenantPdfLetterhead({
         method: "DELETE",
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setByTenant((prev) => ({
         ...prev,
         [tenantId]: { ...(prev[tenantId] ?? emptyLh), has_logo: false },
       }));
       setLogoKey((k) => k + 1);
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setLogoBusy(null);
     }
@@ -280,7 +280,7 @@ export function DashboardTenantPdfLetterhead({
                       <input
                         value={f.contact}
                         onChange={(e) => updateField(ten.tenantId, "contact", e.target.value)}
-                        placeholder="Phone · email · website"
+                        placeholder={t("dash.pdfLetterheadContactPlaceholder")}
                         className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                       />
                     </label>

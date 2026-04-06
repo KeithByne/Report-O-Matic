@@ -308,15 +308,15 @@ export function DashboardClientView({
     try {
       const res = await fetch("/api/agent-link/me", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
       setMyAgent((data.agent ?? null) as MyAgentLink | null);
       setMyAgentEdit({});
     } catch (e: unknown) {
-      setMyAgentErr(e instanceof Error ? e.message : "Failed");
+      setMyAgentErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setMyAgentBusy(false);
     }
-  }, [hasOwner]);
+  }, [hasOwner, t]);
 
   useEffect(() => {
     void refreshMyAgent();
@@ -925,11 +925,11 @@ export function DashboardClientView({
                                 body: JSON.stringify(myAgentEdit),
                               });
                               const data = await res.json().catch(() => ({}));
-                              if (!res.ok) throw new Error(data.error || "Failed");
+                              if (!res.ok) throw new Error(data.error || t("common.failed"));
                               setMyAgent((data.agent ?? null) as MyAgentLink | null);
                               setMyAgentEdit({});
                             } catch (e: unknown) {
-                              alert(e instanceof Error ? e.message : "Failed");
+                              alert(e instanceof Error ? e.message : t("common.failed"));
                             } finally {
                               setMyAgentSaving(false);
                             }

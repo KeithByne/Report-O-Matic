@@ -173,13 +173,13 @@ export function TimetablePageClient({
         body: JSON.stringify({ room_count: rc, periods_am: am, periods_pm: pm }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error || "Failed");
+      if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
       const next = data.settings as Settings;
       setSettings(next);
       alert(t("dash.timetableLayoutSaved"));
       void refresh();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed");
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(false);
     }
@@ -222,7 +222,7 @@ export function TimetablePageClient({
           }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error((data as { error?: string }).error || "Failed");
+        if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
       } else {
         const res = await fetch(`${base}/timetable/slots`, {
           method: "POST",
@@ -235,12 +235,12 @@ export function TimetablePageClient({
           }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error((data as { error?: string }).error || "Failed");
+        if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
       }
       setModal(null);
       void refresh();
     } catch (e: unknown) {
-      setFormError(e instanceof Error ? e.message : "Failed");
+      setFormError(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(false);
     }
@@ -253,11 +253,11 @@ export function TimetablePageClient({
     try {
       const res = await fetch(`${base}/timetable/slots/${encodeURIComponent(modal.slot.id)}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error || "Failed");
+      if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
       setModal(null);
       void refresh();
     } catch (e: unknown) {
-      setFormError(e instanceof Error ? e.message : "Failed");
+      setFormError(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setBusy(false);
     }

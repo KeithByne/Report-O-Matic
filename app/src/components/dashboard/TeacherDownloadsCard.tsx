@@ -27,13 +27,13 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
     try {
       const res = await fetch(`${base}/classes`);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to load classes.");
+      if (!res.ok) throw new Error(data.error || t("tenant.errLoadClasses"));
       setClasses(data.classes ?? []);
     } catch (e: unknown) {
-      setLoadError(e instanceof Error ? e.message : "Load failed.");
+      setLoadError(e instanceof Error ? e.message : t("common.loadFailed"));
       setClasses([]);
     }
-  }, [base]);
+  }, [base, t]);
 
   useEffect(() => {
     void refresh();
