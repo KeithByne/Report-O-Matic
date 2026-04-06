@@ -511,6 +511,13 @@ export function DashboardClientView({
                           <CalendarDays className={ICON_INLINE} aria-hidden />
                           {t("tenant.panelTimetable")}
                         </button>
+                        <a
+                          href={`/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`}
+                          className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                        >
+                          <NotebookText className={ICON_INLINE} aria-hidden />
+                          {t("dash.teacherMenuDownloadRegisters")}
+                        </a>
                       </>
                     ) : null}
                     {showWorkspacePdfTab ? (
@@ -780,6 +787,13 @@ export function DashboardClientView({
                   <CalendarDays className={ICON_INLINE} aria-hidden />
                   {t("tenant.panelTimetable")}
                 </button>
+                <a
+                  href={`/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`}
+                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                >
+                  <NotebookText className={ICON_INLINE} aria-hidden />
+                  {t("dash.teacherMenuDownloadRegisters")}
+                </a>
                 {showWorkspacePdfTab ? (
                   <button
                     type="button"

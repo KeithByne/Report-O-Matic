@@ -22,8 +22,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const gate = await requireTenantMember(tenantId);
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
-  if (role !== "teacher") {
-    return NextResponse.json({ error: "Only teachers can download this combined register." }, { status: 403 });
+  if (role !== "owner" && role !== "department_head") {
+    return NextResponse.json({ error: "Only owners and department heads can download all school registers." }, { status: 403 });
   }
 
   const url = new URL(req.url);
@@ -31,9 +31,9 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const uiLang = isUiLang(langParam) ? langParam : "en";
   const inline = url.searchParams.get("inline") === "1";
 
-  const classes = await listClasses(tenantId, { viewerRole: "teacher", viewerEmail: gate.email });
+  const classes = await listClasses(tenantId);
   if (classes.length === 0) {
-    return NextResponse.json({ error: "No classes assigned to you." }, { status: 404 });
+    return NextResponse.json({ error: "No classes in this school." }, { status: 404 });
   }
 
   try {
@@ -50,9 +50,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const msg = e instanceof Error && e.message === "NO_PRINTABLE_REGISTERS" ? null : e instanceof Error ? e.message : null;
     if (msg === null) {
       return NextResponse.json(
-        {
-          error: "No printable registers — add at least one pupil to a class assigned to you.",
-        },
+        { error: "No printable registers — add at least one pupil to a class." },
         { status: 409 },
       );
     }
