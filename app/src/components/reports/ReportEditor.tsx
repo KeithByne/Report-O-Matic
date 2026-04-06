@@ -592,7 +592,17 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       </section>
 
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-zinc-900">
+        <div className="border-b border-emerald-100 pb-6">
+          <h3 className="text-sm font-semibold text-zinc-900">{t("report.optionalNotes")}</h3>
+          <p className="mt-1 text-xs text-zinc-500">{t("report.optionalNotesHint")}</p>
+          <textarea
+            value={inputs.optional_teacher_notes}
+            onChange={(e) => setInputs((prev) => ({ ...prev, optional_teacher_notes: e.target.value }))}
+            rows={3}
+            className="mt-2 w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm"
+          />
+        </div>
+        <h3 className="mt-6 text-sm font-semibold text-zinc-900">
           {shortCourse ? t("report.shortCourseGradesTitle") : t("report.termGradesTitle")}
         </h3>
         <p className="mt-1 text-xs text-zinc-500">
@@ -666,17 +676,6 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
             {busy === "grades" ? t("report.savingGrades") : t("report.saveGrades")}
           </button>
         </div>
-      </section>
-
-      <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-zinc-900">{t("report.optionalNotes")}</h3>
-        <p className="mt-1 text-xs text-zinc-500">{t("report.optionalNotesHint")}</p>
-        <textarea
-          value={inputs.optional_teacher_notes}
-          onChange={(e) => setInputs((prev) => ({ ...prev, optional_teacher_notes: e.target.value }))}
-          rows={3}
-          className="mt-2 w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm"
-        />
       </section>
 
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
