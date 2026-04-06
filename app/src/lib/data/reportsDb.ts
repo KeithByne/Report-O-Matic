@@ -178,5 +178,12 @@ export async function syncReportsLanguagesAfterClassOutputDefaultChange(
       .in("student_id", slice)
       .eq("teacher_preview_language", previousClassOutputLanguage);
     if (prevErr) throw new Error(formatErr(prevErr));
+    const { error: nullPrevErr } = await supabase
+      .from("reports")
+      .update({ teacher_preview_language: newClassOutputLanguage, updated_at: now })
+      .eq("tenant_id", tenantId)
+      .in("student_id", slice)
+      .is("teacher_preview_language", null);
+    if (nullPrevErr) throw new Error(formatErr(nullPrevErr));
   }
 }

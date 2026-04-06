@@ -20,7 +20,12 @@ import {
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { metricLabel, reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
-import { REPORT_AI_SAVED_EVENT, type ReportAiSavedDetail } from "@/lib/appEvents";
+import {
+  CLASS_SETTINGS_SAVED_EVENT,
+  REPORT_AI_SAVED_EVENT,
+  type ClassSettingsSavedDetail,
+  type ReportAiSavedDetail,
+} from "@/lib/appEvents";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 
 type Student = {
@@ -211,6 +216,17 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     void load();
   }, [load]);
 
+  useEffect(() => {
+    const onClassSettingsSaved = (ev: Event) => {
+      const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
+      const id = ce.detail?.tenantId?.trim();
+      const cid = ce.detail?.classId?.trim();
+      if (id && id === tenantId && (!cid || cid === classId)) void load();
+    };
+    window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+    return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+  }, [tenantId, classId, load]);
+
   async function saveStudentDetails() {
     if (!student) return;
     const fn = editFirst.trim();
@@ -235,6 +251,34 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       await load();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /** PDF/parent language: persist immediately (same pattern as teacher preview). */
+  async function persistOutputLanguage(next: ReportLanguageCode) {
+    if (!report) return;
+    const keepTeacherAlignedWithPdf = teacherPreviewLanguage === outputLanguage;
+    setBusy("sync-pdf-lang");
+    try {
+      const payload: {
+        output_language: ReportLanguageCode;
+        teacher_preview_language?: ReportLanguageCode;
+      } = { output_language: next };
+      if (keepTeacherAlignedWithPdf) payload.teacher_preview_language = next;
+      const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed to update PDF language");
+      await load();
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed");
+      await load();
     } finally {
       setBusy(null);
     }
@@ -447,8 +491,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
             <p className="mt-0.5 text-xs text-zinc-500">{t("report.pdfLangHint")}</p>
             <select
               value={outputLanguage}
-              onChange={(e) => setOutputLanguage(e.target.value as ReportLanguageCode)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              onChange={(e) => void persistOutputLanguage(e.target.value as ReportLanguageCode)}
+              disabled={busy !== null}
+              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
             >
               {REPORT_LANGUAGES.map((o) => (
                 <option key={o.code} value={o.code}>

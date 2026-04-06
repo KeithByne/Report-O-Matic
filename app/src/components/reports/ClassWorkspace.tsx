@@ -474,7 +474,9 @@ export function ClassWorkspace({
       await refreshStudents();
       if (typeof window !== "undefined") {
         window.dispatchEvent(
-          new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, { detail: { tenantId } }),
+          new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, {
+            detail: { tenantId, classId },
+          }),
         );
       }
       router.refresh();
