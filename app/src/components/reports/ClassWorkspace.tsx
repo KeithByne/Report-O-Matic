@@ -21,7 +21,6 @@ import {
   isShortCourseReport,
   parseReportInputs,
   reportPeriodTermNumber,
-  reportReadyForClassBulkPdf,
 } from "@/lib/reportInputs";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
@@ -142,37 +141,13 @@ export function ClassWorkspace({
   const [reports, setReports] = useState<Report[]>([]);
 
   const classBulkPdfGate = useMemo(() => {
-    const notFinishedMsg = t("class.bulkPdfNotFinished");
-    const notFinishedTermMsg = t("class.bulkPdfNotFinishedTerm");
     if (students.length === 0) {
       return { canDownload: false as const, message: t("class.bulkPdfNeedStudents") };
     }
-    const byStudent = new Map<string, Report[]>();
-    for (const r of reports) {
-      const arr = byStudent.get(r.student_id) ?? [];
-      arr.push(r);
-      byStudent.set(r.student_id, arr);
-    }
-    for (const s of students) {
-      const rs = byStudent.get(s.id);
-      if (!rs?.length) return { canDownload: false as const, message: notFinishedMsg };
-    }
-    const period = batchTermFilter;
-    for (const s of students) {
-      const ok = reports.some((r) => {
-        if (r.student_id !== s.id) return false;
-        const inputs = parseReportInputs(r.inputs);
-        if (inputs.report_period !== period) return false;
-        return reportReadyForClassBulkPdf({
-          status: r.status,
-          body: r.body ?? "",
-          inputs,
-        });
-      });
-      if (!ok) return { canDownload: false as const, message: notFinishedTermMsg };
-    }
+    // Server enforces exact readiness rules (including edge cases like legacy rows and multiple reports per pupil).
+    // Client-side gating here is intentionally minimal so we don't incorrectly block valid downloads.
     return { canDownload: true as const, message: null as string | null };
-  }, [students, reports, batchTermFilter, t]);
+  }, [students.length, t]);
 
   const batchHref = useMemo(() => {
     const qp = new URLSearchParams();
@@ -186,6 +161,43 @@ export function ClassWorkspace({
     qp.set("inline", "1");
     return `${batchBase}?${qp.toString()}`;
   }, [batchBase, batchTermFilter]);
+
+  const [bulkPdfBusy, setBulkPdfBusy] = useState<null | "download" | "print">(null);
+
+  const downloadClassBulkPdf = useCallback(
+    async (mode: "download" | "print") => {
+      if (bulkPdfBusy !== null) return;
+      setBulkPdfBusy(mode);
+      try {
+        const url = mode === "print" ? batchPrintHref : batchHref;
+        const res = await fetch(url, { method: "GET" });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error || t("common.failed"));
+        }
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        if (mode === "print") {
+          window.open(blobUrl, "_blank", "noreferrer");
+          // allow the new tab to load before revoking
+          window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
+          return;
+        }
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = "";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
+      } catch (e: unknown) {
+        alert(e instanceof Error ? e.message : t("common.failed"));
+      } finally {
+        setBulkPdfBusy(null);
+      }
+    },
+    [batchHref, batchPrintHref, bulkPdfBusy, t],
+  );
 
   const registerPdfHref = useMemo(() => {
     const qp = new URLSearchParams();
@@ -1224,20 +1236,22 @@ export function ClassWorkspace({
             </label>
             {classBulkPdfGate.canDownload ? (
               <>
-                <a
-                  href={batchHref}
-                  className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+                <button
+                  type="button"
+                  disabled={bulkPdfBusy !== null}
+                  onClick={() => void downloadClassBulkPdf("download")}
+                  className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
                 >
                   {t("class.downloadClassPdfsOneFile")}
-                </a>
-                <a
-                  href={batchPrintHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkPdfBusy !== null}
+                  onClick={() => void downloadClassBulkPdf("print")}
+                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50 disabled:opacity-50"
                 >
                   {t("class.printClassReports")}
-                </a>
+                </button>
               </>
             ) : (
               <div className="flex flex-col gap-1">
