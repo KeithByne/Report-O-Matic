@@ -1035,7 +1035,7 @@ const EN: UiMessages = {
   "class.orderStudentName": "Student name",
   "class.orderUpdatedDesc": "Last updated (newest first)",
   "class.orderUpdatedAsc": "Last updated (oldest first)",
-  "class.downloadClassPdfsOneFile": "Download class PDFs (one file)",
+  "class.downloadClassPdfsOneFile": "Download Class Reports",
   "class.genderMale": "Male",
   "class.genderFemale": "Female",
   "class.genderNonBinaryOpt": "Non-binary",
