@@ -1207,13 +1207,6 @@ export function ClassWorkspace({
                 <button
                   type="button"
                   onClick={() => openClassBulkPdfPreview()}
-                  className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
-                >
-                  {t("class.downloadClassPdfsOneFile")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openClassBulkPdfPreview()}
                   className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50 disabled:opacity-50"
                 >
                   {t("class.printClassReports")}
