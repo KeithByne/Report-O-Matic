@@ -15,7 +15,7 @@ import {
   parseClassBulkPdfTermFilter,
   reportReadyForClassBulkPdf,
   resolvedSubjectCode,
-  termCompleteForPeriod,
+  reportTermReadyForClassesDashboard,
   type ReportPeriod,
 } from "@/lib/reportInputs";
 import { isSubjectCode } from "@/lib/subjects";
@@ -69,10 +69,14 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
 
   const readyForPeriod = (r: (typeof reports)[number], period: ReportPeriod): boolean => {
-    const text = (r.body || "").trim() || (r.body_teacher_preview || "").trim();
-    if (!text) return false;
+    // Definition of "finished" for term downloads: the comment exists (AI-generated or legacy saved text),
+    // even if some numeric grade cells are blank.
+    const teacherOrParentText = (r.body || "").trim() || (r.body_teacher_preview || "").trim();
+    if (!teacherOrParentText) return false;
     if (r.status === "final") return true;
-    return termCompleteForPeriod(r.inputs, period);
+    // Use the same readiness rule as the classes dashboard (comment_generated_for_terms[idx] or legacy saved body).
+    // Note: this checks parent-facing `body` for legacy; we allow teacher preview text as a fallback above.
+    return reportTermReadyForClassesDashboard({ inputs: r.inputs, body: r.body || "" }, period);
   };
 
   const me = gate.email.trim().toLowerCase();
