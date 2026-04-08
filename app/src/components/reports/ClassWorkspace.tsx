@@ -162,42 +162,10 @@ export function ClassWorkspace({
     return `${batchBase}?${qp.toString()}`;
   }, [batchBase, batchTermFilter]);
 
-  const [bulkPdfBusy, setBulkPdfBusy] = useState<null | "download" | "print">(null);
-
-  const downloadClassBulkPdf = useCallback(
-    async (mode: "download" | "print") => {
-      if (bulkPdfBusy !== null) return;
-      setBulkPdfBusy(mode);
-      try {
-        const url = mode === "print" ? batchPrintHref : batchHref;
-        const res = await fetch(url, { method: "GET" });
-        if (!res.ok) {
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
-          throw new Error(data.error || t("common.failed"));
-        }
-        const blob = await res.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        if (mode === "print") {
-          window.open(blobUrl, "_blank", "noreferrer");
-          // allow the new tab to load before revoking
-          window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
-          return;
-        }
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = "";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
-      } catch (e: unknown) {
-        alert(e instanceof Error ? e.message : t("common.failed"));
-      } finally {
-        setBulkPdfBusy(null);
-      }
-    },
-    [batchHref, batchPrintHref, bulkPdfBusy, t],
-  );
+  const openClassBulkPdfPreview = useCallback(() => {
+    // Open server PDF inline so the browser shows its PDF viewer (with print/download controls).
+    window.open(batchPrintHref, "_blank", "noreferrer");
+  }, [batchPrintHref]);
 
   const registerPdfHref = useMemo(() => {
     const qp = new URLSearchParams();
@@ -1238,16 +1206,14 @@ export function ClassWorkspace({
               <>
                 <button
                   type="button"
-                  disabled={bulkPdfBusy !== null}
-                  onClick={() => void downloadClassBulkPdf("download")}
+                  onClick={() => openClassBulkPdfPreview()}
                   className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
                 >
                   {t("class.downloadClassPdfsOneFile")}
                 </button>
                 <button
                   type="button"
-                  disabled={bulkPdfBusy !== null}
-                  onClick={() => void downloadClassBulkPdf("print")}
+                  onClick={() => openClassBulkPdfPreview()}
                   className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50 disabled:opacity-50"
                 >
                   {t("class.printClassReports")}
