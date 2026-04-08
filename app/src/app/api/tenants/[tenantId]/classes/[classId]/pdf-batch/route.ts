@@ -15,6 +15,7 @@ import {
   parseClassBulkPdfTermFilter,
   reportReadyForClassBulkPdf,
   resolvedSubjectCode,
+  termCompleteForPeriod,
   type ReportPeriod,
 } from "@/lib/reportInputs";
 import { isSubjectCode } from "@/lib/subjects";
@@ -67,6 +68,13 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const rowReady = (r: (typeof reports)[number]) =>
     reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
 
+  const readyForPeriod = (r: (typeof reports)[number], period: ReportPeriod): boolean => {
+    const text = (r.body || "").trim() || (r.body_teacher_preview || "").trim();
+    if (!text) return false;
+    if (r.status === "final") return true;
+    return termCompleteForPeriod(r.inputs, period);
+  };
+
   const me = gate.email.trim().toLowerCase();
   let toMerge: typeof reports;
 
@@ -96,7 +104,9 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       toMerge = reports;
     } else {
       const period: ReportPeriod = termFilter;
-      toMerge = reports.filter((r) => rowReady(r) && r.inputs.report_period === period);
+      // Term-specific: allow printing/downloading based on the selected term's completion, even if the stored
+      // `inputs.report_period` is stale or the parent-facing body is empty but teacher preview exists.
+      toMerge = reports.filter((r) => readyForPeriod(r, period));
       for (const s of students) {
         const has = toMerge.some((r) => r.student_id === s.id);
         if (!has) {
@@ -134,17 +144,20 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const lang = isUiLang(outputLanguageCode) ? outputLanguageCode : "en";
     const subjectLabel = subjectLabelLocalized(lang, resolvedSubjectCode(r.inputs, classDefault));
 
+    const bodyResolved = (r.body || "").trim() ? r.body : (r.body_teacher_preview || "");
+    const reportPeriodResolved: ReportPeriod = termFilter === "all" ? r.inputs.report_period : (termFilter as ReportPeriod);
+
     const buf = await buildReportPdfBuffer({
       letterhead,
       letterheadLogo,
       tenantRecordName,
       studentName,
-      body: r.body || "",
+      body: bodyResolved || "",
       className: klass.name ?? null,
       scholasticYear: klass.scholastic_year ?? null,
       cefr: klass.cefr_level ?? null,
       subjectLabel,
-      reportPeriod: r.inputs.report_period,
+      reportPeriod: reportPeriodResolved,
       outputLanguageCode,
       outputLanguageLabel,
       reportTitle: r.title,

@@ -219,6 +219,15 @@ export function focusTermComplete(inputs: ReportInputs): boolean {
   return true;
 }
 
+/** All rubric cells filled for a specific term (ignores `inputs.report_period`). */
+export function termCompleteForPeriod(inputs: ReportInputs, period: ReportPeriod): boolean {
+  const t = inputs.terms[focusTermIndex(period)];
+  for (const k of KEYS) {
+    if (t[k] === null || t[k] === undefined) return false;
+  }
+  return true;
+}
+
 /**
  * Classes dashboard term readiness (1/2/3): term is “done” if AI set `comment_generated_for_terms[idx]`,
  * or (legacy) non-empty parent `body` with `report_period === period`. PATCH merges stored inputs so AI

@@ -157,9 +157,9 @@ function periodLabel(p: ReportPeriod, lang: UiLang): string {
   return translate(lang, "report.termThird");
 }
 
-function reportFocusLabel(inputs: ReportInputs, lang: UiLang): string {
+function reportFocusLabel(inputs: ReportInputs, reportPeriod: ReportPeriod, lang: UiLang): string {
   if (isShortCourseReport(inputs)) return translate(lang, "pdf.shortCourseReportFocus");
-  return periodLabel(inputs.report_period, lang);
+  return periodLabel(reportPeriod, lang);
 }
 
 
@@ -618,7 +618,9 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
 
     metaLines.push(translate(lang, "pdf.metaSubject", { subject: ctx.subjectLabel }));
 
-    metaLines.push(`${translate(lang, "pdf.metaReportFocus")}: ${reportFocusLabel(ctx.inputs, lang)}`);
+    metaLines.push(
+      `${translate(lang, "pdf.metaReportFocus")}: ${reportFocusLabel(ctx.inputs, ctx.reportPeriod, lang)}`,
+    );
 
     metaLines.push(
       translate(lang, "pdf.metaReportLanguage", { label: ctx.outputLanguageLabel }),
