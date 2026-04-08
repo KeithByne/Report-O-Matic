@@ -180,6 +180,13 @@ export function ClassWorkspace({
     return `${batchBase}?${qp.toString()}`;
   }, [batchBase, batchTermFilter]);
 
+  const batchPrintHref = useMemo(() => {
+    const qp = new URLSearchParams();
+    qp.set("term", batchTermFilter);
+    qp.set("inline", "1");
+    return `${batchBase}?${qp.toString()}`;
+  }, [batchBase, batchTermFilter]);
+
   const registerPdfHref = useMemo(() => {
     const qp = new URLSearchParams();
     qp.set("lang", uiLang);
@@ -273,7 +280,7 @@ export function ClassWorkspace({
     ];
     items.push(
       { id: "students", label: t("class.studentsTitle"), Icon: CLASS_PANEL_ICON.students },
-      { id: "bulkDownload", label: t("class.panelBulkDownload"), Icon: CLASS_PANEL_ICON.bulkDownload },
+      { id: "bulkDownload", label: t("class.downloadClassPdfsOneFile"), Icon: CLASS_PANEL_ICON.bulkDownload },
     );
     if (viewerRole === "owner" || viewerRole === "department_head") {
       items.push({
@@ -1200,7 +1207,7 @@ export function ClassWorkspace({
 
       {openClassPanel === "bulkDownload" ? (
         <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-zinc-900">{t("class.panelBulkDownload")}</h3>
+          <h3 className="text-sm font-semibold text-zinc-900">{t("class.downloadClassPdfsOneFile")}</h3>
           <p className="mt-1 text-xs text-zinc-500">{t("class.bulkDownloadPanelHint")}</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="inline-flex flex-row flex-wrap items-center gap-[2ch] text-sm">
@@ -1216,12 +1223,22 @@ export function ClassWorkspace({
               </select>
             </label>
             {classBulkPdfGate.canDownload ? (
-              <a
-                href={batchHref}
-                className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
-              >
-                {t("class.downloadClassPdfsOneFile")}
-              </a>
+              <>
+                <a
+                  href={batchHref}
+                  className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+                >
+                  {t("class.downloadClassPdfsOneFile")}
+                </a>
+                <a
+                  href={batchPrintHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
+                >
+                  {t("class.printClassReports")}
+                </a>
+              </>
             ) : (
               <div className="flex flex-col gap-1">
                 <span
