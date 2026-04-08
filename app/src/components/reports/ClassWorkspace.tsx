@@ -676,6 +676,15 @@ export function ClassWorkspace({
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{schoolName}</p>
         <h2 className="text-xl font-semibold text-zinc-900">{cName || initialClassName}</h2>
+        <Link
+          href={classesListHref(tenantId, viewerRole)}
+          className="mt-1 inline-flex items-center text-sm font-medium text-emerald-800 hover:text-emerald-950"
+        >
+          <span className="mr-1" aria-hidden>
+            ←
+          </span>
+          {t("class.backToClassesList")}
+        </Link>
         <p className="mt-1 text-sm text-zinc-600">
           {viewerRole === "teacher" ? t("class.introTeacher") : t("class.intro")}
         </p>
