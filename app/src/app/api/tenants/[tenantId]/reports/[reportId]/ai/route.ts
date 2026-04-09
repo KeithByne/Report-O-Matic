@@ -18,6 +18,47 @@ function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 }
 
+function normalizeTeacherContext(s: string | null | undefined): string {
+  return (s ?? "").trim().replace(/\s+/g, " ");
+}
+
+function teacherIndicatesNewToCourse(raw: string): boolean {
+  const s = normalizeTeacherContext(raw).toLowerCase();
+  if (!s) return false;
+  // Common teacher phrases: "new to the course/class", "just started with us", etc.
+  return (
+    /\b(new to (the )?(course|class|group|school))\b/.test(s) ||
+    /\b(just started( with us)?|only just started)\b/.test(s) ||
+    /\b(has (only )?recently (joined|started))\b/.test(s) ||
+    /\b(recently joined)\b/.test(s)
+  );
+}
+
+function buildAttendanceContext(opts: {
+  inputs: ReportInputs;
+  hasPreviousReport: boolean;
+  teacherContext: string;
+}): string | null {
+  const inputs = parseReportInputs(opts.inputs as unknown);
+  if (isShortCourseReport(inputs)) return null;
+
+  const period = inputs.report_period;
+  const periodIdx = focusTermIndex(period);
+  if (periodIdx === 0) return null; // first-term report doesn't need "previous term" assumptions
+
+  const teacherSaysNew = teacherIndicatesNewToCourse(opts.teacherContext);
+  if (!opts.hasPreviousReport || teacherSaysNew) {
+    return [
+      "Attendance / timeline context (mandatory):",
+      "- If there is no previously saved report for earlier terms, assume the student did not attend earlier term(s).",
+      "- If the teacher context says the student is new / has just started / is new to the class, treat them as a newcomer even if other data exists.",
+      "- In that case, do not imply continuity from earlier terms; avoid phrases like “since the start of the year”, “over the year”, or “as the months progressed”.",
+      "- Frame feedback as based on the time they have been with us so far, and be careful not to over-claim long-term progress.",
+    ].join("\n");
+  }
+  return null;
+}
+
 export async function POST(req: Request, context: { params: Promise<{ tenantId: string; reportId: string }> }) {
   const { tenantId, reportId } = await context.params;
   if (!isUuid(tenantId) || !isUuid(reportId)) {
@@ -76,7 +117,32 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
 
   const savedNotes = report.inputs.optional_teacher_notes?.trim() ?? "";
   const requestNotes = notes.trim();
-  const extraNotes = requestNotes || savedNotes || undefined;
+  const baseNotes = requestNotes || savedNotes || "";
+
+  // If there is no previous report saved, the model must assume non-attendance for earlier terms.
+  // Also, teacher "new to course/class" wording must override generic assumptions.
+  let hasPreviousReport = false;
+  try {
+    const { data: prevAny } = await supabase
+      .from("reports")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("student_id", report.student_id)
+      .neq("id", report.id)
+      .limit(1);
+    hasPreviousReport = Array.isArray(prevAny) && prevAny.length > 0;
+  } catch {
+    // If this fails, default to "unknown" (don't force the assumption).
+    hasPreviousReport = true;
+  }
+
+  const attendanceContext = buildAttendanceContext({
+    inputs: report.inputs,
+    hasPreviousReport,
+    teacherContext: baseNotes,
+  });
+
+  const extraNotes = [attendanceContext, baseNotes.trim() || null].filter(Boolean).join("\n\n") || undefined;
 
   try {
     const bal = await getTenantCreditBalance(tenantId);
