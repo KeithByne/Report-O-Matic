@@ -1,6 +1,9 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Monorepo: silence inferred workspace-root warning (multiple lockfiles).
+  outputFileTracingRoot: path.join(__dirname, ".."),
   // Dev-only: stops logging every GET/POST line (still shows compile errors and crashes).
   logging: {
     incomingRequests: false,

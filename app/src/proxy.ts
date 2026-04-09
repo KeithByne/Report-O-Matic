@@ -34,7 +34,7 @@ function isLocalDevHost(host: string): boolean {
   return false;
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   if (process.env.ROM_SKIP_CANONICAL_REDIRECT === "1") return NextResponse.next();
 
   const canonical = (process.env.ROM_CANONICAL_HOST ?? "").trim().toLowerCase();
