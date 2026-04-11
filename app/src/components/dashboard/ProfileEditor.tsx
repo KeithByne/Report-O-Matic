@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Save, UserRound } from "lucide-react";
+import { ArrowLeft, FileDown, Save, Shield, UserRound } from "lucide-react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
+import { ACCOUNT_DELETE_CONFIRM_PHRASE } from "@/lib/legal/accountDeleteConstants";
 
 const inputClassName =
   "mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-emerald-500 read-only:border-zinc-200";
@@ -58,6 +59,12 @@ export function ProfileEditor({
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+
+  const [exportBusy, setExportBusy] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteErr, setDeleteErr] = useState<string | null>(null);
+  const [deletePhrase, setDeletePhrase] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -131,6 +138,64 @@ export function ProfileEditor({
   const emailWillChange = email.trim().toLowerCase() !== sessionEmail && sessionEmail.length > 0;
   const showCurrentPassword =
     hasPassword && (newPassword.trim().length > 0 || emailWillChange);
+
+  const onDownloadExport = async () => {
+    setExportBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch("/api/me/data-export", { method: "GET" });
+      const blob = await res.blob();
+      if (!res.ok) {
+        const text = await blob.text();
+        let msg = text;
+        try {
+          const j = JSON.parse(text) as { error?: string };
+          if (j.error) msg = j.error;
+        } catch {
+          /* use text */
+        }
+        throw new Error(msg || t("common.failed"));
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `report-o-matic-data-export.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setExportBusy(false);
+    }
+  };
+
+  const onDeleteAccount = async () => {
+    if (!window.confirm(t("profile.deleteAccountConfirm"))) return;
+    setDeleteBusy(true);
+    setDeleteErr(null);
+    try {
+      const res = await fetch("/api/me/account", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: hasPassword ? deletePassword : "",
+          confirmPhrase: hasPassword ? "" : deletePhrase.trim(),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
+      if (!res.ok) {
+        if (res.status === 409 && data.code === "sole_owner") {
+          throw new Error(t("profile.deleteSoleOwnerError"));
+        }
+        throw new Error(data.error || t("common.failed"));
+      }
+      window.location.href = "/landing.html";
+    } catch (e: unknown) {
+      setDeleteErr(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
@@ -260,6 +325,96 @@ export function ProfileEditor({
             </button>
           </form>
         )}
+      </div>
+
+      <div className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+          <Shield className={ICON_INLINE} aria-hidden />
+          {t("profile.sectionPrivacy")}
+        </h2>
+        <p className="mt-1 text-xs text-zinc-600">{t("profile.privacyLead")}</p>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+          <Link
+            href="/legal/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-emerald-800 hover:text-emerald-950"
+          >
+            Privacy notice
+          </Link>
+          <Link
+            href="/legal/dpa"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-emerald-800 hover:text-emerald-950"
+          >
+            Data Processing Agreement
+          </Link>
+          <Link
+            href="/legal/cookies"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-emerald-800 hover:text-emerald-950"
+          >
+            Cookie notice
+          </Link>
+        </div>
+        <p className="mt-2 text-xs text-zinc-500">{t("profile.privacyNewTab")}</p>
+
+        <div className="mt-5 border-t border-emerald-100 pt-4">
+          <button
+            type="button"
+            disabled={exportBusy || loading}
+            onClick={() => void onDownloadExport()}
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50/80 px-4 py-2 text-sm font-medium text-emerald-950 hover:bg-emerald-100 disabled:opacity-60"
+          >
+            <FileDown className={ICON_INLINE} aria-hidden />
+            {exportBusy ? t("profile.downloadingExport") : t("profile.downloadData")}
+          </button>
+        </div>
+
+        <div className="mt-6 border-t border-red-100 pt-4">
+          <h3 className="text-sm font-semibold text-zinc-900">{t("profile.deleteAccountSection")}</h3>
+          <p className="mt-1 text-xs text-zinc-600">{t("profile.deleteAccountLead")}</p>
+          {!hasPassword ? (
+            <label className="mt-3 block text-sm">
+              <span className="text-zinc-600">{t("profile.deleteConfirmPhraseLabel")}</span>
+              <p className="mt-1 font-mono text-xs text-zinc-700">{ACCOUNT_DELETE_CONFIRM_PHRASE}</p>
+              <input
+                value={deletePhrase}
+                onChange={(e) => setDeletePhrase(e.target.value)}
+                autoComplete="off"
+                className={inputClassName}
+                placeholder={ACCOUNT_DELETE_CONFIRM_PHRASE}
+              />
+              <p className="mt-1 text-xs text-zinc-500">{t("profile.deleteConfirmPhraseHint")}</p>
+            </label>
+          ) : (
+            <label className="mt-3 block text-sm">
+              <span className="text-zinc-600">{t("profile.deletePasswordLabel")}</span>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                autoComplete="current-password"
+                className={inputClassName}
+              />
+            </label>
+          )}
+          {deleteErr ? (
+            <p className="mt-2 text-sm text-red-700" role="alert">
+              {deleteErr}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            disabled={deleteBusy || loading}
+            onClick={() => void onDeleteAccount()}
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-800 disabled:opacity-60"
+          >
+            {deleteBusy ? t("profile.deletingAccount") : t("profile.deleteAccountButton")}
+          </button>
+        </div>
       </div>
       </main>
     </div>

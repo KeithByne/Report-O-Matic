@@ -1,6 +1,6 @@
 /**
- * Sales tax / VAT / IVA for retail pack display and Stripe charges.
- * Configure with env vars (see `app/.env.local.example`).
+ * Sales tax / VAT / IVA for retail pack display and checkout totals (when card payments are enabled).
+ * Configure with env vars.
  */
 
 export type PackPriceTaxBasis = "inclusive" | "exclusive";
@@ -14,8 +14,8 @@ export function getSalesTaxRatePercent(): number {
 
 /**
  * How `credit_packs.price_cents` is stored:
- * - exclusive (default): pack price is before tax; IVA/VAT is added for display and Stripe: gross = round(net * (100 + rate) / 100).
- * - inclusive: amount already includes tax (customer pays price_cents; Stripe unit_amount = price_cents). Set ROM_PACK_PRICE_TAX_BASIS=inclusive if needed.
+ * - exclusive (default): pack price is before tax; IVA/VAT is added for display: gross = round(net * (100 + rate) / 100).
+ * - inclusive: amount already includes tax (customer pays price_cents). Set ROM_PACK_PRICE_TAX_BASIS=inclusive if needed.
  */
 export function getPackPriceTaxBasis(): PackPriceTaxBasis {
   const r = (process.env.ROM_PACK_PRICE_TAX_BASIS ?? "exclusive").trim().toLowerCase();
@@ -28,7 +28,7 @@ export function getSalesTaxLabelForCustomers(): string {
   return s || "IVA";
 }
 
-/** Cents to charge in Stripe / show as total purchase price. */
+/** Cents to charge at checkout / show as total purchase price. */
 export function packGrossChargeCents(storedPriceCents: number, ratePercent: number, basis: PackPriceTaxBasis): number {
   const n = Math.max(0, Math.trunc(storedPriceCents));
   if (basis === "inclusive") return n;
@@ -36,7 +36,7 @@ export function packGrossChargeCents(storedPriceCents: number, ratePercent: numb
   return Math.round((n * (100 + ratePercent)) / 100);
 }
 
-/** Total price shown on pack cards (same arithmetic as the Stripe charge). */
+/** Total price shown on pack cards (same arithmetic as checkout when enabled). */
 export function packCustomerDisplayCents(
   storedPriceCents: number,
   ratePercent: number,

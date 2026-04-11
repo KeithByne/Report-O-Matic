@@ -7,6 +7,7 @@ import { getOwnerCreditBalance, getTenantCreditBalance } from "@/lib/data/credit
 import { getPackPriceTaxBasis, getSalesTaxLabelForCustomers, getSalesTaxRatePercent } from "@/lib/finance/salesTax";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
+import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -56,6 +57,8 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
     userDisplayName = "";
   }
 
+  const stripePaymentsEnabled = isStripePaymentsEnabled();
+
   return (
     <TenantBillingView
       tenantId={tenantId}
@@ -66,6 +69,7 @@ export default async function TenantBillingPage({ params }: { params: Promise<{ 
       packs={(packs ?? []) as { id: string; name: string; price_cents: number; currency: string; report_credits: number }[]}
       packTaxDisplay={{ taxRatePercent, packTaxBasis, salesTaxLabel }}
       testAccess={{ isTestAccess, testCreditsRemaining, testTrialExhausted }}
+      stripePaymentsEnabled={stripePaymentsEnabled}
     />
   );
 }

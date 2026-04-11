@@ -49,6 +49,7 @@ export function TenantBillingView({
   packs,
   packTaxDisplay,
   testAccess,
+  stripePaymentsEnabled,
 }: {
   tenantId: string;
   schoolName: string;
@@ -58,6 +59,7 @@ export function TenantBillingView({
   packs: Pack[];
   packTaxDisplay: PackTaxDisplay;
   testAccess: TestAccessBanner;
+  stripePaymentsEnabled: boolean;
 }) {
   const { t } = useUiLanguage();
 
@@ -98,9 +100,19 @@ export function TenantBillingView({
               {t("billing.testTrialActive", { n: testAccess.testCreditsRemaining })}
             </p>
           ) : null}
-          {role === "owner" && testAccess.testTrialExhausted ? (
+          {role === "owner" && testAccess.testTrialExhausted && stripePaymentsEnabled ? (
             <p className="mt-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
               {t("billing.testConvertLead")}
+            </p>
+          ) : null}
+          {role === "owner" && testAccess.testTrialExhausted && !stripePaymentsEnabled ? (
+            <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+              {t("billing.paymentsPausedTestExhausted")}
+            </p>
+          ) : null}
+          {!stripePaymentsEnabled ? (
+            <p className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800">
+              <span className="font-semibold">{t("billing.paymentsPausedTitle")}</span> {t("billing.paymentsPausedBody")}
             </p>
           ) : null}
           {role !== "owner" ? (
@@ -156,7 +168,7 @@ export function TenantBillingView({
                 ) : null}
                 <button
                   type="submit"
-                  disabled={role !== "owner"}
+                  disabled={role !== "owner" || !stripePaymentsEnabled}
                   className="mt-3 w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {t("billing.continuePayment")}

@@ -42,6 +42,8 @@ import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTe
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { classesListHref } from "@/lib/app/classesNavigation";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
+import { DashboardStagedGuide } from "@/components/dashboard/DashboardStagedGuide";
+import { OverviewDataPrivacySection } from "@/components/dashboard/OverviewDataPrivacySection";
 import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
@@ -78,10 +80,10 @@ export type DashboardClientViewProps = {
   ownerReportCredits: number | null;
   /** Billing checkout is per-URL; use first owned school for “buy credits”. */
   firstOwnerTenantId: string | null;
-  /** First class id per tenant for teacher deep-links (class view + Students panel). */
-  teacherClassIdByTenant: Record<string, string | null>;
   /** From `/dashboard?panel=classes&tenant=` — open that school’s Classes workspace card once. */
   bootOpenClassesPanel?: string | null;
+  /** False when ROM_STRIPE_ENABLED is not true (card checkout and payout fields paused). */
+  stripePaymentsEnabled: boolean;
 };
 
 export function DashboardClientView({
@@ -94,20 +96,15 @@ export function DashboardClientView({
   teacherStatsByTenant,
   ownerReportCredits,
   firstOwnerTenantId,
-  teacherClassIdByTenant,
   bootOpenClassesPanel = null,
+  stripePaymentsEnabled,
 }: DashboardClientViewProps) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const classesBootApplied = useRef(false);
 
-  const reportsClassesHref = (tenantId: string, role: MembershipWithTenant["role"]) => {
-    const cid = teacherClassIdByTenant[tenantId];
-    if (role === "teacher" && cid) {
-      return `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(cid)}?panel=overview`;
-    }
-    return classesListHref(tenantId, role);
-  };
+  const reportsClassesHref = (tenantId: string, role: MembershipWithTenant["role"]) =>
+    classesListHref(tenantId, role);
 
   const hasOwner = memberships.some((m) => m.role === "owner");
   const hasDeptHead = memberships.some((m) => m.role === "department_head");
@@ -451,6 +448,76 @@ export function DashboardClientView({
             </p>
           ) : null}
 
+          {hasOwner && memberships.length > 0 && !ownerFocusTenantId ? (
+            <div className="mt-6 space-y-8 border-t border-emerald-100 pt-6">
+              <div>
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
+                  <Building2 className={ICON_INLINE} aria-hidden />
+                  {t("dash.ownerHubAddSchool")}
+                </h2>
+                <div className="mt-3">
+                  <AddSchoolForm embedded suppressEmbeddedHeading />
+                </div>
+              </div>
+              <div className="border-t border-emerald-100 pt-8">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
+                  <Building2 className={ICON_INLINE} aria-hidden />
+                  {t("dash.schoolFocusTitle")}
+                </h2>
+                <ul className="mt-4 space-y-2" role="radiogroup" aria-label={t("dash.schoolFocusTitle")}>
+                  {uniqueSchools.map(([tenantId, tenantName]) => (
+                    <li key={tenantId}>
+                      <label
+                        className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2.5 has-[:checked]:border-emerald-300 has-[:checked]:bg-emerald-50"
+                        onClick={(e) => {
+                          if (ownerFocusTenantId === tenantId) {
+                            e.preventDefault();
+                            userClearedSchoolFocus.current = true;
+                            setOwnerFocusTenantId(null);
+                            setWorkspaceDashPanel(null);
+                          }
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="owner-school-focus"
+                          className="h-4 w-4 border-emerald-300 text-emerald-800"
+                          checked={ownerFocusTenantId === tenantId}
+                          onChange={() => {
+                            userClearedSchoolFocus.current = false;
+                            setOwnerFocusTenantId(tenantId);
+                            setWorkspaceDashPanel(null);
+                          }}
+                        />
+                        <span className="min-w-0 flex-1 font-medium text-zinc-900">{tenantName}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {ownerReportCredits !== null ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-emerald-100 pt-8">
+                  <p className="text-base font-semibold tabular-nums text-teal-950 sm:text-lg">
+                    {t("dash.ownerCreditsRemaining", { n: ownerReportCredits })}
+                  </p>
+                  {firstOwnerTenantId ? (
+                    <Link
+                      href={`/reports/${encodeURIComponent(firstOwnerTenantId)}/billing`}
+                      className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-teal-800 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-900"
+                    >
+                      <CreditCard className={ICON_INLINE} aria-hidden />
+                      {t("dash.ownerCreditsBuy")}
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {hasOwner && memberships.length > 0 && !ownerFocusTenantId ? (
+            <DashboardStagedGuide mode="owner_hub" />
+          ) : null}
+
           {usesSchoolWorkspaceMenu && memberships.length > 0 && primaryMembership && !hasOwner ? (
             <div className="mt-5 border-t border-emerald-100 pt-5">
               <>
@@ -483,6 +550,21 @@ export function DashboardClientView({
                       <LayoutList className={ICON_INLINE} aria-hidden />
                       {t("dash.panelOverview")}
                     </button>
+                    {showWorkspaceInvitesTab ? (
+                      <button
+                        type="button"
+                        aria-pressed={workspaceDashPanel === "invites"}
+                        onClick={() => toggleWorkspaceDashPanel("invites")}
+                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                          workspaceDashPanel === "invites"
+                            ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                            : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                        }`}
+                      >
+                        <UserPlus className={ICON_INLINE} aria-hidden />
+                        {t("dash.panelInviteTeam")}
+                      </button>
+                    ) : null}
                     {deptHeadOnlyWorkspace ? (
                       <>
                         <button
@@ -535,21 +617,6 @@ export function DashboardClientView({
                         {t("dash.panelPdfLetterhead")}
                       </button>
                     ) : null}
-                    {showWorkspaceInvitesTab ? (
-                      <button
-                        type="button"
-                        aria-pressed={workspaceDashPanel === "invites"}
-                        onClick={() => toggleWorkspaceDashPanel("invites")}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                          workspaceDashPanel === "invites"
-                            ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                            : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                        }`}
-                      >
-                        <UserPlus className={ICON_INLINE} aria-hidden />
-                        {t("dash.panelInviteTeam")}
-                      </button>
-                    ) : null}
                     {showWorkspaceDownloadsTab && !deptHeadOnlyWorkspace ? (
                       <Link
                         href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}?panel=downloads`}
@@ -565,6 +632,7 @@ export function DashboardClientView({
                       </span>
                     ) : null}
                   </nav>
+                  <DashboardStagedGuide mode="department_head" />
               </>
             </div>
           ) : null}
@@ -642,6 +710,7 @@ export function DashboardClientView({
                     </span>
                   ) : null}
                 </nav>
+                <DashboardStagedGuide mode="teacher" />
                 {teacherWorkspacePanel ? (
                   <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-xs font-medium text-emerald-950" role="status" aria-live="polite">
                     <span className="text-zinc-600">{t("dash.teacherSelectionShowing")}</span>{" "}
@@ -658,71 +727,6 @@ export function DashboardClientView({
             </div>
           ) : null}
 
-          {hasOwner && memberships.length > 0 ? (
-            <div className="mt-6 space-y-8 border-t border-emerald-100 pt-6">
-              <div>
-                <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
-                  <Building2 className={ICON_INLINE} aria-hidden />
-                  {t("dash.ownerHubAddSchool")}
-                </h2>
-                <div className="mt-3">
-                  <AddSchoolForm embedded suppressEmbeddedHeading />
-                </div>
-              </div>
-              <div className="border-t border-emerald-100 pt-8">
-                <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
-                  <Building2 className={ICON_INLINE} aria-hidden />
-                  {t("dash.schoolFocusTitle")}
-                </h2>
-                <ul className="mt-4 space-y-2" role="radiogroup" aria-label={t("dash.schoolFocusTitle")}>
-                  {uniqueSchools.map(([tenantId, tenantName]) => (
-                    <li key={tenantId}>
-                      <label
-                        className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2.5 has-[:checked]:border-emerald-300 has-[:checked]:bg-emerald-50"
-                        onClick={(e) => {
-                          if (ownerFocusTenantId === tenantId) {
-                            e.preventDefault();
-                            userClearedSchoolFocus.current = true;
-                            setOwnerFocusTenantId(null);
-                            setWorkspaceDashPanel(null);
-                          }
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name="owner-school-focus"
-                          className="h-4 w-4 border-emerald-300 text-emerald-800"
-                          checked={ownerFocusTenantId === tenantId}
-                          onChange={() => {
-                            userClearedSchoolFocus.current = false;
-                            setOwnerFocusTenantId(tenantId);
-                            setWorkspaceDashPanel(null);
-                          }}
-                        />
-                        <span className="min-w-0 flex-1 font-medium text-zinc-900">{tenantName}</span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              {ownerReportCredits !== null ? (
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-emerald-100 pt-8">
-                  <p className="text-base font-semibold tabular-nums text-teal-950 sm:text-lg">
-                    {t("dash.ownerCreditsRemaining", { n: ownerReportCredits })}
-                  </p>
-                  {firstOwnerTenantId ? (
-                    <Link
-                      href={`/reports/${encodeURIComponent(firstOwnerTenantId)}/billing`}
-                      className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-teal-800 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-900"
-                    >
-                      <CreditCard className={ICON_INLINE} aria-hidden />
-                      {t("dash.ownerCreditsBuy")}
-                    </Link>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
         </section>
         )}
 
@@ -744,6 +748,15 @@ export function DashboardClientView({
             </div>
             <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
             <h2 className="sr-only">{t("dash.schoolWorkspaceMenuTitle")}</h2>
+            <p className="mb-3 text-sm">
+              <Link
+                href="/dashboard/profile"
+                className="inline-flex items-center gap-2 font-medium text-emerald-900 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-950"
+              >
+                <UserRound className={ICON_INLINE} aria-hidden />
+                {t("dash.profileButton")}
+              </Link>
+            </p>
             <nav
               className="flex flex-wrap gap-2"
               aria-label={t("dash.schoolWorkspaceMenuTitle")}
@@ -761,6 +774,36 @@ export function DashboardClientView({
                   <LayoutList className={ICON_INLINE} aria-hidden />
                   {t("dash.panelOverview")}
                 </button>
+                {showWorkspacePdfTab ? (
+                  <button
+                    type="button"
+                    aria-pressed={workspaceDashPanel === "pdf"}
+                    onClick={() => toggleWorkspaceDashPanel("pdf")}
+                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      workspaceDashPanel === "pdf"
+                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                    }`}
+                  >
+                    <FileImage className={ICON_INLINE} aria-hidden />
+                    {t("dash.panelPdfLetterhead")}
+                  </button>
+                ) : null}
+                {showWorkspaceInvitesTab ? (
+                  <button
+                    type="button"
+                    aria-pressed={workspaceDashPanel === "invites"}
+                    onClick={() => toggleWorkspaceDashPanel("invites")}
+                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      workspaceDashPanel === "invites"
+                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                    }`}
+                  >
+                    <UserPlus className={ICON_INLINE} aria-hidden />
+                    {t("dash.panelInviteTeam")}
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "classes"}
@@ -794,35 +837,14 @@ export function DashboardClientView({
                   <NotebookText className={ICON_INLINE} aria-hidden />
                   {t("dash.teacherMenuDownloadRegisters")}
                 </a>
-                {showWorkspacePdfTab ? (
-                  <button
-                    type="button"
-                    aria-pressed={workspaceDashPanel === "pdf"}
-                    onClick={() => toggleWorkspaceDashPanel("pdf")}
-                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                      workspaceDashPanel === "pdf"
-                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                    }`}
+                {showWorkspaceDownloadsTab ? (
+                  <Link
+                    href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}?panel=downloads`}
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                   >
-                    <FileImage className={ICON_INLINE} aria-hidden />
-                    {t("dash.panelPdfLetterhead")}
-                  </button>
-                ) : null}
-                {showWorkspaceInvitesTab ? (
-                  <button
-                    type="button"
-                    aria-pressed={workspaceDashPanel === "invites"}
-                    onClick={() => toggleWorkspaceDashPanel("invites")}
-                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                      workspaceDashPanel === "invites"
-                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                    }`}
-                  >
-                    <UserPlus className={ICON_INLINE} aria-hidden />
-                    {t("dash.panelInviteTeam")}
-                  </button>
+                    <Download className={ICON_INLINE} aria-hidden />
+                    {t("tenant.panelDownloads")}
+                  </Link>
                 ) : null}
                 {workspaceDashPanel ? (
                   <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
@@ -830,6 +852,7 @@ export function DashboardClientView({
                   </span>
                 ) : null}
             </nav>
+            <DashboardStagedGuide mode="owner_workspace" />
           </section>
           </>
         ) : null}
@@ -863,7 +886,9 @@ export function DashboardClientView({
                       <Share2 className={ICON_INLINE} aria-hidden />
                       {t("dash.agentSectionTitle")}
                     </h3>
-                    <p className="mt-1 text-sm text-zinc-600">{t("dash.agentSectionLead")}</p>
+                    <p className="mt-1 text-sm text-zinc-600">
+                      {stripePaymentsEnabled ? t("dash.agentSectionLead") : t("dash.agentSectionLeadPaymentsPaused")}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -876,7 +901,7 @@ export function DashboardClientView({
                 </div>
 
                 <p className="mt-3 rounded-lg border border-amber-100 bg-amber-50/70 px-3 py-2 text-xs leading-relaxed text-zinc-700">
-                  {t("dash.agentPaymentsBlurb")}
+                  {stripePaymentsEnabled ? t("dash.agentPaymentsBlurb") : t("dash.agentPaymentsBlurbPaused")}
                 </p>
 
                 {myAgentErr ? <div className="mt-3 text-sm text-red-700">{myAgentErr}</div> : null}
@@ -899,15 +924,23 @@ export function DashboardClientView({
                       <div />
 
                       <label className="text-sm sm:col-span-2">
-                        <span className="text-zinc-600">{t("dash.agentStripeLabel")}</span>
-                        <input
-                          value={String((myAgentEdit.payout_stripe_account_id ?? myAgent.payout_stripe_account_id) ?? "")}
-                          onChange={(e) =>
-                            setMyAgentEdit((p) => ({ ...p, payout_stripe_account_id: e.target.value }))
-                          }
-                          className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm font-mono"
-                          placeholder="acct_..."
-                        />
+                        <span className="text-zinc-600">
+                          {stripePaymentsEnabled ? t("dash.agentStripeLabel") : t("dash.agentPayoutIdPausedLabel")}
+                        </span>
+                        {stripePaymentsEnabled ? (
+                          <input
+                            value={String((myAgentEdit.payout_stripe_account_id ?? myAgent.payout_stripe_account_id) ?? "")}
+                            onChange={(e) =>
+                              setMyAgentEdit((p) => ({ ...p, payout_stripe_account_id: e.target.value }))
+                            }
+                            className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm font-mono"
+                            placeholder="acct_..."
+                          />
+                        ) : (
+                          <p className="mt-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
+                            {t("dash.agentPayoutPausedHint")}
+                          </p>
+                        )}
                       </label>
                     </div>
 
@@ -1165,6 +1198,8 @@ export function DashboardClientView({
                         </Link>
                       )}
                     </div>
+
+                    <OverviewDataPrivacySection />
 
                     <div className="mt-4">
                       <DashboardTenantLanguage

@@ -4,6 +4,7 @@ import { verifySession } from "@/lib/auth/session";
 import { isSaasOwnerEmail } from "@/lib/auth/saasOwner";
 import { SaasOwnerView } from "@/components/saas-owner/SaasOwnerView";
 import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
+import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
 
 export default async function SaasOwnerSecretPage() {
   const token = (await cookies()).get("rom_session")?.value || "";
@@ -18,6 +19,8 @@ export default async function SaasOwnerSecretPage() {
     userDisplayName = "";
   }
 
-  return <SaasOwnerView userDisplayName={userDisplayName} />;
+  return (
+    <SaasOwnerView userDisplayName={userDisplayName} stripePaymentsEnabled={isStripePaymentsEnabled()} />
+  );
 }
 

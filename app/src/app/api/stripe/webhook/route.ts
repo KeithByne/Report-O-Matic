@@ -2,7 +2,8 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getServiceSupabase } from "@/lib/supabase/service";
-import { getStripe } from "@/lib/stripe/server";
+import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
+import { getStripeForWebhook } from "@/lib/stripe/server";
 import { creditOwnerForPurchase } from "@/lib/data/credits";
 import { getOwnerEmailForTenant } from "@/lib/data/memberships";
 
@@ -14,8 +15,10 @@ function asInt(v: unknown): number {
 }
 
 export async function POST(req: Request) {
-  const stripe = getStripe();
-  if (!stripe) return NextResponse.json({ error: "Stripe not configured." }, { status: 503 });
+  const stripe = getStripeForWebhook();
+  if (!stripe) {
+    return NextResponse.json({ error: "Stripe secret key not configured." }, { status: 503 });
+  }
   const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
   if (!secret) return NextResponse.json({ error: "STRIPE_WEBHOOK_SECRET not set." }, { status: 503 });
 
@@ -28,6 +31,14 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(raw, sig, secret);
   } catch (e: unknown) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Invalid signature." }, { status: 400 });
+  }
+
+  if (!isStripePaymentsEnabled()) {
+    return NextResponse.json({
+      received: true,
+      ignored: true,
+      reason: "ROM_STRIPE_ENABLED is not true — event verified but not applied.",
+    });
   }
 
   const supabase = getServiceSupabase();

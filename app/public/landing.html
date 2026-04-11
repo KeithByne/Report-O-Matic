@@ -234,6 +234,16 @@
         flex-wrap: wrap;
       }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+      .siteFoot {
+        margin-top: 20px;
+        padding: 16px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted2);
+        line-height: 1.5;
+      }
+      .siteFoot a { color: var(--accent); }
     </style>
   </head>
   <body>
@@ -257,6 +267,9 @@
           </p>
 
           <div class="pillRow" aria-label="Highlights">
+            <span class="pill">Save Time</span>
+            <span class="pill">Reduce Stress</span>
+            <span class="pill">Easy to Use</span>
             <span class="pill">Data Protected</span>
             <span class="pill">Secure Platform</span>
             <span class="pill">Multi-tenant isolation</span>
@@ -403,6 +416,13 @@
         </main>
       </div>
     </div>
+    <footer class="siteFoot">
+      <a href="/legal/privacy">Privacy</a>
+      ·
+      <a href="/legal/dpa">Data Processing Agreement</a>
+      ·
+      <a href="/legal/cookies">Cookies</a>
+    </footer>
 
     <script>
       (function () {

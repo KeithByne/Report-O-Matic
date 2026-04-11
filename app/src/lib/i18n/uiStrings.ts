@@ -508,6 +508,40 @@ const EN: UiMessages = {
   "dash.panelPdfLetterhead": "PDF letterhead",
   "dash.panelInviteTeam": "Invite team",
   "dash.clearSchoolSelection": "Clear school selection",
+  "dash.guide.title": "Getting started",
+  "dash.guide.stepPrivacyTitle": "Data & privacy",
+  "dash.guide.stepPrivacy1": "Use Profile on this dashboard to export your data or close your account if needed.",
+  "dash.guide.stepPrivacy2": "Open Privacy notice, DPA, or Cookies from the links below when staff or governors need them.",
+  "dash.guide.hubAddSchoolTitle": "Add a school",
+  "dash.guide.hubAddSchool1": "Start here: use the form above to create an organisation (your first school or an extra one).",
+  "dash.guide.hubAddSchool2": "Pick a short name for now; you can adjust details after you open its workspace.",
+  "dash.guide.hubPickSchoolTitle": "Choose a school",
+  "dash.guide.hubPickSchool1": "When you are ready to work in an existing school, pick it in the list above. Its workspace menu opens next.",
+  "dash.guide.hubPickSchool2":
+    "Then follow the numbered steps under that menu: letterhead (owners), team, classes, reports. Data & privacy is under Overview when you open a school.",
+  "dash.overviewPrivacyLinkPrivacy": "Privacy notice",
+  "dash.overviewPrivacyLinkDpa": "Data Processing Agreement",
+  "dash.overviewPrivacyLinkCookies": "Cookie notice",
+  "dash.guide.stepLetterheadTitle": "PDF letterhead",
+  "dash.guide.ownerLetterhead1": "Open PDF letterhead in the school menu.",
+  "dash.guide.ownerLetterhead2": "Add your logo and contact lines so exported PDFs match your school.",
+  "dash.guide.ownerLetterhead3": "Save before generating reports.",
+  "dash.guide.stepInviteTitle": "Invite team",
+  "dash.guide.invite1": "Open Invite team in the menu.",
+  "dash.guide.invite2": "Enter colleague emails and pick department head or teacher.",
+  "dash.guide.invite3": "They sign in with the same email (code or password).",
+  "dash.guide.stepClassesTitle": "Classes & pupils",
+  "dash.guide.classDh1": "Open Classes & reports in the menu.",
+  "dash.guide.classDh2": "Create a class, then add pupils (names and details).",
+  "dash.guide.classDh3": "Assign a teacher to the class if others will write reports.",
+  "dash.guide.stepClassTeacherTitle": "Your class & pupils",
+  "dash.guide.classT1": "Open Reports & classes in the menu.",
+  "dash.guide.classT2": "Select the class where you are the assigned teacher.",
+  "dash.guide.classT3": "Check the pupil list before writing reports.",
+  "dash.guide.stepReportsTitle": "Write reports",
+  "dash.guide.report1": "From the class, open a pupil and their report.",
+  "dash.guide.report2": "Draft text; use school language settings and AI only as your policy allows.",
+  "dash.guide.report3": "Mark final when the report is ready for the record.",
   "dash.ownerBackToSchools": "Back to schools",
   "dash.ownerMenuClassesAndReports": "Classes and Reports",
   "profile.pageTitle": "Your account",
@@ -532,6 +566,23 @@ const EN: UiMessages = {
     "After you save, you will be signed out. Sign in again using this new email address (and your password or a new code).",
   "profile.noPasswordEmailChange": "Add a password before changing your sign-in email.",
   "profile.noPasswordSetPassword": "Add a password before changing it here. Use “Forgot password” on the sign-in page.",
+  "profile.sectionPrivacy": "Data & privacy",
+  "profile.privacyLead":
+    "Download a copy of personal data we associate with your account, read our notices, or close your account (subject to school ownership rules).",
+  "profile.privacyNewTab": "Opens in a new tab.",
+  "profile.downloadData": "Download my data (JSON)",
+  "profile.downloadingExport": "Preparing download…",
+  "profile.deleteAccountSection": "Close account",
+  "profile.deleteAccountLead":
+    "This removes your memberships and sign-in credentials, anonymises your email on reports you authored, and clears related personal rows where possible. You cannot be the only owner of a school — add another owner first.",
+  "profile.deleteConfirmPhraseLabel": "Confirmation phrase",
+  "profile.deleteConfirmPhraseHint": "Required if you sign in without a password: type the phrase exactly as shown below.",
+  "profile.deletePasswordLabel": "Current password",
+  "profile.deleteAccountButton": "Close my account permanently",
+  "profile.deleteAccountConfirm": "Close your account permanently? This cannot be undone.",
+  "profile.deletingAccount": "Closing account…",
+  "profile.deleteSoleOwnerError":
+    "You are still the only owner of a school. Add another owner or remove that school first.",
   "dash.beAnAgent": "Be an Agent",
   "dash.agentCardClose": "Close",
   "dash.role.owner": "Owner",
@@ -549,15 +600,22 @@ const EN: UiMessages = {
     "Department heads can add teachers. Everyone signs in with the invited email and one-time code.",
   "dash.agentSectionTitle": "Owner / Agent",
   "dash.agentSectionLead":
-    "Your unique referral link for tracking signups and agent earnings. Set the Stripe account to pay when ready.",
+    "Your referral link for signups and agent earnings. When card payments are enabled on the platform, you can save a payout account id for commissions.",
+  "dash.agentSectionLeadPaymentsPaused":
+    "Your referral link for signups and agent earnings. Card payouts are paused on the platform right now; you can still share your link.",
   "dash.agentRefresh": "Refresh",
   "dash.agentRefreshing": "Refreshing…",
   "dash.agentPaymentsBlurb":
-    "Payments. Your agent account must be active for us to pay referral earnings to the Stripe account you provide below. If your account stays dormant for about one year, it may be cancelled and you will no longer receive payments through this programme.",
+    "Referral programme: your agent account must be active for payouts. Long inactivity may end participation. Payout details apply when the platform operator has card payments enabled.",
+  "dash.agentPaymentsBlurbPaused":
+    "Referral programme: card payouts are paused. Historical earnings may still show once payments resume. Long inactivity may still affect programme participation.",
   "dash.agentLinkLabel": "Your agent link",
   "dash.agentLinkShareHint": "Share this link with new school owners.",
   "dash.agentCommissionLabel": "Commission rate:",
-  "dash.agentStripeLabel": "Stripe Connect account id (the account to pay)",
+  "dash.agentStripeLabel": "Payout account id (payment processor)",
+  "dash.agentPayoutIdPausedLabel": "Payout account id",
+  "dash.agentPayoutPausedHint":
+    "Saving a payout id is available when the platform operator turns card payments back on. Your referral link still works.",
   "dash.agentSave": "Save",
   "dash.agentSaving": "Saving…",
   "dash.agentReset": "Reset",
@@ -894,11 +952,16 @@ const EN: UiMessages = {
   "billing.leadOwnerLine1": "Credits are added to",
   "billing.leadOwnerAccount": "your owner account",
   "billing.leadOwnerLine2":
-    "and shared by every school you own (including {school}). Buying here still helps keep payment history with this school in Stripe.",
+    "and shared by every school you own (including {school}). Purchases are tied to this school for your records.",
   "billing.leadNonOwner": "{school} needs report credits before you can create reports.",
   "billing.currentBalanceLabel": "Current balance (this account):",
   "billing.reportsRemaining": "{n} reports remaining",
   "billing.ownerOnly": "Only school owners can purchase credits. Ask your owner to buy a pack.",
+  "billing.paymentsPausedTitle": "Card checkout paused.",
+  "billing.paymentsPausedBody":
+    "The platform operator has temporarily disabled online card payments. Credit packs and prices may still be shown for reference.",
+  "billing.paymentsPausedTestExhausted":
+    "Your free test credits for this school are used up. Card purchases will be available again when the operator re-enables checkout — contact them if you need access sooner.",
   "billing.continuePayment": "Continue to payment",
   "billing.packLine": "{credits} reports • Total: {price} {currency}",
   "billing.packTaxIncluded": "This price already includes {taxDetail}.",
@@ -907,11 +970,11 @@ const EN: UiMessages = {
   "billing.testTrialActive":
     "Sandbox trial: {n} free test report credits left on this school. Purchase unlocks automatically after they are used.",
   "billing.testConvertLead":
-    "Your free test credits for this school are used up. Buy a credit pack below to keep this organisation as a full account — same Stripe checkout as production.",
+    "Your free test credits for this school are used up. Buy a credit pack below to keep this organisation as a full account.",
   "billing.backReports": "Back to reports",
   "billing.successTitle": "Payment received",
   "billing.successBody":
-    "Thanks. If your credits don't appear immediately, give it a moment for Stripe to confirm the payment.",
+    "Thanks. If your credits don't appear immediately, wait a moment for the payment to finish processing.",
   "billing.continueToSchool": "Continue to {school}",
   "billing.backBilling": "Back to billing",
   "dash.tenantLangTitle": "Default report language (per school)",
@@ -1122,8 +1185,9 @@ const EN: UiMessages = {
   "saas.kindDraft": "Draft: {req} req • {cost}",
   "saas.kindTranslate": "Translate: {req} req • {cost}",
   "saas.financeTitle": "Finance",
-  "saas.financeLead":
-    "Payments in (Stripe) and agent payouts out, with day/week/month/year/YTD filters.",
+  "saas.financeLead": "Customer payments in and agent payouts out, with day/week/month/year/YTD filters.",
+  "saas.financePaymentsPausedBanner":
+    "Card checkout is disabled (ROM_STRIPE_ENABLED is not true). New payments won’t flow in until you turn it back on; figures below may be historical only.",
   "saas.vatEstimateTitle": "Estimated VAT (for your accounts)",
   "saas.vatEstimateSubtitle":
     "From payments recorded as Paid to SaaS, using your server VAT settings (not tax advice).",
@@ -1136,9 +1200,9 @@ const EN: UiMessages = {
   "saas.vatOnRevenue": "On revenue (payments in): {amount}",
   "saas.vatDisclaimer":
     "This is a rough working figure for cashflow and prep—not filing advice. If you charge in several currencies, convert consistently before relying on it. Confirm with your accountant.",
-  "saas.vatStripeVsTaxTitle": "Stripe vs tax returns",
+  "saas.vatStripeVsTaxTitle": "Card payments vs tax returns",
   "saas.vatStripeVsTaxBody":
-    "Stripe settles card payments and may add services such as Stripe Tax to help calculate customer tax. It does not replace your obligations as a company: you normally declare VAT through your own country’s tax authority (in the UK, typically quarterly Making Tax Digital filings to HMRC, not “through Stripe”). Corporation tax is separate and is part of your company tax return cycle. Use an accountant or approved software for filings.",
+    "Your payment processor settles card payments and may offer tax-calculation aids. That does not replace your company’s own filings: you normally declare VAT through your country’s tax authority (in the UK, typically Making Tax Digital to HMRC). Corporation tax is separate. Use an accountant or approved software for filings.",
   "saas.agentOptional": "Agent (optional)",
   "saas.agentFilterPlaceholder": "agent email/account…",
   "saas.paidToSaaS": "Paid to SaaS",
@@ -1570,7 +1634,7 @@ const FR: UiMessages = {
   "billing.leadOwnerLine1": "Les crédits sont ajoutés à",
   "billing.leadOwnerAccount": "votre compte propriétaire",
   "billing.leadOwnerLine2":
-    "et partagés par toutes vos écoles (y compris {school}). Acheter ici conserve l’historique des paiements Stripe avec cette école.",
+    "et partagés par toutes vos écoles (y compris {school}). L’achat est rattaché à cette école pour vos dossiers.",
   "billing.leadNonOwner": "{school} a besoin de crédits de rapports avant de pouvoir créer des rapports.",
   "billing.currentBalanceLabel": "Solde actuel (ce compte) :",
   "billing.reportsRemaining": "{n} rapports restants",
@@ -1581,13 +1645,13 @@ const FR: UiMessages = {
   "billing.packTaxAddedToBase": "{taxDetail} s’ajoute au prix du pack ; le total ci-dessus est à payer.",
   "billing.packNetBeforeTax": "Prix du pack avant {tax} : {price} {currency}",
   "billing.testTrialActive":
-    "Essai bac à sable : il reste {n} crédits gratuits pour cette école. L’achat par Stripe sera possible une fois épuisés.",
+    "Essai bac à sable : il reste {n} crédits gratuits pour cette école. L’achat sera possible une fois épuisés.",
   "billing.testConvertLead":
-    "Les crédits d’essai gratuits sont épuisés pour cette école. Achetez un pack ci-dessous pour garder cette organisation comme un compte complet (paiement Stripe).",
+    "Les crédits d’essai gratuits sont épuisés pour cette école. Achetez un pack ci-dessous pour garder cette organisation comme un compte complet.",
   "billing.backReports": "Retour aux rapports",
   "billing.successTitle": "Paiement reçu",
   "billing.successBody":
-    "Merci. Si les crédits n’apparaissent pas tout de suite, attendez la confirmation Stripe.",
+    "Merci. Si les crédits n’apparaissent pas tout de suite, attendez la fin du traitement du paiement.",
   "billing.continueToSchool": "Continuer vers {school}",
   "billing.backBilling": "Retour à la facturation",
   "dash.tenantLangTitle": "Langue des rapports par défaut (par école)",
@@ -2089,7 +2153,7 @@ const ES: UiMessages = {
   "billing.leadOwnerLine1": "Los créditos se añaden a",
   "billing.leadOwnerAccount": "su cuenta de propietario",
   "billing.leadOwnerLine2":
-    "y los comparten todas sus escuelas (incluida {school}). Comprar aquí mantiene el historial de pagos en Stripe con este centro.",
+    "y los comparten todas sus escuelas (incluida {school}). La compra queda asociada a este centro para sus registros.",
   "billing.leadNonOwner": "{school} necesita créditos de informes antes de poder crearlos.",
   "billing.currentBalanceLabel": "Saldo actual (esta cuenta):",
   "billing.reportsRemaining": "{n} informes restantes",
@@ -2100,13 +2164,13 @@ const ES: UiMessages = {
   "billing.packTaxAddedToBase": "Se añade {taxDetail} al precio del pack; el total de arriba es lo que pagará.",
   "billing.packNetBeforeTax": "Precio del pack antes de {tax}: {price} {currency}",
   "billing.testTrialActive":
-    "Prueba en sandbox: quedan {n} informes de prueba gratis en este centro. La compra con Stripe se desbloquea al gastarlos.",
+    "Prueba en sandbox: quedan {n} informes de prueba gratis en este centro. La compra se desbloquea al gastarlos.",
   "billing.testConvertLead":
-    "Se han agotado los informes de prueba gratis de este centro. Compre un pack abajo para conservar esta organización como cuenta completa (pago con Stripe).",
+    "Se han agotado los informes de prueba gratis de este centro. Compre un pack abajo para conservar esta organización como cuenta completa.",
   "billing.backReports": "Volver a informes",
   "billing.successTitle": "Pago recibido",
   "billing.successBody":
-    "Gracias. Si los créditos no aparecen al instante, espere la confirmación de Stripe.",
+    "Gracias. Si los créditos no aparecen al instante, espere a que termine el procesamiento del pago.",
   "billing.continueToSchool": "Continuar a {school}",
   "billing.backBilling": "Volver a facturación",
   "dash.tenantLangTitle": "Idioma de informes por defecto (por centro)",

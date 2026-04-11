@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { classesListHref } from "@/lib/app/classesNavigation";
+import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -104,7 +105,12 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
     if (!allowed.length) return;
     const last = allowed[allowed.length - 1];
     if (last === "classes") {
-      router.push(classesListHref(tenantId, viewerRole));
+      // Owners and DH are server-redirected to dashboard for panel=classes; teachers stay here.
+      if (lead) {
+        router.push(classesListHref(tenantId, viewerRole));
+        return;
+      }
+      setOpenPanels(new Set(["classes"]));
       return;
     }
     setOpenPanels(new Set([last]));
@@ -300,6 +306,10 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
             </div>
           </div>
         </section>
+      ) : null}
+
+      {openPanels.has("classes") ? (
+        <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active />
       ) : null}
     </div>
   );

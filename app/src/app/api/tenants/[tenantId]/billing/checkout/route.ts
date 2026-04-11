@@ -9,6 +9,7 @@ import {
   packGrossChargeCents,
 } from "@/lib/finance/salesTax";
 import { getServiceSupabase } from "@/lib/supabase/service";
+import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
 import { getStripe } from "@/lib/stripe/server";
 
 export const runtime = "nodejs";
@@ -44,13 +45,28 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const testRemaining = Number((tenantRow as any)?.test_credits_remaining ?? 0);
   if (isTest && testRemaining > 0) {
     return NextResponse.json(
-      { error: "Use your free test credits first. Stripe checkout unlocks after the trial reports are used." },
+      { error: "Use your free test credits first. Purchasing unlocks after the trial reports are used." },
       { status: 403 },
     );
   }
 
+  if (!isStripePaymentsEnabled()) {
+    return NextResponse.json(
+      {
+        error: "Online card payments are temporarily unavailable. The operator will enable them again soon.",
+        code: "payments_disabled",
+      },
+      { status: 503 },
+    );
+  }
+
   const stripe = getStripe();
-  if (!stripe) return NextResponse.json({ error: "Stripe not configured." }, { status: 503 });
+  if (!stripe) {
+    return NextResponse.json(
+      { error: "Payment integration is not fully configured (missing STRIPE_SECRET_KEY or ROM_STRIPE_ENABLED).", code: "stripe_not_configured" },
+      { status: 503 },
+    );
+  }
 
   const { data: pack, error: pErr } = await supabase
     .from("credit_packs")

@@ -120,7 +120,13 @@ function fmtMoney(cents: number, currency = "USD"): string {
   }
 }
 
-export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) {
+export function SaasOwnerView({
+  userDisplayName,
+  stripePaymentsEnabled,
+}: {
+  userDisplayName: string;
+  stripePaymentsEnabled: boolean;
+}) {
   const { t } = useUiLanguage();
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
@@ -350,8 +356,10 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
               <div className="text-sm font-semibold text-zinc-900">Test access</div>
               <div className="mt-1 text-xs text-zinc-500">
                 One-time link: friend becomes <span className="font-semibold">account owner</span> of a sandbox school with{" "}
-                <span className="font-semibold">50 free report credits</span>. After those are used they can pay via Stripe to keep the school like any
-                other owner.
+                <span className="font-semibold">50 free report credits</span>.
+                {stripePaymentsEnabled
+                  ? " After those are used they can buy credit packs to keep the school like any other owner."
+                  : " When card payments are enabled again, they can buy credit packs to keep the school; until then only free-trial credits apply."}
               </div>
             </div>
             <button
@@ -912,6 +920,11 @@ export function SaasOwnerView({ userDisplayName }: { userDisplayName: string }) 
             <div className="w-full">
               <div className="text-sm font-semibold text-zinc-900">{t("saas.financeTitle")}</div>
               <div className="mt-1 text-xs text-zinc-500">{t("saas.financeLead")}</div>
+              {!stripePaymentsEnabled ? (
+                <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                  {t("saas.financePaymentsPausedBanner")}
+                </p>
+              ) : null}
 
               {fin?.vat_estimate ? (
                 <div className="mt-4 space-y-3 rounded-xl border border-amber-200/90 bg-amber-50/70 p-4">

@@ -10,8 +10,8 @@ import {
 } from "@/lib/data/memberships";
 import { getOwnerCreditBalance } from "@/lib/data/credits";
 import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
-import { listClasses } from "@/lib/data/classesDb";
 import { getTeacherStatsForTenant, getTenantSummaryStats, type TeacherStats, type TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
+import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -76,21 +76,6 @@ export default async function DashboardPage({
     teacherStatsByTenant = {};
   }
 
-  const teacherTenantIds = [...new Set(memberships.filter((m) => m.role === "teacher").map((m) => m.tenantId))];
-  const teacherClassIdByTenant: Record<string, string | null> = {};
-  if (teacherTenantIds.length > 0) {
-    await Promise.all(
-      teacherTenantIds.map(async (tid) => {
-        try {
-          const classes = await listClasses(tid, { viewerRole: "teacher", viewerEmail: session.email });
-          teacherClassIdByTenant[tid] = classes[0]?.id ?? null;
-        } catch {
-          teacherClassIdByTenant[tid] = null;
-        }
-      }),
-    );
-  }
-
   let userDisplayName = "";
   try {
     const profile = await getProfileForEmail(session.email);
@@ -122,6 +107,8 @@ export default async function DashboardPage({
     typeof tenantParam === "string" && isUuid(tenantParam.trim()) ? tenantParam.trim() : null;
   const bootOpenClassesPanel = wantsClassesPanel && bootClassesTenantId ? bootClassesTenantId : null;
 
+  const stripePaymentsEnabled = isStripePaymentsEnabled();
+
   return (
     <DashboardClientView
       email={session.email}
@@ -133,8 +120,8 @@ export default async function DashboardPage({
       teacherStatsByTenant={teacherStatsByTenant}
       ownerReportCredits={ownerReportCredits}
       firstOwnerTenantId={firstOwnerTenantId}
-      teacherClassIdByTenant={teacherClassIdByTenant}
       bootOpenClassesPanel={bootOpenClassesPanel}
+      stripePaymentsEnabled={stripePaymentsEnabled}
     />
   );
 }
