@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, DoorOpen, Plus, Trash2, Users } from "lucide-react";
+import { BookOpen, DoorOpen, Plus, Printer, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,6 +13,7 @@ import {
   type ReportAiSavedDetail,
 } from "@/lib/appEvents";
 import type { RomRole } from "@/lib/data/memberships";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 
 type ClassRow = { id: string; name: string; student_count: number };
 
@@ -164,12 +165,14 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
               <option value="second">{t("archive.term2")}</option>
               <option value="third">{t("archive.term3")}</option>
             </select>
-            <a
-              href={bulkHref}
-              className="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
+            <button
+              type="button"
+              onClick={() => openPdfForPrint(bulkHref)}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
             >
-              {t("tenant.downloadBulkPdfsOneFile")}
-            </a>
+              <Printer className={ICON_INLINE} aria-hidden />
+              {t("common.printPdf")}
+            </button>
           </div>
         </div>
         <p className="mt-2 text-xs text-zinc-500">{t("tenant.termReadinessHint")}</p>

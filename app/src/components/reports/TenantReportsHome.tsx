@@ -7,6 +7,7 @@ import {
   FolderKanban,
   Languages,
   LayoutList,
+  Printer,
   Sparkles,
   UserPlus,
   type LucideIcon,
@@ -16,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { classesListHref } from "@/lib/app/classesNavigation";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
@@ -296,13 +298,14 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
                   <option value="student">{t("tenant.bulkGroupStudent")}</option>
                 </select>
               </label>
-              <a
-                href={teacherBatchHref}
+              <button
+                type="button"
+                onClick={() => openPdfForPrint(teacherBatchHref)}
                 className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
               >
-                <Download className={ICON_INLINE} aria-hidden />
-                {t("tenant.downloadBulkPdfsOneFile")}
-              </a>
+                <Printer className={ICON_INLINE} aria-hidden />
+                {t("common.printPdf")}
+              </button>
             </div>
           </div>
         </section>

@@ -11,11 +11,18 @@ if (process.env.NODE_ENV === "production") {
   securityHeaders.push({ key: "Strict-Transport-Security", value: "max-age=15552000; includeSubDomains" });
 }
 
+/** Same as securityHeaders but without frame denial — needed so same-origin iframes can show PDFs (e.g. report preview). */
+const apiSecurityHeaders = securityHeaders.filter((h) => h.key !== "X-Frame-Options");
+
 const nextConfig: NextConfig = {
   // Monorepo: silence inferred workspace-root warning (multiple lockfiles).
   outputFileTracingRoot: path.join(__dirname, ".."),
   async headers() {
-    return [{ source: "/:path*", headers: [...securityHeaders] }];
+    return [
+      // First match wins: API routes must not send X-Frame-Options: DENY or inline PDF preview breaks.
+      { source: "/api/:path*", headers: [...apiSecurityHeaders] },
+      { source: "/:path*", headers: [...securityHeaders] },
+    ];
   },
   // Dev-only: stops logging every GET/POST line (still shows compile errors and crashes).
   logging: {

@@ -26,6 +26,7 @@ import {
   type ClassSettingsSavedDetail,
   type ReportAiSavedDetail,
 } from "@/lib/appEvents";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 
 type Student = {
@@ -713,12 +714,13 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           >
             {t("report.pdfPreview")}
           </button>
-          <a
-            href={pdfHref()}
-            className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800"
+          <button
+            type="button"
+            onClick={() => openPdfForPrint(pdfHref())}
+            className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
           >
-            {t("report.downloadPdf")}
-          </a>
+            {t("common.printPdf")}
+          </button>
           <button
             type="button"
             onClick={() => void removeCommentPreviews()}

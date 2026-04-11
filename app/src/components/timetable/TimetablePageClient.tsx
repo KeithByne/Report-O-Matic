@@ -18,6 +18,7 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { classesListHref } from "@/lib/app/classesNavigation";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 import { visibleMonFriDayIndexesFromClasses } from "@/lib/timetable/visibleTimetableDays";
@@ -263,7 +264,7 @@ export function TimetablePageClient({
     }
   }
 
-  const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}&inline=1`;
+  const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}`;
 
   if (loadError) {
     return (
@@ -311,15 +312,14 @@ export function TimetablePageClient({
               </Link>
             ) : null}
           </div>
-          <a
-            href={pdfHref}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => openPdfForPrint(pdfHref)}
             className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
           >
             <Printer className={ICON_INLINE} aria-hidden />
             {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
-          </a>
+          </button>
         </div>
       ) : (
         <div>
@@ -348,15 +348,14 @@ export function TimetablePageClient({
                 {t("nav.classesLanguage")}
               </Link>
             )}
-            <a
-              href={pdfHref}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={() => openPdfForPrint(pdfHref)}
               className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
             >
               <Printer className={ICON_INLINE} aria-hidden />
               {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
-            </a>
+            </button>
           </div>
         </div>
       )}

@@ -20,6 +20,7 @@ import {
   LayoutList,
   Library,
   NotebookText,
+  Printer,
   LogOut,
   RefreshCw,
   RotateCcw,
@@ -41,6 +42,7 @@ import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantL
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { classesListHref } from "@/lib/app/classesNavigation";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
 import { DashboardStagedGuide } from "@/components/dashboard/DashboardStagedGuide";
 import { OverviewDataPrivacySection } from "@/components/dashboard/OverviewDataPrivacySection";
@@ -422,15 +424,20 @@ export function DashboardClientView({
               <p className="mt-1 text-sm text-zinc-700">{t("dash.teacherRegistersCalloutHint")}</p>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 {teacherMemberships.map((m) => (
-                  <a
+                  <button
                     key={m.tenantId}
-                    href={`/api/tenants/${encodeURIComponent(m.tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`}
+                    type="button"
+                    onClick={() =>
+                      openPdfForPrint(
+                        `/api/tenants/${encodeURIComponent(m.tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                      )
+                    }
                     className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 sm:min-w-[14rem]"
                   >
-                    <Download className={ICON_INLINE} aria-hidden />
+                    <Printer className={ICON_INLINE} aria-hidden />
                     {teacherMemberships.length > 1 ? `${m.tenantName} — ` : null}
-                    {t("dash.teacherMenuDownloadRegisters")}
-                  </a>
+                    {t("common.printPdf")}
+                  </button>
                 ))}
               </div>
             </div>
@@ -593,13 +600,18 @@ export function DashboardClientView({
                           <CalendarDays className={ICON_INLINE} aria-hidden />
                           {t("tenant.panelTimetable")}
                         </button>
-                        <a
-                          href={`/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openPdfForPrint(
+                              `/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                            )
+                          }
                           className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                         >
-                          <NotebookText className={ICON_INLINE} aria-hidden />
-                          {t("dash.teacherMenuDownloadRegisters")}
-                        </a>
+                          <Printer className={ICON_INLINE} aria-hidden />
+                          {t("common.printPdf")}
+                        </button>
                       </>
                     ) : null}
                     {showWorkspacePdfTab ? (
@@ -830,13 +842,18 @@ export function DashboardClientView({
                   <CalendarDays className={ICON_INLINE} aria-hidden />
                   {t("tenant.panelTimetable")}
                 </button>
-                <a
-                  href={`/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`}
+                <button
+                  type="button"
+                  onClick={() =>
+                    openPdfForPrint(
+                      `/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                    )
+                  }
                   className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                 >
-                  <NotebookText className={ICON_INLINE} aria-hidden />
-                  {t("dash.teacherMenuDownloadRegisters")}
-                </a>
+                  <Printer className={ICON_INLINE} aria-hidden />
+                  {t("common.printPdf")}
+                </button>
                 {showWorkspaceDownloadsTab ? (
                   <Link
                     href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}?panel=downloads`}

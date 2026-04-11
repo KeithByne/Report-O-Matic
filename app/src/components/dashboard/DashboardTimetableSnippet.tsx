@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 
 type Props = {
   tenantId: string;
@@ -17,7 +18,7 @@ type Props = {
 export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: Props) {
   const { t, lang } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
-  const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}&inline=1`;
+  const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}`;
 
   const [rooms, setRooms] = useState("");
   const [am, setAm] = useState("");
@@ -142,15 +143,14 @@ export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: P
             {role === "teacher" ? t("dash.myTimetable") : t("dash.timetable")}
           </Link>
         )}
-        <a
-          href={pdfHref}
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          onClick={() => openPdfForPrint(pdfHref)}
           className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-800 hover:bg-emerald-50/60"
         >
           <Printer className={`${ICON_INLINE} h-3.5 w-3.5 opacity-90`} aria-hidden />
           {role === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
-        </a>
+        </button>
       </div>
     </div>
   );

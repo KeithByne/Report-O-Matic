@@ -93,12 +93,17 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       generatedAt: new Date(),
     });
     const fname = safeFilename(`${st.display_name}-${reportId.slice(0, 8)}`) + ".pdf";
+    const headers: Record<string, string> = {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${fname}"`,
+    };
+    if (inline) {
+      headers["X-Frame-Options"] = "SAMEORIGIN";
+      headers["Content-Security-Policy"] = "frame-ancestors 'self'";
+    }
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${fname}"`,
-      },
+      headers,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "PDF failed.";

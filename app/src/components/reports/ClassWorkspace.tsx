@@ -2,7 +2,6 @@
 
 import {
   ArrowLeftRight,
-  Download,
   FolderKanban,
   Printer,
   Settings2,
@@ -25,6 +24,7 @@ import {
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { classesListHref } from "@/lib/app/classesNavigation";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -39,7 +39,7 @@ type ClassWorkspacePanelId =
 const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
   settings: Settings2,
   students: Users,
-  bulkDownload: Download,
+  bulkDownload: Printer,
   movePupil: ArrowLeftRight,
   registerPreview: Printer,
 };
@@ -155,28 +155,13 @@ export function ClassWorkspace({
     return `${batchBase}?${qp.toString()}`;
   }, [batchBase, batchTermFilter]);
 
-  const batchPrintHref = useMemo(() => {
-    const qp = new URLSearchParams();
-    qp.set("term", batchTermFilter);
-    qp.set("inline", "1");
-    return `${batchBase}?${qp.toString()}`;
-  }, [batchBase, batchTermFilter]);
-
   const openClassBulkPdfPreview = useCallback(() => {
-    // Open server PDF inline so the browser shows its PDF viewer (with print/download controls).
-    window.open(batchPrintHref, "_blank", "noreferrer");
-  }, [batchPrintHref]);
+    openPdfForPrint(batchHref);
+  }, [batchHref]);
 
   const registerPdfHref = useMemo(() => {
     const qp = new URLSearchParams();
     qp.set("lang", uiLang);
-    return `${base}/classes/${encodeURIComponent(classId)}/register-pdf?${qp.toString()}`;
-  }, [base, classId, uiLang]);
-
-  const registerPdfPreviewHref = useMemo(() => {
-    const qp = new URLSearchParams();
-    qp.set("lang", uiLang);
-    qp.set("inline", "1");
     return `${base}/classes/${encodeURIComponent(classId)}/register-pdf?${qp.toString()}`;
   }, [base, classId, uiLang]);
 
@@ -260,7 +245,7 @@ export function ClassWorkspace({
     ];
     items.push(
       { id: "students", label: t("class.studentsTitle"), Icon: CLASS_PANEL_ICON.students },
-      { id: "bulkDownload", label: t("class.downloadClassPdfsOneFile"), Icon: CLASS_PANEL_ICON.bulkDownload },
+      { id: "bulkDownload", label: t("class.printClassReports"), Icon: CLASS_PANEL_ICON.bulkDownload },
     );
     if (viewerRole === "owner" || viewerRole === "department_head") {
       items.push({
@@ -1196,7 +1181,7 @@ export function ClassWorkspace({
 
       {openClassPanel === "bulkDownload" ? (
         <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-zinc-900">{t("class.downloadClassPdfsOneFile")}</h3>
+          <h3 className="text-sm font-semibold text-zinc-900">{t("class.printClassReports")}</h3>
           <p className="mt-1 text-xs text-zinc-500">{t("class.bulkDownloadPanelHint")}</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="inline-flex flex-row flex-wrap items-center gap-[2ch] text-sm">
@@ -1216,9 +1201,10 @@ export function ClassWorkspace({
                 <button
                   type="button"
                   onClick={() => openClassBulkPdfPreview()}
-                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50 disabled:opacity-50"
                 >
-                  {t("class.printClassReports")}
+                  <Printer className={ICON_INLINE} aria-hidden />
+                  {t("common.printPdf")}
                 </button>
               </>
             ) : (
@@ -1227,7 +1213,7 @@ export function ClassWorkspace({
                   className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
                   title={classBulkPdfGate.message}
                 >
-                  {t("class.downloadClassPdfsOneFile")}
+                  {t("common.printPdf")}
                 </span>
                 <p className="max-w-md text-xs text-amber-800">{classBulkPdfGate.message}</p>
               </div>
@@ -1293,35 +1279,26 @@ export function ClassWorkspace({
           <p className="mt-1 text-xs text-zinc-500">{t("class.registerPreviewHint")}</p>
           <div className="mt-3 flex flex-wrap items-end gap-2">
             {registerPdfGate.canPrint ? (
-              <a
-                href={registerPdfHref}
-                className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
+              <button
+                type="button"
+                onClick={() => openPdfForPrint(registerPdfHref)}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
               >
-                {t("class.printRegister")}
-              </a>
+                <Printer className={ICON_INLINE} aria-hidden />
+                {t("common.printPdf")}
+              </button>
             ) : (
               <div className="flex flex-col gap-1">
                 <span
                   className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
                   title={registerPdfGate.message}
                 >
-                  {t("class.printRegister")}
+                  {t("common.printPdf")}
                 </span>
                 <p className="max-w-md text-xs text-amber-800">{registerPdfGate.message}</p>
               </div>
             )}
           </div>
-          {registerPdfGate.canPrint ? (
-            <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
-              <iframe
-                key={`reg-${students.map((s) => s.id).join(",")}-${(detail?.active_weekdays ?? []).join("")}-${uiLang}`}
-                title={t("class.registerPreviewTitle")}
-                src={registerPdfPreviewHref}
-                loading="lazy"
-                className="h-[85vh] max-h-[920px] min-h-[480px] w-full rounded-lg border border-zinc-200 bg-zinc-50"
-              />
-            </div>
-          ) : null}
         </section>
       ) : null}
     </div>

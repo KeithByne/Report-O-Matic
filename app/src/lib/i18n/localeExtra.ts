@@ -147,7 +147,7 @@ export const IT_LABELS: Record<string, string> = {
   "report.teacherPreviewPlaceholder":
     "— Uguale al PDF se la lingua coincide, altrimenti tradotto.",
   "report.saveReport": "Salva rapporto",
-  "report.downloadPdf": "Scarica PDF",
+  "report.downloadPdf": "Stampa PDF",
   "report.remove": "Rimuovi",
   "report.aiTitle": "Commento IA (dati 0–10)",
   "report.aiHint":
@@ -463,7 +463,7 @@ export const PT_LABELS: Record<string, string> = {
   "report.teacherPreviewPlaceholder":
     "— Igual ao PDF se o idioma coincidir; caso contrário traduzido.",
   "report.saveReport": "Guardar relatório",
-  "report.downloadPdf": "Descarregar PDF",
+  "report.downloadPdf": "Imprimir PDF",
   "report.remove": "Remover",
   "report.aiTitle": "Comentário IA (dados 0–10)",
   "report.aiHint":
@@ -779,7 +779,7 @@ export const DE_LABELS: Record<string, string> = {
   "report.teacherPreviewPlaceholder":
     "— Entspricht dem PDF-Text bei gleicher Sprache, sonst übersetzt.",
   "report.saveReport": "Berichtsdaten speichern",
-  "report.downloadPdf": "PDF herunterladen",
+  "report.downloadPdf": "PDF drucken",
   "report.remove": "Entfernen",
   "report.aiTitle": "KI-Kommentar (Prompt A1–Stil, 0–10-Datensatz)",
   "report.aiHint":

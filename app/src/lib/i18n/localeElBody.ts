@@ -189,7 +189,7 @@ export const EL_BODY: Record<string, string> = {
   "report.runAi": "Εκτελέστε τη ΣΥΝ για δημιουργία σχολίου γονέων.",
   "report.teacherPreviewPlaceholder": "— Ίδιο με PDF αν το ίδιο, αλλιώς μεταφρασμένο.",
   "report.saveReport": "Αποθήκευση αναφοράς",
-  "report.downloadPdf": "Λήψη PDF",
+  "report.downloadPdf": "Εκτύπωση PDF",
   "report.remove": "Αφαίρεση",
   "report.aiTitle": "Σχόλιο ΣΥΝ (σύνολο 0–10 Prompt A1)",
   "report.aiHint": "Απαιτεί OPENAI_API_KEY. Γράφει πρώτα το σχόλιο γονέων και το μεταφράζει στην προεπισκόπηση εκπαιδευτικού. Μόνο μικρό όνομα.",

@@ -1,10 +1,11 @@
 "use client";
 
-import { CalendarDays, Download, FileText, NotebookText } from "lucide-react";
+import { CalendarDays, FileText, NotebookText, Printer } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { ReportPeriod } from "@/lib/reportInputs";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 
 type ClassRow = {
   id: string;
@@ -127,7 +128,7 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
   return (
     <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5">
       <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-        <Download className={ICON_INLINE} aria-hidden />
+        <Printer className={ICON_INLINE} aria-hidden />
         {t("dash.teacherDownloadsCardTitle")}
       </h3>
       <p className="mt-1 text-xs text-zinc-600">{t("dash.teacherDownloadsCardLead")}</p>
@@ -147,10 +148,14 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
             </p>
             <p className="mt-0.5 text-xs text-zinc-500">{t("dash.teacherDownloadsRegistersHint")}</p>
           </div>
-          <a href={registersHref} className={`${linkClass} shrink-0`}>
-            <Download className={ICON_INLINE} aria-hidden />
-            {t("dash.teacherDownloadsPdf")}
-          </a>
+          <button
+            type="button"
+            onClick={() => openPdfForPrint(registersHref)}
+            className={`${linkClass} shrink-0`}
+          >
+            <Printer className={ICON_INLINE} aria-hidden />
+            {t("common.printPdf")}
+          </button>
         </li>
 
         <li className="flex flex-col gap-2 border-b border-emerald-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -161,10 +166,14 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
             </p>
             <p className="mt-0.5 text-xs text-zinc-500">{t("dash.teacherDownloadsTimetableHint")}</p>
           </div>
-          <a href={timetableHref} className={`${linkClass} shrink-0`}>
-            <Download className={ICON_INLINE} aria-hidden />
-            {t("dash.teacherDownloadsPdf")}
-          </a>
+          <button
+            type="button"
+            onClick={() => openPdfForPrint(timetableHref)}
+            className={`${linkClass} shrink-0`}
+          >
+            <Printer className={ICON_INLINE} aria-hidden />
+            {t("common.printPdf")}
+          </button>
         </li>
 
         <li className="flex flex-col gap-3">
@@ -209,18 +218,22 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
             )}
             {teacherReportsHref ? (
               bulkReportsReady === true ? (
-                <a href={teacherReportsHref} className={`${linkClass} w-fit`}>
-                  <Download className={ICON_INLINE} aria-hidden />
-                  {t("dash.teacherDownloadsPdf")}
-                </a>
+                <button
+                  type="button"
+                  onClick={() => openPdfForPrint(teacherReportsHref)}
+                  className={`${linkClass} w-fit`}
+                >
+                  <Printer className={ICON_INLINE} aria-hidden />
+                  {t("common.printPdf")}
+                </button>
               ) : (
                 <div className="flex flex-col gap-1">
                   <span
                     className={`${linkDisabledClass} w-fit`}
                     aria-disabled
                   >
-                    <Download className={ICON_INLINE} aria-hidden />
-                    {bulkReportsReady === null ? t("dash.teacherDownloadsChecking") : t("dash.teacherDownloadsPdf")}
+                    <Printer className={ICON_INLINE} aria-hidden />
+                    {bulkReportsReady === null ? t("dash.teacherDownloadsChecking") : t("common.printPdf")}
                   </span>
                   {bulkReportsReady === false ? (
                     <p className="max-w-md text-xs text-amber-800">

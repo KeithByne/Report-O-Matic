@@ -474,7 +474,7 @@ const EN: UiMessages = {
     "Print registers, your weekly timetable, or finished reports from your assigned classes.",
   "dash.teacherDownloadsRegisters": "Print registers",
   "dash.teacherDownloadsRegistersHint": "One PDF containing the register for each of your classes.",
-  "dash.teacherMenuDownloadRegisters": "Download Registers",
+  "dash.teacherMenuDownloadRegisters": "Print registers",
   "dash.teacherRegistersCalloutTitle": "Attendance registers",
   "dash.teacherRegistersCalloutHint":
     "One PDF with a register for every class assigned to you. No report term to choose and reports do not need to be finished.",
@@ -487,7 +487,7 @@ const EN: UiMessages = {
   "dash.teacherDownloadsAllReports": "Print all reports",
   "dash.teacherDownloadsAllReportsHint": "Only reports marked final are included.",
   "dash.teacherDownloadsShortCourseClass": "Class",
-  "dash.teacherDownloadsPdf": "Download PDF",
+  "dash.teacherDownloadsPdf": "Print PDF",
   "dash.teacherDownloadsNoClass": "No class assigned.",
   "dash.teacherDownloadsChecking": "Checking…",
   "dash.teacherDownloadsReportsNotReady":
@@ -639,6 +639,7 @@ const EN: UiMessages = {
   "timetable.dayColumn": "Day",
   "timetable.slotMetaLine": "{weekday} · period {period} of {total} · room row {room}",
   "common.retry": "Retry",
+  "common.printPdf": "Print PDF",
   "timetable.leadIntro":
     "Set how many rooms and lesson periods this school uses. Click a cell to assign a class to that room row; the teacher is always the one assigned on the class card. If the class has extra meeting days set on the class card (class days), the same period and room are filled on those days automatically. The same room or teacher cannot appear twice in the same period.",
   "timetable.teacherIntro": "Your lessons appear in the grid below. Department heads and owners build the full school timetable.",
@@ -717,8 +718,8 @@ const EN: UiMessages = {
   "tenant.bulkGroupClass": "Class",
   "tenant.bulkGroupStudent": "Student",
   "tenant.finalOnly": "Finished Reports",
-  "tenant.downloadTeacherPdfsOneFile": "Download teacher PDFs (one file)",
-  "tenant.downloadBulkPdfsOneFile": "Download combined PDF (one file)",
+  "tenant.downloadTeacherPdfsOneFile": "Print teacher PDFs (one file)",
+  "tenant.downloadBulkPdfsOneFile": "Print combined PDF (one file)",
   "tenant.newClassPlaceholder": "e.g. Year 7A",
   "tenant.classesTitle": "Classes",
   "tenant.newClassName": "New class name",
@@ -752,7 +753,7 @@ const EN: UiMessages = {
   "class.bulkDownloadTermLabel": "Term",
   "class.bulkDownloadSelectLabel": "Select",
   "class.bulkDownloadPanelHint":
-    "This class only: one PDF merging every pupil’s finished report for the term you select (Term 1, 2, or 3).",
+    "This class only: one PDF merging every pupil’s finished report for the term you select (Term 1, 2, or 3). Opens in a new tab so you can print or save from the browser viewer.",
   "archive.title": "Scholastic year archives",
   "archive.emptyExpl":
     "When an owner or department head changes the class scholastic year, the previous year's reports are saved here as read-only history. Pupils stay in the class; reports start fresh for the new year.",
@@ -818,7 +819,7 @@ const EN: UiMessages = {
   "report.teacherPreviewPlaceholder":
     "— Matches PDF text when both languages are the same, otherwise translated.",
   "report.saveReport": "Save report data",
-  "report.downloadPdf": "Download PDF",
+  "report.downloadPdf": "Print PDF",
   "report.remove": "Remove",
   "report.aiTitle": "AI comment (Prompt A1–style, 0–10 dataset)",
   "report.aiHint":
@@ -1090,7 +1091,7 @@ const EN: UiMessages = {
   "class.activeDaysDisplay": "Register uses",
   "class.printRegister": "Print Register",
   "class.registerPreviewTitle": "Register preview",
-  "class.registerPreviewHint": "PDF shown below; use Print Register to download.",
+  "class.registerPreviewHint": "Opens the register PDF in a new tab so you can print or save from the browser viewer.",
   "class.printRegisterNeedDays": "Choose which days the class meets in Class settings first.",
   "class.printRegisterNeedStudents": "Add pupils before printing the register.",
   "class.bulkPdfOrderLabel": "Order",
@@ -1098,8 +1099,8 @@ const EN: UiMessages = {
   "class.orderStudentName": "Student name",
   "class.orderUpdatedDesc": "Last updated (newest first)",
   "class.orderUpdatedAsc": "Last updated (oldest first)",
-  "class.downloadClassPdfsOneFile": "Download Class Reports",
-  "class.printClassReports": "Print Class Reports",
+  "class.downloadClassPdfsOneFile": "Print class reports",
+  "class.printClassReports": "Print class reports",
   "class.genderMale": "Male",
   "class.genderFemale": "Female",
   "class.genderNonBinaryOpt": "Non-binary",
@@ -1288,7 +1289,7 @@ const FR: UiMessages = {
     "Imprimez les registres, votre emploi du temps hebdomadaire ou les rapports terminés de vos classes.",
   "dash.teacherDownloadsRegisters": "Imprimer les registres",
   "dash.teacherDownloadsRegistersHint": "Un PDF avec un registre par classe qui vous est assignée.",
-  "dash.teacherMenuDownloadRegisters": "Télécharger les registres",
+  "dash.teacherMenuDownloadRegisters": "Imprimer les registres",
   "dash.teacherRegistersCalloutTitle": "Registres de présence",
   "dash.teacherRegistersCalloutHint":
     "Un PDF avec un registre pour chaque classe qui vous est assignée. Pas de trimestre à choisir et les bulletins n’ont pas besoin d’être terminés.",
@@ -1301,7 +1302,7 @@ const FR: UiMessages = {
   "dash.teacherDownloadsAllReports": "Imprimer tous les rapports",
   "dash.teacherDownloadsAllReportsHint": "Seuls les rapports finalisés sont inclus.",
   "dash.teacherDownloadsShortCourseClass": "Classe",
-  "dash.teacherDownloadsPdf": "Télécharger le PDF",
+  "dash.teacherDownloadsPdf": "Imprimer le PDF",
   "dash.teacherDownloadsNoClass": "Aucune classe assignée.",
   "dash.teacherDownloadsChecking": "Vérification…",
   "dash.teacherDownloadsReportsNotReady":
@@ -1395,8 +1396,8 @@ const FR: UiMessages = {
   "tenant.bulkGroupClass": "Classe",
   "tenant.bulkGroupStudent": "Élève",
   "tenant.finalOnly": "Rapports terminés",
-  "tenant.downloadTeacherPdfsOneFile": "Télécharger les PDF enseignant (un fichier)",
-  "tenant.downloadBulkPdfsOneFile": "Télécharger le PDF combiné (un fichier)",
+  "tenant.downloadTeacherPdfsOneFile": "Imprimer les PDF enseignant (un fichier)",
+  "tenant.downloadBulkPdfsOneFile": "Imprimer le PDF combiné (un fichier)",
   "tenant.newClassPlaceholder": "ex. 5e A",
   "tenant.classesTitle": "Classes",
   "tenant.newClassName": "Nom de la nouvelle classe",
@@ -1431,7 +1432,7 @@ const FR: UiMessages = {
   "class.bulkDownloadTermLabel": "Trimestre",
   "class.bulkDownloadSelectLabel": "Choisir",
   "class.bulkDownloadPanelHint":
-    "Uniquement cette classe : un PDF réunissant le rapport terminé de chaque élève pour le trimestre choisi (1, 2 ou 3).",
+    "Uniquement cette classe : un PDF réunissant le rapport terminé de chaque élève pour le trimestre choisi (1, 2 ou 3). S’ouvre dans un nouvel onglet pour imprimer ou enregistrer depuis le lecteur PDF du navigateur.",
   "archive.title": "Archives d’année scolaire",
   "archive.emptyExpl":
     "Quand l’année scolaire change, les rapports de l’année terminée sont archivés ici. Les élèves restent ; les rapports repartent à zéro.",
@@ -1497,7 +1498,7 @@ const FR: UiMessages = {
   "report.teacherPreviewPlaceholder":
     "— Identique au PDF si même langue, sinon traduit.",
   "report.saveReport": "Enregistrer le rapport",
-  "report.downloadPdf": "Télécharger le PDF",
+  "report.downloadPdf": "Imprimer le PDF",
   "report.remove": "Supprimer",
   "report.aiTitle": "Commentaire IA (jeu 0–10)",
   "report.aiHint":
@@ -1589,6 +1590,7 @@ const FR: UiMessages = {
   "common.loadFailed": "Échec du chargement",
   "common.uploadFailed": "Échec du téléversement.",
   "common.genericError": "Une erreur s’est produite.",
+  "common.printPdf": "Imprimer le PDF",
   "tenant.errLoadClasses": "Impossible de charger les classes.",
   "tenant.errLoadSettings": "Impossible de charger les paramètres.",
   "tenant.errSaveSettings": "Impossible d’enregistrer les paramètres.",
@@ -1753,7 +1755,7 @@ const FR: UiMessages = {
   "class.activeDaysDisplay": "Jours pour le registre",
   "class.printRegister": "Imprimer le registre",
   "class.registerPreviewTitle": "Aperçu du registre",
-  "class.registerPreviewHint": "PDF ci-dessous ; utilisez Imprimer le registre pour télécharger.",
+  "class.registerPreviewHint": "Ouvre le registre en PDF dans un nouvel onglet pour imprimer ou enregistrer depuis le navigateur.",
   "class.printRegisterNeedDays": "Choisissez d’abord les jours de cours dans les paramètres de la classe.",
   "class.printRegisterNeedStudents": "Ajoutez des élèves avant d’imprimer le registre.",
   "class.duplicatePupilWarning":
@@ -1809,7 +1811,7 @@ const ES: UiMessages = {
     "Imprima registros, su horario semanal o los informes terminados de sus clases asignadas.",
   "dash.teacherDownloadsRegisters": "Imprimir registros",
   "dash.teacherDownloadsRegistersHint": "Un PDF con un registro por cada clase asignada.",
-  "dash.teacherMenuDownloadRegisters": "Descargar registros",
+  "dash.teacherMenuDownloadRegisters": "Imprimir registros",
   "dash.teacherRegistersCalloutTitle": "Registros de asistencia",
   "dash.teacherRegistersCalloutHint":
     "Un PDF con un registro por cada clase asignada. Sin elegir trimestre y sin necesidad de tener los informes terminados.",
@@ -1822,7 +1824,7 @@ const ES: UiMessages = {
   "dash.teacherDownloadsAllReports": "Imprimir todos los informes",
   "dash.teacherDownloadsAllReportsHint": "Solo se incluyen informes finalizados.",
   "dash.teacherDownloadsShortCourseClass": "Clase",
-  "dash.teacherDownloadsPdf": "Descargar PDF",
+  "dash.teacherDownloadsPdf": "Imprimir PDF",
   "dash.teacherDownloadsNoClass": "Sin clase asignada.",
   "dash.teacherDownloadsChecking": "Comprobando…",
   "dash.teacherDownloadsReportsNotReady":
@@ -1915,8 +1917,8 @@ const ES: UiMessages = {
   "tenant.bulkGroupClass": "Clase",
   "tenant.bulkGroupStudent": "Alumno",
   "tenant.finalOnly": "Informes finalizados",
-  "tenant.downloadTeacherPdfsOneFile": "Descargar PDF del profesor (un archivo)",
-  "tenant.downloadBulkPdfsOneFile": "Descargar PDF combinado (un archivo)",
+  "tenant.downloadTeacherPdfsOneFile": "Imprimir PDF del profesor (un archivo)",
+  "tenant.downloadBulkPdfsOneFile": "Imprimir PDF combinado (un archivo)",
   "tenant.newClassPlaceholder": "ej. 1º A",
   "tenant.classesTitle": "Clases",
   "tenant.newClassName": "Nombre de la nueva clase",
@@ -1951,7 +1953,7 @@ const ES: UiMessages = {
   "class.bulkDownloadTermLabel": "Trimestre",
   "class.bulkDownloadSelectLabel": "Seleccionar",
   "class.bulkDownloadPanelHint":
-    "Solo esta clase: un PDF con el informe terminado de cada alumno para el trimestre elegido (1, 2 o 3).",
+    "Solo esta clase: un PDF con el informe terminado de cada alumno para el trimestre elegido (1, 2 o 3). Se abre en una pestaña nueva para imprimir o guardar desde el visor del navegador.",
   "archive.title": "Archivos del año escolar",
   "archive.emptyExpl":
     "Al cambiar el año escolar, los informes del año anterior se guardan aquí. Los alumnos permanecen; los informes se reinician.",
@@ -2017,7 +2019,7 @@ const ES: UiMessages = {
   "report.teacherPreviewPlaceholder":
     "— Igual al PDF si el idioma coincide; si no, traducido.",
   "report.saveReport": "Guardar informe",
-  "report.downloadPdf": "Descargar PDF",
+  "report.downloadPdf": "Imprimir PDF",
   "report.remove": "Eliminar",
   "report.aiTitle": "Comentario IA (datos 0–10)",
   "report.aiHint":
@@ -2149,6 +2151,7 @@ const ES: UiMessages = {
   "auth.errResetFailed": "Error al restablecer.",
   "dash.pdfLetterheadContactPlaceholder": "Teléfono · correo · web",
   "common.genericError": "Algo salió mal.",
+  "common.printPdf": "Imprimir PDF",
   "billing.title": "Comprar créditos de informes",
   "billing.leadOwnerLine1": "Los créditos se añaden a",
   "billing.leadOwnerAccount": "su cuenta de propietario",
@@ -2275,7 +2278,7 @@ const ES: UiMessages = {
   "class.activeDaysDisplay": "Días activos (registro)",
   "class.printRegister": "Imprimir registro",
   "class.registerPreviewTitle": "Vista previa del registro",
-  "class.registerPreviewHint": "PDF abajo; use Imprimir registro para descargar.",
+  "class.registerPreviewHint": "Abre el registro en PDF en una pestaña nueva para imprimir o guardar desde el visor del navegador.",
   "class.printRegisterNeedDays": "Elija primero los días de clase en Ajustes de la clase.",
   "class.printRegisterNeedStudents": "Añada alumnos antes de imprimir el registro.",
   "class.duplicatePupilWarning":
