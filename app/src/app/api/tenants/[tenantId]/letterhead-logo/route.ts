@@ -17,6 +17,11 @@ function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 }
 
+function isTenantLetterheadPath(path: string, tenantId: string): boolean {
+  const p = path.trim();
+  return p === `${tenantId}/logo.png` || p === `${tenantId}/logo.jpg`;
+}
+
 export async function GET(_req: Request, context: { params: Promise<{ tenantId: string }> }) {
   const { tenantId } = await context.params;
   if (!isUuid(tenantId)) return NextResponse.json({ error: "Invalid organisation id." }, { status: 400 });
@@ -26,6 +31,9 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
   const row = await getTenantPdfLetterhead(tenantId);
   const p = row.pdf_letterhead_logo_path?.trim();
   if (!p) return NextResponse.json({ error: "No logo uploaded." }, { status: 404 });
+  if (!isTenantLetterheadPath(p, tenantId)) {
+    return NextResponse.json({ error: "Stored logo path is invalid." }, { status: 400 });
+  }
 
   const buf = await downloadTenantLetterheadLogo(p);
   if (!buf?.length) return NextResponse.json({ error: "Logo file missing." }, { status: 404 });
@@ -108,6 +116,9 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
   const row = await getTenantPdfLetterhead(tenantId);
   const p = row.pdf_letterhead_logo_path?.trim();
   if (p) {
+    if (!isTenantLetterheadPath(p, tenantId)) {
+      return NextResponse.json({ error: "Stored logo path is invalid." }, { status: 400 });
+    }
     try {
       await removeTenantLetterheadLogoObject(p);
     } catch (e: unknown) {

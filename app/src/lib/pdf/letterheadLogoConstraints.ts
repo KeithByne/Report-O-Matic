@@ -22,6 +22,6 @@ const ALLOWED_MIME = new Set([
 
 export function letterheadLogoAllowedMime(mime: string): boolean {
   const m = mime.trim().toLowerCase();
-  if (!m) return true;
+  if (!m) return false;
   return ALLOWED_MIME.has(m);
 }

@@ -10,6 +10,7 @@ import {
  */
 const MAX_PIXEL_W = 2400;
 const MAX_PIXEL_H = 800;
+const MAX_INPUT_PIXELS = 40_000_000;
 
 export type LetterheadLogoProcess =
   | { ok: true; buffer: Buffer; contentType: "image/png" | "image/jpeg"; ext: "png" | "jpg" }
@@ -25,7 +26,7 @@ export async function processLetterheadLogoUpload(buf: Buffer): Promise<Letterhe
   }
 
   try {
-    const meta = await sharp(buf, { failOn: "none" }).rotate().metadata();
+    const meta = await sharp(buf, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS }).rotate().metadata();
     const w = meta.width ?? 0;
     const h = meta.height ?? 0;
     if (!w || !h || w < 16 || h < 16) {
@@ -45,7 +46,7 @@ export async function processLetterheadLogoUpload(buf: Buffer): Promise<Letterhe
       meta.channels === 4 ||
       (typeof meta.space === "string" && meta.space.toLowerCase() === "rgba");
 
-    const pipeline = sharp(buf, { failOn: "none" })
+    const pipeline = sharp(buf, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS })
       .rotate()
       .resize(MAX_PIXEL_W, MAX_PIXEL_H, { fit: "inside", withoutEnlargement: true });
 
