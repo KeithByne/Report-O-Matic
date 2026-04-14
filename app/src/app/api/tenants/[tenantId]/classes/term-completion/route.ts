@@ -31,10 +31,8 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
   let reports = await listReportsForTenant(tenantId);
   reports = reports.filter((r) => allowedStudentIds.has(r.student_id));
 
-  if (role === "teacher") {
-    const me = gate.email.trim().toLowerCase();
-    reports = reports.filter((r) => r.author_email.trim().toLowerCase() === me);
-  }
+  // Readiness should reflect whether each student has a completed report for the term,
+  // regardless of which teacher authored/saved it.
 
   const byStudent = new Map<string, typeof reports>();
   for (const r of reports) {
