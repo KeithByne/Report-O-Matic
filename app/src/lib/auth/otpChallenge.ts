@@ -181,3 +181,101 @@ export async function verifyOtpChallenge(opts: {
   store.otps.delete(opts.challengeId);
   return { ok: true, mode, ownerName, schoolName, referralCode, testAccessToken };
 }
+
+/** Load an active OTP challenge for backup resend (does not consume the challenge). */
+export async function readActiveOtpChallengeForResend(opts: {
+  challengeId: string;
+  nowMs: number;
+}): Promise<
+  | { ok: true; email: string; mode: "signin" | "signup" }
+  | { ok: false; status: number; message: string }
+> {
+  const supabase = getServiceSupabase();
+  if (supabase) {
+    const { data: row, error: fetchError } = await supabase
+      .from("otp_challenges")
+      .select("id, email, expires_at, mode")
+      .eq("id", opts.challengeId)
+      .maybeSingle();
+    if (fetchError) return { ok: false, status: 500, message: formatPostgrestError(fetchError) };
+    if (!row) return { ok: false, status: 400, message: "Code challenge not found or expired." };
+    const expiresAt = new Date(row.expires_at as string).getTime();
+    if (expiresAt <= opts.nowMs) {
+      await supabase.from("otp_challenges").delete().eq("id", opts.challengeId);
+      return { ok: false, status: 400, message: "Code expired. Please request a new code." };
+    }
+    const email = String(row.email || "").trim().toLowerCase();
+    const mode = row.mode === "signup" ? "signup" : "signin";
+    return { ok: true, email, mode };
+  }
+
+  const store = getDevStore();
+  store.cleanup(opts.nowMs);
+  const rec = store.otps.get(opts.challengeId);
+  if (!rec) return { ok: false, status: 400, message: "Code challenge not found or expired." };
+  if (rec.expiresAtMs <= opts.nowMs) {
+    store.otps.delete(opts.challengeId);
+    return { ok: false, status: 400, message: "Code expired. Please request a new code." };
+  }
+  return { ok: true, email: rec.email.trim().toLowerCase(), mode: rec.mode };
+}
+
+/** Replace OTP hash and expiry (used when sending a fresh code to a backup inbox). */
+export async function rotateOtpChallengeCode(opts: {
+  challengeId: string;
+  email: string;
+  codeHash: string;
+  expiresAtMs: number;
+  nowMs: number;
+}): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
+  const supabase = getServiceSupabase();
+  if (supabase) {
+    const { data: row, error: fetchError } = await supabase
+      .from("otp_challenges")
+      .select("id, email, expires_at")
+      .eq("id", opts.challengeId)
+      .maybeSingle();
+    if (fetchError) return { ok: false, status: 500, message: formatPostgrestError(fetchError) };
+    if (!row) return { ok: false, status: 400, message: "Code challenge not found or expired." };
+    const rowEmail = String(row.email || "").trim().toLowerCase();
+    if (rowEmail !== opts.email) {
+      return { ok: false, status: 400, message: "Email does not match this challenge." };
+    }
+    const expiresAt = new Date(row.expires_at as string).getTime();
+    if (expiresAt <= opts.nowMs) {
+      await supabase.from("otp_challenges").delete().eq("id", opts.challengeId);
+      return { ok: false, status: 400, message: "Code expired. Please request a new code." };
+    }
+    const { data: updated, error: upErr } = await supabase
+      .from("otp_challenges")
+      .update({
+        code_hash: opts.codeHash,
+        expires_at: new Date(opts.expiresAtMs).toISOString(),
+        attempts: 0,
+      })
+      .eq("id", opts.challengeId)
+      .eq("email", opts.email)
+      .select("id")
+      .maybeSingle();
+    if (upErr) return { ok: false, status: 500, message: formatPostgrestError(upErr) };
+    if (!updated) return { ok: false, status: 400, message: "Code challenge not found or expired." };
+    return { ok: true };
+  }
+
+  const store = getDevStore();
+  store.cleanup(opts.nowMs);
+  const rec = store.otps.get(opts.challengeId);
+  if (!rec) return { ok: false, status: 400, message: "Code challenge not found or expired." };
+  if (rec.email.trim().toLowerCase() !== opts.email) {
+    return { ok: false, status: 400, message: "Email does not match this challenge." };
+  }
+  if (rec.expiresAtMs <= opts.nowMs) {
+    store.otps.delete(opts.challengeId);
+    return { ok: false, status: 400, message: "Code expired. Please request a new code." };
+  }
+  rec.codeHash = opts.codeHash;
+  rec.expiresAtMs = opts.expiresAtMs;
+  rec.attempts = 0;
+  store.otps.set(opts.challengeId, rec);
+  return { ok: true };
+}

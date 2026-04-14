@@ -330,6 +330,21 @@
                   required
                 />
               </div>
+              <div class="field">
+                <label for="signInOtpBackupEmail">Backup email (optional)</label>
+                <input
+                  id="signInOtpBackupEmail"
+                  name="signin_otp_backup_email"
+                  type="email"
+                  autocomplete="email"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  placeholder="e.g. your.personal@gmail.com"
+                />
+              </div>
+              <p class="small" style="margin-top: -6px; color: rgba(255,255,255,0.65);">
+                If your main inbox blocks mail (some Outlook tenants), add another address you use — we send the same code there too.
+              </p>
               <p class="small" style="margin-top: -6px; color: rgba(255,255,255,0.65);">
                 Use <strong>your</strong> invited address — not a colleague’s. The code is sent only to the email you type here.
               </p>
@@ -390,6 +405,18 @@
                   autocomplete="new-password"
                   placeholder="At least 8 characters"
                   required
+                />
+              </div>
+              <div class="field">
+                <label for="signUpOtpBackupEmail">Backup email (optional)</label>
+                <input
+                  id="signUpOtpBackupEmail"
+                  name="signup_otp_backup_email"
+                  type="email"
+                  autocomplete="email"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  placeholder="e.g. your.personal@gmail.com"
                 />
               </div>
 
@@ -592,6 +619,14 @@
             var lang = detectBrowserLanguage();
             var payload = Object.assign({ email: email, mode: mode, browser_language: lang.normalized }, extra || {});
             if (testAccessToken) payload.test_access_token = testAccessToken;
+            try {
+              var backupEl =
+                mode === "signup"
+                  ? document.getElementById("signUpOtpBackupEmail")
+                  : document.getElementById("signInOtpBackupEmail");
+              var backupVal = backupEl && backupEl.value ? String(backupEl.value).trim() : "";
+              if (backupVal) payload.otp_backup_email = backupVal;
+            } catch (ignore) {}
             var base = apiBase();
             var data = await postJson(base + "/api/auth/send-code", payload);
             setMsg("ok", "Security code sent. Redirecting…");

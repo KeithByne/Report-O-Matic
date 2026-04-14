@@ -7,8 +7,9 @@ import { hashPassword, verifyPassword } from "@/lib/auth/passwordHash";
 import { getPasswordHashForEmail, setPasswordHashIfMissing } from "@/lib/auth/passwordStore";
 import { corsHeadersForRequest } from "@/lib/http/cors";
 import { getServiceSupabase } from "@/lib/supabase/service";
-import { Resend } from "resend";
-import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
+import { sendRomOtpEmail } from "@/lib/email/sendRomOtpEmail";
+import { verifyTurnstileToken } from "@/lib/security/verifyTurnstile";
+import { getOtpTtlMs } from "@/lib/auth/otpTtl";
 
 type SendCodeBody = {
   email?: unknown;
@@ -20,6 +21,7 @@ type SendCodeBody = {
   referral_code?: unknown;
   test_access_token?: unknown;
   browser_language?: unknown;
+  otp_backup_email?: unknown;
 };
 
 function jsonError(status: number, message: string, headers: Record<string, string>) {
@@ -43,16 +45,6 @@ function getPepper(): string {
   return process.env.ROM_OTP_PEPPER || "dev-change-me";
 }
 
-/** OTP lifetime. Set `ROM_OTP_TTL_SECONDS` in `.env.local` to override (e.g. `600` for 10 minutes while testing with `next start`). */
-function getOtpTtlMs(): number {
-  const raw = process.env.ROM_OTP_TTL_SECONDS?.trim();
-  if (raw) {
-    const n = Number.parseInt(raw, 10);
-    if (Number.isFinite(n) && n >= 60 && n <= 3600) return n * 1000;
-  }
-  return process.env.NODE_ENV === "production" ? 180_000 : 600_000;
-}
-
 function randomDigits(length: number): string {
   // cryptographically strong digits
   const bytes = new Uint8Array(length);
@@ -60,71 +52,6 @@ function randomDigits(length: number): string {
   let out = "";
   for (let i = 0; i < length; i++) out += String(bytes[i] % 10);
   return out;
-}
-
-function getFromEmail(): string | null {
-  const v = process.env.ROM_FROM_EMAIL;
-  if (!v) return null;
-  return v.trim();
-}
-
-async function sendOtpEmail(opts: {
-  to: string;
-  code: string;
-  mode: "signin" | "signup";
-  expiresInSeconds: number;
-}) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = getFromEmail();
-  if (!apiKey) throw new Error("Missing RESEND_API_KEY.");
-  if (!from) throw new Error("Missing ROM_FROM_EMAIL.");
-
-  const resend = new Resend(apiKey);
-  const actionLabel = opts.mode === "signup" ? "create your account" : "sign in";
-  // Keep subject neutral to reduce spam scoring in some inbox providers.
-  const subject = "Report-O-Matic sign-in code";
-
-  const text = [
-    `Report-O-Matic verification`,
-    ``,
-    `Your sign-in code: ${opts.code}`,
-    `This code expires in ${opts.expiresInSeconds} seconds.`,
-    ``,
-    `Use this code to ${actionLabel}.`,
-    `If you did not request this code, you can ignore this message.`,
-  ].join("\n");
-
-  const html = `
-    <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:#0b1220;">
-      <h2 style="margin:0 0 12px;">Report-O-Matic security code</h2>
-      <p style="margin:0 0 14px; font-size:14px; line-height:1.6;">
-        Your security code is:
-      </p>
-      <div style="display:inline-block; padding:12px 14px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; font-size:22px; letter-spacing:4px; font-weight:700;">
-        ${opts.code}
-      </div>
-      <p style="margin:14px 0 0; font-size:13px; color:#334155; line-height:1.6;">
-        Expires in ${opts.expiresInSeconds} seconds.
-      </p>
-      ${codeDeliveryNoteHtml()}
-      <p style="margin:10px 0 0; font-size:12px; color:#64748b; line-height:1.6;">
-        If you didn’t request this, you can ignore this email.
-      </p>
-    </div>
-  `.trim();
-
-  const result = await resend.emails.send({
-    from,
-    to: opts.to,
-    subject,
-    text,
-    html,
-  });
-
-  // Resend returns { data, error }. We only care about error here.
-  if ("error" in result && result.error) {
-    throw new Error(`Email send failed: ${result.error.message || "unknown error"}`);
-  }
 }
 
 export async function OPTIONS(req: Request) {
@@ -151,37 +78,24 @@ export async function POST(req: Request) {
     return jsonError(400, "Please provide a valid email.", cors.headers);
   }
 
-   // Cloudflare Turnstile human check
+  const backupRaw = typeof body.otp_backup_email === "string" ? body.otp_backup_email.trim() : "";
+  let otpBackupEmail: string | null = null;
+  if (backupRaw) {
+    const b = normalizeEmail(backupRaw);
+    if (!b.includes("@") || b.length > 320) {
+      return jsonError(400, "Please provide a valid backup email, or leave it blank.", cors.headers);
+    }
+    if (b === email) {
+      return jsonError(400, "Backup email must be different from your sign-in email.", cors.headers);
+    }
+    otpBackupEmail = b;
+  }
+
   const tsTokenRaw = body.turnstile_token;
   const turnstileToken = typeof tsTokenRaw === "string" ? tsTokenRaw.trim() : "";
-  if (!turnstileToken) {
-    return jsonError(400, "Human verification required.", cors.headers);
-  }
-  const tsSecret = process.env.TURNSTILE_SECRET_KEY;
-  if (!tsSecret) {
-    return jsonError(500, "Human verification is not configured.", cors.headers);
-  }
-  try {
-    const ip = getClientIp(req);
-    const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        secret: tsSecret,
-        response: turnstileToken,
-        remoteip: ip,
-      }),
-    });
-    const verifyJson = (await verifyRes.json()) as { success?: boolean; ["error-codes"]?: string[] };
-    if (!verifyJson.success) {
-      console.warn("[ROM send-code] Turnstile failed:", verifyJson["error-codes"]);
-      return jsonError(403, "Human verification failed.", cors.headers);
-    }
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Could not verify human check.";
-    console.error("[ROM send-code] Turnstile error:", msg);
-    return jsonError(500, msg, cors.headers);
-  }
+  const ipForTs = getClientIp(req);
+  const ts = await verifyTurnstileToken({ token: turnstileToken, remoteIp: ipForTs });
+  if (!ts.ok) return jsonError(ts.status, ts.message, cors.headers);
 
   const password = typeof body.password === "string" ? body.password : "";
   const pw = password.trim();
@@ -246,6 +160,10 @@ export async function POST(req: Request) {
   if (!rl1.ok) return jsonError(429, "Too many requests. Please wait and try again.", cors.headers);
   const rl2 = checkRateLimit({ key: `email:${email}`, limit: 5, windowMs: 60_000, nowMs });
   if (!rl2.ok) return jsonError(429, "Too many requests for this email. Please wait and try again.", cors.headers);
+  if (otpBackupEmail) {
+    const rlB = checkRateLimit({ key: `otp-backup-to:${otpBackupEmail}`, limit: 5, windowMs: 60_000, nowMs });
+    if (!rlB.ok) return jsonError(429, "Too many requests for this backup email. Please wait and try again.", cors.headers);
+  }
 
   // Password gate: set on first login, verify thereafter (before sending OTP).
   try {
@@ -302,7 +220,18 @@ export async function POST(req: Request) {
   if (hasEmailConfig) {
     try {
       console.log("[ROM send-code] OTP email recipient:", email);
-      await sendOtpEmail({ to: email, code, mode, expiresInSeconds });
+      await sendRomOtpEmail({ to: email, code, mode, expiresInSeconds, kind: "primary" });
+      if (otpBackupEmail) {
+        console.log("[ROM send-code] OTP backup copy recipient:", otpBackupEmail);
+        await sendRomOtpEmail({
+          to: otpBackupEmail,
+          code,
+          mode,
+          expiresInSeconds,
+          kind: "backup_copy",
+          accountEmail: email,
+        });
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not send email.";
       // In production, fail closed (don’t claim “sent” if we didn’t send).
