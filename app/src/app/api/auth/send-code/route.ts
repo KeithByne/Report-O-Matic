@@ -294,8 +294,9 @@ export async function POST(req: Request) {
   const expiresInSeconds = Math.floor(ttlMs / 1000);
 
   // If Resend is configured, send a real email (works in dev and prod).
-  // Otherwise, fall back to terminal log (dev-only).
-  if (process.env.RESEND_API_KEY && process.env.ROM_FROM_EMAIL) {
+  // In production, fail closed when email is not configured.
+  const hasEmailConfig = Boolean(process.env.RESEND_API_KEY && process.env.ROM_FROM_EMAIL);
+  if (hasEmailConfig) {
     try {
       console.log("[ROM send-code] OTP email recipient:", email);
       await sendOtpEmail({ to: email, code, mode, expiresInSeconds });
@@ -311,6 +312,9 @@ export async function POST(req: Request) {
       }
     }
   } else {
+    if (process.env.NODE_ENV === "production") {
+      return jsonError(500, "Email delivery is not configured.", cors.headers);
+    }
     if (!isSupabaseOtpEnabled()) {
       console.log(`[ROM DEV OTP] email=${email} mode=${mode} code=${code} expires_in_s=${expiresInSeconds} challenge=${challengeId}`);
     }
