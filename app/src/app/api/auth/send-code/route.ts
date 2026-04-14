@@ -81,14 +81,17 @@ async function sendOtpEmail(opts: {
 
   const resend = new Resend(apiKey);
   const actionLabel = opts.mode === "signup" ? "create your account" : "sign in";
-  const subject = `Your Report-O-Matic security code: ${opts.code}`;
+  // Keep subject neutral to reduce spam scoring in some inbox providers.
+  const subject = "Report-O-Matic sign-in code";
 
   const text = [
-    `Your Report-O-Matic security code is: ${opts.code}`,
+    `Report-O-Matic verification`,
     ``,
-    `It expires in ${opts.expiresInSeconds} seconds.`,
+    `Your sign-in code: ${opts.code}`,
+    `This code expires in ${opts.expiresInSeconds} seconds.`,
     ``,
-    `Use this code to ${actionLabel}. If you didn’t request this, you can ignore this email.`,
+    `Use this code to ${actionLabel}.`,
+    `If you did not request this code, you can ignore this message.`,
   ].join("\n");
 
   const html = `
