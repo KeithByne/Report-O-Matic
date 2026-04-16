@@ -12,7 +12,8 @@
     "build": "node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
     "start": "node node_modules/next/dist/bin/next start",
     "preview": "npm run build && npm run start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "i18n:audit": "node scripts/i18n-audit.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",

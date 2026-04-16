@@ -585,8 +585,10 @@
             throw new Error(
               "Could not reach the app server (" +
                 detail +
-                "). Fix: 1) In report-o-matic-saas/app run: npm run dev  2) Open http://localhost:3000/landing.html in the browser (not a double-clicked file). " +
-                "If Next uses another port, use that port in the URL. From file:// you can add ?api=http://localhost:PORT to this page’s address, or set localStorage ROM_API_ORIGIN to that origin.",
+                "). Check: (1) From the git repo root (folder that contains `app/`) run: npm run dev — wait until it says ready. " +
+                "(2) Open http://localhost:3000/landing.html in the browser (not a double-clicked file). Use the same port Next prints if it is not 3000. " +
+                "From file:// add ?api=http://localhost:PORT to the address, or set localStorage ROM_API_ORIGIN to that origin. " +
+                "If the dev server is already running, CORS may be blocking: in app/.env.local set ROM_CORS_ALLOW_ORIGINS to this page’s origin (e.g. http://localhost:3000,http://127.0.0.1:3000), then restart npm run dev.",
             );
           }
           var text = await res.text();
