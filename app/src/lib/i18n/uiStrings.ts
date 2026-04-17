@@ -11,6 +11,7 @@ import { AR_PATCH, NL_PATCH, PL_PATCH, RO_PATCH, RU_PATCH, UK_PATCH } from "@/li
 import type { SubjectCode } from "@/lib/subjects";
 import { EL_BODY } from "@/lib/i18n/localeElBody";
 import { DE_LABELS, IT_LABELS, PT_LABELS } from "@/lib/i18n/localeExtra";
+import { IT_COMPLETION } from "@/lib/i18n/localeItCompletion";
 import { UI_FILL_EL, UI_FILL_ES, UI_FILL_FR } from "@/lib/i18n/localeUiFill";
 
 export type UiLang = UiLocaleCode;
@@ -2345,7 +2346,7 @@ const ES: UiMessages = {
 const EL: UiMessages = { ...EN, ...EL_BODY, ...UI_FILL_EL };
 
 const DE: UiMessages = { ...EN, ...DE_LABELS };
-const IT: UiMessages = { ...EN, ...IT_LABELS };
+const IT: UiMessages = { ...EN, ...IT_LABELS, ...IT_COMPLETION };
 const PT: UiMessages = { ...EN, ...PT_LABELS };
 /** nl / pl / ro / ru / uk / ar: English base + `localePatches6` overlays (extend patches for fuller coverage). */
 const NL: UiMessages = { ...EN, ...NL_PATCH };

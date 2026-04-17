@@ -25,6 +25,7 @@ const extraPath = path.join(root, "src/lib/i18n/localePatches6Extra.ts");
 const extraTsPath = path.join(root, "src/lib/i18n/localeExtra.ts");
 const elBodyPath = path.join(root, "src/lib/i18n/localeElBody.ts");
 const uiFillPath = path.join(root, "src/lib/i18n/localeUiFill.ts");
+const itCompletionPath = path.join(root, "src/lib/i18n/localeItCompletion.ts");
 
 function read(p) {
   return fs.readFileSync(p, "utf8");
@@ -119,8 +120,18 @@ const AUDIT_LOCALES = [
   },
   {
     code: "it",
-    label: "Italian (IT_LABELS)",
-    overlay: () => keysInLiteralSlice(read(extraTsPath), "export const IT_LABELS:", "export const PT_LABELS:"),
+    label: "Italian (IT_LABELS ∪ IT_COMPLETION)",
+    overlay: () => {
+      const ex = read(extraTsPath);
+      const a = keysInLiteralSlice(ex, "export const IT_LABELS:", "export const PT_LABELS:");
+      let b = new Set();
+      try {
+        b = keysInLiteralSlice(read(itCompletionPath), "export const IT_COMPLETION:", null);
+      } catch {
+        /* optional file */
+      }
+      return new Set([...a, ...b]);
+    },
   },
   {
     code: "pt",
