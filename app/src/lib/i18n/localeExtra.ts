@@ -1,3 +1,6 @@
+import { GETTING_STARTED_DE, GETTING_STARTED_PT } from "@/lib/i18n/localeDashboardGettingStarted";
+import { OWNER_WORKSPACE_DE, OWNER_WORKSPACE_PT } from "@/lib/i18n/localeOwnerWorkspaceMenu";
+
 /** Italian UI strings (same keys as ES/FR overrides; merged over EN in uiStrings). */
 export const IT_LABELS: Record<string, string> = {
   "nav.reports": "Rapporti",
@@ -628,6 +631,8 @@ export const PT_LABELS: Record<string, string> = {
   "weekday.fri": "sexta-feira",
   "weekday.sat": "sábado",
   "weekday.sun": "domingo",
+  ...OWNER_WORKSPACE_PT,
+  ...GETTING_STARTED_PT,
 };
 
 /** German UI strings (merged over EN in uiStrings). */
@@ -946,4 +951,6 @@ export const DE_LABELS: Record<string, string> = {
   "weekday.fri": "Freitag",
   "weekday.sat": "Samstag",
   "weekday.sun": "Sonntag",
+  ...OWNER_WORKSPACE_DE,
+  ...GETTING_STARTED_DE,
 };

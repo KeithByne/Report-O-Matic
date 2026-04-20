@@ -1,6 +1,22 @@
 /** Core UI strings for locales without full hand-built bundles (merged over EN in uiStrings). */
 
 import { AR_EXTRA, NL_EXTRA, PL_EXTRA, RO_EXTRA, RU_EXTRA, UK_EXTRA } from "@/lib/i18n/localePatches6Extra";
+import {
+  GETTING_STARTED_AR,
+  GETTING_STARTED_NL,
+  GETTING_STARTED_PL,
+  GETTING_STARTED_RO,
+  GETTING_STARTED_RU,
+  GETTING_STARTED_UK,
+} from "@/lib/i18n/localeDashboardGettingStarted";
+import {
+  OWNER_WORKSPACE_AR,
+  OWNER_WORKSPACE_NL,
+  OWNER_WORKSPACE_PL,
+  OWNER_WORKSPACE_RO,
+  OWNER_WORKSPACE_RU,
+  OWNER_WORKSPACE_UK,
+} from "@/lib/i18n/localeOwnerWorkspaceMenu";
 
 function patch(base: Record<string, string>): Record<string, string> {
   return base;
@@ -87,6 +103,8 @@ export const NL_PATCH: Record<string, string> = patch({
   "weekday.fri": "vrijdag",
   "weekday.sat": "zaterdag",
   "weekday.sun": "zondag",
+  ...OWNER_WORKSPACE_NL,
+  ...GETTING_STARTED_NL,
   ...NL_EXTRA,
 });
 
@@ -171,6 +189,8 @@ export const PL_PATCH: Record<string, string> = patch({
   "weekday.fri": "piątek",
   "weekday.sat": "sobota",
   "weekday.sun": "niedziela",
+  ...OWNER_WORKSPACE_PL,
+  ...GETTING_STARTED_PL,
   ...PL_EXTRA,
 });
 
@@ -254,6 +274,8 @@ export const RO_PATCH: Record<string, string> = patch({
   "weekday.fri": "vineri",
   "weekday.sat": "sâmbătă",
   "weekday.sun": "duminică",
+  ...OWNER_WORKSPACE_RO,
+  ...GETTING_STARTED_RO,
   ...RO_EXTRA,
 });
 
@@ -338,6 +360,8 @@ export const RU_PATCH: Record<string, string> = patch({
   "weekday.fri": "пятница",
   "weekday.sat": "суббота",
   "weekday.sun": "воскресенье",
+  ...OWNER_WORKSPACE_RU,
+  ...GETTING_STARTED_RU,
   ...RU_EXTRA,
 });
 
@@ -422,6 +446,8 @@ export const UK_PATCH: Record<string, string> = patch({
   "weekday.fri": "п’ятниця",
   "weekday.sat": "субота",
   "weekday.sun": "неділя",
+  ...OWNER_WORKSPACE_UK,
+  ...GETTING_STARTED_UK,
   ...UK_EXTRA,
 });
 
@@ -505,5 +531,7 @@ export const AR_PATCH: Record<string, string> = patch({
   "weekday.fri": "الجمعة",
   "weekday.sat": "السبت",
   "weekday.sun": "الأحد",
+  ...OWNER_WORKSPACE_AR,
+  ...GETTING_STARTED_AR,
   ...AR_EXTRA,
 });

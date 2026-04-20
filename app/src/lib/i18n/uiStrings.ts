@@ -12,6 +12,7 @@ import type { SubjectCode } from "@/lib/subjects";
 import { EL_BODY } from "@/lib/i18n/localeElBody";
 import { DE_LABELS, IT_LABELS, PT_LABELS } from "@/lib/i18n/localeExtra";
 import { IT_COMPLETION } from "@/lib/i18n/localeItCompletion";
+import { GETTING_STARTED_EL } from "@/lib/i18n/localeDashboardGettingStarted";
 import { UI_FILL_EL, UI_FILL_ES, UI_FILL_FR } from "@/lib/i18n/localeUiFill";
 
 export type UiLang = UiLocaleCode;
@@ -2366,7 +2367,7 @@ const ES: UiMessages = {
   ...UI_FILL_ES,
 };
 
-const EL: UiMessages = { ...EN, ...EL_BODY, ...UI_FILL_EL };
+const EL: UiMessages = { ...EN, ...EL_BODY, ...UI_FILL_EL, ...GETTING_STARTED_EL };
 
 const DE: UiMessages = { ...EN, ...DE_LABELS };
 const IT: UiMessages = { ...EN, ...IT_LABELS, ...IT_COMPLETION };
