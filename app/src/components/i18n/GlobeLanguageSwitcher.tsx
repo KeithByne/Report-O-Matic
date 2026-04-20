@@ -1,7 +1,7 @@
 "use client";
 
 import type { UiLang } from "@/lib/i18n/uiStrings";
-import { reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
+import { uiLanguageNativeLabel } from "@/lib/i18n/uiStrings";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 
 export function GlobeLanguageSwitcher() {
@@ -17,11 +17,11 @@ export function GlobeLanguageSwitcher() {
         value={lang}
         onChange={(e) => setLang(e.target.value as UiLang)}
         aria-label={t("a11y.uiLanguage")}
-        className="max-w-[9rem] cursor-pointer border-0 bg-transparent py-0.5 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-0"
+        className="min-w-[8rem] max-w-[min(18rem,100%)] cursor-pointer border-0 bg-transparent py-0.5 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-0"
       >
         {options.map((o) => (
           <option key={o.code} value={o.code}>
-            {reportLanguageOptionLabel(lang, o.code)}
+            {uiLanguageNativeLabel(o.code)}
           </option>
         ))}
       </select>

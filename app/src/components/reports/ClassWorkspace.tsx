@@ -28,6 +28,7 @@ import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
+import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
 
 type ClassWorkspacePanelId =
   | "settings"
@@ -230,6 +231,12 @@ export function ClassWorkspace({
   const toggleClassPanel = useCallback((id: ClassWorkspacePanelId) => {
     setOpenClassPanel((current) => (current === id ? null : id));
   }, []);
+
+  useEffect(() => {
+    if (!openClassPanel) return;
+    const el = document.getElementById(`class-workspace-panel-${openClassPanel}`);
+    scrollPanelContentTopIntoView(el);
+  }, [openClassPanel]);
 
   const classPanelButtonClass = useCallback(
     (id: ClassWorkspacePanelId) =>
@@ -702,7 +709,10 @@ export function ClassWorkspace({
       </section>
 
       {openClassPanel === "settings" ? (
-      <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+      <section
+        id="class-workspace-panel-settings"
+        className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+      >
         <h3 className="text-sm font-semibold text-zinc-900">
           <span className="mr-1" aria-hidden>
             🌐
@@ -955,7 +965,10 @@ export function ClassWorkspace({
       ) : null}
 
       {openClassPanel === "students" ? (
-      <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+      <section
+        id="class-workspace-panel-students"
+        className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+      >
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <Link
           href={classesListHref(tenantId, viewerRole)}
@@ -1180,7 +1193,10 @@ export function ClassWorkspace({
       ) : null}
 
       {openClassPanel === "bulkDownload" ? (
-        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+        <section
+          id="class-workspace-panel-bulkDownload"
+          className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+        >
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.printClassReports")}</h3>
           <p className="mt-1 text-xs text-zinc-500">{t("class.bulkDownloadPanelHint")}</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
@@ -1223,7 +1239,10 @@ export function ClassWorkspace({
       ) : null}
 
       {openClassPanel === "movePupil" && (viewerRole === "owner" || viewerRole === "department_head") ? (
-        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+        <section
+          id="class-workspace-panel-movePupil"
+          className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+        >
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.movePupilSectionTitle")}</h3>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <label className="text-sm">
@@ -1274,7 +1293,10 @@ export function ClassWorkspace({
       ) : null}
 
       {openClassPanel === "registerPreview" ? (
-        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+        <section
+          id="class-workspace-panel-registerPreview"
+          className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+        >
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.registerPreviewTitle")}</h3>
           <p className="mt-1 text-xs text-zinc-500">{t("class.registerPreviewHint")}</p>
           <div className="mt-3 flex flex-wrap items-end gap-2">

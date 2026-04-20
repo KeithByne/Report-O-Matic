@@ -1,7 +1,8 @@
 "use client";
 
 import { Archive } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
 import { ClassScholasticArchives } from "@/components/reports/ClassScholasticArchives";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
@@ -15,6 +16,7 @@ export function DashboardScholasticArchivesOverview({ tenantId }: { tenantId: st
   const [selectedId, setSelectedId] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [classesLoading, setClassesLoading] = useState(false);
+  const expandedRef = useRef<HTMLDivElement | null>(null);
 
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
 
@@ -43,6 +45,11 @@ export function DashboardScholasticArchivesOverview({ tenantId }: { tenantId: st
     void loadClasses();
   }, [open, loadClasses]);
 
+  useEffect(() => {
+    if (!open) return;
+    scrollPanelContentTopIntoView(expandedRef.current);
+  }, [open]);
+
   return (
     <div className="mt-4">
       <button
@@ -55,7 +62,7 @@ export function DashboardScholasticArchivesOverview({ tenantId }: { tenantId: st
         {t("archive.title")}
       </button>
       {open ? (
-        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/30 p-4">
+        <div ref={expandedRef} className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/30 p-4">
           {loadError ? (
             <p className="text-sm text-red-800">{loadError}</p>
           ) : classesLoading ? (

@@ -25,6 +25,7 @@ import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib
 import { reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
 import type { RomRole } from "@/lib/data/memberships";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
 
 export type TenantPanelId = "welcome" | "timetable" | "language" | "bulk" | "classes";
 
@@ -99,6 +100,13 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
     window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
     return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
   }, [tenantId, refresh]);
+
+  useEffect(() => {
+    if (openPanels.size !== 1) return;
+    const id = [...openPanels][0];
+    const el = document.getElementById(`tenant-panel-${id}`);
+    scrollPanelContentTopIntoView(el);
+  }, [openPanels]);
 
   useEffect(() => {
     if (!bootPanels?.length) return;
@@ -203,7 +211,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
       ) : null}
 
       {openPanels.has("welcome") ? (
-        <>
+        <div id="tenant-panel-welcome">
           {viewerRole === "owner" ? (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-sm text-emerald-950">
               <p className="flex items-center gap-2 font-semibold text-emerald-900">
@@ -229,11 +237,14 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
               <p className="mt-2 text-green-900/90">{t("tenant.teacherBannerBody")}</p>
             </div>
           )}
-        </>
+        </div>
       ) : null}
 
       {openPanels.has("timetable") ? (
-        <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5">
+        <div
+          id="tenant-panel-timetable"
+          className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-zinc-900">
             <CalendarDays className={ICON_SECTION} aria-hidden />
             {t("timetable.title")}
@@ -243,7 +254,10 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
       ) : null}
 
       {openPanels.has("language") ? (
-        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+        <section
+          id="tenant-panel-language"
+          className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+        >
           <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
             <Languages className={ICON_SECTION} aria-hidden />
             {t("tenant.schoolLangTitle")}
@@ -268,7 +282,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
       ) : null}
 
       {openPanels.has("bulk") && isLead ? (
-        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+        <section id="tenant-panel-bulk" className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
             <Download className={ICON_SECTION} aria-hidden />
             {t("tenant.bulkDownloadsTitle")}
@@ -312,7 +326,9 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
       ) : null}
 
       {openPanels.has("classes") ? (
-        <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active />
+        <div id="tenant-panel-classes">
+          <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active />
+        </div>
       ) : null}
     </div>
   );

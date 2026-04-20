@@ -55,7 +55,9 @@ import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { UI_LANG_OPTIONS, uiLanguageNativeLabel } from "@/lib/i18n/uiStrings";
 import type { TeacherStats, TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
+import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
 
 type MyAgentLink = {
   code: string;
@@ -259,6 +261,23 @@ export function DashboardClientView({
     setWorkspaceDashPanel((current) => (current === panel ? null : panel));
   }, []);
 
+  useEffect(() => {
+    if (!workspaceDashPanel) return;
+    const el = document.getElementById(`dash-workspace-panel-${workspaceDashPanel}`);
+    scrollPanelContentTopIntoView(el);
+  }, [workspaceDashPanel]);
+
+  useEffect(() => {
+    if (!teacherWorkspacePanel) return;
+    const el = document.getElementById(`dash-teacher-panel-${teacherWorkspacePanel}`);
+    scrollPanelContentTopIntoView(el);
+  }, [teacherWorkspacePanel]);
+
+  useEffect(() => {
+    if (!agentStartupOpen) return;
+    scrollPanelContentTopIntoView(document.getElementById("dash-agent-expanded"));
+  }, [agentStartupOpen]);
+
   const showWorkspacePdfTab = visibleMemberships.some((m) => m.role === "owner");
   const showWorkspaceInvitesTab = visibleMemberships.some(
     (m) => m.role === "owner" || m.role === "department_head",
@@ -351,6 +370,11 @@ export function DashboardClientView({
     const uniq = [...new Set(memberships.map((m) => m.role))];
     return uniq.map((r) => roleLabel(r)).join(" · ");
   }, [memberships, t]);
+
+  const teacherReportLangNativeList = useMemo(
+    () => UI_LANG_OPTIONS.map((o) => uiLanguageNativeLabel(o.code)).join(" · "),
+    [],
+  );
 
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
@@ -671,15 +695,19 @@ export function DashboardClientView({
                   <button
                     type="button"
                     aria-pressed={teacherWorkspacePanel === "language"}
+                    aria-label={`${t("dash.teacherPanelLanguage")}: ${teacherReportLangNativeList}`}
                     onClick={() => toggleTeacherWorkspacePanel("language")}
-                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    className={`inline-flex min-w-0 max-w-full flex-col items-stretch gap-1 rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors sm:max-w-[min(100%,36rem)] sm:flex-row sm:items-center sm:gap-2 ${
                       teacherWorkspacePanel === "language"
                         ? "border-emerald-600 bg-emerald-100 text-emerald-950"
                         : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
                     }`}
                   >
-                    <Globe className={ICON_INLINE} aria-hidden />
-                    {t("dash.teacherPanelLanguage")}
+                    <span className="inline-flex shrink-0 items-center gap-2">
+                      <Globe className={ICON_INLINE} aria-hidden />
+                      {t("dash.teacherPanelLanguage")}
+                    </span>
+                    <span className="text-xs font-normal leading-snug text-zinc-600">{teacherReportLangNativeList}</span>
                   </button>
                   {teacherHasMultipleSchools ? (
                     <button
@@ -896,7 +924,10 @@ export function DashboardClientView({
             </button>
 
             {agentStartupOpen ? (
-              <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+              <div
+                id="dash-agent-expanded"
+                className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4"
+              >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
@@ -1039,7 +1070,11 @@ export function DashboardClientView({
             {usesTeacherWorkspaceMenu ? (
               <>
                 {teacherWorkspacePanel === "language" ? (
-                  <div key="teacher-lang" className="rounded-2xl border border-emerald-200 bg-white p-1 shadow-sm">
+                  <div
+                    id="dash-teacher-panel-language"
+                    key="teacher-lang"
+                    className="rounded-2xl border border-emerald-200 bg-white p-1 shadow-sm"
+                  >
                     <DashboardTenantLanguage
                       tenants={visibleMemberships.map((m) => ({
                         tenantId: m.tenantId,
@@ -1055,7 +1090,11 @@ export function DashboardClientView({
                 ) : null}
 
                 {teacherWorkspacePanel === "schools" && teacherHasMultipleSchools && visibleMemberships.length > 0 ? (
-                  <section key="teacher-schools" className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+                  <section
+                    id="dash-teacher-panel-schools"
+                    key="teacher-schools"
+                    className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+                  >
                     <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
                       <Building2 className={ICON_INLINE} aria-hidden />
                       {t("dash.yourSchools")}
@@ -1174,11 +1213,13 @@ export function DashboardClientView({
                 ) : null}
 
                 {teacherWorkspacePanel === "downloads" && primaryMembership ? (
-                  <TeacherDownloadsCard
-                    key="teacher-downloads"
-                    tenantId={primaryMembership.tenantId}
-                    isTeacher={primaryMembership.role === "teacher"}
-                  />
+                  <div id="dash-teacher-panel-downloads">
+                    <TeacherDownloadsCard
+                      key="teacher-downloads"
+                      tenantId={primaryMembership.tenantId}
+                      isTeacher={primaryMembership.role === "teacher"}
+                    />
+                  </div>
                 ) : null}
               </>
             ) : null}
@@ -1186,7 +1227,10 @@ export function DashboardClientView({
             {usesSchoolWorkspaceMenu ? (
               <>
                 {workspaceDashPanel === "overview" && primaryMembership ? (
-                  <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+                  <section
+                    id="dash-workspace-panel-overview"
+                    className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+                  >
                     <h2 className="flex items-center gap-2 text-lg font-semibold text-zinc-900">
                       <Building2 className={ICON_INLINE} aria-hidden />
                       {primaryMembership.tenantName}
@@ -1337,16 +1381,18 @@ export function DashboardClientView({
                 ) : null}
 
                 {workspaceDashPanel === "pdf" && showWorkspacePdfTab ? (
-                  <DashboardTenantPdfLetterhead
-                    tenants={visibleMemberships
-                      .filter((m) => m.role === "owner")
-                      .map((m) => ({ tenantId: m.tenantId, tenantName: m.tenantName }))}
-                    reportLangByTenant={reportLangByTenant}
-                  />
+                  <div id="dash-workspace-panel-pdf">
+                    <DashboardTenantPdfLetterhead
+                      tenants={visibleMemberships
+                        .filter((m) => m.role === "owner")
+                        .map((m) => ({ tenantId: m.tenantId, tenantName: m.tenantName }))}
+                      reportLangByTenant={reportLangByTenant}
+                    />
+                  </div>
                 ) : null}
 
                 {workspaceDashPanel === "invites" && showWorkspaceInvitesTab ? (
-                  <section className="space-y-4">
+                  <section id="dash-workspace-panel-invites" className="space-y-4">
                     <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
                       <UserPlus className={ICON_INLINE} aria-hidden />
                       {t("dash.inviteTeam")}
@@ -1378,17 +1424,22 @@ export function DashboardClientView({
                 {primaryMembership &&
                 workspaceDashPanel === "classes" &&
                 (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
-                  <TenantClassesPanel
-                    tenantId={primaryMembership.tenantId}
-                    viewerRole={primaryMembership.role}
-                    active={workspaceDashPanel === "classes"}
-                  />
+                  <div id="dash-workspace-panel-classes">
+                    <TenantClassesPanel
+                      tenantId={primaryMembership.tenantId}
+                      viewerRole={primaryMembership.role}
+                      active={workspaceDashPanel === "classes"}
+                    />
+                  </div>
                 ) : null}
 
                 {primaryMembership &&
                 workspaceDashPanel === "timetable" &&
                 (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
-                  <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5">
+                  <div
+                    id="dash-workspace-panel-timetable"
+                    className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5"
+                  >
                     <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-zinc-900">
                       <CalendarDays className={ICON_SECTION} aria-hidden />
                       {t("timetable.title")}

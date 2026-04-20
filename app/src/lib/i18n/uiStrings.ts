@@ -35,6 +35,29 @@ export function reportLanguageOptionLabel(lang: UiLang, code: ReportLanguageCode
   return languageLabel(code);
 }
 
+/**
+ * Language name written in that language (endonym), for UI locale `<option>` labels:
+ * English → English, Spanish → Español, etc. CLDR via Intl; first letter title-cased when lowercase.
+ */
+export function uiLanguageNativeLabel(code: UiLang): string {
+  try {
+    const tag = UI_LOCALE_BCP47[code];
+    const dn = new Intl.DisplayNames([tag, code], { type: "language" });
+    const raw = dn.of(code);
+    if (raw) {
+      const chars = [...raw];
+      const first = chars[0];
+      if (first && /\p{Ll}/u.test(first)) {
+        return first.toLocaleUpperCase(tag) + chars.slice(1).join("");
+      }
+      return raw;
+    }
+  } catch {
+    /* ignore */
+  }
+  return languageLabel(code);
+}
+
 /** Flat message map per locale. Keys use dot notation. */
 export type UiMessages = Record<string, string>;
 
