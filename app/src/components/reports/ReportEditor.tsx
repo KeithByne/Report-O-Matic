@@ -437,9 +437,10 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         {loadError}{" "}
         <Link
           href={classPageHrefForStudent(tenantId, classId, studentId)}
-          className="font-medium text-red-950 underline"
+          className="mt-1 inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-900 transition-colors hover:bg-red-50"
         >
-          {t("report.backClass")}
+          <ArrowLeft className={ICON_INLINE} aria-hidden />
+          {t("report.backToClass")}
         </Link>
       </div>
     );
@@ -477,9 +478,10 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           </button>
           <Link
             href={classPageHrefForStudent(tenantId, classId, studentId)}
-            className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
           >
-            {t("report.backClass")}
+            <ArrowLeft className={ICON_INLINE} aria-hidden />
+            {t("report.backToClass")}
           </Link>
         </div>
       </div>
@@ -764,7 +766,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       <div className="flex justify-center sm:justify-start">
         <Link
           href={classPageHrefForStudent(tenantId, classId, studentId)}
-          className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+          className="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
         >
           <ArrowLeft className={ICON_INLINE} aria-hidden />
           {t("report.backToClass")}
