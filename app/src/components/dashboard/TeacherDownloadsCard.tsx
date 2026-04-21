@@ -182,56 +182,54 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
               <FileText className={ICON_INLINE} aria-hidden />
               {t("dash.teacherDownloadsAllReports")}
             </p>
-            <p className="mt-0.5 text-xs text-zinc-500">{t("dash.teacherDownloadsAllReportsHint")}</p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-            {allShortCourse ? (
-              <label className="flex flex-col gap-1 text-sm sm:min-w-[12rem]">
-                <span className="text-zinc-600">{t("dash.teacherDownloadsShortCourseClass")}</span>
-                <select
-                  value={reportsClassId}
-                  onChange={(e) => setReportsClassId(e.target.value)}
-                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                >
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : isTeacher ? (
-              <p className="max-w-md text-xs text-zinc-500">{t("dash.teacherDownloadsAllReportsTeacherHint")}</p>
-            ) : (
-              <label className="flex flex-col gap-1 text-sm sm:min-w-[10rem]">
-                <span className="text-zinc-600">{t("class.bulkDownloadTermLabel")}</span>
-                <select
-                  value={reportsTerm}
-                  onChange={(e) => setReportsTerm(e.target.value as ReportPeriod)}
-                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                >
-                  <option value="first">{t("archive.term1")}</option>
-                  <option value="second">{t("archive.term2")}</option>
-                  <option value="third">{t("archive.term3")}</option>
-                </select>
-              </label>
-            )}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-2">
+              {allShortCourse ? (
+                <label className="flex flex-col gap-1 text-sm sm:min-w-[12rem]">
+                  <span className="text-zinc-600">{t("dash.teacherDownloadsShortCourseClass")}</span>
+                  <select
+                    value={reportsClassId}
+                    onChange={(e) => setReportsClassId(e.target.value)}
+                    className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  >
+                    {classes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : isTeacher ? (
+                <p className="max-w-md text-xs text-zinc-500">{t("dash.teacherDownloadsAllReportsTeacherHint")}</p>
+              ) : (
+                <label className="flex flex-col gap-1 text-sm sm:min-w-[10rem]">
+                  <span className="text-zinc-600">{t("class.bulkDownloadTermLabel")}</span>
+                  <select
+                    value={reportsTerm}
+                    onChange={(e) => setReportsTerm(e.target.value as ReportPeriod)}
+                    className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="first">{t("archive.term1")}</option>
+                    <option value="second">{t("archive.term2")}</option>
+                    <option value="third">{t("archive.term3")}</option>
+                  </select>
+                </label>
+              )}
+            </div>
             {teacherReportsHref ? (
               bulkReportsReady === true ? (
                 <button
                   type="button"
                   onClick={() => openPdfForPrint(teacherReportsHref)}
-                  className={`${linkClass} w-fit`}
+                  className={`${linkClass} shrink-0`}
                 >
                   <Printer className={ICON_INLINE} aria-hidden />
                   {t("common.printPdf")}
                 </button>
               ) : (
-                <div className="flex flex-col gap-1">
-                  <span
-                    className={`${linkDisabledClass} w-fit`}
-                    aria-disabled
-                  >
+                <div className="flex flex-col gap-1 sm:items-end">
+                  <span className={`${linkDisabledClass} w-fit shrink-0`} aria-disabled>
                     <Printer className={ICON_INLINE} aria-hidden />
                     {bulkReportsReady === null ? t("dash.teacherDownloadsChecking") : t("common.printPdf")}
                   </span>
