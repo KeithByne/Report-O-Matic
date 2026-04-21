@@ -36,7 +36,7 @@ html[data-rom-theme="night"] body {
 }
 
 html[data-rom-theme="night"] .bg-white {
-  background-color: #0f223c !important;
+  background-color: #0d1d33 !important;
 }
 
 html[data-rom-theme="night"] .text-zinc-900,
@@ -64,7 +64,7 @@ html[data-rom-theme="night"] .border-zinc-300 {
 
 html[data-rom-theme="night"] .bg-emerald-50,
 html[data-rom-theme="night"] .bg-emerald-100 {
-  background-color: #163153 !important;
+  background-color: #132a46 !important;
 }
 
 html[data-rom-text="bold"] body {
