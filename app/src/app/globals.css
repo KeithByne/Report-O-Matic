@@ -83,6 +83,24 @@ html[data-rom-theme="night"] [class*="bg-emerald-100"][class*="text-emerald-"] {
   color: #e7f1ff !important;
 }
 
+/* Global night-mode rule for gradient card surfaces (e.g. from-emerald-50/95 to-white). */
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="from-emerald-"],
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="to-white"] {
+  background: linear-gradient(135deg, #0a1a2f 0%, #0d233d 100%) !important;
+  border-color: #4a6c99 !important;
+}
+
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="from-emerald-"] [class*="text-zinc-"],
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="to-white"] [class*="text-zinc-"],
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="from-emerald-"] [class*="text-emerald-"],
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="to-white"] [class*="text-emerald-"],
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="from-emerald-"][class*="text-zinc-"],
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="to-white"][class*="text-zinc-"],
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="from-emerald-"][class*="text-emerald-"],
+html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="to-white"][class*="text-emerald-"] {
+  color: #f2f7ff !important;
+}
+
 html[data-rom-text="bold"] body {
   font-size: 1.06rem;
 }
