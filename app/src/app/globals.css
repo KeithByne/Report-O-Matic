@@ -62,31 +62,25 @@ html[data-rom-theme="night"] .border-zinc-300 {
   border-color: #3d5a84 !important;
 }
 
-html[data-rom-theme="night"] .bg-emerald-50,
-html[data-rom-theme="night"] .bg-emerald-100 {
-  background-color: #132a46 !important;
+/* Night mode: force high-contrast card accents (matches bg-emerald-50, bg-emerald-50/70, etc.). */
+html[data-rom-theme="night"] [class*="bg-emerald-50"],
+html[data-rom-theme="night"] [class*="bg-emerald-100"] {
+  background-color: #0c1f37 !important;
 }
 
-/* In night mode, keep text dark on light-blue card accents. */
-html[data-rom-theme="night"] .bg-emerald-50.text-zinc-900,
-html[data-rom-theme="night"] .bg-emerald-50.text-zinc-800,
-html[data-rom-theme="night"] .bg-emerald-50.text-zinc-700,
-html[data-rom-theme="night"] .bg-emerald-50.text-zinc-600,
-html[data-rom-theme="night"] .bg-emerald-100.text-zinc-900,
-html[data-rom-theme="night"] .bg-emerald-100.text-zinc-800,
-html[data-rom-theme="night"] .bg-emerald-100.text-zinc-700,
-html[data-rom-theme="night"] .bg-emerald-100.text-zinc-600,
-html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-900,
-html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-800,
-html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-700,
-html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-600,
-html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-500,
-html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-900,
-html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-800,
-html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-700,
-html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-600,
-html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-500 {
-  color: #0b1220 !important;
+/* Ensure readable text inside those accent cards (>=30% stronger contrast). */
+html[data-rom-theme="night"] [class*="bg-emerald-50"] [class*="text-zinc-"],
+html[data-rom-theme="night"] [class*="bg-emerald-100"] [class*="text-zinc-"],
+html[data-rom-theme="night"] [class*="bg-emerald-50"][class*="text-zinc-"],
+html[data-rom-theme="night"] [class*="bg-emerald-100"][class*="text-zinc-"] {
+  color: #f4f8ff !important;
+}
+
+html[data-rom-theme="night"] [class*="bg-emerald-50"] [class*="text-emerald-"],
+html[data-rom-theme="night"] [class*="bg-emerald-100"] [class*="text-emerald-"],
+html[data-rom-theme="night"] [class*="bg-emerald-50"][class*="text-emerald-"],
+html[data-rom-theme="night"] [class*="bg-emerald-100"][class*="text-emerald-"] {
+  color: #e7f1ff !important;
 }
 
 html[data-rom-text="bold"] body {
