@@ -717,6 +717,11 @@ const EN: UiMessages = {
   "report.pdfPreview": "Preview PDF",
   "report.pdfPreviewHint": "Opens the PDF as last saved on the server. Save your report first if you have unsaved changes.",
   "report.pdfPreviewClose": "Close preview",
+  "report.deleteReport": "Delete this report",
+  "report.deleteReportHint":
+    "Permanently removes this pupil report from the database. Use if you created one by mistake (for example the wrong term).",
+  "report.confirmDeleteReport":
+    "Delete this report permanently? This cannot be undone. You can create a new report for this pupil afterwards if needed.",
   "reports.title": "Reports",
   "reports.hint": "Choose a school to add students and write reports.",
   "reports.notLinked": "You are not linked to any school yet.",
@@ -1166,6 +1171,11 @@ const EN: UiMessages = {
   "class.duplicatePupilUnnamedClass": "(unnamed class)",
   "class.movePickOtherClass": "Pick a different destination class.",
   "class.moveConfirm": "Move {who} to {dest}? Their reports will move with them.",
+  "class.duplicateReportTitle": "Report already exists",
+  "class.duplicateReportBody":
+    "A report already exists for {name} for this period ({term}). Open the existing report to edit it instead of creating a duplicate.",
+  "class.duplicateReportEditExisting": "Open existing report",
+  "class.duplicateReportCancel": "Cancel",
   "saas.platformBadge": "Platform",
   "saas.ownerDashboardTitle": "SaaS Owner Dashboard",
   "saas.schoolDetailsTitle": "School details",
@@ -1418,6 +1428,11 @@ const FR: UiMessages = {
   "report.pdfPreview": "Aperçu PDF",
   "report.pdfPreviewHint": "Ouvre le PDF tel qu’enregistré sur le serveur. Enregistrez d’abord si vous avez des modifications non sauvegardées.",
   "report.pdfPreviewClose": "Fermer l’aperçu",
+  "report.deleteReport": "Supprimer ce rapport",
+  "report.deleteReportHint":
+    "Supprime définitivement ce rapport de l’élève. Utile en cas d’erreur (par ex. mauvais trimestre).",
+  "report.confirmDeleteReport":
+    "Supprimer ce rapport définitivement ? Cette action est irréversible. Vous pourrez créer un nouveau rapport ensuite si besoin.",
   "reports.title": "Rapports",
   "reports.hint": "Choisissez une école pour ajouter des élèves et rédiger des rapports.",
   "reports.notLinked": "Vous n’êtes lié·e à aucune école pour le moment.",
@@ -1811,6 +1826,11 @@ const FR: UiMessages = {
   "class.newReportPeriodSecond": "Deuxième trimestre",
   "class.newReportPeriodThird": "Troisième trimestre",
   "class.reportEditTermAria": "Modifier le rapport pour le trimestre {n}",
+  "class.duplicateReportTitle": "Rapport déjà existant",
+  "class.duplicateReportBody":
+    "Un rapport existe déjà pour {name} pour cette période ({term}). Ouvrez le rapport existant pour le modifier plutôt que d’en créer un doublon.",
+  "class.duplicateReportEditExisting": "Ouvrir le rapport existant",
+  "class.duplicateReportCancel": "Annuler",
   "class.deletePupil": "Supprimer l’élève",
   "class.editPupil": "Modifier",
   "class.savePupilEdits": "Enregistrer",
@@ -1961,6 +1981,11 @@ const ES: UiMessages = {
   "report.pdfPreview": "Vista previa PDF",
   "report.pdfPreviewHint": "Abre el PDF según la última versión guardada en el servidor. Guarde el informe primero si hay cambios sin guardar.",
   "report.pdfPreviewClose": "Cerrar vista previa",
+  "report.deleteReport": "Eliminar este informe",
+  "report.deleteReportHint":
+    "Elimina permanentemente este informe del alumno en la base de datos. Úselo si lo creó por error (por ejemplo, trimestre equivocado).",
+  "report.confirmDeleteReport":
+    "¿Eliminar este informe de forma permanente? No se puede deshacer. Podrá crear otro informe después si lo necesita.",
   "reports.title": "Informes",
   "reports.hint": "Elija un centro para añadir alumnos y redactar informes.",
   "reports.notLinked": "Aún no está vinculado a ningún centro.",
@@ -2356,6 +2381,11 @@ const ES: UiMessages = {
   "class.newReportPeriodSecond": "Segundo trimestre",
   "class.newReportPeriodThird": "Tercer trimestre",
   "class.reportEditTermAria": "Editar informe del trimestre {n}",
+  "class.duplicateReportTitle": "El informe ya existe",
+  "class.duplicateReportBody":
+    "Ya existe un informe para {name} en este periodo ({term}). Abra el informe existente para editarlo en lugar de crear un duplicado.",
+  "class.duplicateReportEditExisting": "Abrir informe existente",
+  "class.duplicateReportCancel": "Cancelar",
   "class.deletePupil": "Eliminar alumno",
   "class.editPupil": "Editar",
   "class.savePupilEdits": "Guardar",

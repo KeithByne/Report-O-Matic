@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
@@ -400,6 +400,21 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     return `${base}/reports/${encodeURIComponent(reportId)}/pdf`;
   }
 
+  async function deleteThisReport() {
+    if (!confirm(t("report.confirmDeleteReport"))) return;
+    setBusy("delete");
+    try {
+      const res = await fetch(`${base}/reports/${encodeURIComponent(reportId)}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
+      router.push(classPageHrefForStudent(tenantId, classId, studentId));
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
 
   function setTermGrade(termIdx: 0 | 1 | 2, key: Dataset4MetricKey, val: number | null) {
     setInputs((prev) => {
@@ -449,12 +464,24 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           </div>
           <p className="mt-1 text-sm text-zinc-600">{shortCourse ? t("report.pageIntroShort") : t("report.pageIntro")}</p>
         </div>
-        <Link
-          href={classPageHrefForStudent(tenantId, classId, studentId)}
-          className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
-        >
-          {t("report.backClass")}
-        </Link>
+        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <button
+            type="button"
+            disabled={busy !== null}
+            onClick={() => void deleteThisReport()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
+            title={t("report.deleteReportHint")}
+          >
+            <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+            {t("report.deleteReport")}
+          </button>
+          <Link
+            href={classPageHrefForStudent(tenantId, classId, studentId)}
+            className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+          >
+            {t("report.backClass")}
+          </Link>
+        </div>
       </div>
 
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">

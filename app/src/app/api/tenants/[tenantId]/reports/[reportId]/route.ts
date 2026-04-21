@@ -10,7 +10,7 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import { getTenantDefaultReportLanguage } from "@/lib/data/tenantLanguage";
 import { getStudentInTenant } from "@/lib/data/students";
 import { translateReportComment } from "@/lib/ai/generateReportDraft";
-import { getReport, updateReport } from "@/lib/data/reportsDb";
+import { deleteReport, getReport, updateReport } from "@/lib/data/reportsDb";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -145,6 +145,34 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     return NextResponse.json({ report });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to update report.";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+export async function DELETE(_req: Request, context: { params: Promise<{ tenantId: string; reportId: string }> }) {
+  const { tenantId, reportId } = await context.params;
+  if (!isUuid(tenantId) || !isUuid(reportId)) {
+    return NextResponse.json({ error: "Invalid id." }, { status: 400 });
+  }
+  const gate = await requireTenantMember(tenantId);
+  if (!gate.ok) return gate.res;
+  const role = await getRoleForTenant(gate.email, tenantId);
+  if (!role) return NextResponse.json({ error: "No access." }, { status: 403 });
+
+  const existing = await getReport(tenantId, reportId);
+  if (!existing) return NextResponse.json({ error: "Report not found." }, { status: 404 });
+  const stu = await getStudentInTenant(tenantId, existing.student_id);
+  if (!stu) return NextResponse.json({ error: "Student not found." }, { status: 404 });
+  const klass = await getClassInTenant(tenantId, stu.class_id);
+  if (klass && !canAccessClass({ role, viewerEmail: gate.email, klass })) {
+    return NextResponse.json({ error: "You do not have access to this report." }, { status: 403 });
+  }
+
+  try {
+    await deleteReport(tenantId, reportId);
+    return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Failed to delete report.";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

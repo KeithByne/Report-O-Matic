@@ -106,6 +106,13 @@ export async function insertReport(opts: {
   return rowFromDb(data as Record<string, unknown>);
 }
 
+export async function deleteReport(tenantId: string, reportId: string): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const { error } = await supabase.from("reports").delete().eq("tenant_id", tenantId).eq("id", reportId);
+  if (error) throw new Error(formatErr(error));
+}
+
 export async function updateReport(
   tenantId: string,
   reportId: string,

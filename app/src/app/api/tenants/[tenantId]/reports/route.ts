@@ -7,7 +7,12 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import { insertReport, listReportsForTenant } from "@/lib/data/reportsDb";
 import { getStudentInTenant, listStudents } from "@/lib/data/students";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { emptyReportInputs, emptyShortCourseReportInputs, parseReportInputs } from "@/lib/reportInputs";
+import {
+  emptyReportInputs,
+  emptyShortCourseReportInputs,
+  findConflictingReportIdForNewReport,
+  parseReportInputs,
+} from "@/lib/reportInputs";
 import { getTenantCreditBalance } from "@/lib/data/credits";
 
 function isUuid(s: string): boolean {
@@ -103,6 +108,22 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
           ...emptyReportInputs(),
           report_period: klass.default_new_report_period,
         };
+
+  const existingForStudent = await listReportsForTenant(tenantId, sid);
+  const conflictId = findConflictingReportIdForNewReport(
+    existingForStudent.map((r) => ({ id: r.id, inputs: r.inputs })),
+    wantShort ? "short_course" : "standard",
+    inputs.report_period,
+  );
+  if (conflictId) {
+    return NextResponse.json(
+      {
+        error: "A report already exists for this pupil and this term.",
+        existing_report_id: conflictId,
+      },
+      { status: 409 },
+    );
+  }
 
   try {
     const report = await insertReport({

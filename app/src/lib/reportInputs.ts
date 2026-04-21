@@ -143,6 +143,32 @@ export function parseReportInputs(raw: unknown): ReportInputs {
   return base;
 }
 
+/**
+ * True if an existing report occupies the same “slot” as a new report from the class list:
+ * standard reports conflict when `report_period` matches; short course conflicts with any existing short course.
+ */
+export function existingReportConflictsWithNewReport(
+  existingInputs: ReportInputs,
+  newKind: ReportKind,
+  newStandardPeriod: ReportPeriod,
+): boolean {
+  if (newKind === "short_course") return isShortCourseReport(existingInputs);
+  if (isShortCourseReport(existingInputs)) return false;
+  return existingInputs.report_period === newStandardPeriod;
+}
+
+export function findConflictingReportIdForNewReport(
+  existing: { id: string; inputs: unknown }[],
+  newKind: ReportKind,
+  newStandardPeriod: ReportPeriod,
+): string | null {
+  for (const row of existing) {
+    const inputs = parseReportInputs(row.inputs);
+    if (existingReportConflictsWithNewReport(inputs, newKind, newStandardPeriod)) return row.id;
+  }
+  return null;
+}
+
 /** AI reliability hint: standard uses full grid; short course uses the focused term only (16 cells). */
 export function rubricCompleteForAi(inputs: ReportInputs): boolean {
   return isShortCourseReport(inputs) ? focusTermComplete(inputs) : allTermsComplete(inputs);

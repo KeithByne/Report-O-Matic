@@ -18,6 +18,7 @@ import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLang
 import {
   type ReportKind,
   type ReportPeriod,
+  findConflictingReportIdForNewReport,
   isShortCourseReport,
   parseReportInputs,
   reportPeriodTermNumber,
@@ -209,6 +210,11 @@ export function ClassWorkspace({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [openClassPanel, setOpenClassPanel] = useState<ClassWorkspacePanelId | null>(() => initialOpenPanel ?? null);
+  const [duplicateReportDialog, setDuplicateReportDialog] = useState<{
+    studentName: string;
+    existingReportId: string;
+    termLabel: string;
+  } | null>(null);
 
   useEffect(() => {
     setOpenClassPanel(initialOpenPanel ?? null);
@@ -524,7 +530,7 @@ export function ClassWorkspace({
     }
   }
 
-  async function createReport(studentId: string) {
+  async function createReport(studentId: string, studentDisplayName: string) {
     const kind = defNewReportKind;
     setBusy("create");
     try {
@@ -539,6 +545,15 @@ export function ClassWorkspace({
         }),
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 409 && typeof data.existing_report_id === "string") {
+        const period: ReportPeriod = kind === "standard" ? defNewReportPeriod : "first";
+        setDuplicateReportDialog({
+          studentName: studentDisplayName,
+          existingReportId: data.existing_report_id as string,
+          termLabel: kind === "short_course" ? t("class.shortCourseReportLink") : termLabelForNewReportPeriod(period),
+        });
+        return;
+      }
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       const rep = data.report as { id: string };
       await refreshStudents();
@@ -551,6 +566,31 @@ export function ClassWorkspace({
   }
 
   const reportsByStudent = (sid: string) => reports.filter((r) => r.student_id === sid);
+
+  function termLabelForNewReportPeriod(period: ReportPeriod): string {
+    if (period === "first") return t("class.newReportPeriodFirst");
+    if (period === "second") return t("class.newReportPeriodSecond");
+    return t("class.newReportPeriodThird");
+  }
+
+  function handleClickNewReport(s: Student) {
+    const kind = defNewReportKind;
+    const period: ReportPeriod = kind === "standard" ? defNewReportPeriod : "first";
+    const conflictId = findConflictingReportIdForNewReport(
+      reportsByStudent(s.id).map((r) => ({ id: r.id, inputs: r.inputs })),
+      kind,
+      period,
+    );
+    if (conflictId) {
+      setDuplicateReportDialog({
+        studentName: s.display_name,
+        existingReportId: conflictId,
+        termLabel: kind === "short_course" ? t("class.shortCourseReportLink") : termLabelForNewReportPeriod(defNewReportPeriod),
+      });
+      return;
+    }
+    void createReport(s.id, s.display_name);
+  }
 
   const canDeleteStudent =
     viewerRole === "owner" || viewerRole === "department_head" || viewerRole === "teacher";
@@ -664,8 +704,53 @@ export function ClassWorkspace({
     }
   }
 
+  const existingReportHref =
+    duplicateReportDialog != null
+      ? `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}/reports/${encodeURIComponent(duplicateReportDialog.existingReportId)}`
+      : "";
+
   return (
     <div className="space-y-8">
+      {duplicateReportDialog ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="duplicate-report-dialog-title"
+          onClick={() => setDuplicateReportDialog(null)}
+        >
+          <div
+            className="max-w-md rounded-2xl border border-emerald-200 bg-white p-5 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="duplicate-report-dialog-title" className="text-base font-semibold text-zinc-900">
+              {t("class.duplicateReportTitle")}
+            </h3>
+            <p className="mt-3 text-sm text-zinc-600">
+              {t("class.duplicateReportBody", {
+                name: duplicateReportDialog.studentName,
+                term: duplicateReportDialog.termLabel,
+              })}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link
+                href={existingReportHref}
+                className="inline-flex rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-900"
+                onClick={() => setDuplicateReportDialog(null)}
+              >
+                {t("class.duplicateReportEditExisting")}
+              </Link>
+              <button
+                type="button"
+                className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50/70"
+                onClick={() => setDuplicateReportDialog(null)}
+              >
+                {t("class.duplicateReportCancel")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{schoolName}</p>
         <h2 className="text-xl font-semibold text-zinc-900">{cName || initialClassName}</h2>
@@ -1164,7 +1249,7 @@ export function ClassWorkspace({
                     })}
                     <button
                       type="button"
-                      onClick={() => void createReport(s.id)}
+                      onClick={() => handleClickNewReport(s)}
                       disabled={busy !== null || editingStudentId !== null}
                       className="rounded-lg border border-dashed border-emerald-200 px-3 py-1.5 text-sm text-zinc-700 hover:bg-emerald-50/70 disabled:opacity-50"
                     >
