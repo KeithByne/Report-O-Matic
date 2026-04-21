@@ -169,6 +169,23 @@
 
       .row { display: grid; gap: 10px; }
       .field { display: grid; gap: 6px; }
+      .fieldLabelRow {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .fieldLabelRow label { margin: 0; }
+      .linkForgot {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        white-space: nowrap;
+      }
+      .linkForgot:hover { color: #a7f3d0; }
       label { font-size: 12px; color: var(--muted); }
       input {
         width: 100%;
@@ -318,7 +335,10 @@
                 />
               </div>
               <div class="field">
-                <label for="signInPassword">Password</label>
+                <div class="fieldLabelRow">
+                  <label for="signInPassword">Password</label>
+                  <a class="linkForgot" href="#" id="forgotPasswordLink">Forgot your password?</a>
+                </div>
                 <input
                   id="signInPassword"
                   name="signin_password"
@@ -355,13 +375,10 @@
                 <div id="turnstileWidget"></div>
               </div>
 
-              <div class="split" style="align-items: flex-start; flex-wrap: wrap">
-                <span class="small"
-                  >You’ll receive a 6–7 digit security code by email. It may take up to a minute to arrive. If you don’t see it, check your
-                  <strong>spam</strong> or <strong>junk</strong> folder.</span
-                >
-                <a class="small" href="#" id="forgotPasswordLink" style="white-space: nowrap">Forgot your password?</a>
-              </div>
+              <p class="small" style="margin-top: 8px">
+                You’ll receive a 6–7 digit security code by email. It may take up to a minute to arrive. If you don’t see it, check your
+                <strong>spam</strong> or <strong>junk</strong> folder.
+              </p>
             </form>
           </section>
 
