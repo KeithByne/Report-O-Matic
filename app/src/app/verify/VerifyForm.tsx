@@ -22,7 +22,7 @@ declare global {
 const TURNSTILE_SITE_KEY =
   typeof process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY === "string" && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY.trim()
     ? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY.trim()
-    : "0x4AAAAAACyZzKE7jN8nu-J1";
+    : "";
 
 export function VerifyForm() {
   const { t } = useUiLanguage();
@@ -72,6 +72,11 @@ export function VerifyForm() {
       const host = turnstileHostRef.current;
       const api = window.turnstile;
       if (!host || !api) return;
+      if (!TURNSTILE_SITE_KEY) {
+        setBackupMsg(t("auth.backupResendTurnstileErr"));
+        setBackupStatus("err");
+        return;
+      }
       try {
         const id = api.render(host, {
           sitekey: TURNSTILE_SITE_KEY,

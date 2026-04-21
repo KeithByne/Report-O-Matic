@@ -352,12 +352,7 @@
               </button>
 
               <div class="field" style="margin-top: 4px;">
-                <div
-                  id="turnstileWidget"
-                  class="cf-turnstile"
-                  data-sitekey="0x4AAAAAACyZzKE7jN8nu-J1"
-                  data-callback="onTurnstileSuccess"
-                ></div>
+                <div id="turnstileWidget"></div>
               </div>
 
               <div class="split" style="align-items: flex-start; flex-wrap: wrap">
@@ -478,10 +473,7 @@
         }
 
         var turnstileToken = null;
-
-        window.onTurnstileSuccess = function (token) {
-          turnstileToken = token;
-        };
+        var turnstileWidgetId = null;
 
         var els = {
           tabSignIn: document.getElementById("tabSignIn"),
@@ -722,6 +714,44 @@
         }
 
         detectBrowserLanguage();
+
+        function mountTurnstileWhenReady() {
+          var host = document.getElementById("turnstileWidget");
+          if (!host || !window.turnstile || typeof window.turnstile.render !== "function") {
+            setTimeout(mountTurnstileWhenReady, 50);
+            return;
+          }
+          if (turnstileWidgetId) return;
+          var base = apiBase();
+          fetch(base + "/api/config/turnstile-site-key", { cache: "no-store" })
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (data) {
+              var siteKey = data && data.site_key ? String(data.site_key).trim() : "";
+              if (!siteKey) {
+                setMsg(
+                  "err",
+                  "Human verification is not configured on the server. Set NEXT_PUBLIC_TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY for the same Turnstile widget in Vercel, then redeploy.",
+                );
+                return;
+              }
+              try {
+                turnstileWidgetId = window.turnstile.render(host, {
+                  sitekey: siteKey,
+                  callback: function (token) {
+                    turnstileToken = token;
+                  },
+                });
+              } catch (e) {
+                setMsg("err", "Could not load human verification. Refresh the page and try again.");
+              }
+            })
+            .catch(function () {
+              setMsg("err", "Could not load sign-in configuration from the server. Check that the app is deployed and reachable.");
+            });
+        }
+        mountTurnstileWhenReady();
       })();
     </script>
   </body>
