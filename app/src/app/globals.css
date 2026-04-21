@@ -122,6 +122,12 @@ html[data-rom-theme="night"] .rom-timetable-preview .text-emerald-900 {
   color: #111827 !important;
 }
 
+/* Timetable visualization should match printable PDF text colors (dark text). */
+html[data-rom-theme="night"] .rom-timetable-grid [class*="text-zinc-"],
+html[data-rom-theme="night"] .rom-timetable-grid [class*="text-emerald-"] {
+  color: #111827 !important;
+}
+
 html[data-rom-text="bold"] body {
   font-size: 1.06rem;
 }

@@ -429,7 +429,7 @@ export function TimetablePageClient({
         <p className="text-sm text-amber-800">{t("timetable.noTeachers")}</p>
       ) : null}
 
-      <div className="overflow-x-auto rounded-xl border border-emerald-200 bg-white shadow-sm">
+      <div className="rom-timetable-grid overflow-x-auto rounded-xl border border-emerald-200 bg-white shadow-sm">
         <table className="min-w-[720px] border-collapse text-left text-xs">
           <thead>
             <tr className="border-b border-zinc-200 bg-emerald-50/60">
