@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 
 type TenantDetails = {
   tenant: { id: string; name: string; referral_code: string | null; referred_by_email: string | null; created_at: string };
@@ -92,6 +93,7 @@ export function SaasOwnerTenantView({ tenantId, userDisplayName }: { tenantId: s
           />
           <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
             <GlobeLanguageSwitcher />
+            <DisplayModeSwitcher />
           </div>
         </div>
       </header>

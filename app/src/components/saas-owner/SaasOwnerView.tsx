@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 
 type TenantHit = {
   tenant_id: string;
@@ -345,6 +346,7 @@ export function SaasOwnerView({
           />
           <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
             <GlobeLanguageSwitcher />
+            <DisplayModeSwitcher />
           </div>
         </div>
       </header>

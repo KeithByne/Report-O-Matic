@@ -22,3 +22,54 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+html[data-rom-theme="night"] {
+  --background: #0b1220;
+  --foreground: #e5e7eb;
+  --color-emerald-50: #0f1e1a;
+  --color-emerald-100: #183126;
+}
+
+html[data-rom-theme="night"] body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+html[data-rom-theme="night"] .bg-white {
+  background-color: #111827 !important;
+}
+
+html[data-rom-theme="night"] .text-zinc-900,
+html[data-rom-theme="night"] .text-zinc-800,
+html[data-rom-theme="night"] .text-zinc-700,
+html[data-rom-theme="night"] .text-zinc-600 {
+  color: #d1d5db !important;
+}
+
+html[data-rom-theme="night"] .border-emerald-200,
+html[data-rom-theme="night"] .border-zinc-200,
+html[data-rom-theme="night"] .border-zinc-300 {
+  border-color: #374151 !important;
+}
+
+html[data-rom-text="bold"] body {
+  font-size: 1.06rem;
+}
+
+html[data-rom-text="bold"] .text-xs {
+  font-size: 0.82rem !important;
+}
+
+html[data-rom-text="bold"] .text-sm {
+  font-size: 0.98rem !important;
+}
+
+html[data-rom-text="bold"] .text-base,
+html[data-rom-text="bold"] .text-lg {
+  font-size: 1.08em !important;
+}
+
+html[data-rom-text="bold"] .font-medium,
+html[data-rom-text="bold"] .font-semibold {
+  font-weight: 700 !important;
+}

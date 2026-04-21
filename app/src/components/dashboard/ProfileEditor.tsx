@@ -6,6 +6,7 @@ import { ArrowLeft, FileDown, Save, Shield, UserRound } from "lucide-react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
+import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { ACCOUNT_DELETE_CONFIRM_PHRASE } from "@/lib/legal/accountDeleteConstants";
@@ -208,6 +209,7 @@ export function ProfileEditor({
           />
           <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
             <GlobeLanguageSwitcher />
+            <DisplayModeSwitcher />
           </div>
         </div>
       </header>

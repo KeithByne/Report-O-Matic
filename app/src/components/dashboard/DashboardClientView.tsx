@@ -51,6 +51,7 @@ import { TimetablePageClient } from "@/components/timetable/TimetablePageClient"
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
+import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -384,6 +385,7 @@ export function DashboardClientView({
               />
               <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
                 <GlobeLanguageSwitcher />
+                <DisplayModeSwitcher />
                 <form action="/api/auth/sign-out" method="post" className="shrink-0">
                   <button
                     type="submit"
@@ -404,6 +406,7 @@ export function DashboardClientView({
               />
               <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
                 <GlobeLanguageSwitcher />
+                <DisplayModeSwitcher />
                 <form action="/api/auth/sign-out" method="post" className="shrink-0">
                   <button
                     type="submit"
