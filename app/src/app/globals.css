@@ -128,6 +128,28 @@ html[data-rom-theme="night"] .rom-timetable-grid [class*="text-emerald-"] {
   color: #111827 !important;
 }
 
+/* Timetable visualization should keep PDF-like light fills in night mode. */
+html[data-rom-theme="night"] .rom-timetable-grid,
+html[data-rom-theme="night"] .rom-timetable-grid [class*="bg-white"] {
+  background-color: #ffffff !important;
+}
+
+html[data-rom-theme="night"] .rom-timetable-grid [class*="bg-emerald-50"] {
+  background-color: #ecfdf5 !important;
+}
+
+html[data-rom-theme="night"] .rom-timetable-grid [class*="bg-zinc-50"] {
+  background-color: #fafafa !important;
+}
+
+html[data-rom-theme="night"] .rom-timetable-grid [class*="border-zinc-200"] {
+  border-color: #e4e4e7 !important;
+}
+
+html[data-rom-theme="night"] .rom-timetable-grid [class*="border-zinc-100"] {
+  border-color: #f4f4f5 !important;
+}
+
 html[data-rom-text="bold"] body {
   font-size: 1.06rem;
 }
