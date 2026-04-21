@@ -217,7 +217,7 @@ export function ProfileEditor({
       <main className="mx-auto max-w-4xl space-y-6 px-5 py-8">
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-2 text-sm font-medium text-emerald-800 hover:text-emerald-950"
+        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
       >
         <ArrowLeft className={ICON_INLINE} aria-hidden />
         {t("profile.backToDashboard")}

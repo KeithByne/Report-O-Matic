@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
@@ -26,6 +27,7 @@ import {
   type ClassSettingsSavedDetail,
   type ReportAiSavedDetail,
 } from "@/lib/appEvents";
+import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
 
@@ -735,8 +737,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       <div className="flex justify-center sm:justify-start">
         <Link
           href={classPageHrefForStudent(tenantId, classId, studentId)}
-          className="text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+          className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
         >
+          <ArrowLeft className={ICON_INLINE} aria-hidden />
           {t("report.backToClass")}
         </Link>
       </div>

@@ -100,7 +100,7 @@ export function ReportsFlowHeader({
             <Link
               key={l.href}
               href={l.href}
-              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+              className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
             >
               <l.Icon className={ICON_INLINE} aria-hidden />
               {l.label}

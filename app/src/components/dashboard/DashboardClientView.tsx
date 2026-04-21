@@ -757,7 +757,7 @@ export function DashboardClientView({
                   setOwnerFocusTenantId(null);
                   setWorkspaceDashPanel(null);
                 }}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-900 hover:underline"
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
               >
                 <ArrowLeft className={ICON_INLINE} aria-hidden />
                 {t("dash.ownerBackToSchools")}

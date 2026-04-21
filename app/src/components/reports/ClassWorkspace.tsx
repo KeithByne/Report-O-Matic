@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeft,
   ArrowLeftRight,
   FolderKanban,
   Printer,
@@ -670,11 +671,9 @@ export function ClassWorkspace({
         <h2 className="text-xl font-semibold text-zinc-900">{cName || initialClassName}</h2>
         <Link
           href={classesListHref(tenantId, viewerRole)}
-          className="mt-1 inline-flex items-center text-sm font-medium text-emerald-800 hover:text-emerald-950"
+          className="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
         >
-          <span className="mr-1" aria-hidden>
-            ←
-          </span>
+          <ArrowLeft className={ICON_INLINE} aria-hidden />
           {t("class.backToClassesList")}
         </Link>
         <p className="mt-1 text-sm text-zinc-600">
@@ -972,11 +971,11 @@ export function ClassWorkspace({
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <Link
           href={classesListHref(tenantId, viewerRole)}
-          className="mt-1 inline-block text-sm font-medium text-emerald-800 hover:text-emerald-950 hover:underline"
+          className="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
         >
+          <ArrowLeft className={ICON_INLINE} aria-hidden />
           {t("class.backToClassesList")}
         </Link>
-        <p className="mt-2 text-xs text-zinc-500">{t("class.studentsHint")}</p>
         <div className="mt-3 flex flex-wrap items-center gap-x-[2ch] gap-y-2 text-sm">
           <span className="text-zinc-600">{t("class.makeReportsForLabel")}</span>
           {viewerRole === "owner" || viewerRole === "department_head" ? (
@@ -1005,7 +1004,6 @@ export function ClassWorkspace({
             </span>
           )}
         </div>
-        <p className="mt-1 text-xs text-zinc-500">{t("class.makeReportsForHint")}</p>
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.firstName")}</span>

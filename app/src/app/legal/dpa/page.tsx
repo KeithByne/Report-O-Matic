@@ -26,8 +26,12 @@ export default function DpaPage() {
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
       <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <Link href="/landing.html" className="text-sm font-semibold text-emerald-800 hover:text-emerald-950">
-            ← Sign in
+          <Link
+            href="/landing.html"
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+          >
+            <span aria-hidden>←</span>
+            Sign in
           </Link>
           <nav className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
             <Link href="/legal/privacy" className="text-emerald-800 hover:text-emerald-950">

@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
+import { ICON_INLINE } from "@/components/ui/iconSizes";
 
 type TenantDetails = {
   tenant: { id: string; name: string; referral_code: string | null; referred_by_email: string | null; created_at: string };
@@ -100,7 +102,11 @@ export function SaasOwnerTenantView({ tenantId, userDisplayName }: { tenantId: s
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Link href="/saas-owner/Jane2788Eyre" className="text-sm font-semibold text-emerald-800 hover:underline">
+          <Link
+            href="/saas-owner/Jane2788Eyre"
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+          >
+            <ArrowLeft className={ICON_INLINE} aria-hidden />
             {t("saas.backToOwner")}
           </Link>
           <div className="text-xs text-zinc-600 font-mono">{tenantId}</div>

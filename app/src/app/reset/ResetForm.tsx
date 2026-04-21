@@ -148,7 +148,7 @@ export function ResetForm() {
         <button
           type="button"
           onClick={() => router.push("/landing.html")}
-          className="mt-3 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
         >
           {t("auth.backToSignIn")}
         </button>
