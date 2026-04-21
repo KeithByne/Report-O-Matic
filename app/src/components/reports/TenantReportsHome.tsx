@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeft,
   BookOpen,
   CalendarDays,
   Download,
@@ -153,18 +154,35 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
   }, [base, bulkGroupBy, teacherOnlyFinal]);
 
   const menuItems = useMemo(() => {
-    const items: { id: TenantPanelId; label: string; Icon: LucideIcon }[] = [
-      { id: "welcome", label: t("dash.panelOverview"), Icon: PANEL_ICON.welcome },
-      { id: "language", label: t("tenant.panelLanguage"), Icon: PANEL_ICON.language },
-      { id: "classes", label: t("tenant.panelClasses"), Icon: PANEL_ICON.classes },
-      { id: "timetable", label: t("tenant.panelTimetable"), Icon: PANEL_ICON.timetable },
-    ];
+    const items: { id: TenantPanelId; label: string; Icon: LucideIcon }[] =
+      viewerRole === "teacher"
+        ? [
+            { id: "classes", label: t("tenant.panelClasses"), Icon: PANEL_ICON.classes },
+            { id: "timetable", label: t("tenant.panelTimetable"), Icon: PANEL_ICON.timetable },
+          ]
+        : [
+            { id: "welcome", label: t("dash.panelOverview"), Icon: PANEL_ICON.welcome },
+            { id: "language", label: t("tenant.panelLanguage"), Icon: PANEL_ICON.language },
+            { id: "classes", label: t("tenant.panelClasses"), Icon: PANEL_ICON.classes },
+            { id: "timetable", label: t("tenant.panelTimetable"), Icon: PANEL_ICON.timetable },
+          ];
     if (isLead) items.push({ id: "bulk", label: t("tenant.panelDownloads"), Icon: PANEL_ICON.bulk });
     return items;
-  }, [isLead, t]);
+  }, [isLead, t, viewerRole]);
 
   return (
     <div className="space-y-8">
+      {viewerRole === "teacher" ? (
+        <div>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+          >
+            <ArrowLeft className={ICON_INLINE} aria-hidden />
+            Back to Dashboard
+          </Link>
+        </div>
+      ) : null}
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
           <FolderKanban className={ICON_SECTION} aria-hidden />

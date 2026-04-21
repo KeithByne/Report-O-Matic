@@ -176,12 +176,15 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
           </button>
         </li>
 
-        <li className="flex flex-col gap-3">
+        <li className="flex flex-col gap-2">
           <div>
             <p className="flex items-center gap-2 text-sm font-medium text-zinc-800">
               <FileText className={ICON_INLINE} aria-hidden />
               {t("dash.teacherDownloadsAllReports")}
             </p>
+            {!allShortCourse && isTeacher ? (
+              <p className="mt-0.5 text-xs text-zinc-500">{t("dash.teacherDownloadsAllReportsTeacherHint")}</p>
+            ) : null}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex flex-col gap-2">
@@ -200,8 +203,6 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
                     ))}
                   </select>
                 </label>
-              ) : isTeacher ? (
-                <p className="max-w-md text-xs text-zinc-500">{t("dash.teacherDownloadsAllReportsTeacherHint")}</p>
               ) : (
                 <label className="flex flex-col gap-1 text-sm sm:min-w-[10rem]">
                   <span className="text-zinc-600">{t("class.bulkDownloadTermLabel")}</span>
