@@ -24,7 +24,7 @@ body {
 }
 
 html[data-rom-theme="night"] {
-  --background: #132744;
+  --background: #0f1f36;
   --foreground: #e6efff;
   --color-emerald-50: #162b49;
   --color-emerald-100: #213a5f;
