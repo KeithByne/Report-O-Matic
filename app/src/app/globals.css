@@ -107,6 +107,11 @@ html[data-rom-theme="night"] .inline-flex select option {
   color: #ffffff;
 }
 
+/* UI language menu: keep dropdown list options dark blue in night mode. */
+html[data-rom-theme="night"] select.rom-ui-language-select option {
+  color: #163a66;
+}
+
 html[data-rom-text="bold"] body {
   font-size: 1.06rem;
 }

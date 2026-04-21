@@ -17,7 +17,7 @@ export function GlobeLanguageSwitcher() {
         value={lang}
         onChange={(e) => setLang(e.target.value as UiLang)}
         aria-label={t("a11y.uiLanguage")}
-        className="min-w-[8rem] max-w-[min(18rem,100%)] cursor-pointer border-0 bg-transparent py-0.5 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-0"
+        className="rom-ui-language-select min-w-[8rem] max-w-[min(18rem,100%)] cursor-pointer border-0 bg-transparent py-0.5 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-0"
       >
         {options.map((o) => (
           <option key={o.code} value={o.code}>
