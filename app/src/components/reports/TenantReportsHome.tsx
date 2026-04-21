@@ -179,7 +179,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
             className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
           >
             <ArrowLeft className={ICON_INLINE} aria-hidden />
-            Back to Dashboard
+            {t("profile.backToDashboard")}
           </Link>
         </div>
         {loadError ? (
