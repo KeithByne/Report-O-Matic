@@ -112,6 +112,16 @@ html[data-rom-theme="night"] select.rom-ui-language-select option {
   color: #163a66;
 }
 
+/* Timetable preview should keep dark text in night mode. */
+html[data-rom-theme="night"] .rom-timetable-preview .text-zinc-900,
+html[data-rom-theme="night"] .rom-timetable-preview .text-zinc-800,
+html[data-rom-theme="night"] .rom-timetable-preview .text-zinc-700,
+html[data-rom-theme="night"] .rom-timetable-preview .text-zinc-600,
+html[data-rom-theme="night"] .rom-timetable-preview .text-zinc-500,
+html[data-rom-theme="night"] .rom-timetable-preview .text-emerald-900 {
+  color: #111827 !important;
+}
+
 html[data-rom-text="bold"] body {
   font-size: 1.06rem;
 }

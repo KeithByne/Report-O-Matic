@@ -75,7 +75,7 @@ export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: P
   }
 
   return (
-    <div className="mt-3 rounded-lg border border-emerald-100 bg-white/80 px-3 py-3">
+    <div className="rom-timetable-preview mt-3 rounded-lg border border-emerald-100 bg-white/80 px-3 py-3">
       <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
         <CalendarDays className={`${ICON_INLINE} h-3.5 w-3.5 shrink-0 opacity-80`} aria-hidden />
         {t("timetable.title")}
