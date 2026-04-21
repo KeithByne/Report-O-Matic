@@ -490,13 +490,13 @@ const EN: UiMessages = {
     "Create an account from the landing page (sign up with your school name), or ask an owner or department head to add your email from their dashboard.",
   "dash.ownerBlurbTitle": "Account owner workspace",
   "dash.ownerBlurbBody":
-    "You can invite department heads and teachers, set each school's default report language (here and in the reports hub), create classes, assign teachers to classes, and open every class and student report in your schools. Department heads and teachers only see what their role allows.",
+    "You can invite department heads and teachers, set each school's default report language (here and in the reports hub), create classes, assign teachers to classes, and open every class and student report in your schools.",
   "dash.dhBlurbTitle": "Department head workspace",
   "dash.dhBlurbBody":
     "Invite teachers, set the school default language, create classes, assign teachers, and access all classes and reports. Owners handle billing and can invite department heads.",
   "dash.teacherBlurbTitle": "Teacher workspace",
   "dash.teacherBlurbBody":
-    "Use Reports to open a school, then only classes assigned to your email by an owner or department head. Your dashboard lists schools you belong to; class assignment happens in the reports hub.",
+    "Use Reports to open a school and work in the classes assigned to your email by an owner or department head. Your dashboard lists schools you belong to, and class assignment is managed in the reports hub.",
   "dash.teacherSectionMenuTitle": "Teacher dashboard",
   "dash.teacherSectionMenuHint": "Choose a section to show help and tips below.",
   "dash.teacherShowSelectionTitle": "Show selection",
@@ -571,8 +571,8 @@ const EN: UiMessages = {
   "dash.guide.classT3": "Check the pupil list before writing reports.",
   "dash.guide.stepReportsTitle": "Write reports",
   "dash.guide.report1": "From the class, open a pupil and their report.",
-  "dash.guide.report2": "Draft text; use school language settings and AI only as your policy allows.",
-  "dash.guide.report3": "Mark final when the report is ready for the record.",
+  "dash.guide.report2": "Fill in the numerical grades.",
+  "dash.guide.report3": "Press the 'Do the Magic' button to generate the comments. Then the report is saved and ready to print.",
   "dash.ownerBackToSchools": "Back to schools",
   "dash.ownerMenuClassesAndReports": "Classes and Reports",
   "profile.pageTitle": "Your account",
@@ -729,16 +729,16 @@ const EN: UiMessages = {
     "Invite teachers, create classes, assign a teacher to each class, and work across all classes and reports in {school}. Owners retain billing and top-level invites from the main dashboard.",
   "tenant.teacherBannerTitle": "Teacher — assigned classes",
   "tenant.teacherBannerBody":
-    "You only see classes an owner or department head has assigned to your email. Open a class to manage students and reports. Ask a lead if a class is missing.",
+    "You can open classes assigned to your email by an owner or department head, then manage students and reports for those classes.",
   "tenant.introLead":
     "Set the default report language for {school} (used for new reports; you can override per report). Create a class first, then open it to assign a teacher, add students, and write reports.",
   "tenant.introTeacher":
-    "School default language is set by an owner or department head. Open an assigned class below to add students and write reports.",
+    "School default language is managed by an owner or department head. Open an assigned class below to add students and write reports.",
   "tenant.schoolLangTitle": "School default report language",
   "tenant.schoolLangLead":
     "Applies to new reports school-wide; classes and single reports can override.",
   "tenant.schoolLangReadonly":
-    "Read-only here — leads change this on their dashboard or this page when signed in as owner or department head.",
+    "School leads manage this setting on their dashboard or on this page when signed in as owner or department head.",
   "tenant.saving": "Saving…",
   "tenant.bulkDownloadsTitle": "Bulk downloads",
   "tenant.bulkDownloadsLead": "Download many reports as one combined PDF for faster printing.",
@@ -755,13 +755,13 @@ const EN: UiMessages = {
   "tenant.classesTitle": "Classes",
   "tenant.newClassName": "New class name",
   "tenant.createClass": "Create class",
-  "tenant.onlyLeadsCreate": "Only owners and department heads can create new classes.",
+  "tenant.onlyLeadsCreate": "Owners and department heads can create new classes.",
   "tenant.openClass": "Open class",
   "tenant.delete": "Delete",
   "tenant.pupil": "pupil",
   "tenant.pupils": "pupils",
   "tenant.noClassesLead": "No classes yet — create one above before adding students.",
-  "tenant.noClassesTeacher": "No classes assigned to you yet. A lead must assign your email on the class.",
+  "tenant.noClassesTeacher": "No classes are assigned yet. A school lead can assign your email on a class to get started.",
   "tenant.sectionMenuTitle": "Show sections",
   "tenant.sectionMenuHint":
     "Nothing below appears until you turn on a section. Click a button to show it; click again to hide.",
