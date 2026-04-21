@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { requireRuntimeSecret } from "@/lib/security/envSecrets";
 
 export type SessionPayload = {
   sid: string;
@@ -7,7 +8,10 @@ export type SessionPayload = {
 };
 
 function getSecret(): string {
-  return process.env.ROM_SESSION_SECRET || "dev-change-me-too";
+  return requireRuntimeSecret("ROM_SESSION_SECRET", {
+    devFallback: "dev-change-me-too",
+    minLength: 24,
+  });
 }
 
 export function signSession(payload: SessionPayload): string {

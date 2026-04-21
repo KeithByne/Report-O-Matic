@@ -8,6 +8,7 @@ import { getPasswordHashForEmail } from "@/lib/auth/passwordStore";
 import { corsHeadersForRequest } from "@/lib/http/cors";
 import { sendRomOtpEmail } from "@/lib/email/sendRomOtpEmail";
 import { verifyTurnstileToken } from "@/lib/security/verifyTurnstile";
+import { requireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type Body = {
   email?: unknown;
@@ -34,7 +35,10 @@ function normalizeEmail(email: string): string {
 }
 
 function getPepper(): string {
-  return process.env.ROM_OTP_PEPPER || "dev-change-me";
+  return requireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
 }
 
 function isUuid(s: string): boolean {

@@ -6,6 +6,7 @@ import { newResetChallengeId, savePasswordResetChallenge } from "@/lib/auth/pass
 import { sha256Hex } from "@/lib/auth/devStore";
 import { Resend } from "resend";
 import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
+import { requireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type Body = { email?: unknown; turnstile_token?: unknown };
 
@@ -22,7 +23,10 @@ function getClientIp(req: Request): string {
 }
 
 function getPepper(): string {
-  return process.env.ROM_OTP_PEPPER || "dev-change-me";
+  return requireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
 }
 
 function getOtpTtlMs(): number {

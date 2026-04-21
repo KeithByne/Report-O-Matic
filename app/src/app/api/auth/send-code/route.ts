@@ -10,6 +10,7 @@ import { getServiceSupabase } from "@/lib/supabase/service";
 import { sendRomOtpEmail } from "@/lib/email/sendRomOtpEmail";
 import { verifyTurnstileToken } from "@/lib/security/verifyTurnstile";
 import { getOtpTtlMs } from "@/lib/auth/otpTtl";
+import { requireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type SendCodeBody = {
   email?: unknown;
@@ -42,7 +43,10 @@ function normalizeEmail(email: string): string {
 }
 
 function getPepper(): string {
-  return process.env.ROM_OTP_PEPPER || "dev-change-me";
+  return requireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
 }
 
 function randomDigits(length: number): string {

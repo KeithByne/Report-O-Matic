@@ -6,6 +6,7 @@ import { ensureOwnerTenantForSignup } from "@/lib/data/memberships";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 import { corsHeadersForRequest } from "@/lib/http/cors";
+import { requireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type VerifyCodeBody = {
   email?: unknown;
@@ -22,7 +23,10 @@ function normalizeEmail(email: string): string {
 }
 
 function getPepper(): string {
-  return process.env.ROM_OTP_PEPPER || "dev-change-me";
+  return requireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
 }
 
 function isUuid(s: string): boolean {

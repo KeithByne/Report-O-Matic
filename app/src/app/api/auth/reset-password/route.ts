@@ -4,6 +4,7 @@ import { checkRateLimit } from "@/lib/security/rateLimit";
 import { verifyPasswordResetChallenge } from "@/lib/auth/passwordResetChallenge";
 import { hashPassword } from "@/lib/auth/passwordHash";
 import { setPasswordHash } from "@/lib/auth/passwordStore";
+import { requireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type Body = { email?: unknown; challenge_id?: unknown; code?: unknown; new_password?: unknown };
 
@@ -24,7 +25,10 @@ function getClientIp(req: Request): string {
 }
 
 function getPepper(): string {
-  return process.env.ROM_OTP_PEPPER || "dev-change-me";
+  return requireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
 }
 
 export async function OPTIONS(req: Request) {
