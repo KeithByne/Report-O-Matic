@@ -36,24 +36,24 @@ html[data-rom-theme="night"] body {
 }
 
 html[data-rom-theme="night"] .bg-white {
-  background-color: #122844 !important;
+  background-color: #0f223c !important;
 }
 
 html[data-rom-theme="night"] .text-zinc-900,
 html[data-rom-theme="night"] .text-zinc-800,
 html[data-rom-theme="night"] .text-zinc-700,
 html[data-rom-theme="night"] .text-zinc-600 {
-  color: #d9e7fb !important;
+  color: #eef5ff !important;
 }
 
 html[data-rom-theme="night"] .text-zinc-500 {
-  color: #bfd1ef !important;
+  color: #d4e2f8 !important;
 }
 
 html[data-rom-theme="night"] .text-emerald-950,
 html[data-rom-theme="night"] .text-emerald-900,
 html[data-rom-theme="night"] .text-emerald-800 {
-  color: #d7e7ff !important;
+  color: #eaf3ff !important;
 }
 
 html[data-rom-theme="night"] .border-emerald-200,
@@ -64,7 +64,7 @@ html[data-rom-theme="night"] .border-zinc-300 {
 
 html[data-rom-theme="night"] .bg-emerald-50,
 html[data-rom-theme="night"] .bg-emerald-100 {
-  background-color: #1d3659 !important;
+  background-color: #163153 !important;
 }
 
 html[data-rom-text="bold"] body {
