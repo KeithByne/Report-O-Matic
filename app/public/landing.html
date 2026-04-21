@@ -544,6 +544,17 @@
           // do not reset turnstileToken here to avoid unnecessary re-validation
         }
 
+        // Turnstile tokens are single-use. send-code verifies Turnstile before password check,
+        // so a wrong password still consumes the token — reset the widget for a fresh challenge.
+        function resetTurnstileWidget() {
+          turnstileToken = null;
+          if (turnstileWidgetId != null && window.turnstile && typeof window.turnstile.reset === "function") {
+            try {
+              window.turnstile.reset(turnstileWidgetId);
+            } catch (ignore) {}
+          }
+        }
+
         function setTab(which) {
           var signIn = which === "in";
           els.tabSignIn.setAttribute("aria-selected", signIn ? "true" : "false");
@@ -646,6 +657,7 @@
             qp.set("email", email);
             window.location.href = base + "/verify?" + qp.toString();
           } catch (e) {
+            resetTurnstileWidget();
             setMsg("err", e && e.message ? e.message : "Could not send code.");
           } finally {
             els.signInBtn.disabled = false;
@@ -712,6 +724,7 @@
                 window.location.href = base + "/reset?" + qp.toString();
               })
               .catch(function (e) {
+                resetTurnstileWidget();
                 setMsg("err", e && e.message ? e.message : "Could not start password reset.");
               })
               .finally(function () {
