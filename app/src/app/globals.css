@@ -24,7 +24,7 @@ body {
 }
 
 html[data-rom-theme="night"] {
-  --background: #0f1f36;
+  --background: #20446d;
   --foreground: #e6efff;
   --color-emerald-50: #162b49;
   --color-emerald-100: #213a5f;
@@ -101,9 +101,10 @@ html[data-rom-theme="night"] [class*="bg-gradient-to-"][class*="to-white"][class
   color: #f2f7ff !important;
 }
 
-/* Night mode dropdown legibility: keep option list text dark blue on light popup surfaces. */
-html[data-rom-theme="night"] select option {
-  color: #163a66;
+/* Night mode header toggles: keep select text/options visible on dark surfaces. */
+html[data-rom-theme="night"] .inline-flex select,
+html[data-rom-theme="night"] .inline-flex select option {
+  color: #ffffff;
 }
 
 html[data-rom-text="bold"] body {
