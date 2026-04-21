@@ -15,7 +15,6 @@ import {
   FileImage,
   FileSpreadsheet,
   FolderKanban,
-  Globe,
   LayoutDashboard,
   LayoutList,
   Library,
@@ -55,7 +54,6 @@ import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { UI_LANG_OPTIONS, uiLanguageNativeLabel } from "@/lib/i18n/uiStrings";
 import type { TeacherStats, TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
 import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
 
@@ -70,7 +68,7 @@ type MyAgentLink = {
 
 type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "classes" | "timetable";
 
-type TeacherWorkspacePanel = "language" | "schools" | "downloads";
+type TeacherWorkspacePanel = "schools" | "downloads";
 
 export type DashboardClientViewProps = {
   email: string;
@@ -370,11 +368,6 @@ export function DashboardClientView({
     const uniq = [...new Set(memberships.map((m) => m.role))];
     return uniq.map((r) => roleLabel(r)).join(" · ");
   }, [memberships, t]);
-
-  const teacherReportLangNativeList = useMemo(
-    () => UI_LANG_OPTIONS.map((o) => uiLanguageNativeLabel(o.code)).join(" · "),
-    [],
-  );
 
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
@@ -692,23 +685,6 @@ export function DashboardClientView({
                     <UserRound className={ICON_INLINE} aria-hidden />
                     {t("dash.profileButton")}
                   </Link>
-                  <button
-                    type="button"
-                    aria-pressed={teacherWorkspacePanel === "language"}
-                    aria-label={`${t("dash.teacherPanelLanguage")}: ${teacherReportLangNativeList}`}
-                    onClick={() => toggleTeacherWorkspacePanel("language")}
-                    className={`inline-flex min-w-0 max-w-full flex-col items-stretch gap-1 rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors sm:max-w-[min(100%,36rem)] sm:flex-row sm:items-center sm:gap-2 ${
-                      teacherWorkspacePanel === "language"
-                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                    }`}
-                  >
-                    <span className="inline-flex shrink-0 items-center gap-2">
-                      <Globe className={ICON_INLINE} aria-hidden />
-                      {t("dash.teacherPanelLanguage")}
-                    </span>
-                    <span className="text-xs font-normal leading-snug text-zinc-600">{teacherReportLangNativeList}</span>
-                  </button>
                   {teacherHasMultipleSchools ? (
                     <button
                       type="button"
@@ -755,9 +731,7 @@ export function DashboardClientView({
                   <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-xs font-medium text-emerald-950" role="status" aria-live="polite">
                     <span className="text-zinc-600">{t("dash.teacherSelectionShowing")}</span>{" "}
                     <span className="text-zinc-900">
-                      {teacherWorkspacePanel === "language"
-                        ? t("dash.teacherPanelLanguage")
-                        : teacherWorkspacePanel === "downloads"
+                      {teacherWorkspacePanel === "downloads"
                           ? t("tenant.panelDownloads")
                           : t("dash.teacherPanelSchools")}
                     </span>
@@ -1069,26 +1043,6 @@ export function DashboardClientView({
             ) : null}
             {usesTeacherWorkspaceMenu ? (
               <>
-                {teacherWorkspacePanel === "language" ? (
-                  <div
-                    id="dash-teacher-panel-language"
-                    key="teacher-lang"
-                    className="rounded-2xl border border-emerald-200 bg-white p-1 shadow-sm"
-                  >
-                    <DashboardTenantLanguage
-                      tenants={visibleMemberships.map((m) => ({
-                        tenantId: m.tenantId,
-                        tenantName: m.tenantName,
-                        canEditSettings: false,
-                      }))}
-                      langs={reportLangByTenant}
-                      onLanguageSaved={(tenantId, code) =>
-                        setReportLangByTenant((prev) => ({ ...prev, [tenantId]: code }))
-                      }
-                    />
-                  </div>
-                ) : null}
-
                 {teacherWorkspacePanel === "schools" && teacherHasMultipleSchools && visibleMemberships.length > 0 ? (
                   <section
                     id="dash-teacher-panel-schools"

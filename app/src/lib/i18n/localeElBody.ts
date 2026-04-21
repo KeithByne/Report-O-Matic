@@ -30,7 +30,6 @@ export const EL_BODY: Record<string, string> = {
   "dash.profileButton": "Προφίλ",
   "dash.teacherSelectionShowing": "Εμφάνιση:",
   "dash.teacherSelectionNone": "Καμία ενότητα επιλεγμένη",
-  "dash.teacherPanelLanguage": "Γλώσσα αναφορών",
   "dash.teacherPanelSchools": "Τα σχολεία μου",
   "dash.yourSchools": "Τα σχολεία σας",
   "dash.yourSchoolsHint": "Ρόλος και ενέργειες ανά οργανισμό.",
