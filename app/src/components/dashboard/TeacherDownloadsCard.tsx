@@ -182,9 +182,6 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
               <FileText className={ICON_INLINE} aria-hidden />
               {t("dash.teacherDownloadsAllReports")}
             </p>
-            {!allShortCourse && isTeacher ? (
-              <p className="mt-0.5 text-xs text-zinc-500">{t("dash.teacherDownloadsAllReportsTeacherHint")}</p>
-            ) : null}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex flex-col gap-2">
@@ -205,7 +202,6 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
                 </label>
               ) : (
                 <label className="flex flex-col gap-1 text-sm sm:min-w-[10rem]">
-                  <span className="text-zinc-600">{t("class.bulkDownloadTermLabel")}</span>
                   <select
                     value={reportsTerm}
                     onChange={(e) => setReportsTerm(e.target.value as ReportPeriod)}
