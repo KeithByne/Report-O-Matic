@@ -170,9 +170,9 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
     return items;
   }, [isLead, t, viewerRole]);
 
-  return (
-    <div className="space-y-8">
-      {viewerRole === "teacher" ? (
+  if (viewerRole === "teacher") {
+    return (
+      <div className="space-y-8">
         <div>
           <Link
             href="/dashboard"
@@ -182,7 +182,18 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
             Back to Dashboard
           </Link>
         </div>
-      ) : null}
+        {loadError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
+        ) : null}
+        <div id="tenant-panel-classes">
+          <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
           <FolderKanban className={ICON_SECTION} aria-hidden />
