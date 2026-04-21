@@ -161,8 +161,9 @@ export const IT_COMPLETION: Record<string, string> = {
   "dash.guide.ownerLetterhead2": "Aggiungi il tuo logo e le linee di contatto in modo che i PDF esportati corrispondano alla tua scuola.",
   "dash.guide.ownerLetterhead3": "Salva prima di generare report.",
   "dash.guide.report1": "Dalla classe, apri un alunno e il suo rapporto.",
-  "dash.guide.report2": "Redigere il testo; utilizzare le impostazioni della lingua della scuola e l'intelligenza artificiale solo come consentito dalla politica.",
-  "dash.guide.report3": "Contrassegnare come finale quando il report è pronto per la registrazione.",
+  "dash.guide.report2": "Compila i voti numerici.",
+  "dash.guide.report3":
+    "Premi il pulsante 'Do the Magic' per generare i commenti. Poi il report viene salvato ed è pronto da stampare.",
   "dash.guide.stepClassTeacherTitle": "La tua classe e i tuoi alunni",
   "dash.guide.stepClassesTitle": "Classi e alunni",
   "dash.guide.stepInviteTitle": "Invita il team",

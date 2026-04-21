@@ -268,9 +268,9 @@ export const UI_FILL_ES: Record<string, string> = {
   "dash.guide.classT3": "Revise la lista de alumnos antes de redactar informes.",
   "dash.guide.stepReportsTitle": "Redactar informes",
   "dash.guide.report1": "Desde la clase, abra un alumno y su informe.",
-  "dash.guide.report2":
-    "Redacte el texto; use el idioma del centro y la IA solo si su política lo permite.",
-  "dash.guide.report3": "Marque como final cuando el informe esté listo para el expediente.",
+  "dash.guide.report2": "Complete las calificaciones numéricas.",
+  "dash.guide.report3":
+    "Pulse el botón 'Do the Magic' para generar los comentarios. Después, el informe se guarda y queda listo para imprimir.",
   "profile.pageTitle": "Su cuenta",
   "profile.lead": "Actualice el nombre mostrado, el correo de acceso y su contraseña.",
   "profile.loading": "Cargando…",
@@ -585,9 +585,9 @@ export const UI_FILL_FR: Record<string, string> = {
   "dash.guide.classT3": "Vérifiez la liste des élèves avant de rédiger des rapports.",
   "dash.guide.stepReportsTitle": "Rédiger des rapports",
   "dash.guide.report1": "Depuis la classe, ouvrez un élève et son rapport.",
-  "dash.guide.report2":
-    "Rédigez le texte ; respectez la langue de l’école et l’IA seulement si votre politique l’autorise.",
-  "dash.guide.report3": "Marquez comme final lorsque le rapport est prêt pour le dossier.",
+  "dash.guide.report2": "Saisissez les notes numériques.",
+  "dash.guide.report3":
+    "Appuyez sur le bouton « Do the Magic » pour générer les commentaires. Le rapport est ensuite enregistré et prêt à imprimer.",
   "profile.pageTitle": "Votre compte",
   "profile.lead": "Mettez à jour le nom affiché, l’e-mail de connexion et votre mot de passe.",
   "profile.loading": "Chargement…",

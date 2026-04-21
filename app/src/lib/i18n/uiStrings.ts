@@ -1326,13 +1326,13 @@ const FR: UiMessages = {
     "Créez un compte depuis la page d’accueil (inscription avec le nom de l’école), ou demandez à un propriétaire ou chef de département d’ajouter votre e-mail depuis son tableau de bord.",
   "dash.ownerBlurbTitle": "Espace propriétaire de compte",
   "dash.ownerBlurbBody":
-    "Vous pouvez inviter des chefs de département et des enseignants, définir la langue des rapports pour chaque école, créer des classes, assigner des enseignants et ouvrir chaque rapport. Les autres rôles voient seulement ce qui leur est permis.",
+    "Vous pouvez inviter des chefs de département et des enseignants, définir la langue des rapports pour chaque école, créer des classes, assigner des enseignants et ouvrir chaque rapport.",
   "dash.dhBlurbTitle": "Espace chef de département",
   "dash.dhBlurbBody":
     "Invitez des enseignants, définissez la langue de l’école, créez des classes, assignez des enseignants et accédez à tous les rapports.",
   "dash.teacherBlurbTitle": "Espace enseignant",
   "dash.teacherBlurbBody":
-    "Utilisez Rapports pour ouvrir une école, puis seulement les classes où votre e-mail est assigné.",
+    "Utilisez Rapports pour ouvrir une école et travailler dans les classes assignées à votre e-mail.",
   "dash.teacherSectionMenuTitle": "Tableau de bord enseignant",
   "dash.teacherSectionMenuHint": "Choisissez une section pour afficher l’aide ci-dessous.",
   "dash.teacherShowSelectionTitle": "Afficher la sélection",
@@ -1430,14 +1430,14 @@ const FR: UiMessages = {
     "Invitez des enseignants, créez des classes, assignez un enseignant par classe, travaillez sur tous les rapports de {school}.",
   "tenant.teacherBannerTitle": "Enseignant·e — classes assignées",
   "tenant.teacherBannerBody":
-    "Vous ne voyez que les classes où votre e-mail est assigné. Ouvrez une classe pour gérer élèves et rapports.",
+    "Vous pouvez ouvrir les classes assignées à votre e-mail, puis gérer les élèves et les rapports de ces classes.",
   "tenant.introLead":
     "Définissez la langue par défaut des rapports pour {school}. Créez une classe, puis ouvrez-la pour assigner un enseignant, ajouter des élèves et rédiger.",
   "tenant.introTeacher":
-    "La langue est définie par un responsable. Ouvrez une classe assignée ci-dessous.",
+    "La langue est gérée par un responsable. Ouvrez une classe assignée ci-dessous.",
   "tenant.schoolLangTitle": "Langue des rapports (école)",
   "tenant.schoolLangLead": "S’applique aux nouveaux rapports ; surcharge possible par classe ou rapport.",
-  "tenant.schoolLangReadonly": "Lecture seule — modifiable par un responsable.",
+  "tenant.schoolLangReadonly": "Les responsables gèrent ce réglage depuis leur tableau de bord ou depuis cette page.",
   "tenant.saving": "Enregistrement…",
   "tenant.bulkDownloadsTitle": "Téléchargements groupés",
   "tenant.bulkDownloadsLead": "Téléchargez plusieurs rapports en un seul PDF pour imprimer plus vite.",
@@ -1454,13 +1454,13 @@ const FR: UiMessages = {
   "tenant.classesTitle": "Classes",
   "tenant.newClassName": "Nom de la nouvelle classe",
   "tenant.createClass": "Créer la classe",
-  "tenant.onlyLeadsCreate": "Seuls propriétaires et chefs peuvent créer des classes.",
+  "tenant.onlyLeadsCreate": "Les propriétaires et chefs de département peuvent créer des classes.",
   "tenant.openClass": "Ouvrir la classe",
   "tenant.delete": "Supprimer",
   "tenant.pupil": "élève",
   "tenant.pupils": "élèves",
   "tenant.noClassesLead": "Pas encore de classe — créez-en une ci-dessus.",
-  "tenant.noClassesTeacher": "Aucune classe assignée. Un responsable doit assigner votre e-mail.",
+  "tenant.noClassesTeacher": "Aucune classe n’est encore assignée. Un responsable peut associer votre e-mail à une classe pour démarrer.",
   "tenant.sectionMenuTitle": "Afficher les sections",
   "tenant.sectionMenuHint":
     "Rien ne s’affiche en dessous tant qu’aucune section n’est activée. Cliquez pour afficher ; recliquez pour masquer.",
@@ -1876,7 +1876,7 @@ const ES: UiMessages = {
     "Invite profesores, configure el idioma, cree clases y asigne profesores.",
   "dash.teacherBlurbTitle": "Espacio del profesor",
   "dash.teacherBlurbBody":
-    "Use Informes para abrir un centro; solo verá las clases asignadas a su correo.",
+    "Use Informes para abrir un centro y trabajar en las clases asignadas a su correo.",
   "dash.teacherSectionMenuTitle": "Panel del profesor",
   "dash.teacherSectionMenuHint": "Elija una sección para ver la ayuda debajo.",
   "dash.teacherShowSelectionTitle": "Mostrar selección",
@@ -1973,14 +1973,14 @@ const ES: UiMessages = {
     "Invite profesores, cree clases, asigne un profesor y trabaje en todos los informes de {school}.",
   "tenant.teacherBannerTitle": "Profesor — clases asignadas",
   "tenant.teacherBannerBody":
-    "Solo ve las clases asignadas a su correo. Abra una clase para gestionar alumnos e informes.",
+    "Puede abrir las clases asignadas a su correo y gestionar los alumnos y los informes de esas clases.",
   "tenant.introLead":
     "Configure el idioma de informes por defecto de {school}. Cree una clase y ábrala para asignar profesor, añadir alumnos y redactar.",
   "tenant.introTeacher":
-    "El idioma lo fija un responsable. Abra una clase asignada abajo.",
+    "El idioma lo gestiona un responsable. Abra una clase asignada abajo.",
   "tenant.schoolLangTitle": "Idioma de informes (centro)",
   "tenant.schoolLangLead": "Aplica a informes nuevos; la clase o el informe pueden cambiarlo.",
-  "tenant.schoolLangReadonly": "Solo lectura — lo cambian los responsables.",
+  "tenant.schoolLangReadonly": "Los responsables gestionan este ajuste desde su panel o desde esta página.",
   "tenant.saving": "Guardando…",
   "tenant.bulkDownloadsTitle": "Descargas masivas",
   "tenant.bulkDownloadsLead": "Descargue muchos informes en un solo PDF para imprimir más rápido.",
@@ -1997,13 +1997,13 @@ const ES: UiMessages = {
   "tenant.classesTitle": "Clases",
   "tenant.newClassName": "Nombre de la nueva clase",
   "tenant.createClass": "Crear clase",
-  "tenant.onlyLeadsCreate": "Solo propietarios y jefes pueden crear clases.",
+  "tenant.onlyLeadsCreate": "Los propietarios y jefes de departamento pueden crear clases.",
   "tenant.openClass": "Abrir clase",
   "tenant.delete": "Eliminar",
   "tenant.pupil": "alumno",
   "tenant.pupils": "alumnos",
   "tenant.noClassesLead": "Aún no hay clases — cree una arriba.",
-  "tenant.noClassesTeacher": "Sin clases asignadas. Un responsable debe asignar su correo.",
+  "tenant.noClassesTeacher": "Todavía no hay clases asignadas. Un responsable puede asociar su correo a una clase para empezar.",
   "tenant.sectionMenuTitle": "Mostrar secciones",
   "tenant.sectionMenuHint":
     "Nada aparece debajo hasta que active una sección. Pulse para mostrar; pulse de nuevo para ocultar.",

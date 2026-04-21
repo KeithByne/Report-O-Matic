@@ -44,8 +44,9 @@ export const GETTING_STARTED_DE: Record<string, string> = {
   "dash.guide.stepReportsTitle": "Berichte schreiben",
   "dash.guide.report1": "Öffnen Sie in der Klasse einen Schüler und seinen Bericht.",
   "dash.guide.report2":
-    "Entwerfen Sie den Text; nutzen Sie Schulsprache und KI nur im Rahmen Ihrer Richtlinien.",
-  "dash.guide.report3": "Markieren Sie den Bericht als endgültig, wenn er für die Akte fertig ist.",
+    "Tragen Sie die numerischen Noten ein.",
+  "dash.guide.report3":
+    "Klicken Sie auf die Schaltfläche „Do the Magic“, um die Kommentare zu erstellen. Danach wird der Bericht gespeichert und ist druckbereit.",
 };
 
 export const GETTING_STARTED_PT: Record<string, string> = {
@@ -89,8 +90,9 @@ export const GETTING_STARTED_PT: Record<string, string> = {
   "dash.guide.stepReportsTitle": "Redigir relatórios",
   "dash.guide.report1": "Na turma, abra um aluno e o seu relatório.",
   "dash.guide.report2":
-    "Rascunhe o texto; use a língua da escola e IA só conforme a política permitir.",
-  "dash.guide.report3": "Marque como final quando o relatório estiver pronto para arquivo.",
+    "Preencha as notas numéricas.",
+  "dash.guide.report3":
+    "Prima o botão \"Do the Magic\" para gerar os comentários. Depois, o relatório fica guardado e pronto para imprimir.",
 };
 
 export const GETTING_STARTED_NL: Record<string, string> = {
@@ -134,8 +136,9 @@ export const GETTING_STARTED_NL: Record<string, string> = {
   "dash.guide.stepReportsTitle": "Rapporten schrijven",
   "dash.guide.report1": "Open in de klas een leerling en diens rapport.",
   "dash.guide.report2":
-    "Schrijf concepttekst; gebruik schooltaal en AI alleen volgens uw beleid.",
-  "dash.guide.report3": "Markeer als definitief wanneer het rapport klaar is voor het dossier.",
+    "Vul de numerieke cijfers in.",
+  "dash.guide.report3":
+    "Druk op de knop 'Do the Magic' om de opmerkingen te genereren. Daarna wordt het rapport opgeslagen en is het klaar om af te drukken.",
 };
 
 export const GETTING_STARTED_PL: Record<string, string> = {
@@ -179,8 +182,9 @@ export const GETTING_STARTED_PL: Record<string, string> = {
   "dash.guide.stepReportsTitle": "Pisanie sprawozdań",
   "dash.guide.report1": "Z klasy otwórz ucznia i jego sprawozdanie.",
   "dash.guide.report2":
-    "Szkicuj tekst; język szkoły i AI tylko zgodnie z polityką.",
-  "dash.guide.report3": "Oznacz jako końcowe, gdy sprawozdanie jest gotowe do akt.",
+    "Wprowadź oceny liczbowe.",
+  "dash.guide.report3":
+    "Naciśnij przycisk „Do the Magic”, aby wygenerować komentarze. Następnie sprawozdanie zostanie zapisane i będzie gotowe do wydruku.",
 };
 
 export const GETTING_STARTED_RO: Record<string, string> = {
@@ -224,8 +228,9 @@ export const GETTING_STARTED_RO: Record<string, string> = {
   "dash.guide.stepReportsTitle": "Scrierea rapoartelor",
   "dash.guide.report1": "Din clasă, deschideți un elev și raportul său.",
   "dash.guide.report2":
-    "Redactați textul; folosiți limba școlii și IA doar conform politicii.",
-  "dash.guide.report3": "Marcați final când raportul e gata pentru dosar.",
+    "Completați notele numerice.",
+  "dash.guide.report3":
+    "Apăsați butonul „Do the Magic” pentru a genera comentariile. Apoi raportul este salvat și gata de tipărire.",
 };
 
 export const GETTING_STARTED_RU: Record<string, string> = {
@@ -269,8 +274,9 @@ export const GETTING_STARTED_RU: Record<string, string> = {
   "dash.guide.stepReportsTitle": "Написание отчётов",
   "dash.guide.report1": "В классе откройте ученика и его отчёт.",
   "dash.guide.report2":
-    "Черновик текста; язык школы и ИИ — только в рамках вашей политики.",
-  "dash.guide.report3": "Отметьте как окончательный, когда отчёт готов к делу.",
+    "Заполните числовые оценки.",
+  "dash.guide.report3":
+    "Нажмите кнопку «Do the Magic», чтобы сгенерировать комментарии. Затем отчёт сохраняется и готов к печати.",
 };
 
 export const GETTING_STARTED_UK: Record<string, string> = {
@@ -314,8 +320,9 @@ export const GETTING_STARTED_UK: Record<string, string> = {
   "dash.guide.stepReportsTitle": "Написання звітів",
   "dash.guide.report1": "У класі відкрийте учня та його звіт.",
   "dash.guide.report2":
-    "Чернетка тексту; мова школи та ШІ — лише згідно з політикою.",
-  "dash.guide.report3": "Позначте як остаточний, коли звіт готовий до справи.",
+    "Заповніть числові оцінки.",
+  "dash.guide.report3":
+    "Натисніть кнопку «Do the Magic», щоб згенерувати коментарі. Після цього звіт зберігається і готовий до друку.",
 };
 
 export const GETTING_STARTED_AR: Record<string, string> = {
@@ -359,8 +366,9 @@ export const GETTING_STARTED_AR: Record<string, string> = {
   "dash.guide.stepReportsTitle": "كتابة التقارير",
   "dash.guide.report1": "من الفصل، افتح تلميذاً وتقريره.",
   "dash.guide.report2":
-    "صاغ المسودة؛ استخدم لغة المدرسة والذكاء الاصطناعي وفق سياساتكم فقط.",
-  "dash.guide.report3": "علّم كـ«نهائي» عندما يكون التقرير جاهزاً للأرشفة.",
+    "أدخل الدرجات الرقمية.",
+  "dash.guide.report3":
+    "اضغط زر 'Do the Magic' لتوليد التعليقات. بعد ذلك يُحفَظ التقرير ويصبح جاهزًا للطباعة.",
 };
 
 export const GETTING_STARTED_EL: Record<string, string> = {
@@ -404,6 +412,7 @@ export const GETTING_STARTED_EL: Record<string, string> = {
   "dash.guide.stepReportsTitle": "Σύνταξη αναφορών",
   "dash.guide.report1": "Από την τάξη, ανοίξτε μαθητή και την αναφορά του.",
   "dash.guide.report2":
-    "Σχεδιάστε κείμενο· χρησιμοποιήστε γλώσσα σχολής και AI μόνο όπως επιτρέπει η πολιτική σας.",
-  "dash.guide.report3": "Σημειώστε ως τελική όταν η αναφορά είναι έτοιμη για το αρχείο.",
+    "Συμπληρώστε τους αριθμητικούς βαθμούς.",
+  "dash.guide.report3":
+    "Πατήστε το κουμπί 'Do the Magic' για να δημιουργηθούν τα σχόλια. Έπειτα η αναφορά αποθηκεύεται και είναι έτοιμη για εκτύπωση.",
 };
