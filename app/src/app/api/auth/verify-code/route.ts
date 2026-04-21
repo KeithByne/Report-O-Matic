@@ -6,7 +6,7 @@ import { ensureOwnerTenantForSignup } from "@/lib/data/memberships";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 import { corsHeadersForRequest } from "@/lib/http/cors";
-import { requireRuntimeSecret } from "@/lib/security/envSecrets";
+import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type VerifyCodeBody = {
   email?: unknown;
@@ -20,13 +20,6 @@ function jsonError(status: number, message: string) {
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-function getPepper(): string {
-  return requireRuntimeSecret("ROM_OTP_PEPPER", {
-    devFallback: "dev-change-me",
-    minLength: 24,
-  });
 }
 
 function isUuid(s: string): boolean {
@@ -77,11 +70,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too many attempts. Please wait and try again." }, { status: 429, headers: cors.headers });
   }
 
+  const pepperRes = tryRequireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
+  if (!pepperRes.ok) {
+    return NextResponse.json({ error: pepperRes.error }, { status: 503, headers: cors.headers });
+  }
+
   const verified = await verifyOtpChallenge({
     challengeId,
     email,
     code,
-    pepper: getPepper(),
+    pepper: pepperRes.value,
     nowMs,
   });
   if (!verified.ok) return NextResponse.json({ error: verified.message }, { status: verified.status, headers: cors.headers });
@@ -162,6 +163,15 @@ export async function POST(req: Request) {
   const sessionExpMs = nowMs + 8 * 60 * 60 * 1000; // 8 hours
   const sessionId = crypto.randomUUID();
   const token = signSession({ sid: sessionId, email, exp: sessionExpMs });
+  if (!token) {
+    return NextResponse.json(
+      {
+        error:
+          "ROM_SESSION_SECRET must be set to a strong secret (at least 24 characters) in production before sign-in can complete.",
+      },
+      { status: 503, headers: cors.headers },
+    );
+  }
   const res = NextResponse.json({ ok: true }, { headers: cors.headers });
   res.cookies.set("rom_session", token, {
     httpOnly: true,

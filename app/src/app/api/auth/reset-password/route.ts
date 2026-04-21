@@ -4,7 +4,7 @@ import { checkRateLimit } from "@/lib/security/rateLimit";
 import { verifyPasswordResetChallenge } from "@/lib/auth/passwordResetChallenge";
 import { hashPassword } from "@/lib/auth/passwordHash";
 import { setPasswordHash } from "@/lib/auth/passwordStore";
-import { requireRuntimeSecret } from "@/lib/security/envSecrets";
+import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type Body = { email?: unknown; challenge_id?: unknown; code?: unknown; new_password?: unknown };
 
@@ -22,13 +22,6 @@ function getClientIp(req: Request): string {
   const xrip = req.headers.get("x-real-ip");
   if (xrip) return xrip.trim();
   return "unknown";
-}
-
-function getPepper(): string {
-  return requireRuntimeSecret("ROM_OTP_PEPPER", {
-    devFallback: "dev-change-me",
-    minLength: 24,
-  });
 }
 
 export async function OPTIONS(req: Request) {
@@ -72,7 +65,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "New password must be at least 8 characters." }, { status: 400, headers: cors.headers });
   }
 
-  const verified = await verifyPasswordResetChallenge({ challengeId, email, code, pepper: getPepper(), nowMs });
+  const pepperRes = tryRequireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
+  if (!pepperRes.ok) {
+    return NextResponse.json({ error: pepperRes.error }, { status: 503, headers: cors.headers });
+  }
+
+  const verified = await verifyPasswordResetChallenge({
+    challengeId,
+    email,
+    code,
+    pepper: pepperRes.value,
+    nowMs,
+  });
   if (!verified.ok) {
     return NextResponse.json({ error: verified.message }, { status: verified.status, headers: cors.headers });
   }

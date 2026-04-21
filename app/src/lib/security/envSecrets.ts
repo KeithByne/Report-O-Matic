@@ -15,6 +15,38 @@ function isProduction(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
+function validateRuntimeSecret(
+  name: string,
+  opts: SecretOptions,
+): { ok: true; value: string } | { ok: false; error: string } {
+  const minLength = opts.minLength ?? 24;
+  const raw = process.env[name];
+  const value = typeof raw === "string" ? raw.trim() : "";
+
+  if (value.length >= minLength) return { ok: true, value };
+
+  if (isProduction()) {
+    return {
+      ok: false,
+      error: `${name} must be set to a strong secret (at least ${minLength} characters) in production.`,
+    };
+  }
+
+  if (!warned.has(name)) {
+    warned.add(name);
+    console.warn(`[ROM security] ${name} is missing or weak in development; using dev fallback.`);
+  }
+  return { ok: true, value: opts.devFallback };
+}
+
+/** Non-throwing: use in API routes so misconfiguration returns JSON instead of a 500. */
+export function tryRequireRuntimeSecret(
+  name: string,
+  opts: SecretOptions,
+): { ok: true; value: string } | { ok: false; error: string } {
+  return validateRuntimeSecret(name, opts);
+}
+
 export function getRuntimeSecretHealth(name: string, minLength = 24): SecretHealth {
   const raw = process.env[name];
   const value = typeof raw === "string" ? raw.trim() : "";
@@ -31,21 +63,7 @@ export function getRuntimeSecretHealth(name: string, minLength = 24): SecretHeal
  * In development: allows explicit local fallback for smoother setup.
  */
 export function requireRuntimeSecret(name: string, opts: SecretOptions): string {
-  const minLength = opts.minLength ?? 24;
-  const raw = process.env[name];
-  const value = typeof raw === "string" ? raw.trim() : "";
-
-  if (value.length >= minLength) return value;
-
-  if (isProduction()) {
-    throw new Error(
-      `${name} must be set to a strong secret (at least ${minLength} characters) in production.`,
-    );
-  }
-
-  if (!warned.has(name)) {
-    warned.add(name);
-    console.warn(`[ROM security] ${name} is missing or weak in development; using dev fallback.`);
-  }
-  return opts.devFallback;
+  const r = validateRuntimeSecret(name, opts);
+  if (!r.ok) throw new Error(r.error);
+  return r.value;
 }

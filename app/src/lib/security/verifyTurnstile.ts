@@ -4,7 +4,7 @@ export async function verifyTurnstileToken(opts: {
 }): Promise<{ ok: true } | { ok: false; status: number; message: string; log?: string[] }> {
   const tsSecret = process.env.TURNSTILE_SECRET_KEY;
   if (!tsSecret) {
-    return { ok: false, status: 500, message: "Human verification is not configured." };
+    return { ok: false, status: 503, message: "Human verification is not configured." };
   }
   const turnstileToken = opts.token.trim();
   if (!turnstileToken) {

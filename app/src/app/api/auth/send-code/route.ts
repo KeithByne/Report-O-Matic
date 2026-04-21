@@ -10,7 +10,7 @@ import { getServiceSupabase } from "@/lib/supabase/service";
 import { sendRomOtpEmail } from "@/lib/email/sendRomOtpEmail";
 import { verifyTurnstileToken } from "@/lib/security/verifyTurnstile";
 import { getOtpTtlMs } from "@/lib/auth/otpTtl";
-import { requireRuntimeSecret } from "@/lib/security/envSecrets";
+import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type SendCodeBody = {
   email?: unknown;
@@ -40,13 +40,6 @@ function getClientIp(req: Request): string {
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-function getPepper(): string {
-  return requireRuntimeSecret("ROM_OTP_PEPPER", {
-    devFallback: "dev-change-me",
-    minLength: 24,
-  });
 }
 
 function randomDigits(length: number): string {
@@ -196,7 +189,12 @@ export async function POST(req: Request) {
   const code = randomDigits(6);
   const ttlMs = getOtpTtlMs();
   const expiresAtMs = nowMs + ttlMs;
-  const codeHash = sha256Hex(`${getPepper()}:${challengeId}:${code}`);
+  const pepperRes = tryRequireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
+  if (!pepperRes.ok) return jsonError(503, pepperRes.error, cors.headers);
+  const codeHash = sha256Hex(`${pepperRes.value}:${challengeId}:${code}`);
 
   try {
     await saveOtpChallenge({
@@ -249,8 +247,14 @@ export async function POST(req: Request) {
     }
   } else {
     if (process.env.NODE_ENV === "production") {
-      return jsonError(500, "Email delivery is not configured.", cors.headers);
+      return jsonError(503, "Email delivery is not configured.", cors.headers);
     }
+    const missing: string[] = [];
+    if (!process.env.RESEND_API_KEY?.trim()) missing.push("RESEND_API_KEY");
+    if (!process.env.ROM_FROM_EMAIL?.trim()) missing.push("ROM_FROM_EMAIL");
+    console.warn(
+      `[ROM send-code] No email sent (dev): set ${missing.join(" and ")} in the Next app folder's .env.local (lines must not start with #).`,
+    );
     if (!isSupabaseOtpEnabled()) {
       console.log(`[ROM DEV OTP] email=${email} mode=${mode} code=${code} expires_in_s=${expiresInSeconds} challenge=${challengeId}`);
     }

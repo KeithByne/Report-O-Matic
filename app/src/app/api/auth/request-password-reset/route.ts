@@ -6,7 +6,7 @@ import { newResetChallengeId, savePasswordResetChallenge } from "@/lib/auth/pass
 import { sha256Hex } from "@/lib/auth/devStore";
 import { Resend } from "resend";
 import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
-import { requireRuntimeSecret } from "@/lib/security/envSecrets";
+import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type Body = { email?: unknown; turnstile_token?: unknown };
 
@@ -20,13 +20,6 @@ function getClientIp(req: Request): string {
   const xrip = req.headers.get("x-real-ip");
   if (xrip) return xrip.trim();
   return "unknown";
-}
-
-function getPepper(): string {
-  return requireRuntimeSecret("ROM_OTP_PEPPER", {
-    devFallback: "dev-change-me",
-    minLength: 24,
-  });
 }
 
 function getOtpTtlMs(): number {
@@ -121,7 +114,7 @@ export async function POST(req: Request) {
   const token = typeof body.turnstile_token === "string" ? body.turnstile_token.trim() : "";
   if (!token) return NextResponse.json({ error: "Human verification required." }, { status: 400, headers: cors.headers });
   const tsSecret = process.env.TURNSTILE_SECRET_KEY;
-  if (!tsSecret) return NextResponse.json({ error: "Human verification is not configured." }, { status: 500, headers: cors.headers });
+  if (!tsSecret) return NextResponse.json({ error: "Human verification is not configured." }, { status: 503, headers: cors.headers });
 
   try {
     const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
@@ -146,7 +139,14 @@ export async function POST(req: Request) {
   const code = randomDigits(6);
   const ttlMs = getOtpTtlMs();
   const expiresAtMs = nowMs + ttlMs;
-  const codeHash = sha256Hex(`${getPepper()}:${challengeId}:${code}`);
+  const pepperRes = tryRequireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
+  if (!pepperRes.ok) {
+    return NextResponse.json({ error: pepperRes.error }, { status: 503, headers: cors.headers });
+  }
+  const codeHash = sha256Hex(`${pepperRes.value}:${challengeId}:${code}`);
 
   try {
     await savePasswordResetChallenge({ challengeId, email, codeHash, expiresAtMs });

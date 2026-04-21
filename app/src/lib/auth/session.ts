@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { requireRuntimeSecret } from "@/lib/security/envSecrets";
+import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
 
 export type SessionPayload = {
   sid: string;
@@ -7,23 +7,34 @@ export type SessionPayload = {
   exp: number; // unix ms
 };
 
-function getSecret(): string {
-  return requireRuntimeSecret("ROM_SESSION_SECRET", {
+function getSecretOrNull(): string | null {
+  const r = tryRequireRuntimeSecret("ROM_SESSION_SECRET", {
     devFallback: "dev-change-me-too",
     minLength: 24,
   });
+  return r.ok ? r.value : null;
 }
 
-export function signSession(payload: SessionPayload): string {
+/** Returns null when session signing is not configured in production (avoid throwing from API routes). */
+export function signSession(payload: SessionPayload): string | null {
+  const secret = getSecretOrNull();
+  if (!secret) return null;
   const body = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-  const sig = crypto.createHmac("sha256", getSecret()).update(body).digest("base64url");
+  const sig = crypto.createHmac("sha256", secret).update(body).digest("base64url");
   return `${body}.${sig}`;
 }
 
 export function verifySession(token: string): SessionPayload | null {
+  const secret = getSecretOrNull();
+  if (!secret) return null;
   const [body, sig] = token.split(".");
   if (!body || !sig) return null;
-  const expected = crypto.createHmac("sha256", getSecret()).update(body).digest("base64url");
+  let expected = "";
+  try {
+    expected = crypto.createHmac("sha256", secret).update(body).digest("base64url");
+  } catch {
+    return null;
+  }
   try {
     const a = Buffer.from(sig);
     const b = Buffer.from(expected);

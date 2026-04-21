@@ -8,7 +8,7 @@ import { getPasswordHashForEmail } from "@/lib/auth/passwordStore";
 import { corsHeadersForRequest } from "@/lib/http/cors";
 import { sendRomOtpEmail } from "@/lib/email/sendRomOtpEmail";
 import { verifyTurnstileToken } from "@/lib/security/verifyTurnstile";
-import { requireRuntimeSecret } from "@/lib/security/envSecrets";
+import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type Body = {
   email?: unknown;
@@ -32,13 +32,6 @@ function getClientIp(req: Request): string {
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-function getPepper(): string {
-  return requireRuntimeSecret("ROM_OTP_PEPPER", {
-    devFallback: "dev-change-me",
-    minLength: 24,
-  });
 }
 
 function isUuid(s: string): boolean {
@@ -122,7 +115,12 @@ export async function POST(req: Request) {
   const code = randomDigits(6);
   const ttlMs = getOtpTtlMs();
   const expiresAtMs = nowMs + ttlMs;
-  const codeHash = sha256Hex(`${getPepper()}:${challengeId}:${code}`);
+  const pepperRes = tryRequireRuntimeSecret("ROM_OTP_PEPPER", {
+    devFallback: "dev-change-me",
+    minLength: 24,
+  });
+  if (!pepperRes.ok) return jsonError(503, pepperRes.error, cors.headers);
+  const codeHash = sha256Hex(`${pepperRes.value}:${challengeId}:${code}`);
   const rotated = await rotateOtpChallengeCode({
     challengeId,
     email,
