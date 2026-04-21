@@ -67,6 +67,28 @@ html[data-rom-theme="night"] .bg-emerald-100 {
   background-color: #132a46 !important;
 }
 
+/* In night mode, keep text dark on light-blue card accents. */
+html[data-rom-theme="night"] .bg-emerald-50.text-zinc-900,
+html[data-rom-theme="night"] .bg-emerald-50.text-zinc-800,
+html[data-rom-theme="night"] .bg-emerald-50.text-zinc-700,
+html[data-rom-theme="night"] .bg-emerald-50.text-zinc-600,
+html[data-rom-theme="night"] .bg-emerald-100.text-zinc-900,
+html[data-rom-theme="night"] .bg-emerald-100.text-zinc-800,
+html[data-rom-theme="night"] .bg-emerald-100.text-zinc-700,
+html[data-rom-theme="night"] .bg-emerald-100.text-zinc-600,
+html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-900,
+html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-800,
+html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-700,
+html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-600,
+html[data-rom-theme="night"] .bg-emerald-50 .text-zinc-500,
+html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-900,
+html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-800,
+html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-700,
+html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-600,
+html[data-rom-theme="night"] .bg-emerald-100 .text-zinc-500 {
+  color: #0b1220 !important;
+}
+
 html[data-rom-text="bold"] body {
   font-size: 1.06rem;
 }
