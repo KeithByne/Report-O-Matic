@@ -42,6 +42,7 @@ type ClassOpt = {
   name: string;
   assigned_teacher_email: string | null;
   active_weekdays?: string[];
+  student_count?: number;
 };
 
 type Props = {
@@ -85,6 +86,7 @@ export function TimetablePageClient({
   } | null>(null);
   const [formClassId, setFormClassId] = useState("");
   const [formTeacher, setFormTeacher] = useState("");
+  const [printMode, setPrintMode] = useState<"overview" | "by_teacher" | "by_room">("overview");
   const [formError, setFormError] = useState<string | null>(null);
 
   const canEditGrid = viewerRole === "owner" || viewerRole === "department_head";
@@ -265,7 +267,7 @@ export function TimetablePageClient({
     }
   }
 
-  const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}`;
+  const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}&mode=${encodeURIComponent(printMode)}`;
 
   if (loadError) {
     return (
@@ -321,6 +323,18 @@ export function TimetablePageClient({
             <Printer className={ICON_INLINE} aria-hidden />
             {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
           </button>
+          {viewerRole === "owner" || viewerRole === "department_head" ? (
+            <select
+              value={printMode}
+              onChange={(e) => setPrintMode(e.target.value as typeof printMode)}
+              className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
+              aria-label={t("timetable.printModeLabel")}
+            >
+              <option value="overview">{t("timetable.printModeOverview")}</option>
+              <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
+              <option value="by_room">{t("timetable.printModeByRoom")}</option>
+            </select>
+          ) : null}
         </div>
       ) : (
         <div>
@@ -357,6 +371,18 @@ export function TimetablePageClient({
               <Printer className={ICON_INLINE} aria-hidden />
               {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
             </button>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <select
+                value={printMode}
+                onChange={(e) => setPrintMode(e.target.value as typeof printMode)}
+                className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
+                aria-label={t("timetable.printModeLabel")}
+              >
+                <option value="overview">{t("timetable.printModeOverview")}</option>
+                <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
+                <option value="by_room">{t("timetable.printModeByRoom")}</option>
+              </select>
+            ) : null}
           </div>
         </div>
       )}
@@ -491,7 +517,7 @@ export function TimetablePageClient({
                                 {t("pdf.timetableRoomN", { n: slot.room_index + 1 })}
                               </div>
                               <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
-                                {(slot.class_name ?? "").trim() || "—"}
+                                {`${(slot.class_name ?? "").trim() || "—"} (${classById.get(slot.class_id)?.student_count ?? 0})`}
                               </div>
                             </>
                           ) : (
@@ -527,7 +553,7 @@ export function TimetablePageClient({
                               </div>
                               {slot ? (
                                 <div className="mt-0.5 truncate text-[11px] font-medium leading-tight text-zinc-900">
-                                  {(slot.class_name ?? "").trim() || "—"}
+                                  {`${(slot.class_name ?? "").trim() || "—"} (${classById.get(slot.class_id)?.student_count ?? 0})`}
                                 </div>
                               ) : (
                                 <div className="mt-0.5 truncate text-[11px] text-zinc-500">{t("timetable.emptyCell")}</div>

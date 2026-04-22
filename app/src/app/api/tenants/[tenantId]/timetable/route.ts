@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant, listMembersForTenant } from "@/lib/data/memberships";
+import { getServiceSupabase } from "@/lib/supabase/service";
 import {
   getTimetableSettings,
   listTimetableSlots,
@@ -71,7 +72,25 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
       name: c.name,
       assigned_teacher_email: c.assigned_teacher_email,
       active_weekdays: c.active_weekdays,
+      student_count: 0,
     }));
+
+    if (classes.length > 0) {
+      const classIds = classes.map((c) => c.id);
+      const supabase = getServiceSupabase();
+      if (!supabase) throw new Error("Database not configured.");
+      const { data: studentRows, error: sErr } = await supabase
+        .from("students")
+        .select("class_id")
+        .eq("tenant_id", tenantId)
+        .in("class_id", classIds);
+      if (sErr) throw new Error(sErr.message);
+      const counts = new Map<string, number>();
+      for (const r of (studentRows ?? []) as { class_id: string }[]) {
+        counts.set(r.class_id, (counts.get(r.class_id) ?? 0) + 1);
+      }
+      for (const c of classes) c.student_count = counts.get(c.id) ?? 0;
+    }
 
     return NextResponse.json({
       settings,
