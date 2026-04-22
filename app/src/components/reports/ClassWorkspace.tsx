@@ -290,6 +290,12 @@ export function ClassWorkspace({
 
   const classLevelOptions = useMemo(() => [...allowedClassLevelsForRubric(classGradeRubric)], [classGradeRubric]);
 
+  const classLevelFieldLabel = useMemo(() => {
+    if (classGradeRubric === "language") return t("class.classLevelForLanguage");
+    if (classGradeRubric === "primary") return t("class.classLevelForPrimary");
+    return t("class.classLevelForSecondary");
+  }, [classGradeRubric, t]);
+
   useEffect(() => {
     if (!cefr.trim()) return;
     if (!classLevelOptions.includes(cefr)) setCefr("");
@@ -1141,7 +1147,7 @@ export function ClassWorkspace({
             )}
           </label>
           <label className="text-sm">
-            <span className="text-zinc-600">{t("class.classLevel")}</span>
+            <span className="text-zinc-600">{classLevelFieldLabel}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <select
                 value={cefr}

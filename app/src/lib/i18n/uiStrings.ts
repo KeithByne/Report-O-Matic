@@ -1122,6 +1122,9 @@ const EN: UiMessages = {
   "class.teacherPerReportOutputLangHint":
     "You can still set the output language on each pupil’s report when needed.",
   "class.cefr": "Class level (CEFR)",
+  "class.classLevelForLanguage": "Class level (CEFR bands)",
+  "class.classLevelForPrimary": "Year group (primary)",
+  "class.classLevelForSecondary": "Year group (secondary)",
   "class.defaultSubject": "Default subject",
   "class.selectOrDefineSubject": "Select or define subject",
   "class.subjectPickerHint":
@@ -1878,6 +1881,9 @@ const FR: UiMessages = {
   "class.teacherPerReportOutputLangHint":
     "Vous pouvez toujours définir la langue de sortie sur le rapport de chaque élève si besoin.",
   "class.cefr": "Niveau classe (CECR)",
+  "class.classLevelForLanguage": "Niveau de la classe (bandes CECR)",
+  "class.classLevelForPrimary": "Cycle / année (primaire)",
+  "class.classLevelForSecondary": "Cycle / année (secondaire)",
   "class.defaultSubject": "Matière par défaut",
   "class.selectOrDefineSubject": "Sélectionner ou définir la matière",
   "class.subjectPickerHint":
@@ -2485,6 +2491,9 @@ const ES: UiMessages = {
   "class.teacherPerReportOutputLangHint":
     "Aún puede fijar el idioma de salida en el informe de cada alumno si lo necesita.",
   "class.cefr": "Nivel de la clase (MCER)",
+  "class.classLevelForLanguage": "Nivel de la clase (bandas MCER)",
+  "class.classLevelForPrimary": "Curso / etapa (primaria)",
+  "class.classLevelForSecondary": "Curso / etapa (secundaria)",
   "class.defaultSubject": "Materia por defecto",
   "class.selectOrDefineSubject": "Seleccionar o definir asignatura",
   "class.subjectPickerHint":

@@ -129,6 +129,8 @@ export async function insertClass(opts: {
     default_new_report_kind: "standard",
     assigned_teacher_email: opts.assignedTeacherEmail?.trim().toLowerCase() ?? null,
     active_weekdays: [],
+    /** Must be set from the create-class flow; column defaults to `language` if omitted (wrong for primary/secondary). */
+    grade_rubric_profile: opts.gradeRubricProfile ?? "language",
   };
   const { data, error } = await supabase.from("classes").insert(row).select(classSelect).single();
   if (error) throw new Error(formatErr(error));
