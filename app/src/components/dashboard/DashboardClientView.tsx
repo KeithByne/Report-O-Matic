@@ -438,6 +438,22 @@ export function DashboardClientView({
             </span>
             <span className="min-w-0 break-all font-mono font-normal text-zinc-900">{email}</span>
           </h2>
+          {hasOwner && ownerReportCredits !== null ? (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50/60 px-3 py-2.5">
+              <p className="text-base font-semibold tabular-nums text-teal-950 sm:text-lg">
+                {t("dash.ownerCreditsRemaining", { n: ownerReportCredits })}
+              </p>
+              {firstOwnerTenantId ? (
+                <Link
+                  href={`/reports/${encodeURIComponent(firstOwnerTenantId)}/billing`}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-teal-800 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-900"
+                >
+                  <CreditCard className={ICON_INLINE} aria-hidden />
+                  {t("dash.ownerCreditsBuy")}
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
 
           {teacherMemberships.length > 0 ? (
             <div className="mt-5 rounded-xl border border-emerald-300/70 bg-gradient-to-br from-emerald-50/95 to-white p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5">
@@ -535,22 +551,6 @@ export function DashboardClientView({
                   ))}
                 </ul>
               </div>
-              {ownerReportCredits !== null ? (
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-emerald-100 pt-8">
-                  <p className="text-base font-semibold tabular-nums text-teal-950 sm:text-lg">
-                    {t("dash.ownerCreditsRemaining", { n: ownerReportCredits })}
-                  </p>
-                  {firstOwnerTenantId ? (
-                    <Link
-                      href={`/reports/${encodeURIComponent(firstOwnerTenantId)}/billing`}
-                      className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-teal-800 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-900"
-                    >
-                      <CreditCard className={ICON_INLINE} aria-hidden />
-                      {t("dash.ownerCreditsBuy")}
-                    </Link>
-                  ) : null}
-                </div>
-              ) : null}
             </div>
           ) : null}
 
