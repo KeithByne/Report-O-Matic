@@ -49,6 +49,8 @@ export type TimetablePdfInput = {
   teacherSinglePage?: boolean;
   /** Non-teacher prints: number of room rows grouped per page (e.g. 5 for overview). */
   roomsPerPage?: number;
+  /** Optional explicit room indices to render (used to skip empty room pages). */
+  includedRoomIndices?: number[];
 };
 
 function colWidthPt(gc: number, periodsAm: number, periodColW: number): number {
@@ -126,8 +128,16 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
     }
   }
 
-  const roomsPerPage = teacherSingle ? 1 : Math.max(1, Math.min(opts.roomsPerPage ?? 1, Math.max(1, opts.roomCount)));
-  const roomPages = teacherSingle ? 1 : Math.max(1, Math.ceil(opts.roomCount / roomsPerPage));
+  const allRoomIndices = Array.from({ length: Math.max(1, opts.roomCount) }, (_, i) => i);
+  const roomIndicesToRender =
+    teacherSingle
+      ? [0]
+      : (opts.includedRoomIndices?.filter((n) => Number.isFinite(n) && n >= 0 && n < opts.roomCount) ?? allRoomIndices);
+  const effectiveRoomIndices = roomIndicesToRender.length > 0 ? roomIndicesToRender : allRoomIndices;
+  const roomsPerPage = teacherSingle
+    ? 1
+    : Math.max(1, Math.min(opts.roomsPerPage ?? 1, Math.max(1, effectiveRoomIndices.length)));
+  const roomPages = teacherSingle ? 1 : Math.max(1, Math.ceil(effectiveRoomIndices.length / roomsPerPage));
 
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -143,8 +153,8 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
         doc.addPage({ size: "A4", layout: "landscape", margin: 0 });
       }
       const roomStart = teacherSingle ? 0 : roomPageIndex * roomsPerPage;
-      const roomEnd = teacherSingle ? 1 : Math.min(opts.roomCount, roomStart + roomsPerPage);
-      const roomIndices = teacherSingle ? [0] : Array.from({ length: roomEnd - roomStart }, (_, i) => roomStart + i);
+      const roomEnd = teacherSingle ? 1 : Math.min(effectiveRoomIndices.length, roomStart + roomsPerPage);
+      const roomIndices = teacherSingle ? [0] : effectiveRoomIndices.slice(roomStart, roomEnd);
 
       doc.x = MARGIN_PT;
       doc.y = MARGIN_PT;

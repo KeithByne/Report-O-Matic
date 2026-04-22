@@ -51,6 +51,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const inline = url.searchParams.get("inline") === "1";
   const modeParam = (url.searchParams.get("mode") || "").trim().toLowerCase();
   const ownerMode = modeParam === "by_teacher" || modeParam === "by_room" || modeParam === "overview" ? modeParam : "overview";
+  const teacherFilter = (url.searchParams.get("teacher_email") || "").trim().toLowerCase();
+  const roomFilterRaw = (url.searchParams.get("room_index") || "").trim();
 
   const settings = await getTimetableSettings(tenantId);
   if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
@@ -129,8 +131,12 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         });
       } else {
         const teacherEmails = [...new Set(slots.map((s) => s.teacher_email).filter(Boolean))];
+        const targetTeacherEmails = teacherFilter ? teacherEmails.filter((e) => e === teacherFilter) : teacherEmails;
+        if (targetTeacherEmails.length === 0) {
+          return NextResponse.json({ error: "No timetable entries for that teacher." }, { status: 409 });
+        }
         const perTeacher = await Promise.all(
-          teacherEmails.map((te) =>
+          targetTeacherEmails.map((te) =>
             buildTimetablePdfBuffer({
               letterhead,
               letterheadLogo,
@@ -148,6 +154,24 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         pdf = await mergePdfBuffers(perTeacher);
       }
     } else if (printMode === "by_room") {
+      const activeRoomIndices = [...new Set(slots.map((s) => s.room_index).filter((n) => Number.isFinite(n) && n >= 0))].sort((a, b) => a - b);
+      const roomFilter = roomFilterRaw === "" ? null : Math.max(0, Math.floor(Number(roomFilterRaw)));
+      const targetRoomIndices =
+        roomFilter === null || !Number.isFinite(roomFilter)
+          ? activeRoomIndices
+          : activeRoomIndices.filter((n) => n === roomFilter);
+      if (roomFilter !== null && (!Number.isFinite(roomFilter) || roomFilter < 0)) {
+        return NextResponse.json({ error: "room_index must be a non-negative number." }, { status: 400 });
+      }
+      if (activeRoomIndices.length === 0) {
+        return NextResponse.json(
+          { error: "No timetable entries to print by room yet." },
+          { status: 409 },
+        );
+      }
+      if (targetRoomIndices.length === 0) {
+        return NextResponse.json({ error: "No timetable entries for that room." }, { status: 409 });
+      }
       pdf = await buildTimetablePdfBuffer({
         letterhead,
         letterheadLogo,
@@ -160,6 +184,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         visibleDayIndexes: [0, 1, 2, 3, 4, 5, 6],
         teacherSinglePage: false,
         roomsPerPage: 1,
+        includedRoomIndices: targetRoomIndices,
       });
     } else {
       pdf = await buildTimetablePdfBuffer({

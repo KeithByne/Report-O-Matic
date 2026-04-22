@@ -697,6 +697,8 @@ const EN: UiMessages = {
   "timetable.printModeOverview": "Overview",
   "timetable.printModeByTeacher": "By teacher",
   "timetable.printModeByRoom": "By room",
+  "timetable.prevInstance": "Previous",
+  "timetable.nextInstance": "Next",
   "dash.addSchoolTitle": "Add a School",
   "dash.addSchoolHint": "Create an additional organisation you own. You will be the owner of the new school.",
   "dash.addSchoolPlaceholder": "School name",

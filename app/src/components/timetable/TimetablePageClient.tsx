@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ChevronLeft,
+  ChevronRight,
   BookOpen,
   Building2,
   CalendarDays,
@@ -86,7 +88,6 @@ export function TimetablePageClient({
   } | null>(null);
   const [formClassId, setFormClassId] = useState("");
   const [formTeacher, setFormTeacher] = useState("");
-  const [printMode, setPrintMode] = useState<"overview" | "by_teacher" | "by_room">("overview");
   const [viewMode, setViewMode] = useState<"overview" | "by_teacher" | "by_room">("overview");
   const [selectedTeacherEmail, setSelectedTeacherEmail] = useState("");
   const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
@@ -140,6 +141,10 @@ export function TimetablePageClient({
   }, [slots]);
 
   const classById = useMemo(() => new Map(classes.map((c) => [c.id, c])), [classes]);
+  const orderedTeacherEmails = useMemo(
+    () => teachers.map((t) => t.email).filter(Boolean),
+    [teachers],
+  );
 
   const visibleDayIndexes = useMemo(() => visibleMonFriDayIndexesFromClasses(classes), [classes]);
   const effectiveViewMode = viewerRole === "teacher" ? "by_teacher" : viewMode;
@@ -292,7 +297,18 @@ export function TimetablePageClient({
     }
   }
 
-  const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}&mode=${encodeURIComponent(printMode)}`;
+  const pdfHref = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("lang", lang);
+    params.set("mode", effectiveViewMode);
+    if (effectiveViewMode === "by_teacher" && selectedTeacherEmail.trim()) {
+      params.set("teacher_email", selectedTeacherEmail.trim().toLowerCase());
+    }
+    if (effectiveViewMode === "by_room") {
+      params.set("room_index", String(selectedRoomIndex));
+    }
+    return `${base}/timetable-pdf?${params.toString()}`;
+  }, [base, effectiveViewMode, lang, selectedRoomIndex, selectedTeacherEmail]);
 
   useEffect(() => {
     if (viewerRole === "teacher") return;
@@ -304,6 +320,24 @@ export function TimetablePageClient({
   useEffect(() => {
     if (settings && selectedRoomIndex >= settings.room_count) setSelectedRoomIndex(0);
   }, [selectedRoomIndex, settings]);
+
+  const canStepTeacher =
+    viewerRole !== "teacher" && effectiveViewMode === "by_teacher" && orderedTeacherEmails.length > 1;
+  const canStepRoom = viewerRole !== "teacher" && effectiveViewMode === "by_room" && (settings?.room_count ?? 0) > 1;
+
+  function stepTeacher(dir: -1 | 1) {
+    if (!canStepTeacher) return;
+    const cur = Math.max(0, orderedTeacherEmails.indexOf(selectedTeacherEmail));
+    const next = (cur + dir + orderedTeacherEmails.length) % orderedTeacherEmails.length;
+    setSelectedTeacherEmail(orderedTeacherEmails[next] ?? selectedTeacherEmail);
+  }
+
+  function stepRoom(dir: -1 | 1) {
+    if (!canStepRoom || !settings) return;
+    const n = settings.room_count;
+    const next = (selectedRoomIndex + dir + n) % n;
+    setSelectedRoomIndex(next);
+  }
 
   if (loadError) {
     return (
@@ -361,18 +395,6 @@ export function TimetablePageClient({
           </button>
           {viewerRole === "owner" || viewerRole === "department_head" ? (
             <select
-              value={printMode}
-              onChange={(e) => setPrintMode(e.target.value as typeof printMode)}
-              className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
-              aria-label={t("timetable.printModeLabel")}
-            >
-              <option value="overview">{t("timetable.printModeOverview")}</option>
-              <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
-              <option value="by_room">{t("timetable.printModeByRoom")}</option>
-            </select>
-          ) : null}
-          {viewerRole === "owner" || viewerRole === "department_head" ? (
-            <select
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
               className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
@@ -383,6 +405,46 @@ export function TimetablePageClient({
               <option value="by_room">{t("timetable.printModeByRoom")}</option>
             </select>
           ) : null}
+            {canStepTeacher ? (
+              <div className="inline-flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => stepTeacher(-1)}
+                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
+                  aria-label={t("timetable.prevInstance")}
+                >
+                  <ChevronLeft className={ICON_INLINE} aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => stepTeacher(1)}
+                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
+                  aria-label={t("timetable.nextInstance")}
+                >
+                  <ChevronRight className={ICON_INLINE} aria-hidden />
+                </button>
+              </div>
+            ) : null}
+            {canStepRoom ? (
+              <div className="inline-flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => stepRoom(-1)}
+                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
+                  aria-label={t("timetable.prevInstance")}
+                >
+                  <ChevronLeft className={ICON_INLINE} aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => stepRoom(1)}
+                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
+                  aria-label={t("timetable.nextInstance")}
+                >
+                  <ChevronRight className={ICON_INLINE} aria-hidden />
+                </button>
+              </div>
+            ) : null}
         </div>
       ) : (
         <div>
@@ -419,18 +481,6 @@ export function TimetablePageClient({
               <Printer className={ICON_INLINE} aria-hidden />
               {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
             </button>
-            {viewerRole === "owner" || viewerRole === "department_head" ? (
-              <select
-                value={printMode}
-                onChange={(e) => setPrintMode(e.target.value as typeof printMode)}
-                className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
-                aria-label={t("timetable.printModeLabel")}
-              >
-                <option value="overview">{t("timetable.printModeOverview")}</option>
-                <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
-                <option value="by_room">{t("timetable.printModeByRoom")}</option>
-              </select>
-            ) : null}
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <select
                 value={viewMode}
@@ -470,6 +520,46 @@ export function TimetablePageClient({
                   </option>
                 ))}
               </select>
+            ) : null}
+            {canStepTeacher ? (
+              <div className="inline-flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => stepTeacher(-1)}
+                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
+                  aria-label={t("timetable.prevInstance")}
+                >
+                  <ChevronLeft className={ICON_INLINE} aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => stepTeacher(1)}
+                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
+                  aria-label={t("timetable.nextInstance")}
+                >
+                  <ChevronRight className={ICON_INLINE} aria-hidden />
+                </button>
+              </div>
+            ) : null}
+            {canStepRoom ? (
+              <div className="inline-flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => stepRoom(-1)}
+                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
+                  aria-label={t("timetable.prevInstance")}
+                >
+                  <ChevronLeft className={ICON_INLINE} aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => stepRoom(1)}
+                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
+                  aria-label={t("timetable.nextInstance")}
+                >
+                  <ChevronRight className={ICON_INLINE} aria-hidden />
+                </button>
+              </div>
             ) : null}
           </div>
         </div>
