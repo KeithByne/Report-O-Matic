@@ -693,6 +693,7 @@ const EN: UiMessages = {
   "timetable.assignTeacherOnClass": "Assign a teacher to this class on the class page before adding it to the timetable.",
   "timetable.pickClass": "Choose a class.",
   "timetable.printModeLabel": "Print mode",
+  "timetable.viewModeLabel": "View mode",
   "timetable.printModeOverview": "Overview",
   "timetable.printModeByTeacher": "By teacher",
   "timetable.printModeByRoom": "By room",

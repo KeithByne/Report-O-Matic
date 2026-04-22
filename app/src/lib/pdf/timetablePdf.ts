@@ -1,13 +1,10 @@
 import PDFDocument from "pdfkit";
-import type { WeekdayKey } from "@/lib/activeWeekdays";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { PDF_PAGE_SPEC } from "@/lib/pdf/reportPdfLayoutModel";
 import { drawReportLetterhead, type ReportPdfLetterhead } from "@/lib/pdf/reportPdf";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 
 type PdfDoc = InstanceType<typeof PDFDocument>;
-
-const DAY_KEYS: WeekdayKey[] = ["mon", "tue", "wed", "thu", "fri"];
 
 /** A4 landscape width/height (points). */
 const PAGE_W = PDF_PAGE_SPEC.heightPt;
@@ -102,7 +99,7 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
   const dayColW = 72;
   const usableW = PAGE_W - MARGIN_PT * 2 - dayColW;
   const periodColW = (usableW - LUNCH_COL_W_PT) / Math.max(1, periodTotal);
-  const dayKeyByIndex: Record<number, WeekdayKey> = {
+  const dayKeyByIndex: Record<number, string> = {
     0: "mon",
     1: "tue",
     2: "wed",

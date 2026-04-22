@@ -87,6 +87,9 @@ export function TimetablePageClient({
   const [formClassId, setFormClassId] = useState("");
   const [formTeacher, setFormTeacher] = useState("");
   const [printMode, setPrintMode] = useState<"overview" | "by_teacher" | "by_room">("overview");
+  const [viewMode, setViewMode] = useState<"overview" | "by_teacher" | "by_room">("overview");
+  const [selectedTeacherEmail, setSelectedTeacherEmail] = useState("");
+  const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
   const [formError, setFormError] = useState<string | null>(null);
 
   const canEditGrid = viewerRole === "owner" || viewerRole === "department_head";
@@ -139,17 +142,39 @@ export function TimetablePageClient({
   const classById = useMemo(() => new Map(classes.map((c) => [c.id, c])), [classes]);
 
   const visibleDayIndexes = useMemo(() => visibleMonFriDayIndexesFromClasses(classes), [classes]);
+  const effectiveViewMode = viewerRole === "teacher" ? "by_teacher" : viewMode;
+  const filteredSlotsForView = useMemo(() => {
+    if (effectiveViewMode === "by_teacher") {
+      const email = selectedTeacherEmail.trim().toLowerCase();
+      if (viewerRole !== "teacher" && email) {
+        return slots.filter((s) => teacherEmailForDisplay(s) === email);
+      }
+      return slots;
+    }
+    if (effectiveViewMode === "by_room") {
+      return slots.filter((s) => s.room_index === selectedRoomIndex);
+    }
+    return slots;
+  }, [effectiveViewMode, selectedRoomIndex, selectedTeacherEmail, slots, viewerRole]);
+
+  const slotMapForView = useMemo(() => {
+    const m = new Map<string, SlotApi>();
+    for (const s of filteredSlotsForView) {
+      m.set(`${s.day_of_week}-${s.period_index}-${s.room_index}`, s);
+    }
+    return m;
+  }, [filteredSlotsForView]);
 
   /** At most one lesson per day/period for a teacher; room row comes from the slot. */
   const teacherSlotByDayPeriod = useMemo(() => {
     const m = new Map<string, SlotApi>();
-    if (viewerRole !== "teacher") return m;
-    for (const s of slots) {
+    if (effectiveViewMode !== "by_teacher") return m;
+    for (const s of filteredSlotsForView) {
       const k = `${s.day_of_week}-${s.period_index}`;
       if (!m.has(k)) m.set(k, s);
     }
     return m;
-  }, [slots, viewerRole]);
+  }, [effectiveViewMode, filteredSlotsForView]);
 
   function teacherEmailForDisplay(slot: SlotApi): string {
     const c = classById.get(slot.class_id);
@@ -269,6 +294,17 @@ export function TimetablePageClient({
 
   const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}&mode=${encodeURIComponent(printMode)}`;
 
+  useEffect(() => {
+    if (viewerRole === "teacher") return;
+    if (!selectedTeacherEmail && teachers.length > 0) {
+      setSelectedTeacherEmail(teachers[0]!.email);
+    }
+  }, [selectedTeacherEmail, teachers, viewerRole]);
+
+  useEffect(() => {
+    if (settings && selectedRoomIndex >= settings.room_count) setSelectedRoomIndex(0);
+  }, [selectedRoomIndex, settings]);
+
   if (loadError) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
@@ -335,6 +371,18 @@ export function TimetablePageClient({
               <option value="by_room">{t("timetable.printModeByRoom")}</option>
             </select>
           ) : null}
+          {viewerRole === "owner" || viewerRole === "department_head" ? (
+            <select
+              value={viewMode}
+              onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
+              className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
+              aria-label={t("timetable.viewModeLabel")}
+            >
+              <option value="overview">{t("timetable.printModeOverview")}</option>
+              <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
+              <option value="by_room">{t("timetable.printModeByRoom")}</option>
+            </select>
+          ) : null}
         </div>
       ) : (
         <div>
@@ -381,6 +429,46 @@ export function TimetablePageClient({
                 <option value="overview">{t("timetable.printModeOverview")}</option>
                 <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
                 <option value="by_room">{t("timetable.printModeByRoom")}</option>
+              </select>
+            ) : null}
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <select
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
+                className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
+                aria-label={t("timetable.viewModeLabel")}
+              >
+                <option value="overview">{t("timetable.printModeOverview")}</option>
+                <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
+                <option value="by_room">{t("timetable.printModeByRoom")}</option>
+              </select>
+            ) : null}
+            {viewerRole !== "teacher" && effectiveViewMode === "by_teacher" ? (
+              <select
+                value={selectedTeacherEmail}
+                onChange={(e) => setSelectedTeacherEmail(e.target.value)}
+                className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
+                aria-label={t("timetable.teacher")}
+              >
+                {teachers.map((te) => (
+                  <option key={te.email} value={te.email}>
+                    {te.label || te.email}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            {viewerRole !== "teacher" && effectiveViewMode === "by_room" ? (
+              <select
+                value={String(selectedRoomIndex)}
+                onChange={(e) => setSelectedRoomIndex(Number.parseInt(e.target.value, 10) || 0)}
+                className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
+                aria-label={t("dash.timetableRoomsLabel")}
+              >
+                {Array.from({ length: settings.room_count }, (_, i) => (
+                  <option key={i} value={String(i)}>
+                    {t("pdf.timetableRoomN", { n: i + 1 })}
+                  </option>
+                ))}
               </select>
             ) : null}
           </div>
@@ -501,7 +589,7 @@ export function TimetablePageClient({
                     );
                   }
                   const periodIndex = gc < settings.periods_am ? gc : gc - 1;
-                  if (viewerRole === "teacher") {
+                  if (effectiveViewMode === "by_teacher") {
                     const slot = teacherSlotByDayPeriod.get(`${d}-${periodIndex}`);
                     const emailForColor = slot ? teacherEmailForDisplay(slot) : "";
                     const bg = emailForColor ? teacherHexColor(emailForColor) : "#f8fafc";
@@ -532,8 +620,9 @@ export function TimetablePageClient({
                   return (
                     <td key={`c-${d}-${gc}`} className="border-r border-zinc-100 align-top p-0">
                       <div className="flex flex-col">
-                        {Array.from({ length: settings.room_count }, (_, r) => {
-                          const slot = slotMap.get(`${d}-${periodIndex}-${r}`);
+                        {Array.from({ length: effectiveViewMode === "by_room" ? 1 : settings.room_count }, (_, r) => {
+                          const roomRowIndex = effectiveViewMode === "by_room" ? selectedRoomIndex : r;
+                          const slot = slotMapForView.get(`${d}-${periodIndex}-${roomRowIndex}`);
                           const emailForColor = slot ? teacherEmailForDisplay(slot) : "";
                           const bg = emailForColor ? teacherHexColor(emailForColor) : "#f8fafc";
                           const interactive = canEditGrid;
@@ -542,14 +631,14 @@ export function TimetablePageClient({
                               key={r}
                               type="button"
                               disabled={!interactive}
-                              onClick={() => openModal(d, periodIndex, r)}
+                              onClick={() => openModal(d, periodIndex, roomRowIndex)}
                               className={`border-b border-zinc-100 px-1.5 py-1.5 text-left last:border-b-0 ${
                                 interactive ? "cursor-pointer hover:brightness-95" : "cursor-default"
                               }`}
                               style={{ backgroundColor: bg, height: `${ROOM_ROW_HEIGHT_PX}px` }}
                             >
                               <div className="text-[10px] font-semibold text-zinc-600">
-                                {t("pdf.timetablePageRoom", { n: r + 1 })}
+                                {t("pdf.timetablePageRoom", { n: roomRowIndex + 1 })}
                               </div>
                               {slot ? (
                                 <div className="mt-0.5 truncate text-[11px] font-medium leading-tight text-zinc-900">
