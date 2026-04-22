@@ -56,6 +56,26 @@ export async function creditOwnerForPurchase(opts: CreditOwnerPurchaseOpts): Pro
   if (error && error.code !== "23505") throw new Error(formatErr(error));
 }
 
+export async function giftCreditsToTenant(opts: { tenantId: string; credits: number; grantedByEmail: string }): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const owner = await getOwnerEmailForTenant(opts.tenantId);
+  if (!owner) throw new Error("No owner membership for tenant; cannot gift credits.");
+  const credits = Math.trunc(opts.credits);
+  if (!Number.isFinite(credits) || credits <= 0) throw new Error("Gift credits must be a positive whole number.");
+  const by = normalizeOwnerEmail(opts.grantedByEmail);
+  if (!by) throw new Error("Granting SaaS owner email is required.");
+  const { error } = await supabase.from("owner_credit_ledger").insert({
+    owner_email: owner,
+    delta_credits: credits,
+    reason: "manual_adjust",
+    tenant_id: opts.tenantId,
+    report_id: null,
+    stripe_event_id: null,
+  });
+  if (error) throw new Error(formatErr(error));
+}
+
 /** @deprecated Prefer creditOwnerForPurchase with buyer email from Stripe metadata. */
 export async function creditTenantForPurchase(opts: {
   tenantId: string;

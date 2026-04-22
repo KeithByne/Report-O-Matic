@@ -133,6 +133,8 @@ export function SaasOwnerView({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [hits, setHits] = useState<TenantHit[]>([]);
+  const [giftCreditsByTenant, setGiftCreditsByTenant] = useState<Record<string, string>>({});
+  const [giftBusyByTenant, setGiftBusyByTenant] = useState<Record<string, boolean>>({});
 
   const [range, setRange] = useState<"day" | "week" | "month" | "year" | "ytd" | "all">("month");
   const [agentFilter, setAgentFilter] = useState("");
@@ -1081,37 +1083,91 @@ export function SaasOwnerView({
                   <th className="py-2 pr-3 font-medium">{t("saas.thTenant")}</th>
                   <th className="py-2 pr-3 font-medium">{t("saas.thTenantId")}</th>
                   <th className="py-2 pr-3 font-medium">{t("saas.thOwners")}</th>
+                  <th className="py-2 pr-3 font-medium">{t("saas.thGiftCredits")}</th>
                   <th className="py-2 pr-3 font-medium">{t("roster.thActions")}</th>
                 </tr>
               </thead>
               <tbody>
-                {hits.map((row) => (
-                  <tr key={row.tenant_id} className="border-b border-zinc-100">
-                    <td className="py-2 pr-3 font-medium text-zinc-900">{row.tenant_name}</td>
-                    <td className="py-2 pr-3 font-mono text-xs text-zinc-700">{row.tenant_id}</td>
-                    <td className="py-2 pr-3 text-xs text-zinc-700">
-                      {row.owner_emails.length ? row.owner_emails.join(", ") : "—"}
-                    </td>
-                    <td className="py-2 pr-3">
-                      <a
-                        href={`/saas-owner/Jane2788Eyre/tenants/${encodeURIComponent(row.tenant_id)}`}
-                        className="text-xs font-semibold text-emerald-700 hover:underline"
-                      >
-                        {t("saas.viewSchool")}
-                      </a>
-                      <span className="mx-2 text-xs text-zinc-300">|</span>
-                      <a
-                        href={`/api/tenants/${encodeURIComponent(row.tenant_id)}/export`}
-                        className="text-xs font-semibold text-emerald-700 hover:underline"
-                      >
-                        {t("saas.exportExcel")}
-                      </a>
-                    </td>
-                  </tr>
-                ))}
+                {hits.map((row) => {
+                  const giftValue = giftCreditsByTenant[row.tenant_id] ?? "";
+                  const gifting = !!giftBusyByTenant[row.tenant_id];
+                  return (
+                    <tr key={row.tenant_id} className="border-b border-zinc-100">
+                      <td className="py-2 pr-3 font-medium text-zinc-900">{row.tenant_name}</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-zinc-700">{row.tenant_id}</td>
+                      <td className="py-2 pr-3 text-xs text-zinc-700">
+                        {row.owner_emails.length ? row.owner_emails.join(", ") : "—"}
+                      </td>
+                      <td className="py-2 pr-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            value={giftValue}
+                            onChange={(e) =>
+                              setGiftCreditsByTenant((m) => ({ ...m, [row.tenant_id]: e.target.value }))
+                            }
+                            placeholder={t("saas.giftCreditsPlaceholder")}
+                            className="w-28 rounded-lg border border-zinc-300 px-2 py-1 text-xs font-mono"
+                            inputMode="numeric"
+                          />
+                          <button
+                            type="button"
+                            disabled={gifting}
+                            onClick={() =>
+                              void (async () => {
+                                const n = Math.trunc(Number(giftValue));
+                                if (!Number.isFinite(n) || n <= 0) {
+                                  alert(t("saas.giftCreditsInvalid"));
+                                  return;
+                                }
+                                const ok = window.confirm(
+                                  t("saas.giftCreditsConfirm", { n: String(n), school: row.tenant_name }),
+                                );
+                                if (!ok) return;
+                                setGiftBusyByTenant((m) => ({ ...m, [row.tenant_id]: true }));
+                                try {
+                                  const res = await fetch("/api/saas-owner/credits/gift", {
+                                    method: "POST",
+                                    headers: { "content-type": "application/json" },
+                                    body: JSON.stringify({ tenant_id: row.tenant_id, credits: n }),
+                                  });
+                                  const data = await res.json().catch(() => ({}));
+                                  if (!res.ok) throw new Error(data.error || t("common.failed"));
+                                  setGiftCreditsByTenant((m) => ({ ...m, [row.tenant_id]: "" }));
+                                  alert(t("saas.giftCreditsSuccess", { n: String(n), school: row.tenant_name }));
+                                } catch (e: unknown) {
+                                  alert(e instanceof Error ? e.message : t("common.failed"));
+                                } finally {
+                                  setGiftBusyByTenant((m) => ({ ...m, [row.tenant_id]: false }));
+                                }
+                              })()
+                            }
+                            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                          >
+                            {gifting ? t("saas.giftingCredits") : t("saas.giftCreditsAction")}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-2 pr-3">
+                        <a
+                          href={`/saas-owner/Jane2788Eyre/tenants/${encodeURIComponent(row.tenant_id)}`}
+                          className="text-xs font-semibold text-emerald-700 hover:underline"
+                        >
+                          {t("saas.viewSchool")}
+                        </a>
+                        <span className="mx-2 text-xs text-zinc-300">|</span>
+                        <a
+                          href={`/api/tenants/${encodeURIComponent(row.tenant_id)}/export`}
+                          className="text-xs font-semibold text-emerald-700 hover:underline"
+                        >
+                          {t("saas.exportExcel")}
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {hits.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-4 text-sm text-zinc-500">
+                    <td colSpan={5} className="py-4 text-sm text-zinc-500">
                       {t("saas.noSearchResults")}
                     </td>
                   </tr>
