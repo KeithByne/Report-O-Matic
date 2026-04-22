@@ -1125,7 +1125,7 @@ const EN: UiMessages = {
   "class.defaultSubject": "Default subject",
   "class.selectOrDefineSubject": "Select or define subject",
   "class.subjectPickerHint":
-    "Pick a suggested subject from the list or type a new name. New names are saved for this school under the class’s education type.",
+    "Pick a suggested subject from the list or type a new name. New names are saved for this school for this class.",
   "class.gradeRubricProfile": "Grade rubric (row titles on reports and PDFs)",
   "class.gradeRubricLanguage": "Language acquisition",
   "class.gradeRubricPrimary": "Primary / general",
@@ -1141,6 +1141,13 @@ const EN: UiMessages = {
   "class.builtinSubjectBadge": "Built-in",
   "class.noCustomSubjectsForEducationType": "No custom subjects for this education type yet.",
   "class.deleteSubject": "Delete subject",
+  "class.schoolSubjectsCardTitle": "Custom subjects (this education type)",
+  "class.schoolSubjectsCardHint":
+    "Subjects below match this class only (as set on the school’s classes list). They are not changed from this screen.",
+  "class.chooseSubjectFromList": "Subject",
+  "class.selectSubjectInList": "— Select —",
+  "class.renameSelectedSubject": "Rename",
+  "class.newNameForSubject": "New name",
   "class.customSubjectsLead":
     "Rename or remove subjects you added under each education type. Built-in languages cannot be deleted. Deleting a subject sets any class that used it to the default English subject.",
   "class.editCustomSubject": "Edit",
@@ -1874,7 +1881,7 @@ const FR: UiMessages = {
   "class.defaultSubject": "Matière par défaut",
   "class.selectOrDefineSubject": "Sélectionner ou définir la matière",
   "class.subjectPickerHint":
-    "Choisissez une suggestion dans la liste ou saisissez un nouveau nom. Les nouveaux noms sont enregistrés pour cette école selon le type d’enseignement de la classe.",
+    "Choisissez une suggestion dans la liste ou saisissez un nouveau nom. Les nouveaux noms sont enregistrés pour cette école pour cette classe.",
   "class.gradeRubricProfile": "Grille de compétences (titres des lignes dans les rapports et PDF)",
   "class.gradeRubricLanguage": "Acquisition des langues",
   "class.gradeRubricPrimary": "Primaire / enseignement général",
@@ -1890,6 +1897,13 @@ const FR: UiMessages = {
   "class.builtinSubjectBadge": "Intégré",
   "class.noCustomSubjectsForEducationType": "Aucune matière personnalisée pour ce type d’enseignement pour l’instant.",
   "class.deleteSubject": "Supprimer la matière",
+  "class.schoolSubjectsCardTitle": "Matières personnalisées (ce type d’enseignement)",
+  "class.schoolSubjectsCardHint":
+    "Les matières ci-dessous correspondent uniquement à cette classe (définies dans la liste des classes). Elles ne se modifient pas depuis cet écran.",
+  "class.chooseSubjectFromList": "Matière",
+  "class.selectSubjectInList": "— Choisir —",
+  "class.renameSelectedSubject": "Renommer",
+  "class.newNameForSubject": "Nouveau nom",
   "class.customSubjectsLead":
     "Renommez ou supprimez les matières ajoutées sous chaque type d’enseignement. Les langues intégrées ne peuvent pas être supprimées. La suppression ramène les classes concernées sur la matière anglaise par défaut.",
   "class.editCustomSubject": "Modifier",
@@ -2474,7 +2488,7 @@ const ES: UiMessages = {
   "class.defaultSubject": "Materia por defecto",
   "class.selectOrDefineSubject": "Seleccionar o definir asignatura",
   "class.subjectPickerHint":
-    "Elija una sugerencia de la lista o escriba un nombre nuevo de asignatura. Los nombres nuevos quedan guardados para esta escuela según el tipo de enseñanza de la clase.",
+    "Elija una sugerencia de la lista o escriba un nombre nuevo de asignatura. Los nombres nuevos quedan guardados para esta escuela para esta clase.",
   "class.gradeRubricProfile": "Rúbrica de calificaciones (títulos de fila en informes y PDF)",
   "class.gradeRubricLanguage": "Adquisición de lenguas",
   "class.gradeRubricPrimary": "Primaria / general",
@@ -2490,6 +2504,13 @@ const ES: UiMessages = {
   "class.builtinSubjectBadge": "Integrada",
   "class.noCustomSubjectsForEducationType": "Aún no hay asignaturas personalizadas para este tipo de enseñanza.",
   "class.deleteSubject": "Eliminar asignatura",
+  "class.schoolSubjectsCardTitle": "Asignaturas personalizadas (este tipo de enseñanza)",
+  "class.schoolSubjectsCardHint":
+    "Las asignaturas de abajo corresponden solo a esta clase (según la lista de clases del centro). No se cambian desde esta pantalla.",
+  "class.chooseSubjectFromList": "Asignatura",
+  "class.selectSubjectInList": "— Elegir —",
+  "class.renameSelectedSubject": "Renombrar",
+  "class.newNameForSubject": "Nombre nuevo",
   "class.customSubjectsLead":
     "Cambie el nombre o elimine las asignaturas añadidas bajo cada tipo de enseñanza. Las lenguas integradas no se pueden eliminar. Si elimina una asignatura, las clases que la usaban pasan a la asignatura de inglés por defecto.",
   "class.editCustomSubject": "Editar",

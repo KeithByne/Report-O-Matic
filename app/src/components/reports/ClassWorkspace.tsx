@@ -18,7 +18,6 @@ import {
   classDefaultSubjectUiLine,
   formatClassLevelOptionLabel,
   reportLanguageOptionLabel,
-  subjectLabelLocalized,
 } from "@/lib/i18n/uiStrings";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import {
@@ -30,14 +29,10 @@ import {
   reportPeriodTermNumber,
 } from "@/lib/reportInputs";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
-import {
-  GRADE_RUBRIC_PROFILES,
-  gradeRubricProfileDisplayLabel,
-  parseGradeRubricProfile,
-} from "@/lib/gradeRubricProfile";
+import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { resolveDefaultSubjectInputToStorage, subjectFieldDisplayValueFromStored } from "@/lib/subjectFormResolve";
-import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducationType";
-import { REPORT_SUBJECTS, isSubjectCode } from "@/lib/subjects";
+import { subjectSuggestionLabelsForRubric } from "@/lib/subjectOptionsByEducationType";
+import { REPORT_SUBJECTS } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { classesListHref } from "@/lib/app/classesNavigation";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
@@ -185,16 +180,15 @@ export function ClassWorkspace({
     }
   }, [base, canManageClassSettings]);
 
-  /** Three separate suggestion lists (one `<datalist>` per education type); the input uses the list for `classGradeRubric`. */
-  const subjectSuggestionsByRubric = useMemo(
-    () => subjectSuggestionLabelsByRubric(customSubjectRows, uiLang),
-    [customSubjectRows, uiLang],
-  );
-
   const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
   const [batchTermFilter, setBatchTermFilter] = useState<ReportPeriod>("first");
 
   const [detail, setDetail] = useState<ClassDetail | null>(null);
+  /** From the class record only (chosen upstream on the classes card); not editable in this form. */
+  const classGradeRubric = useMemo(
+    () => parseGradeRubricProfile(detail?.grade_rubric_profile, "language"),
+    [detail?.grade_rubric_profile],
+  );
   const [students, setStudents] = useState<Student[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
 
@@ -238,12 +232,11 @@ export function ClassWorkspace({
   const [scholasticYear, setScholasticYear] = useState("");
   const [cefr, setCefr] = useState("");
   const [defSubject, setDefSubject] = useState("");
-  /** Class educational context (CEFR vs year bands); stored on the class row. */
-  const [classGradeRubric, setClassGradeRubric] = useState<GradeRubricProfile>("language");
   const [editingCustomSubject, setEditingCustomSubject] = useState<string | null>(null);
   const [editCustomDraft, setEditCustomDraft] = useState("");
-  const [editRubricDraft, setEditRubricDraft] = useState<GradeRubricProfile>("secondary");
   const [subjectListBusy, setSubjectListBusy] = useState(false);
+  /** Custom subject chosen in the manage dropdown (remove / rename). */
+  const [selectedCustomSchoolSubject, setSelectedCustomSchoolSubject] = useState("");
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [defNewReportKind, setDefNewReportKind] = useState<ReportKind>("standard");
   const [defNewReportPeriod, setDefNewReportPeriod] = useState<ReportPeriod>("first");
@@ -257,6 +250,18 @@ export function ClassWorkspace({
 
   /** Mon→Sun order; avoids Set + ensures PATCH/GET stay aligned. */
   const [activeDays, setActiveDays] = useState<WeekdayKey[]>([]);
+
+  /** Suggestions for the default subject field: only this class’s education type (from the server). */
+  const subjectDatalistLabels = useMemo(
+    () => subjectSuggestionLabelsForRubric(classGradeRubric, customSubjectRows, uiLang),
+    [classGradeRubric, customSubjectRows, uiLang],
+  );
+
+  const customsForClassRubric = useMemo(
+    () => customSubjectRows.filter((r) => r.rubric_profile === classGradeRubric),
+    [customSubjectRows, classGradeRubric],
+  );
+
   const loadClassRequestId = useRef(0);
   const didScrollToFocusStudent = useRef(false);
 
@@ -363,7 +368,7 @@ export function ClassWorkspace({
       setScholasticYear(c.scholastic_year?.trim() ?? "");
       setCefr(c.cefr_level ?? "");
       setDefSubject(subjectFieldDisplayValueFromStored(c.default_subject, uiLang));
-      setClassGradeRubric(parseGradeRubricProfile(c.grade_rubric_profile, "language"));
+      setSelectedCustomSchoolSubject("");
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
       setDefNewReportPeriod(
@@ -418,7 +423,7 @@ export function ClassWorkspace({
         const res = await fetch(`${base}/subject-options`, {
           method: "PATCH",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ old_name: oldName, new_name: normalized, rubric_profile: editRubricDraft }),
+          body: JSON.stringify({ old_name: oldName, new_name: normalized, rubric_profile: classGradeRubric }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectRenameFailed"));
@@ -426,6 +431,7 @@ export function ClassWorkspace({
           setDefSubject(subjectFieldDisplayValueFromStored(normalized, uiLang));
         setEditingCustomSubject(null);
         setEditCustomDraft("");
+        setSelectedCustomSchoolSubject("");
         await refreshSubjectAccountOptions();
         await loadClass();
         if (typeof window !== "undefined") {
@@ -442,7 +448,7 @@ export function ClassWorkspace({
         setSubjectListBusy(false);
       }
     },
-    [base, classId, defSubject, editCustomDraft, editRubricDraft, loadClass, refreshSubjectAccountOptions, router, t, tenantId, uiLang],
+    [base, classId, classGradeRubric, defSubject, editCustomDraft, loadClass, refreshSubjectAccountOptions, router, t, tenantId, uiLang],
   );
 
   const deleteCustomSchoolSubject = useCallback(
@@ -456,6 +462,7 @@ export function ClassWorkspace({
         if (defSubject.trim().toLowerCase() === name.trim().toLowerCase()) setDefSubject("");
         setEditingCustomSubject(null);
         setEditCustomDraft("");
+        setSelectedCustomSchoolSubject("");
         await refreshSubjectAccountOptions();
         await loadClass();
         if (typeof window !== "undefined") {
@@ -620,7 +627,6 @@ export function ClassWorkspace({
           name: cName.trim(),
           scholastic_year: scholasticYear.trim() || null,
           cefr_level: cefr.trim() || null,
-          grade_rubric_profile: classGradeRubric,
           default_subject: normalizedSubject,
           default_subject_rubric_profile: REPORT_SUBJECTS.some((s) => s.code === normalizedSubject.trim().toLowerCase())
             ? undefined
@@ -994,44 +1000,6 @@ export function ClassWorkspace({
               {t("class.nameTimetableTip")}
             </p>
           ) : null}
-          <div className="text-sm sm:col-span-2">
-            <span className="font-medium text-zinc-800">{t("tenant.educationalContext")}</span>
-            <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("tenant.educationalContextHint")}</p>
-            {canManageClassSettings ? (
-              <select
-                value={classGradeRubric}
-                onChange={(e) => {
-                  const next = e.target.value as GradeRubricProfile;
-                  setClassGradeRubric(next);
-                  setDefSubject((cur) => {
-                    if (next === "language") return cur;
-                    const trimmed = cur.trim();
-                    if (!trimmed) return cur;
-                    try {
-                      const resolved = resolveDefaultSubjectInputToStorage(trimmed);
-                      if (isSubjectCode(resolved)) return "";
-                    } catch {
-                      /* keep custom text */
-                    }
-                    return cur;
-                  });
-                }}
-                disabled={busy !== null}
-                className="mt-2 block w-full max-w-xl rounded-lg border-2 border-emerald-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
-                aria-label={t("tenant.educationalContext")}
-              >
-                {GRADE_RUBRIC_PROFILES.map((rp) => (
-                  <option key={rp} value={rp}>
-                    {gradeRubricProfileDisplayLabel(t, rp)}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
-                {gradeRubricProfileDisplayLabel(t, classGradeRubric)}
-              </p>
-            )}
-          </div>
           <label className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.className")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
@@ -1067,7 +1035,7 @@ export function ClassWorkspace({
             {canManageClassSettings ? (
               <>
                 <input
-                  list={`class-subject-dl-${classId}-${classGradeRubric}`}
+                  list={`class-subject-dl-${classId}`}
                   value={defSubject}
                   onChange={(e) => setDefSubject(e.target.value)}
                   disabled={subjectListBusy}
@@ -1075,103 +1043,95 @@ export function ClassWorkspace({
                   className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
                   autoComplete="off"
                 />
-                {GRADE_RUBRIC_PROFILES.map((rp) => (
-                  <datalist id={`class-subject-dl-${classId}-${rp}`} key={rp}>
-                    {subjectSuggestionsByRubric[rp].map((label) => (
-                      <option key={`${rp}:${label}`} value={label} />
-                    ))}
-                  </datalist>
-                ))}
+                <datalist id={`class-subject-dl-${classId}`}>
+                  {subjectDatalistLabels.map((label) => (
+                    <option key={label} value={label} />
+                  ))}
+                </datalist>
                 <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
-                <div className="mt-4 space-y-4">
-                  <p className="text-xs font-semibold text-zinc-800">{t("class.subjectsByEducationTypeTitle")}</p>
-                  <p className="text-xs text-zinc-600">{t("class.customSubjectsLead")}</p>
-                  {GRADE_RUBRIC_PROFILES.map((rp) => {
-                    const customsForRp = customSubjectRows.filter((r) => r.rubric_profile === rp);
-                    return (
-                      <div key={rp} className="rounded-lg border border-zinc-200 bg-zinc-50/90 p-3">
-                        <p className="text-xs font-semibold text-zinc-900">{gradeRubricProfileDisplayLabel(t, rp)}</p>
-                        <ul className="mt-2 space-y-2">
-                          {rp === "language"
-                            ? REPORT_SUBJECTS.map((s) => (
-                                <li key={s.code} className="flex flex-wrap items-center gap-2">
-                                  <span className="min-w-0 flex-1 truncate text-sm text-zinc-800">
-                                    {subjectLabelLocalized(uiLang, s.code)}
-                                  </span>
-                                  <span className="shrink-0 rounded border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-600">
-                                    {t("class.builtinSubjectBadge")}
-                                  </span>
-                                </li>
-                              ))
-                            : null}
-                          {customsForRp.map((row) => {
-                            const name = row.name;
-                            return (
-                              <li key={`${rp}:${name}`} className="flex flex-wrap items-center gap-2">
-                                {editingCustomSubject === name ? (
-                                  <>
-                                    <input
-                                      value={editCustomDraft}
-                                      onChange={(e) => setEditCustomDraft(e.target.value)}
-                                      disabled={subjectListBusy}
-                                      className="min-w-[10rem] flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm"
-                                      autoComplete="off"
-                                    />
-                                    <button
-                                      type="button"
-                                      disabled={subjectListBusy}
-                                      onClick={() => void renameCustomSchoolSubject(name)}
-                                      className="rounded border border-emerald-600 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-900 disabled:opacity-50"
-                                    >
-                                      {t("class.saveCustomSubjectRename")}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={subjectListBusy}
-                                      onClick={() => {
-                                        setEditingCustomSubject(null);
-                                        setEditCustomDraft("");
-                                      }}
-                                      className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 disabled:opacity-50"
-                                    >
-                                      {t("class.cancelCustomSubjectRename")}
-                                    </button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="min-w-0 flex-1 truncate text-sm text-zinc-800">{name}</span>
-                                    <button
-                                      type="button"
-                                      disabled={subjectListBusy}
-                                      onClick={() => {
-                                        setEditingCustomSubject(name);
-                                        setEditCustomDraft(name);
-                                        setEditRubricDraft(row.rubric_profile);
-                                      }}
-                                      className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 disabled:opacity-50"
-                                    >
-                                      {t("class.editCustomSubject")}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={subjectListBusy}
-                                      onClick={() => void deleteCustomSchoolSubject(name)}
-                                      className="rounded border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-900 disabled:opacity-50"
-                                    >
-                                      {t("class.deleteSubject")}
-                                    </button>
-                                  </>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                        {rp !== "language" && customsForRp.length === 0 ? (
-                          <p className="mt-2 text-xs text-zinc-500">{t("class.noCustomSubjectsForEducationType")}</p>
-                        ) : null}
+                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3">
+                  <p className="text-xs font-semibold text-zinc-800">{t("class.schoolSubjectsCardTitle")}</p>
+                  <p className="mt-1 text-xs text-zinc-600">{t("class.schoolSubjectsCardHint")}</p>
+                  {customsForClassRubric.length > 0 ? (
+                    <>
+                      <div className="mt-3 flex flex-wrap items-end gap-2">
+                        <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
+                          <span className="block">{t("class.chooseSubjectFromList")}</span>
+                          <select
+                            value={selectedCustomSchoolSubject}
+                            onChange={(e) => {
+                              setSelectedCustomSchoolSubject(e.target.value);
+                              setEditingCustomSubject(null);
+                              setEditCustomDraft("");
+                            }}
+                            disabled={subjectListBusy}
+                            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm text-zinc-900"
+                          >
+                            <option value="">{t("class.selectSubjectInList")}</option>
+                            {customsForClassRubric.map((row) => (
+                              <option key={row.name} value={row.name}>
+                                {row.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <button
+                          type="button"
+                          disabled={subjectListBusy || !selectedCustomSchoolSubject}
+                          onClick={() => void deleteCustomSchoolSubject(selectedCustomSchoolSubject)}
+                          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-900 disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          {t("class.deleteSubject")}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={subjectListBusy || !selectedCustomSchoolSubject}
+                          onClick={() => {
+                            setEditingCustomSubject(selectedCustomSchoolSubject);
+                            setEditCustomDraft(selectedCustomSchoolSubject);
+                          }}
+                          className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-800 disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          {t("class.renameSelectedSubject")}
+                        </button>
                       </div>
-                    );
-                  })}
+                      {editingCustomSubject ? (
+                        <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-zinc-200 pt-3">
+                          <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
+                            <span className="block">{t("class.newNameForSubject")}</span>
+                            <input
+                              value={editCustomDraft}
+                              onChange={(e) => setEditCustomDraft(e.target.value)}
+                              disabled={subjectListBusy}
+                              className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm"
+                              autoComplete="off"
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            disabled={subjectListBusy}
+                            onClick={() => void renameCustomSchoolSubject(editingCustomSubject)}
+                            className="rounded-lg border border-emerald-600 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900 disabled:opacity-50"
+                          >
+                            {t("class.saveCustomSubjectRename")}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={subjectListBusy}
+                            onClick={() => {
+                              setEditingCustomSubject(null);
+                              setEditCustomDraft("");
+                            }}
+                            className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700 disabled:opacity-50"
+                          >
+                            {t("class.cancelCustomSubjectRename")}
+                          </button>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    <p className="mt-2 text-xs text-zinc-500">{t("class.noCustomSubjectsForEducationType")}</p>
+                  )}
                 </div>
               </>
             ) : (
