@@ -189,10 +189,6 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
             onSubmit={addClass}
             className="mt-4 space-y-4 rounded-xl border-2 border-emerald-400 bg-gradient-to-b from-emerald-50/90 to-white p-4 shadow-sm ring-1 ring-emerald-200/80 sm:p-5"
           >
-            <div>
-              <h3 className="text-base font-semibold text-emerald-950">{t("tenant.addClassSectionTitle")}</h3>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-700">{t("tenant.educationalContextHint")}</p>
-            </div>
             <label className="block text-sm">
               <span className="font-semibold text-zinc-900">{t("tenant.addClassStep1Education")}</span>
               <select
@@ -221,13 +217,11 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
             <div className="border-t border-emerald-200/80 pt-4">
               <label className={`block text-sm ${newClassGradeRubric ? "" : "opacity-80"}`}>
                 <span className="font-semibold text-zinc-900">{t("tenant.addClassStep2Name")}</span>
-                {!newClassGradeRubric ? (
-                  <p className="mt-1 text-xs text-amber-800">{t("tenant.classNameLockedHint")}</p>
-                ) : null}
                 <input
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
                   disabled={!newClassGradeRubric || busy !== null}
+                  title={!newClassGradeRubric ? t("tenant.chooseEducationTypeFirst") : undefined}
                   className="mt-2 block w-full max-w-xl rounded-lg border border-emerald-200 px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   placeholder={t("tenant.newClassPlaceholder")}
                 />
@@ -247,7 +241,6 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
         ) : (
           <p className="mt-2 text-sm text-zinc-500">{t("tenant.onlyLeadsCreate")}</p>
         )}
-        <p className="mt-3 text-xs text-zinc-500">{t("tenant.termReadinessHint")}</p>
 
         <ul className="mt-4 divide-y divide-emerald-100">
           {classes.map((c) => {
