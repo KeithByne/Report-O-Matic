@@ -15,9 +15,9 @@ import {
 import type { RomRole } from "@/lib/data/memberships";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { GRADE_RUBRIC_PROFILES } from "@/lib/gradeRubricProfile";
+import { GRADE_RUBRIC_PROFILES, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 
-type ClassRow = { id: string; name: string; student_count: number };
+type ClassRow = { id: string; name: string; student_count: number; grade_rubric_profile?: GradeRubricProfile };
 
 type TermCompletion = { first: boolean; second: boolean; third: boolean };
 
@@ -180,49 +180,49 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
         </div>
         <p className="mt-2 text-xs text-zinc-500">{t("tenant.termReadinessHint")}</p>
         {isLead ? (
-          <form onSubmit={addClass} className="mt-3 flex flex-col gap-3">
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("tenant.newClassName")}</span>
-              <input
-                value={newClassName}
-                onChange={(e) => setNewClassName(e.target.value)}
-                className="mt-1 block min-w-[14rem] rounded-lg border border-emerald-200 px-3 py-2"
-                placeholder={t("tenant.newClassPlaceholder")}
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={busy !== null}
-              className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              <Plus className={ICON_INLINE} aria-hidden />
-              {t("tenant.createClass")}
-            </button>
+          <form onSubmit={addClass} className="mt-4 space-y-4 border-t border-emerald-100 pt-4">
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-900">{t("tenant.addClassSectionTitle")}</h3>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("tenant.educationalContextHint")}</p>
             </div>
-            <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-3 text-sm">
-              <p className="text-xs font-medium text-zinc-800">{t("class.gradeRubricProfile")}</p>
-              <p className="mt-1 text-xs text-zinc-600">{t("class.gradeRubricHint")}</p>
-              <div className="mt-2 flex flex-wrap gap-3">
+            <label className="block max-w-xl text-sm">
+              <span className="font-medium text-zinc-800">{t("tenant.educationalContext")}</span>
+              <select
+                value={newClassGradeRubric}
+                onChange={(e) => setNewClassGradeRubric(e.target.value as GradeRubricProfile)}
+                disabled={busy !== null}
+                className="mt-1.5 block w-full rounded-lg border-2 border-emerald-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                aria-label={t("tenant.educationalContext")}
+              >
                 {GRADE_RUBRIC_PROFILES.map((rp) => (
-                  <label key={rp} className="inline-flex cursor-pointer items-center gap-2 text-sm text-zinc-800">
-                    <input
-                      type="radio"
-                      name="new-class-grade-rubric"
-                      checked={newClassGradeRubric === rp}
-                      onChange={() => setNewClassGradeRubric(rp)}
-                      disabled={busy !== null}
-                    />
-                    <span>
-                      {rp === "language"
-                        ? t("class.gradeRubricLanguage")
-                        : rp === "primary"
-                          ? t("class.gradeRubricPrimary")
-                          : t("class.gradeRubricSecondary")}
-                    </span>
-                  </label>
+                  <option key={rp} value={rp}>
+                    {rp === "language"
+                      ? t("class.gradeRubricLanguage")
+                      : rp === "primary"
+                        ? t("class.gradeRubricPrimary")
+                        : t("class.gradeRubricSecondary")}
+                  </option>
                 ))}
-              </div>
+              </select>
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+              <label className="text-sm">
+                <span className="text-zinc-600">{t("tenant.newClassName")}</span>
+                <input
+                  value={newClassName}
+                  onChange={(e) => setNewClassName(e.target.value)}
+                  className="mt-1 block min-w-[14rem] rounded-lg border border-emerald-200 px-3 py-2"
+                  placeholder={t("tenant.newClassPlaceholder")}
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={busy !== null}
+                className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              >
+                <Plus className={ICON_INLINE} aria-hidden />
+                {t("tenant.createClass")}
+              </button>
             </div>
           </form>
         ) : (
@@ -240,6 +240,23 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   className="min-w-0 flex-1 rounded-lg py-0.5 text-left outline-none ring-emerald-500/40 transition hover:bg-emerald-50/70 focus-visible:ring-2"
                 >
                   <span className="font-medium text-zinc-900">{c.name}</span>
+                  {(() => {
+                    const ctx = parseGradeRubricProfile(c.grade_rubric_profile, "language");
+                    const ctxLabel =
+                      ctx === "language"
+                        ? t("class.gradeRubricLanguage")
+                        : ctx === "primary"
+                          ? t("class.gradeRubricPrimary")
+                          : t("class.gradeRubricSecondary");
+                    return (
+                      <span
+                        className="ml-2 inline-flex max-w-[12rem] truncate rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-900"
+                        title={t("tenant.educationalContext")}
+                      >
+                        {ctxLabel}
+                      </span>
+                    );
+                  })()}
                   <span className="ml-2 text-sm text-zinc-500">
                     {c.student_count} {c.student_count === 1 ? t("tenant.pupil") : t("tenant.pupils")}
                   </span>

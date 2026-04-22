@@ -995,6 +995,37 @@ export function ClassWorkspace({
               {t("class.nameTimetableTip")}
             </p>
           ) : null}
+          <div className="text-sm sm:col-span-2">
+            <span className="font-medium text-zinc-800">{t("tenant.educationalContext")}</span>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("tenant.educationalContextHint")}</p>
+            {canManageClassSettings ? (
+              <select
+                value={classGradeRubric}
+                onChange={(e) => setClassGradeRubric(e.target.value as GradeRubricProfile)}
+                disabled={busy !== null}
+                className="mt-2 block w-full max-w-xl rounded-lg border-2 border-emerald-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                aria-label={t("tenant.educationalContext")}
+              >
+                {GRADE_RUBRIC_PROFILES.map((rp) => (
+                  <option key={rp} value={rp}>
+                    {rp === "language"
+                      ? t("class.gradeRubricLanguage")
+                      : rp === "primary"
+                        ? t("class.gradeRubricPrimary")
+                        : t("class.gradeRubricSecondary")}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {classGradeRubric === "language"
+                  ? t("class.gradeRubricLanguage")
+                  : classGradeRubric === "primary"
+                    ? t("class.gradeRubricPrimary")
+                    : t("class.gradeRubricSecondary")}
+              </p>
+            )}
+          </div>
           <label className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.className")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
@@ -1010,40 +1041,6 @@ export function ClassWorkspace({
               </p>
             )}
           </label>
-          <div className="text-sm sm:col-span-2">
-            <span className="text-zinc-600">{t("class.gradeRubricProfile")}</span>
-            <p className="mt-1 text-xs text-zinc-600">{t("class.gradeRubricHint")}</p>
-            {canManageClassSettings ? (
-              <div className="mt-2 flex flex-wrap gap-3 rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
-                {GRADE_RUBRIC_PROFILES.map((rp) => (
-                  <label key={rp} className="inline-flex cursor-pointer items-center gap-2 text-sm text-zinc-800">
-                    <input
-                      type="radio"
-                      name={`class-context-${classId}`}
-                      checked={classGradeRubric === rp}
-                      onChange={() => setClassGradeRubric(rp)}
-                      disabled={busy !== null}
-                    />
-                    <span>
-                      {rp === "language"
-                        ? t("class.gradeRubricLanguage")
-                        : rp === "primary"
-                          ? t("class.gradeRubricPrimary")
-                          : t("class.gradeRubricSecondary")}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
-                {classGradeRubric === "language"
-                  ? t("class.gradeRubricLanguage")
-                  : classGradeRubric === "primary"
-                    ? t("class.gradeRubricPrimary")
-                    : t("class.gradeRubricSecondary")}
-              </p>
-            )}
-          </div>
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.scholasticYear")}</span>
             {viewerRole === "teacher" ? (

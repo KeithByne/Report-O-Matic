@@ -770,6 +770,10 @@ const EN: UiMessages = {
   "tenant.downloadBulkPdfsOneFile": "Print combined PDF (one file)",
   "tenant.newClassPlaceholder": "e.g. Year 7A",
   "tenant.classesTitle": "Classes",
+  "tenant.addClassSectionTitle": "Add a class",
+  "tenant.educationalContext": "Educational context",
+  "tenant.educationalContextHint":
+    "Choose language school (CEFR levels), primary, or secondary. This controls class level options and how grade rows read on reports; you can change it later in each class’s settings.",
   "tenant.newClassName": "New class name",
   "tenant.createClass": "Create class",
   "tenant.onlyLeadsCreate": "Owners and department heads can create new classes.",
@@ -1517,6 +1521,10 @@ const FR: UiMessages = {
   "tenant.downloadBulkPdfsOneFile": "Imprimer le PDF combiné (un fichier)",
   "tenant.newClassPlaceholder": "ex. 5e A",
   "tenant.classesTitle": "Classes",
+  "tenant.addClassSectionTitle": "Ajouter une classe",
+  "tenant.educationalContext": "Contexte pédagogique",
+  "tenant.educationalContextHint":
+    "Choisissez langue (niveaux CEFR), primaire ou secondaire. Cela pilote les niveaux de classe et les intitulés des lignes de notes ; modifiable ensuite dans les réglages de chaque classe.",
   "tenant.newClassName": "Nom de la nouvelle classe",
   "tenant.createClass": "Créer la classe",
   "tenant.onlyLeadsCreate": "Les propriétaires et chefs de département peuvent créer des classes.",
@@ -2100,6 +2108,10 @@ const ES: UiMessages = {
   "tenant.downloadBulkPdfsOneFile": "Imprimir PDF combinado (un archivo)",
   "tenant.newClassPlaceholder": "ej. 1º A",
   "tenant.classesTitle": "Clases",
+  "tenant.addClassSectionTitle": "Añadir una clase",
+  "tenant.educationalContext": "Contexto educativo",
+  "tenant.educationalContextHint":
+    "Elija idiomas (niveles MCER), primaria o secundaria. Controla los niveles de clase y las filas de calificaciones; se puede cambiar después en los ajustes de cada clase.",
   "tenant.newClassName": "Nombre de la nueva clase",
   "tenant.createClass": "Crear clase",
   "tenant.onlyLeadsCreate": "Los propietarios y jefes de departamento pueden crear clases.",
