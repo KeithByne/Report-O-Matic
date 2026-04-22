@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import {
   CLASS_SETTINGS_SAVED_EVENT,
@@ -16,6 +17,7 @@ import type { RomRole } from "@/lib/data/memberships";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { GRADE_RUBRIC_PROFILES, isGradeRubricProfile, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { REPORT_SUBJECTS, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 
 type ClassRow = { id: string; name: string; student_count: number; grade_rubric_profile?: GradeRubricProfile };
 
@@ -47,13 +49,15 @@ function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
  * Shown on the dashboard workspace for leads; teachers open the same component via `/reports/[tenant]?panel=classes`.
  */
 export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClassesPanelProps) {
-  const { t } = useUiLanguage();
+  const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [termByClass, setTermByClass] = useState<Record<string, TermCompletion>>({});
   const [newClassName, setNewClassName] = useState("");
   /** Empty until the user explicitly picks a type (name field stays disabled). */
   const [newClassGradeRubric, setNewClassGradeRubric] = useState<GradeRubricProfile | "">("");
+  const [newClassDefaultSubject, setNewClassDefaultSubject] = useState("efl");
+  const [subjectAccountOptions, setSubjectAccountOptions] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [bulkTerm, setBulkTerm] = useState<"first" | "second" | "third">("first");
@@ -87,11 +91,45 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     wasActiveRef.current = active;
   }, [active, refresh]);
 
+  const loadSubjectAccountOptions = useCallback(async () => {
+    if (!isLead) return;
+    try {
+      const res = await fetch(`${base}/subject-options`, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      const built = Array.isArray(data.built_in) ? (data.built_in as string[]) : [];
+      const custRaw = data.custom;
+      const names: string[] = [];
+      if (Array.isArray(custRaw)) {
+        for (const item of custRaw) {
+          if (typeof item === "string") {
+            const n = item.trim();
+            if (n) names.push(n);
+          } else if (item && typeof item === "object") {
+            const o = item as Record<string, unknown>;
+            const n = typeof o.name === "string" ? o.name.trim() : "";
+            if (n) names.push(n);
+          }
+        }
+      }
+      const merged = [...built, ...names].map((x) => String(x).trim()).filter(Boolean);
+      setSubjectAccountOptions([...new Set(merged)]);
+    } catch {
+      setSubjectAccountOptions([]);
+    }
+  }, [base, isLead]);
+
+  useEffect(() => {
+    if (!active || !isLead) return;
+    void loadSubjectAccountOptions();
+  }, [active, isLead, loadSubjectAccountOptions]);
+
   useEffect(() => {
     const onClassSettingsSaved = (ev: Event) => {
       const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
       const id = ce.detail?.tenantId?.trim();
       if (id && id === tenantId && active) void refresh();
+      if (id && id === tenantId && active && isLead) void loadSubjectAccountOptions();
     };
     const onReportAiSaved = (ev: Event) => {
       const ce = ev as CustomEvent<ReportAiSavedDetail>;
@@ -104,7 +142,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
       window.removeEventListener(REPORT_AI_SAVED_EVENT, onReportAiSaved);
     };
-  }, [tenantId, active, refresh]);
+  }, [tenantId, active, refresh, isLead, loadSubjectAccountOptions]);
 
   async function addClass(e: React.FormEvent) {
     e.preventDefault();
@@ -114,17 +152,33 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     }
     const name = newClassName.trim();
     if (!name) return;
+    let normalizedSubject: string;
+    try {
+      normalizedSubject = normalizeDefaultSubjectForStorage(newClassDefaultSubject);
+    } catch {
+      alert(t("class.invalidSubject"));
+      return;
+    }
     setBusy("class");
     try {
+      const lowSub = normalizedSubject.trim().toLowerCase();
       const res = await fetch(`${base}/classes`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, grade_rubric_profile: newClassGradeRubric }),
+        body: JSON.stringify({
+          name,
+          grade_rubric_profile: newClassGradeRubric,
+          default_subject: normalizedSubject,
+          default_subject_rubric_profile: REPORT_SUBJECTS.some((s) => s.code === lowSub)
+            ? undefined
+            : newClassGradeRubric,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       setNewClassName("");
       setNewClassGradeRubric("");
+      setNewClassDefaultSubject("efl");
       await refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("common.failed"));
@@ -216,7 +270,35 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
             </label>
             <div className="border-t border-emerald-200/80 pt-4">
               <label className={`block text-sm ${newClassGradeRubric ? "" : "opacity-80"}`}>
-                <span className="font-semibold text-zinc-900">{t("tenant.addClassStep2Name")}</span>
+                <span className="font-semibold text-zinc-900">{t("tenant.addClassStep2Subject")}</span>
+                <input
+                  list={`tenant-new-class-subject-${tenantId}`}
+                  value={newClassDefaultSubject}
+                  onChange={(e) => setNewClassDefaultSubject(e.target.value)}
+                  disabled={!newClassGradeRubric || busy !== null}
+                  title={!newClassGradeRubric ? t("tenant.chooseEducationTypeFirst") : undefined}
+                  className="mt-2 block w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  autoComplete="off"
+                  aria-label={t("tenant.addClassStep2Subject")}
+                />
+                <datalist id={`tenant-new-class-subject-${tenantId}`}>
+                  {REPORT_SUBJECTS.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {subjectLabelLocalized(uiLang, s.code)}
+                    </option>
+                  ))}
+                  {subjectAccountOptions
+                    .filter((name) => !REPORT_SUBJECTS.some((s) => s.code === name.toLowerCase()))
+                    .map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                </datalist>
+                <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
+              </label>
+            </div>
+            <div className="border-t border-emerald-200/80 pt-4">
+              <label className={`block text-sm ${newClassGradeRubric ? "" : "opacity-80"}`}>
+                <span className="font-semibold text-zinc-900">{t("tenant.addClassStep3Name")}</span>
                 <input
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
@@ -229,7 +311,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
               <div className="mt-4">
                 <button
                   type="submit"
-                  disabled={busy !== null || !newClassGradeRubric}
+                  disabled={busy !== null || !newClassGradeRubric || !newClassName.trim()}
                   className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <Plus className={ICON_INLINE} aria-hidden />
