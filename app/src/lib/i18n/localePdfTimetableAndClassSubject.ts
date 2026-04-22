@@ -17,6 +17,15 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.selectOrDefineSubject": "Vak kiezen of invoeren",
     "class.subjectPickerHint":
       "Kies een vooraf ingestelde code (bijv. efl) of typ een nieuwe vaknaam; nieuwe namen worden voor deze school bewaard.",
+    "class.gradeRubricProfile": "Cijferrooster (rijtitels in rapporten en pdf’s)",
+    "class.gradeRubricLanguage": "Taalverwerving",
+    "class.gradeRubricPrimary": "Primair / algemeen",
+    "class.gradeRubricSecondary": "Voortgezet / algemeen",
+    "class.gradeRubricHint":
+      "Alleen voor eigen vaknamen. Vooraf ingestelde codes (bijv. efl) gebruiken altijd het rooster voor taalverwerving.",
+    "class.classLevel": "Klasniveau",
+    "class.yearGroupLabel": "Jaar {n}",
+    "class.levelFrameworkTag": "CEFR",
     "class.invalidSubject": "Voer een geldig vak in (vooraf ingestelde code of max. 120 tekens).",
     "class.customSubjectsTitle": "Eigen vakken (deze school)",
     "class.customSubjectsLead":
@@ -41,6 +50,15 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.selectOrDefineSubject": "Wybierz lub wpisz przedmiot",
     "class.subjectPickerHint":
       "Wybierz kod z listy (np. efl) lub wpisz nową nazwę przedmiotu; nowe nazwy są zapisywane dla tej szkoły.",
+    "class.gradeRubricProfile": "Siatka ocen (tytuły wierszy w raportach i PDF)",
+    "class.gradeRubricLanguage": "Nabycie języka",
+    "class.gradeRubricPrimary": "Szkoła podstawowa / ogólna",
+    "class.gradeRubricSecondary": "Szkoła średnia / ogólna",
+    "class.gradeRubricHint":
+      "Tylko dla własnych nazw przedmiotów. Kody z listy (np. efl) zawsze używają siatki nabywania języka.",
+    "class.classLevel": "Poziom klasy",
+    "class.yearGroupLabel": "Rok {n}",
+    "class.levelFrameworkTag": "MCER",
     "class.invalidSubject": "Podaj prawidłowy przedmiot (kod z listy lub do 120 znaków).",
     "class.customSubjectsTitle": "Własne przedmioty (ta szkoła)",
     "class.customSubjectsLead":
@@ -65,6 +83,15 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.selectOrDefineSubject": "Selectați sau definiți disciplina",
     "class.subjectPickerHint":
       "Alegeți un cod presetat din listă (ex. efl) sau introduceți un nume nou; numele noi se salvează pentru această școală.",
+    "class.gradeRubricProfile": "Grilă de note (titlurile rândurilor în rapoarte și PDF)",
+    "class.gradeRubricLanguage": "Achiziție lingvistică",
+    "class.gradeRubricPrimary": "Primar / general",
+    "class.gradeRubricSecondary": "Gimnazial / general",
+    "class.gradeRubricHint":
+      "Doar pentru nume personalizate de discipline. Codurile presetate (ex. efl) folosesc întotdeauna grila de achiziție lingvistică.",
+    "class.classLevel": "Nivelul clasei",
+    "class.yearGroupLabel": "Anul {n}",
+    "class.levelFrameworkTag": "CEFR",
     "class.invalidSubject": "Introduceți o disciplină validă (cod presetat sau până la 120 de caractere).",
     "class.customSubjectsTitle": "Discipline personalizate (această școală)",
     "class.customSubjectsLead":
@@ -89,6 +116,15 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.selectOrDefineSubject": "Выберите или введите предмет",
     "class.subjectPickerHint":
       "Выберите код из списка (например efl) или введите новое название; новые названия сохраняются для этой школы.",
+    "class.gradeRubricProfile": "Шкала оценок (названия строк в отчётах и PDF)",
+    "class.gradeRubricLanguage": "Языковое усвоение",
+    "class.gradeRubricPrimary": "Начальная школа / общее",
+    "class.gradeRubricSecondary": "Средняя школа / общее",
+    "class.gradeRubricHint":
+      "Только для своих названий предметов. Предустановленные коды (например efl) всегда используют шкалу языкового усвоения.",
+    "class.classLevel": "Уровень класса",
+    "class.yearGroupLabel": "{n}-й класс",
+    "class.levelFrameworkTag": "CEFR",
     "class.invalidSubject": "Введите допустимый предмет (код из списка или до 120 символов).",
     "class.customSubjectsTitle": "Свои предметы (эта школа)",
     "class.customSubjectsLead":
@@ -113,6 +149,15 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.selectOrDefineSubject": "Виберіть або введіть предмет",
     "class.subjectPickerHint":
       "Оберіть код із списку (наприклад efl) або введіть нову назву; нові назви зберігаються для цієї школи.",
+    "class.gradeRubricProfile": "Шкала оцінювання (заголовки рядків у звітах і PDF)",
+    "class.gradeRubricLanguage": "Оволодіння мовою",
+    "class.gradeRubricPrimary": "Початкова школа / загальне",
+    "class.gradeRubricSecondary": "Середня школа / загальне",
+    "class.gradeRubricHint":
+      "Лише для власних назв предметів. Налаштовані коди (наприклад efl) завжди використовують шкалу оволодіння мовою.",
+    "class.classLevel": "Рівень класу",
+    "class.yearGroupLabel": "Рік {n}",
+    "class.levelFrameworkTag": "CEFR",
     "class.invalidSubject": "Введіть коректний предмет (код із списку або до 120 символів).",
     "class.customSubjectsTitle": "Власні предмети (ця школа)",
     "class.customSubjectsLead":
@@ -137,6 +182,15 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.selectOrDefineSubject": "اختر أو عرّف المادة",
     "class.subjectPickerHint":
       "اختر رمزًا جاهزًا من القائمة (مثل efl) أو اكتب اسم مادة جديد؛ تُحفظ الأسماء الجديدة لهذه المدرسة.",
+    "class.gradeRubricProfile": "سلم التقييم (عناوين الصفوف في التقارير وملفات PDF)",
+    "class.gradeRubricLanguage": "اكتساب اللغة",
+    "class.gradeRubricPrimary": "ابتدائي / عام",
+    "class.gradeRubricSecondary": "ثانوي / عام",
+    "class.gradeRubricHint":
+      "لأسماء المواد المخصّصة فقط. الرموز الجاهزة (مثل efl) تستخدم دائمًا سلم اكتساب اللغة.",
+    "class.classLevel": "مستوى الفصل",
+    "class.yearGroupLabel": "السنة {n}",
+    "class.levelFrameworkTag": "CEFR",
     "class.invalidSubject": "أدخل مادة صالحة (رمز جاهز أو حتى 120 حرفًا).",
     "class.customSubjectsTitle": "مواد مخصصة (هذه المدرسة)",
     "class.customSubjectsLead":

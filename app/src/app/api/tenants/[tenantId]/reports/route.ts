@@ -7,10 +7,12 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import { insertReport, listReportsForTenant } from "@/lib/data/reportsDb";
 import { getStudentInTenant, listStudents } from "@/lib/data/students";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { listTenantCustomSubjects, rubricMapFromCustomSubjects } from "@/lib/data/tenantCustomSubjects";
 import {
   emptyReportInputs,
   emptyShortCourseReportInputs,
   findConflictingReportIdForNewReport,
+  gradeRubricForReport,
   parseReportInputs,
 } from "@/lib/reportInputs";
 import { getTenantCreditBalance } from "@/lib/data/credits";
@@ -126,6 +128,12 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   }
 
   try {
+    const customRows = await listTenantCustomSubjects(tenantId);
+    const rubricMap = rubricMapFromCustomSubjects(customRows);
+    const inputsWithRubric = {
+      ...inputs,
+      grade_rubric_profile: gradeRubricForReport(inputs, klass.default_subject, rubricMap, klass.grade_rubric_profile),
+    };
     const report = await insertReport({
       tenantId,
       studentId: sid,
@@ -133,7 +141,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       title: title || null,
       body: reportBody,
       outputLanguage,
-      inputs,
+      inputs: inputsWithRubric,
     });
     return NextResponse.json({ report });
   } catch (e: unknown) {

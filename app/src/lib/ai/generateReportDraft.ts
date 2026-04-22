@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { languageLabel } from "@/lib/i18n/reportLanguages";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import type { ReportInputs } from "@/lib/reportInputs";
 import {
   isShortCourseReport,
@@ -9,7 +10,7 @@ import {
   resolvedSubjectCodeForPrompts,
   resolvedSubjectLineForAi,
 } from "@/lib/reportInputs";
-import type { CefrLevel } from "@/lib/data/classesDb";
+import type { CefrLevel } from "@/lib/classLevel";
 import type { SubjectCode } from "@/lib/subjects";
 import type { OpenAiUsage } from "@/lib/ai/openaiCost";
 import {
@@ -54,6 +55,8 @@ export async function generateSchoolReportDraft(opts: {
   extraNotes?: string;
   /** Class CEFR; A1–B1 triggers no-homework instructions in the draft prompt. */
   classCefrLevel?: CefrLevel | null;
+  /** Drives metric labels in the numeric dataset block sent to the model. */
+  gradeRubricProfile: GradeRubricProfile;
 }): Promise<{ text: string; usage: OpenAiUsage | null }> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey?.trim()) {
@@ -68,7 +71,7 @@ export async function generateSchoolReportDraft(opts: {
   const langName = LANGUAGE_INSTRUCTION[opts.outputLanguage] ?? languageLabel(opts.outputLanguage);
   const subjectCode = resolvedSubjectCodeForPrompts(inputs, opts.classDefaultSubject);
   const subjectLine = resolvedSubjectLineForAi(inputs, opts.classDefaultSubject);
-  const datasetBlock = reportInputsToTeacherNotes(inputs, subjectLine);
+  const datasetBlock = reportInputsToTeacherNotes(inputs, subjectLine, opts.gradeRubricProfile);
 
   const ctx = {
     subjectCode,
@@ -228,6 +231,7 @@ export async function generateSchoolReportDraftPair(opts: {
     ...common,
     outputLanguage: opts.pdfLanguage,
     existingBody: undefined,
+    gradeRubricProfile: opts.gradeRubricProfile,
   });
   const pdfBody = draft.text;
   let teacherPreview: string;

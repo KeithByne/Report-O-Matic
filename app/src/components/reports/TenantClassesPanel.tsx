@@ -14,6 +14,8 @@ import {
 } from "@/lib/appEvents";
 import type { RomRole } from "@/lib/data/memberships";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { GRADE_RUBRIC_PROFILES } from "@/lib/gradeRubricProfile";
 
 type ClassRow = { id: string; name: string; student_count: number };
 
@@ -50,6 +52,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [termByClass, setTermByClass] = useState<Record<string, TermCompletion>>({});
   const [newClassName, setNewClassName] = useState("");
+  const [newClassGradeRubric, setNewClassGradeRubric] = useState<GradeRubricProfile>("language");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [bulkTerm, setBulkTerm] = useState<"first" | "second" | "third">("first");
@@ -111,7 +114,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       const res = await fetch(`${base}/classes`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, grade_rubric_profile: newClassGradeRubric }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
@@ -177,7 +180,8 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
         </div>
         <p className="mt-2 text-xs text-zinc-500">{t("tenant.termReadinessHint")}</p>
         {isLead ? (
-          <form onSubmit={addClass} className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+          <form onSubmit={addClass} className="mt-3 flex flex-col gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="text-sm">
               <span className="text-zinc-600">{t("tenant.newClassName")}</span>
               <input
@@ -195,6 +199,31 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
               <Plus className={ICON_INLINE} aria-hidden />
               {t("tenant.createClass")}
             </button>
+            </div>
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-3 text-sm">
+              <p className="text-xs font-medium text-zinc-800">{t("class.gradeRubricProfile")}</p>
+              <p className="mt-1 text-xs text-zinc-600">{t("class.gradeRubricHint")}</p>
+              <div className="mt-2 flex flex-wrap gap-3">
+                {GRADE_RUBRIC_PROFILES.map((rp) => (
+                  <label key={rp} className="inline-flex cursor-pointer items-center gap-2 text-sm text-zinc-800">
+                    <input
+                      type="radio"
+                      name="new-class-grade-rubric"
+                      checked={newClassGradeRubric === rp}
+                      onChange={() => setNewClassGradeRubric(rp)}
+                      disabled={busy !== null}
+                    />
+                    <span>
+                      {rp === "language"
+                        ? t("class.gradeRubricLanguage")
+                        : rp === "primary"
+                          ? t("class.gradeRubricPrimary")
+                          : t("class.gradeRubricSecondary")}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </form>
         ) : (
           <p className="mt-2 text-sm text-zinc-500">{t("tenant.onlyLeadsCreate")}</p>

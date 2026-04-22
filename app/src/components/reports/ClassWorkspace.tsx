@@ -13,8 +13,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { allowedClassLevelsForRubric } from "@/lib/classLevel";
 import {
   defaultSubjectDisplayLocalized,
+  formatClassLevelOptionLabel,
   reportLanguageOptionLabel,
   subjectLabelLocalized,
 } from "@/lib/i18n/uiStrings";
@@ -27,6 +29,8 @@ import {
   parseReportInputs,
   reportPeriodTermNumber,
 } from "@/lib/reportInputs";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { GRADE_RUBRIC_PROFILES, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { REPORT_SUBJECTS, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { classesListHref } from "@/lib/app/classesNavigation";
@@ -83,6 +87,8 @@ type ClassDetail = {
   scholastic_year: string | null;
   cefr_level: string | null;
   default_subject: string;
+  /** Stored on the class: drives class level options and default report rubric. */
+  grade_rubric_profile?: GradeRubricProfile;
   default_output_language: string;
   default_new_report_kind?: ReportKind;
   default_new_report_period?: ReportPeriod;
@@ -117,8 +123,6 @@ type Props = {
   initialFocusStudentId?: string | null;
 };
 
-const CEFR = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
-
 function formatTeacherNameParts(first: string | null | undefined, last: string | null | undefined): string | null {
   const fn = (first ?? "").trim();
   const ln = (last ?? "").trim();
@@ -143,6 +147,8 @@ export function ClassWorkspace({
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const canManageClassSettings = viewerRole === "owner" || viewerRole === "department_head";
 
+  const [customSubjectRows, setCustomSubjectRows] = useState<{ name: string; rubric_profile: GradeRubricProfile }[]>([]);
+
   const refreshSubjectAccountOptions = useCallback(async () => {
     if (!canManageClassSettings) return;
     try {
@@ -150,11 +156,31 @@ export function ClassWorkspace({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return;
       const built = Array.isArray(data.built_in) ? (data.built_in as string[]) : [];
-      const cust = Array.isArray(data.custom) ? (data.custom as string[]) : [];
-      const merged = [...built, ...cust].map((x) => String(x).trim()).filter(Boolean);
+      const custRaw = data.custom;
+      const rows: { name: string; rubric_profile: GradeRubricProfile }[] = [];
+      if (Array.isArray(custRaw)) {
+        for (const item of custRaw) {
+          if (typeof item === "string") {
+            const n = item.trim();
+            if (n) rows.push({ name: n, rubric_profile: "secondary" });
+          } else if (item && typeof item === "object") {
+            const o = item as Record<string, unknown>;
+            const n = typeof o.name === "string" ? o.name.trim() : "";
+            if (n)
+              rows.push({
+                name: n,
+                rubric_profile: parseGradeRubricProfile(o.rubric_profile, "secondary"),
+              });
+          }
+        }
+      }
+      setCustomSubjectRows(rows);
+      const names = rows.map((r) => r.name);
+      const merged = [...built, ...names].map((x) => String(x).trim()).filter(Boolean);
       setSubjectAccountOptions([...new Set(merged)]);
     } catch {
       setSubjectAccountOptions([]);
+      setCustomSubjectRows([]);
     }
   }, [base, canManageClassSettings]);
 
@@ -213,9 +239,12 @@ export function ClassWorkspace({
   const [scholasticYear, setScholasticYear] = useState("");
   const [cefr, setCefr] = useState("");
   const [defSubject, setDefSubject] = useState("efl");
+  /** Class educational context (CEFR vs year bands); stored on the class row. */
+  const [classGradeRubric, setClassGradeRubric] = useState<GradeRubricProfile>("language");
   const [subjectAccountOptions, setSubjectAccountOptions] = useState<string[]>([]);
   const [editingCustomSubject, setEditingCustomSubject] = useState<string | null>(null);
   const [editCustomDraft, setEditCustomDraft] = useState("");
+  const [editRubricDraft, setEditRubricDraft] = useState<GradeRubricProfile>("secondary");
   const [subjectListBusy, setSubjectListBusy] = useState(false);
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [defNewReportKind, setDefNewReportKind] = useState<ReportKind>("standard");
@@ -255,6 +284,13 @@ export function ClassWorkspace({
   useEffect(() => {
     void refreshSubjectAccountOptions();
   }, [refreshSubjectAccountOptions, tenantId, classId]);
+
+  const classLevelOptions = useMemo(() => [...allowedClassLevelsForRubric(classGradeRubric)], [classGradeRubric]);
+
+  useEffect(() => {
+    if (!cefr.trim()) return;
+    if (!classLevelOptions.includes(cefr)) setCefr("");
+  }, [cefr, classLevelOptions]);
 
   useEffect(() => {
     setOpenClassPanel(initialOpenPanel ?? null);
@@ -329,6 +365,7 @@ export function ClassWorkspace({
       setScholasticYear(c.scholastic_year?.trim() ?? "");
       setCefr(c.cefr_level ?? "");
       setDefSubject((c.default_subject ?? "").trim() || "efl");
+      setClassGradeRubric(parseGradeRubricProfile(c.grade_rubric_profile, "language"));
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
       setDefNewReportPeriod(
@@ -383,7 +420,7 @@ export function ClassWorkspace({
         const res = await fetch(`${base}/subject-options`, {
           method: "PATCH",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ old_name: oldName, new_name: normalized }),
+          body: JSON.stringify({ old_name: oldName, new_name: normalized, rubric_profile: editRubricDraft }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectRenameFailed"));
@@ -406,7 +443,7 @@ export function ClassWorkspace({
         setSubjectListBusy(false);
       }
     },
-    [base, classId, defSubject, editCustomDraft, loadClass, refreshSubjectAccountOptions, router, t, tenantId],
+    [base, classId, defSubject, editCustomDraft, editRubricDraft, loadClass, refreshSubjectAccountOptions, router, t, tenantId],
   );
 
   const deleteCustomSchoolSubject = useCallback(
@@ -584,7 +621,11 @@ export function ClassWorkspace({
           name: cName.trim(),
           scholastic_year: scholasticYear.trim() || null,
           cefr_level: cefr.trim() || null,
+          grade_rubric_profile: classGradeRubric,
           default_subject: normalizedSubject,
+          default_subject_rubric_profile: REPORT_SUBJECTS.some((s) => s.code === normalizedSubject.trim().toLowerCase())
+            ? undefined
+            : classGradeRubric,
           default_output_language: defLang,
           default_new_report_kind: defNewReportKind,
           default_new_report_period: defNewReportPeriod,
@@ -969,6 +1010,40 @@ export function ClassWorkspace({
               </p>
             )}
           </label>
+          <div className="text-sm sm:col-span-2">
+            <span className="text-zinc-600">{t("class.gradeRubricProfile")}</span>
+            <p className="mt-1 text-xs text-zinc-600">{t("class.gradeRubricHint")}</p>
+            {canManageClassSettings ? (
+              <div className="mt-2 flex flex-wrap gap-3 rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
+                {GRADE_RUBRIC_PROFILES.map((rp) => (
+                  <label key={rp} className="inline-flex cursor-pointer items-center gap-2 text-sm text-zinc-800">
+                    <input
+                      type="radio"
+                      name={`class-context-${classId}`}
+                      checked={classGradeRubric === rp}
+                      onChange={() => setClassGradeRubric(rp)}
+                      disabled={busy !== null}
+                    />
+                    <span>
+                      {rp === "language"
+                        ? t("class.gradeRubricLanguage")
+                        : rp === "primary"
+                          ? t("class.gradeRubricPrimary")
+                          : t("class.gradeRubricSecondary")}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {classGradeRubric === "language"
+                  ? t("class.gradeRubricLanguage")
+                  : classGradeRubric === "primary"
+                    ? t("class.gradeRubricPrimary")
+                    : t("class.gradeRubricSecondary")}
+              </p>
+            )}
+          </div>
           <label className="text-sm">
             <span className="text-zinc-600">{t("class.scholasticYear")}</span>
             {viewerRole === "teacher" ? (
@@ -982,27 +1057,6 @@ export function ClassWorkspace({
                 className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
                 placeholder={t("class.scholasticPlaceholder")}
               />
-            )}
-          </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.cefr")}</span>
-            {viewerRole === "owner" || viewerRole === "department_head" ? (
-              <select
-                value={cefr}
-                onChange={(e) => setCefr(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="">—</option>
-                {CEFR.map((x) => (
-                  <option key={x} value={x}>
-                    {x}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
-                {cefr.trim() || "—"}
-              </p>
             )}
           </label>
           <label className="text-sm">
@@ -1046,6 +1100,29 @@ export function ClassWorkspace({
                                 className="min-w-[10rem] flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm"
                                 autoComplete="off"
                               />
+                              <div className="w-full basis-full rounded border border-zinc-200 bg-white p-2">
+                                <p className="text-[11px] font-medium text-zinc-700">{t("class.gradeRubricProfile")}</p>
+                                <div className="mt-1 flex flex-wrap gap-2">
+                                  {GRADE_RUBRIC_PROFILES.map((rp) => (
+                                    <label key={rp} className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-zinc-800">
+                                      <input
+                                        type="radio"
+                                        name={`edit-school-subject-rubric-${name}`}
+                                        checked={editRubricDraft === rp}
+                                        onChange={() => setEditRubricDraft(rp)}
+                                        disabled={subjectListBusy}
+                                      />
+                                      <span>
+                                        {rp === "language"
+                                          ? t("class.gradeRubricLanguage")
+                                          : rp === "primary"
+                                            ? t("class.gradeRubricPrimary")
+                                            : t("class.gradeRubricSecondary")}
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
                               <button
                                 type="button"
                                 disabled={subjectListBusy}
@@ -1075,6 +1152,10 @@ export function ClassWorkspace({
                                 onClick={() => {
                                   setEditingCustomSubject(name);
                                   setEditCustomDraft(name);
+                                  setEditRubricDraft(
+                                    customSubjectRows.find((r) => r.name.toLowerCase() === name.trim().toLowerCase())
+                                      ?.rubric_profile ?? "secondary",
+                                  );
                                 }}
                                 className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 disabled:opacity-50"
                               >
@@ -1099,6 +1180,27 @@ export function ClassWorkspace({
             ) : (
               <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {defaultSubjectDisplayLocalized(uiLang, defSubject)}
+              </p>
+            )}
+          </label>
+          <label className="text-sm">
+            <span className="text-zinc-600">{t("class.classLevel")}</span>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <select
+                value={cefr}
+                onChange={(e) => setCefr(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">—</option>
+                {classLevelOptions.map((x) => (
+                  <option key={x} value={x}>
+                    {formatClassLevelOptionLabel(uiLang, x, classGradeRubric)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {cefr.trim() ? formatClassLevelOptionLabel(uiLang, cefr, classGradeRubric) : "—"}
               </p>
             )}
           </label>

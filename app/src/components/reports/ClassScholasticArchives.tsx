@@ -11,7 +11,8 @@ import {
   type ReportPeriod,
 } from "@/lib/reportInputs";
 import { UI_LOCALE_BCP47 } from "@/lib/i18n/reportLanguages";
-import { metricLabel } from "@/lib/i18n/uiStrings";
+import { metricLabelForRubric } from "@/lib/i18n/gradeRubricLabels";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 
 type ArchiveListItem = { id: string; scholastic_year_label: string; archived_at: string };
 
@@ -26,6 +27,7 @@ function periodLabel(rp: ReportPeriod): "archive.term1" | "archive.term2" | "arc
 function ArchiveReadonlyGrades({ inputsRaw, reportN }: { inputsRaw: unknown; reportN: number }) {
   const { lang, t } = useUiLanguage();
   const inputs = parseReportInputs(inputsRaw);
+  const rubric: GradeRubricProfile = inputs.grade_rubric_profile ?? "language";
   const short = isShortCourseReport(inputs);
   const terms: (0 | 1 | 2)[] = short ? [0] : [0, 1, 2];
   const termTitle = (i: 0 | 1 | 2) =>
@@ -58,7 +60,7 @@ function ArchiveReadonlyGrades({ inputsRaw, reportN }: { inputsRaw: unknown; rep
                         return (
                           <div key={m.key} className="min-w-0 text-center">
                             <div className="mb-0.5 min-h-[2.25rem] text-[10px] leading-tight text-zinc-600 sm:text-xs">
-                              {metricLabel(lang, m.key)}
+                              {metricLabelForRubric(lang, m.key, rubric)}
                             </div>
                             <div className="rounded border border-emerald-200 bg-emerald-50/70 py-1 text-sm font-medium text-zinc-900">
                               {v === null ? "—" : v}

@@ -1,4 +1,6 @@
 import { rewriteDefaultSubjectForTenantClasses } from "@/lib/data/classesDb";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { isGradeRubricProfile, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { REPORT_SUBJECTS, isSubjectCode, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 
@@ -7,45 +9,78 @@ function formatErr(e: { message: string; details?: string | null; hint?: string 
   return parts.join(" — ") || "Database error.";
 }
 
-export async function listTenantCustomSubjectNames(tenantId: string): Promise<string[]> {
+export type TenantCustomSubjectRow = {
+  name: string;
+  rubric_profile: GradeRubricProfile;
+};
+
+function normalizeRow(raw: unknown): TenantCustomSubjectRow | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const name = typeof o.name === "string" ? o.name.trim() : "";
+  if (!name || isSubjectCode(name.toLowerCase())) return null;
+  const rubric_profile = parseGradeRubricProfile(o.rubric_profile, "secondary");
+  return { name, rubric_profile };
+}
+
+export async function listTenantCustomSubjects(tenantId: string): Promise<TenantCustomSubjectRow[]> {
   const supabase = getServiceSupabase();
   if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("tenants")
-    .select("custom_subject_names")
-    .eq("id", tenantId)
-    .maybeSingle();
+  const { data, error } = await supabase.from("tenants").select("custom_subjects").eq("id", tenantId).maybeSingle();
   if (error) return [];
-  const raw = (data as { custom_subject_names?: unknown } | null)?.custom_subject_names;
+  const raw = (data as { custom_subjects?: unknown } | null)?.custom_subjects;
   if (!Array.isArray(raw)) return [];
-  return raw.map((x) => String(x).trim()).filter(Boolean);
+  const out: TenantCustomSubjectRow[] = [];
+  for (const item of raw) {
+    const row = normalizeRow(item);
+    if (row) out.push(row);
+  }
+  return out;
+}
+
+export function rubricMapFromCustomSubjects(rows: TenantCustomSubjectRow[]): Map<string, GradeRubricProfile> {
+  const m = new Map<string, GradeRubricProfile>();
+  for (const r of rows) {
+    m.set(r.name.trim().toLowerCase(), r.rubric_profile);
+  }
+  return m;
 }
 
 /**
- * Adds names to the tenant’s custom list (deduped case-insensitively).
- * Built-in subject codes are not stored as custom entries.
+ * Upserts custom subjects (by name, case-insensitive). Updates rubric when the name already exists.
+ * Built-in codes are skipped.
  */
-export async function mergeTenantCustomSubjectNames(tenantId: string, names: string[]): Promise<void> {
+export async function mergeTenantCustomSubjectEntries(
+  tenantId: string,
+  entries: { name: string; rubric_profile?: GradeRubricProfile }[],
+): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
 
-  const filtered = names
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !isSubjectCode(s.toLowerCase()));
+  const cleaned = entries
+    .map((e) => ({
+      name: e.name.trim(),
+      rubric_profile:
+        e.rubric_profile !== undefined && isGradeRubricProfile(e.rubric_profile) ? e.rubric_profile : undefined,
+    }))
+    .filter((e) => e.name.length > 0 && !isSubjectCode(e.name.toLowerCase()));
 
-  if (filtered.length === 0) return;
+  if (cleaned.length === 0) return;
 
-  const existing = await listTenantCustomSubjectNames(tenantId);
-  const seen = new Set(existing.map((s) => s.toLowerCase()));
-  const merged = [...existing];
-  for (const n of filtered) {
-    const low = n.toLowerCase();
-    if (seen.has(low)) continue;
-    seen.add(low);
-    merged.push(n);
+  const existing = await listTenantCustomSubjects(tenantId);
+  const byLower = new Map<string, TenantCustomSubjectRow>();
+  for (const r of existing) {
+    byLower.set(r.name.toLowerCase(), r);
   }
+  for (const e of cleaned) {
+    const prev = byLower.get(e.name.toLowerCase());
+    const rubric: GradeRubricProfile =
+      e.rubric_profile !== undefined ? e.rubric_profile : prev?.rubric_profile ?? "secondary";
+    byLower.set(e.name.toLowerCase(), { name: e.name, rubric_profile: rubric });
+  }
+  const next = Array.from(byLower.values());
 
-  const { error } = await supabase.from("tenants").update({ custom_subject_names: merged }).eq("id", tenantId);
+  const { error } = await supabase.from("tenants").update({ custom_subjects: next }).eq("id", tenantId);
   if (error) throw new Error(formatErr(error));
 }
 
@@ -54,10 +89,14 @@ export function builtInSubjectCodes(): string[] {
 }
 
 /**
- * Renames a custom school subject: updates the tenant list and any class default that used the old name.
- * Renaming to a built-in code removes the custom list entry and normalizes class defaults to that code.
+ * Renames a custom school subject and/or updates its rubric profile; updates class defaults that used the old name.
  */
-export async function renameTenantCustomSubjectName(tenantId: string, fromName: string, toName: string): Promise<void> {
+export async function renameTenantCustomSubjectName(
+  tenantId: string,
+  fromName: string,
+  toName: string,
+  rubricProfile?: GradeRubricProfile,
+): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
 
@@ -65,23 +104,31 @@ export async function renameTenantCustomSubjectName(tenantId: string, fromName: 
   if (!from || isSubjectCode(from.toLowerCase())) throw new Error("Invalid source subject.");
 
   const normTo = normalizeDefaultSubjectForStorage(toName);
-  if (from.toLowerCase() === normTo.toLowerCase()) return;
+  if (from.toLowerCase() === normTo.toLowerCase() && rubricProfile === undefined) return;
 
-  const existing = await listTenantCustomSubjectNames(tenantId);
-  const fromIdx = existing.findIndex((s) => s.toLowerCase() === from.toLowerCase());
+  const existing = await listTenantCustomSubjects(tenantId);
+  const fromIdx = existing.findIndex((s) => s.name.toLowerCase() === from.toLowerCase());
   if (fromIdx === -1) throw new Error("Subject not in school list.");
 
-  const withoutFrom = existing.filter((s) => s.toLowerCase() !== from.toLowerCase());
-  let nextList: string[];
+  const oldRow = existing[fromIdx]!;
+  const nextRubric = rubricProfile ?? oldRow.rubric_profile;
+
+  const withoutFrom = existing.filter((s) => s.name.toLowerCase() !== from.toLowerCase());
+  let nextList: TenantCustomSubjectRow[];
+
   if (isSubjectCode(normTo)) {
     nextList = withoutFrom;
-  } else if (withoutFrom.some((s) => s.toLowerCase() === normTo.toLowerCase())) {
-    nextList = withoutFrom;
   } else {
-    nextList = [...withoutFrom, normTo];
+    const matchIdx = withoutFrom.findIndex((s) => s.name.toLowerCase() === normTo.toLowerCase());
+    if (matchIdx === -1) {
+      nextList = [...withoutFrom, { name: normTo, rubric_profile: nextRubric }];
+    } else {
+      nextList = [...withoutFrom];
+      nextList[matchIdx] = { name: normTo, rubric_profile: nextRubric };
+    }
   }
 
-  const { error } = await supabase.from("tenants").update({ custom_subject_names: nextList }).eq("id", tenantId);
+  const { error } = await supabase.from("tenants").update({ custom_subjects: nextList }).eq("id", tenantId);
   if (error) throw new Error(formatErr(error));
 
   await rewriteDefaultSubjectForTenantClasses(tenantId, from, normTo);
@@ -95,11 +142,11 @@ export async function removeTenantCustomSubjectName(tenantId: string, name: stri
   const n = name.trim();
   if (!n || isSubjectCode(n.toLowerCase())) throw new Error("Invalid subject.");
 
-  const existing = await listTenantCustomSubjectNames(tenantId);
-  if (!existing.some((s) => s.toLowerCase() === n.toLowerCase())) throw new Error("Subject not in school list.");
+  const existing = await listTenantCustomSubjects(tenantId);
+  if (!existing.some((s) => s.name.toLowerCase() === n.toLowerCase())) throw new Error("Subject not in school list.");
 
-  const nextList = existing.filter((s) => s.toLowerCase() !== n.toLowerCase());
-  const { error } = await supabase.from("tenants").update({ custom_subject_names: nextList }).eq("id", tenantId);
+  const nextList = existing.filter((s) => s.name.toLowerCase() !== n.toLowerCase());
+  const { error } = await supabase.from("tenants").update({ custom_subjects: nextList }).eq("id", tenantId);
   if (error) throw new Error(formatErr(error));
 
   await rewriteDefaultSubjectForTenantClasses(tenantId, n, "efl");

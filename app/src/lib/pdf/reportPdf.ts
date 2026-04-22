@@ -1,6 +1,8 @@
 import PDFDocument from "pdfkit";
 
-import { isUiLang, metricDivisionLabel, metricLabel, translate, type UiLang } from "@/lib/i18n/uiStrings";
+import { metricDivisionLabelForRubric, metricLabelForRubric } from "@/lib/i18n/gradeRubricLabels";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 
 import type { ReportInputs, ReportPeriod } from "@/lib/reportInputs";
 
@@ -112,6 +114,8 @@ export type ReportPdfContext = {
   inputs: ReportInputs;
 
   generatedAt: Date;
+
+  gradeRubricProfile: GradeRubricProfile;
 
 };
 
@@ -424,7 +428,13 @@ function metricsApplicableForPdf(inputs: ReportInputs, shortCourse: boolean): (t
   });
 }
 
-function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang: UiLang): number {
+function drawGradesTable(
+  doc: PdfDoc,
+  inputs: ReportInputs,
+  startY: number,
+  lang: UiLang,
+  rubric: GradeRubricProfile,
+): number {
   const usableW = widthPt - marginPt * 2;
   const colLabelW = usableW * tableSpec.colLabelRatio;
   const shortCourse = isShortCourseReport(inputs);
@@ -478,7 +488,7 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
       currentDivision = m.divisionKey;
       applyTypo(doc, typo.gradesDivision);
       const indentDivisionTitle = doc.widthOfString("n");
-      doc.text(metricDivisionLabel(lang, m.divisionKey), x0 + indentDivisionTitle, y, {
+      doc.text(metricDivisionLabelForRubric(lang, m.divisionKey, rubric), x0 + indentDivisionTitle, y, {
         width: usableW - indentDivisionTitle,
       });
       y += rowH - 2;
@@ -486,7 +496,7 @@ function drawGradesTable(doc: PdfDoc, inputs: ReportInputs, startY: number, lang
     }
     applyTypo(doc, typo.gradesCellLabel);
     const indentMetricRow = doc.widthOfString("n") * 2;
-    doc.text(metricLabel(lang, m.key), x0 + indentMetricRow, y, {
+    doc.text(metricLabelForRubric(lang, m.key, rubric), x0 + indentMetricRow, y, {
       width: colLabelW - 4 - indentMetricRow,
     });
     const termCount = shortCourse ? 1 : 3;
@@ -654,7 +664,7 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
 
     doc.moveDown(0.65);
 
-    drawGradesTable(doc, ctx.inputs, doc.y, lang);
+    drawGradesTable(doc, ctx.inputs, doc.y, lang, ctx.gradeRubricProfile);
 
     drawTeacherSignatureFoot(doc, sigLabel);
 

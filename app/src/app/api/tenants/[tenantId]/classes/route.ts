@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import type { CefrLevel } from "@/lib/data/classesDb";
+import { isValidClassLevelForRubric } from "@/lib/classLevel";
 import { insertClass, listClasses } from "@/lib/data/classesDb";
+import { resolveGradeRubricForClassSubject } from "@/lib/data/resolveGradeRubricForClassSubject";
 import { getRoleForTenant } from "@/lib/data/memberships";
-import { mergeTenantCustomSubjectNames } from "@/lib/data/tenantCustomSubjects";
-import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
+import { mergeTenantCustomSubjectEntries } from "@/lib/data/tenantCustomSubjects";
+import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { isSubjectCode, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import { listStudents } from "@/lib/data/students";
 
 function isUuid(s: string): boolean {
@@ -60,6 +62,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     scholastic_year?: unknown;
     cefr_level?: unknown;
     default_subject?: unknown;
+    default_subject_rubric_profile?: unknown;
+    grade_rubric_profile?: unknown;
     default_output_language?: unknown;
     assigned_teacher_email?: unknown;
   };
@@ -73,15 +77,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
 
   const scholasticYear = typeof body.scholastic_year === "string" ? body.scholastic_year.trim() : undefined;
   const cefrRaw = typeof body.cefr_level === "string" ? body.cefr_level.trim() : "";
-  const cefr_level: CefrLevel | null | undefined =
-    cefrRaw === ""
-      ? undefined
-      : ["A1", "A2", "B1", "B2", "C1", "C2"].includes(cefrRaw)
-        ? (cefrRaw as CefrLevel)
-        : null;
-  if (cefr_level === null && cefrRaw !== "") {
-    return NextResponse.json({ error: "cefr_level must be A1–C2 or empty." }, { status: 400 });
-  }
+  const cefrStored: string | null | undefined =
+    typeof body.cefr_level !== "string" ? undefined : cefrRaw === "" ? null : cefrRaw;
   let default_subject: string | undefined;
   if (typeof body.default_subject === "string" && body.default_subject.trim()) {
     try {
@@ -89,6 +86,26 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     } catch {
       return NextResponse.json({ error: "Invalid default_subject." }, { status: 400 });
     }
+  }
+  const normForRubric = default_subject ?? "efl";
+  const explicitRubric =
+    default_subject && !isSubjectCode(normForRubric.toLowerCase())
+      ? parseGradeRubricProfile(body.default_subject_rubric_profile, "secondary")
+      : undefined;
+  const classRubricFromBody =
+    body.grade_rubric_profile !== undefined
+      ? parseGradeRubricProfile(body.grade_rubric_profile, "language")
+      : undefined;
+  const rubricForLevel =
+    classRubricFromBody ??
+    (await resolveGradeRubricForClassSubject(tenantId, normForRubric, {
+      explicitCustomRubric: explicitRubric,
+    }));
+  if (cefrStored !== undefined && cefrStored !== null && !isValidClassLevelForRubric(cefrStored, rubricForLevel)) {
+    return NextResponse.json(
+      { error: "Class level is not valid for this subject type (CEFR vs year group)." },
+      { status: 400 },
+    );
   }
   const default_output_language =
     typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language)
@@ -111,14 +128,19 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       tenantId,
       name,
       scholasticYear: scholasticYear ?? null,
-      cefrLevel: cefr_level === undefined ? undefined : cefr_level,
+      cefrLevel: cefrStored === undefined ? undefined : cefrStored,
       defaultSubject: default_subject,
+      gradeRubricProfile: classRubricFromBody,
       defaultOutputLanguage: default_output_language,
       assignedTeacherEmail: assignedTeacher,
     });
     if (default_subject) {
       try {
-        await mergeTenantCustomSubjectNames(tenantId, [default_subject]);
+        const mergeRubric =
+          classRubricFromBody ??
+          explicitRubric ??
+          parseGradeRubricProfile(body.default_subject_rubric_profile, "secondary");
+        await mergeTenantCustomSubjectEntries(tenantId, [{ name: default_subject, rubric_profile: mergeRubric }]);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Could not update subject list.";
         return NextResponse.json({ error: msg }, { status: 500 });

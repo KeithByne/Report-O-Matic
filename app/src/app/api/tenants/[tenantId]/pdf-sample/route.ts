@@ -53,6 +53,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       reportTitle: null,
       inputs,
       generatedAt: new Date(),
+      gradeRubricProfile: "language",
     });
     const fname = `sample-report-${tenantId.slice(0, 8)}.pdf`;
     return new NextResponse(new Uint8Array(buf), {

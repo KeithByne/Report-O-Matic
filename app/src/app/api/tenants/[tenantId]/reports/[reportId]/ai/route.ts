@@ -7,10 +7,12 @@ import { getClassInTenant } from "@/lib/data/classesDb";
 import { getTenantCreditBalance, consumeCreditForReport } from "@/lib/data/credits";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { logOpenAiUsageEvent } from "@/lib/data/openaiUsageEvents";
+import { resolveGradeRubricForTenantReport } from "@/lib/data/resolveGradeRubricForTenantReport";
 import { getReport, updateReport } from "@/lib/data/reportsDb";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { ReportInputs } from "@/lib/reportInputs";
 import { focusTermComplete, focusTermIndex, isShortCourseReport, parseReportInputs } from "@/lib/reportInputs";
+import { cefrLevelForAiPrompts } from "@/lib/classLevel";
 import { coerceStoredDefaultSubject } from "@/lib/subjects";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
@@ -144,6 +146,13 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
 
   const extraNotes = [attendanceContext, baseNotes.trim() || null].filter(Boolean).join("\n\n") || undefined;
 
+  const gradeRubricProfile = await resolveGradeRubricForTenantReport(
+    tenantId,
+    report.inputs,
+    classDefaultSubject,
+    klass?.grade_rubric_profile,
+  );
+
   try {
     const bal = await getTenantCreditBalance(tenantId);
     if (bal <= 0) {
@@ -158,7 +167,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       classDefaultSubject,
       inputs: report.inputs,
       extraNotes,
-      classCefrLevel: klass?.cefr_level ?? null,
+      classCefrLevel: cefrLevelForAiPrompts(klass?.cefr_level),
+      gradeRubricProfile,
     });
     if (usage.draft) {
       await logOpenAiUsageEvent({

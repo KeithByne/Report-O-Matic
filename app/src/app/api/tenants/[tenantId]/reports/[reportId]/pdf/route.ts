@@ -3,6 +3,7 @@ import { canAccessClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
+import { resolveGradeRubricForTenantReport } from "@/lib/data/resolveGradeRubricForTenantReport";
 import { getReport } from "@/lib/data/reportsDb";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
@@ -72,6 +73,12 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const outputLanguageLabel = languageLabel(outputLanguageCode);
   const lang = isUiLang(outputLanguageCode) ? outputLanguageCode : "en";
   const subjectLabel = resolvedSubjectLabelForPdf(lang, report.inputs, classDefault);
+  const gradeRubricProfile = await resolveGradeRubricForTenantReport(
+    tenantId,
+    report.inputs,
+    classDefault,
+    klass?.grade_rubric_profile,
+  );
 
   try {
     const buf = await buildReportPdfBuffer({
@@ -90,6 +97,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       reportTitle: report.title,
       inputs: report.inputs,
       generatedAt: new Date(),
+      gradeRubricProfile,
     });
     const fname = safeFilename(`${st.display_name}-${reportId.slice(0, 8)}`) + ".pdf";
     const headers: Record<string, string> = {

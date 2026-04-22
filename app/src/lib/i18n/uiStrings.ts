@@ -9,6 +9,8 @@ import {
 } from "@/lib/i18n/reportLanguages";
 import { AR_PATCH, NL_PATCH, PL_PATCH, RO_PATCH, RU_PATCH, UK_PATCH } from "@/lib/i18n/localePatches6";
 import type { SubjectCode } from "@/lib/subjects";
+import { CLASS_CEFR_CODES } from "@/lib/classLevel";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { isSubjectCode } from "@/lib/subjects";
 import { EL_BODY } from "@/lib/i18n/localeElBody";
 import { DE_LABELS, IT_LABELS, PT_LABELS } from "@/lib/i18n/localeExtra";
@@ -1109,6 +1111,15 @@ const EN: UiMessages = {
   "class.selectOrDefineSubject": "Select or define subject",
   "class.subjectPickerHint":
     "Choose a preset code from the list (e.g. efl) or type a new subject name; new names are saved to this school’s subject list for next time.",
+  "class.gradeRubricProfile": "Grade rubric (row titles on reports and PDFs)",
+  "class.gradeRubricLanguage": "Language acquisition",
+  "class.gradeRubricPrimary": "Primary / general",
+  "class.gradeRubricSecondary": "Secondary / general",
+  "class.gradeRubricHint":
+    "For custom subject names only. Preset codes (e.g. efl) always use the language-acquisition rubric.",
+  "class.classLevel": "Class level",
+  "class.yearGroupLabel": "Year {n}",
+  "class.levelFrameworkTag": "CEFR",
   "class.invalidSubject": "Enter a valid subject (a preset code or up to 120 characters).",
   "class.customSubjectsTitle": "Custom subjects (this school)",
   "class.customSubjectsLead":
@@ -1834,6 +1845,15 @@ const FR: UiMessages = {
   "class.selectOrDefineSubject": "Sélectionner ou définir la matière",
   "class.subjectPickerHint":
     "Choisissez un code préréglé dans la liste (p. ex. efl) ou saisissez un nouveau nom de matière ; les nouveaux noms sont enregistrés pour cette école.",
+  "class.gradeRubricProfile": "Grille de compétences (titres des lignes dans les rapports et PDF)",
+  "class.gradeRubricLanguage": "Acquisition des langues",
+  "class.gradeRubricPrimary": "Primaire / enseignement général",
+  "class.gradeRubricSecondary": "Secondaire / enseignement général",
+  "class.gradeRubricHint":
+    "Uniquement pour les noms de matière personnalisés. Les codes préréglés (p. ex. efl) utilisent toujours la grille d’acquisition des langues.",
+  "class.classLevel": "Niveau de la classe",
+  "class.yearGroupLabel": "Année {n}",
+  "class.levelFrameworkTag": "CECR",
   "class.invalidSubject": "Saisissez une matière valide (code préréglé ou jusqu’à 120 caractères).",
   "class.customSubjectsTitle": "Matières personnalisées (cette école)",
   "class.customSubjectsLead":
@@ -2410,6 +2430,15 @@ const ES: UiMessages = {
   "class.selectOrDefineSubject": "Seleccionar o definir asignatura",
   "class.subjectPickerHint":
     "Elija un código predefinido de la lista (p. ej. efl) o escriba un nombre nuevo de asignatura; los nombres nuevos quedan guardados para esta escuela.",
+  "class.gradeRubricProfile": "Rúbrica de calificaciones (títulos de fila en informes y PDF)",
+  "class.gradeRubricLanguage": "Adquisición de lenguas",
+  "class.gradeRubricPrimary": "Primaria / general",
+  "class.gradeRubricSecondary": "Secundaria / general",
+  "class.gradeRubricHint":
+    "Solo para nombres de asignatura personalizados. Los códigos predefinidos (p. ej. efl) siempre usan la rúbrica de adquisición lingüística.",
+  "class.classLevel": "Nivel de la clase",
+  "class.yearGroupLabel": "Año {n}",
+  "class.levelFrameworkTag": "MCER",
   "class.invalidSubject": "Introduzca una asignatura válida (código predefinido o hasta 120 caracteres).",
   "class.customSubjectsTitle": "Asignaturas personalizadas (esta escuela)",
   "class.customSubjectsLead":
@@ -2551,6 +2580,18 @@ export function defaultSubjectDisplayLocalized(lang: UiLang, stored: string): st
   if (!s) return subjectLabelLocalized(lang, "efl");
   const low = s.toLowerCase();
   if (isSubjectCode(low)) return subjectLabelLocalized(lang, low);
+  return s;
+}
+
+/** Dropdown / read-only label for stored class level (CEFR + tag, or translated year group). */
+export function formatClassLevelOptionLabel(lang: UiLang, stored: string, rubric: GradeRubricProfile): string {
+  const s = stored.trim();
+  if (!s) return "";
+  if (rubric === "language" && (CLASS_CEFR_CODES as readonly string[]).includes(s)) {
+    return `${s} (${translate(lang, "class.levelFrameworkTag")})`;
+  }
+  const m = /^Year (\d+)$/.exec(s);
+  if (m) return translate(lang, "class.yearGroupLabel", { n: m[1] });
   return s;
 }
 

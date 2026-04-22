@@ -7,25 +7,30 @@ import type { RomRole } from "@/lib/data/memberships";
 import { coerceStoredDefaultSubject } from "@/lib/subjects";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { syncTimetableSlotsTeacherForClass } from "@/lib/data/timetableDb";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+
+export type { CefrLevel } from "@/lib/classLevel";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
   return parts.join(" — ") || "Database error.";
 }
 
-export type CefrLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
-
 export type ClassRow = {
   id: string;
   tenant_id: string;
   name: string;
   scholastic_year: string | null;
-  cefr_level: CefrLevel | null;
+  /** CEFR bands (language classes) or `Year n` labels (primary/secondary); column name is legacy. */
+  cefr_level: string | null;
   default_subject: string;
   default_output_language: ReportLanguageCode;
   default_new_report_kind: ReportKind;
   /** Default `report_period` for new standard reports created for pupils in this class. */
   default_new_report_period: ReportPeriod;
+  /** Educational context: drives class level options (CEFR vs year) and default report rubric. */
+  grade_rubric_profile: GradeRubricProfile;
   assigned_teacher_email: string | null;
   active_weekdays: WeekdayKey[];
   created_at: string;
@@ -70,11 +75,12 @@ function mapClassRow(raw: Record<string, unknown>): ClassRow {
     tenant_id: raw.tenant_id as string,
     name: raw.name as string,
     scholastic_year: (raw.scholastic_year as string | null) ?? null,
-    cefr_level: (raw.cefr_level as CefrLevel | null) ?? null,
+    cefr_level: raw.cefr_level == null ? null : String(raw.cefr_level),
     default_subject: coerceStoredDefaultSubject(raw.default_subject),
     default_output_language: raw.default_output_language as ReportLanguageCode,
     default_new_report_kind: parseReportKind(raw.default_new_report_kind),
     default_new_report_period: parseDefaultNewReportPeriod(raw.default_new_report_period),
+    grade_rubric_profile: parseGradeRubricProfile(raw.grade_rubric_profile, "language"),
     assigned_teacher_email: (raw.assigned_teacher_email as string | null) ?? null,
     active_weekdays: parseActiveWeekdaysFromDb(raw.active_weekdays),
     created_at: raw.created_at as string,
@@ -101,8 +107,9 @@ export async function insertClass(opts: {
   tenantId: string;
   name: string;
   scholasticYear?: string | null;
-  cefrLevel?: CefrLevel | null;
+  cefrLevel?: string | null;
   defaultSubject?: string;
+  gradeRubricProfile?: GradeRubricProfile;
   defaultOutputLanguage?: ReportLanguageCode;
   assignedTeacherEmail?: string | null;
 }): Promise<ClassRow> {
@@ -147,11 +154,12 @@ export async function updateClass(
   patch: {
     name?: string;
     scholastic_year?: string | null;
-    cefr_level?: CefrLevel | null;
+    cefr_level?: string | null;
     default_subject?: string;
     default_output_language?: ReportLanguageCode;
     default_new_report_kind?: ReportKind;
     default_new_report_period?: ReportPeriod;
+    grade_rubric_profile?: GradeRubricProfile;
     assigned_teacher_email?: string | null;
     active_weekdays?: WeekdayKey[];
   },
@@ -177,6 +185,9 @@ export async function updateClass(
   }
   if (patch.default_new_report_period !== undefined) {
     row.default_new_report_period = patch.default_new_report_period;
+  }
+  if (patch.grade_rubric_profile !== undefined) {
+    row.grade_rubric_profile = patch.grade_rubric_profile;
   }
   if (patch.assigned_teacher_email !== undefined) {
     row.assigned_teacher_email = patch.assigned_teacher_email?.trim().toLowerCase() || null;

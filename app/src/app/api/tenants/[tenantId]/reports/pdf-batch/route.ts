@@ -3,6 +3,7 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { listClasses } from "@/lib/data/classesDb";
 import { listReportsForTenant, type ReportRow } from "@/lib/data/reportsDb";
+import { resolveGradeRubricForTenantReport } from "@/lib/data/resolveGradeRubricForTenantReport";
 import { listStudents } from "@/lib/data/students";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
@@ -174,6 +175,12 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const outputLanguageLabel = languageLabel(outputLanguageCode);
     const lang = isUiLang(outputLanguageCode) ? outputLanguageCode : "en";
     const subjectLabel = resolvedSubjectLabelForPdf(lang, r.inputs, classDefault);
+    const gradeRubricProfile = await resolveGradeRubricForTenantReport(
+      tenantId,
+      r.inputs,
+      classDefault,
+      klass?.grade_rubric_profile,
+    );
 
     const buf = await buildReportPdfBuffer({
       letterhead,
@@ -191,6 +198,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       reportTitle: r.title,
       inputs: r.inputs,
       generatedAt: new Date(r.updated_at || Date.now()),
+      gradeRubricProfile,
     });
     pdfs.push(buf);
   }

@@ -4,6 +4,10 @@
  * Row titles in English in this table are for storage/AI plaintext; the report PDF uses i18n from the output language.
  */
 
+import { gradeRubricForClassDefaultSubject } from "@/lib/gradeRubricProfile";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { metricDivisionHeadingEnForRubric, metricLineEnForRubric } from "@/lib/i18n/gradeRubricLabels";
 import { isSubjectCode, subjectLabel } from "@/lib/subjects";
 import type { SubjectCode } from "@/lib/subjects";
 
@@ -60,6 +64,8 @@ export type ReportInputs = {
    * Classes readiness uses this so the indicator does not depend on all 16 rubric cells being filled.
    */
   comment_generated_for_terms?: [boolean, boolean, boolean];
+  /** Snapshot rubric for grade row titles / AI; set when the report is created or refreshed from class + tenant list. */
+  grade_rubric_profile?: GradeRubricProfile;
 };
 
 export function isShortCourseReport(inputs: ReportInputs): boolean {
@@ -140,7 +146,24 @@ export function parseReportInputs(raw: unknown): ReportInputs {
     base.comment_generated_for_terms = [cgt[0] === true, cgt[1] === true, cgt[2] === true];
   }
 
+  if ("grade_rubric_profile" in o) {
+    base.grade_rubric_profile = parseGradeRubricProfile(o.grade_rubric_profile, "secondary");
+  }
+
   return base;
+}
+
+/** Rubric for grades / AI: preset `subject_code` → language; else snapshot; else class column; else subject + tenant map. */
+export function gradeRubricForReport(
+  inputs: ReportInputs,
+  classDefaultSubject: string,
+  customRubricByNameLower: ReadonlyMap<string, GradeRubricProfile>,
+  classStoredRubric?: GradeRubricProfile | null,
+): GradeRubricProfile {
+  if (inputs.subject_code && isSubjectCode(inputs.subject_code)) return "language";
+  if (inputs.grade_rubric_profile) return inputs.grade_rubric_profile;
+  if (classStoredRubric) return classStoredRubric;
+  return gradeRubricForClassDefaultSubject(classDefaultSubject, customRubricByNameLower);
 }
 
 /**
@@ -322,7 +345,12 @@ export function parseClassBulkPdfTermFilter(raw: string | null | undefined): Cla
  * Append only metrics that have a numeric score so OpenAI does not see unscored skill names
  * (avoids comments about homework, reading, etc. when those cells were left empty).
  */
-function appendScoredMetricsForTerm(lines: string[], inputs: ReportInputs, termIdx: 0 | 1 | 2): boolean {
+function appendScoredMetricsForTerm(
+  lines: string[],
+  inputs: ReportInputs,
+  termIdx: 0 | 1 | 2,
+  rubric: GradeRubricProfile,
+): boolean {
   let currentDiv: MetricDivisionKey | "" = "";
   let any = false;
   for (const m of DATASET4_METRICS) {
@@ -331,21 +359,25 @@ function appendScoredMetricsForTerm(lines: string[], inputs: ReportInputs, termI
     any = true;
     if (m.divisionKey !== currentDiv) {
       currentDiv = m.divisionKey;
-      lines.push(`[${METRIC_DIVISION_LABEL_EN[m.divisionKey]}]`);
+      lines.push(`[${metricDivisionHeadingEnForRubric(m.divisionKey, rubric)}]`);
     }
-    lines.push(`- ${m.label}: ${String(v)} (0–10)`);
+    lines.push(`- ${metricLineEnForRubric(m.key, rubric)}: ${String(v)} (0–10)`);
   }
   return any;
 }
 
 /** Flatten 0–10 grid into plaintext for OpenAI (only scored metrics; teacher prose notes are in the prompt separately). */
-export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved: string): string {
+export function reportInputsToTeacherNotes(
+  inputs: ReportInputs,
+  subjectResolved: string,
+  gradeRubricProfile: GradeRubricProfile,
+): string {
   const lines: string[] = [];
   lines.push(`Subject: ${subjectResolved}`);
   if (isShortCourseReport(inputs)) {
     lines.push(`Short course — numeric scores below are the only rubric areas in scope for this comment.`);
     const t = 0 as const;
-    const any = appendScoredMetricsForTerm(lines, inputs, t);
+    const any = appendScoredMetricsForTerm(lines, inputs, t, gradeRubricProfile);
     if (!any) lines.push("(No 0–10 scores recorded for this course.)");
     const pct = termAveragePercent(inputs.terms[t]);
     if (pct !== null) lines.push(`Course aggregate: ${formatPercentSigFigs(pct, 2)}`);
@@ -355,7 +387,7 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
   const termLabel = ["Term 1", "Term 2", "Term 3"];
   for (let t = 0; t < 3; t++) {
     lines.push(`--- ${termLabel[t]} ---`);
-    const any = appendScoredMetricsForTerm(lines, inputs, t as 0 | 1 | 2);
+    const any = appendScoredMetricsForTerm(lines, inputs, t as 0 | 1 | 2, gradeRubricProfile);
     if (!any) lines.push("(No numeric scores recorded for this term.)");
     const pct = termAveragePercent(inputs.terms[t]);
     if (pct !== null) lines.push(`Term ${t + 1} aggregate: ${formatPercentSigFigs(pct, 2)}`);

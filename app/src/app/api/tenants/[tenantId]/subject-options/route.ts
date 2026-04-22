@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import {
   builtInSubjectCodes,
-  listTenantCustomSubjectNames,
+  listTenantCustomSubjects,
   removeTenantCustomSubjectName,
   renameTenantCustomSubjectName,
 } from "@/lib/data/tenantCustomSubjects";
+import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { getRoleForTenant } from "@/lib/data/memberships";
 
 function isUuid(s: string): boolean {
@@ -23,7 +24,7 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     return NextResponse.json({ error: "Only owners and department heads can load subject options." }, { status: 403 });
   }
   try {
-    const custom = await listTenantCustomSubjectNames(tenantId);
+    const custom = await listTenantCustomSubjects(tenantId);
     return NextResponse.json({ built_in: builtInSubjectCodes(), custom });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to load subject options.";
@@ -46,7 +47,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     return NextResponse.json({ error: "Only owners and department heads can rename subjects." }, { status: 403 });
   }
 
-  let body: { old_name?: unknown; new_name?: unknown };
+  let body: { old_name?: unknown; new_name?: unknown; rubric_profile?: unknown };
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -57,10 +58,12 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   if (!old_name || !new_name) {
     return NextResponse.json({ error: "old_name and new_name are required." }, { status: 400 });
   }
+  const rubric_profile =
+    body.rubric_profile !== undefined ? parseGradeRubricProfile(body.rubric_profile, "secondary") : undefined;
 
   try {
-    await renameTenantCustomSubjectName(tenantId, old_name, new_name);
-    const custom = await listTenantCustomSubjectNames(tenantId);
+    await renameTenantCustomSubjectName(tenantId, old_name, new_name, rubric_profile);
+    const custom = await listTenantCustomSubjects(tenantId);
     return NextResponse.json({ ok: true, built_in: builtInSubjectCodes(), custom });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to rename subject.";
@@ -85,7 +88,7 @@ export async function DELETE(req: Request, context: { params: Promise<{ tenantId
 
   try {
     await removeTenantCustomSubjectName(tenantId, name);
-    const custom = await listTenantCustomSubjectNames(tenantId);
+    const custom = await listTenantCustomSubjects(tenantId);
     return NextResponse.json({ ok: true, built_in: builtInSubjectCodes(), custom });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to delete subject.";

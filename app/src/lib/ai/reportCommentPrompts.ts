@@ -3,7 +3,7 @@
  * Short courses use `shortCourseReportCommentPrompt.ts` by default; subject overrides: `reportCommentPromptRegistry.ts`.
  */
 
-import type { CefrLevel } from "@/lib/data/classesDb";
+import type { CefrLevel } from "@/lib/classLevel";
 import type { SubjectCode } from "@/lib/subjects";
 
 /** A1–B1: do not suggest homework or extra work outside class in AI report comments. */

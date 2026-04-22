@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { canAccessClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
-import type { CefrLevel } from "@/lib/data/classesDb";
+import { isValidClassLevelForRubric } from "@/lib/classLevel";
 import { canDeleteClass } from "@/lib/auth/resourceDelete";
 import { archiveScholasticYearAndResetReports } from "@/lib/data/classArchives";
 import { deleteClassInTenant, enrichClassWithAssignedTeacherDisplay, getClassInTenant, updateClass } from "@/lib/data/classesDb";
@@ -9,7 +9,8 @@ import { syncReportsLanguagesAfterClassOutputDefaultChange } from "@/lib/data/re
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { mergeTenantCustomSubjectNames } from "@/lib/data/tenantCustomSubjects";
+import { mergeTenantCustomSubjectEntries } from "@/lib/data/tenantCustomSubjects";
+import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
@@ -80,7 +81,8 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       body.default_new_report_kind !== undefined ||
       body.default_new_report_period !== undefined ||
       body.active_weekdays !== undefined ||
-      body.preferred_room_index !== undefined
+      body.preferred_room_index !== undefined ||
+      body.grade_rubric_profile !== undefined
     ) {
       return NextResponse.json(
         {
@@ -92,23 +94,26 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     }
   }
 
+  const klassExisting = await getClassInTenant(tenantId, classId);
+  if (!klassExisting) return NextResponse.json({ error: "Class not found." }, { status: 404 });
+  if (!canAccessClass({ role, viewerEmail: gate.email, klass: klassExisting })) {
+    return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
+  }
+
   const patch: Parameters<typeof updateClass>[2] = {};
   if (typeof body.name === "string" && isLead) patch.name = body.name;
   if (isLead && (body.scholastic_year === null || typeof body.scholastic_year === "string")) {
     patch.scholastic_year = body.scholastic_year === null ? null : (body.scholastic_year as string).trim() || null;
   }
-  if (
-    isLead &&
-    (body.cefr_level === null || typeof body.cefr_level === "string")
-  ) {
-    if (body.cefr_level === null || (typeof body.cefr_level === "string" && body.cefr_level.trim() === "")) {
-      patch.cefr_level = null;
-    } else if (typeof body.cefr_level === "string" && ["A1", "A2", "B1", "B2", "C1", "C2"].includes(body.cefr_level)) {
-      patch.cefr_level = body.cefr_level as CefrLevel;
-    } else {
-      return NextResponse.json({ error: "Invalid cefr_level." }, { status: 400 });
-    }
+  if (isLead && body.grade_rubric_profile !== undefined) {
+    patch.grade_rubric_profile = parseGradeRubricProfile(body.grade_rubric_profile, klassExisting.grade_rubric_profile);
   }
+
+  const rubricForClassLevel =
+    isLead && body.grade_rubric_profile !== undefined
+      ? parseGradeRubricProfile(body.grade_rubric_profile, klassExisting.grade_rubric_profile)
+      : klassExisting.grade_rubric_profile;
+
   if (typeof body.default_subject === "string" && isLead) {
     let norm: string;
     try {
@@ -118,12 +123,40 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     }
     patch.default_subject = norm;
     try {
-      await mergeTenantCustomSubjectNames(tenantId, [norm]);
+      const rubricForMerge =
+        body.default_subject_rubric_profile !== undefined
+          ? parseGradeRubricProfile(body.default_subject_rubric_profile, klassExisting.grade_rubric_profile)
+          : klassExisting.grade_rubric_profile;
+      await mergeTenantCustomSubjectEntries(tenantId, [{ name: norm, rubric_profile: rubricForMerge }]);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not update subject list.";
       return NextResponse.json({ error: msg }, { status: 500 });
     }
   }
+
+  if (isLead) {
+    const shouldRevalidateLevel = patch.default_subject !== undefined || patch.grade_rubric_profile !== undefined;
+    if (shouldRevalidateLevel && body.cefr_level === undefined && klassExisting.cefr_level) {
+      if (!isValidClassLevelForRubric(klassExisting.cefr_level, rubricForClassLevel)) {
+        patch.cefr_level = null;
+      }
+    }
+    if (body.cefr_level === null || typeof body.cefr_level === "string") {
+      if (body.cefr_level === null || (typeof body.cefr_level === "string" && body.cefr_level.trim() === "")) {
+        patch.cefr_level = null;
+      } else if (typeof body.cefr_level === "string") {
+        const v = body.cefr_level.trim();
+        if (!isValidClassLevelForRubric(v, rubricForClassLevel)) {
+          return NextResponse.json(
+            { error: "Class level is not valid for this subject type (CEFR vs year group)." },
+            { status: 400 },
+          );
+        }
+        patch.cefr_level = v;
+      }
+    }
+  }
+
   if (typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language) && isLead) {
     patch.default_output_language = body.default_output_language as ReportLanguageCode;
   }
@@ -170,34 +203,28 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   }
 
   try {
-    const existing = await getClassInTenant(tenantId, classId);
-    if (!existing) return NextResponse.json({ error: "Class not found." }, { status: 404 });
-    if (!canAccessClass({ role, viewerEmail: gate.email, klass: existing })) {
-      return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
-    }
-
     if (
       isLead &&
       patch.scholastic_year !== undefined &&
-      normalizeScholasticYear(patch.scholastic_year) !== normalizeScholasticYear(existing.scholastic_year)
+      normalizeScholasticYear(patch.scholastic_year) !== normalizeScholasticYear(klassExisting.scholastic_year)
     ) {
-      const endingLabel = existing.scholastic_year?.trim() || "Year not specified";
+      const endingLabel = klassExisting.scholastic_year?.trim() || "Year not specified";
       await archiveScholasticYearAndResetReports({
         tenantId,
         classId,
-        className: existing.name,
+        className: klassExisting.name,
         endingScholasticYearLabel: endingLabel,
       });
     }
 
-    const klass = Object.keys(patch).length > 0 ? await updateClass(tenantId, classId, patch) : existing;
+    const klass = Object.keys(patch).length > 0 ? await updateClass(tenantId, classId, patch) : klassExisting;
 
     if (isLead && patch.default_output_language !== undefined) {
       await syncReportsLanguagesAfterClassOutputDefaultChange(
         tenantId,
         classId,
         patch.default_output_language,
-        existing.default_output_language,
+        klassExisting.default_output_language,
       );
     }
 

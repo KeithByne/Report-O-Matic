@@ -266,6 +266,15 @@ export const IT_LABELS: Record<string, string> = {
   "class.selectOrDefineSubject": "Seleziona o definisci la materia",
   "class.subjectPickerHint":
     "Scegli un codice predefinito dall’elenco (es. efl) o digita un nuovo nome di materia; i nuovi nomi restano salvati per questa scuola.",
+  "class.gradeRubricProfile": "Griglia voti (titoli delle righe in rapporti e PDF)",
+  "class.gradeRubricLanguage": "Acquisizione linguistica",
+  "class.gradeRubricPrimary": "Primaria / generale",
+  "class.gradeRubricSecondary": "Secondaria / generale",
+  "class.gradeRubricHint":
+    "Solo per nomi di materia personalizzati. I codici predefiniti (es. efl) usano sempre la griglia di acquisizione linguistica.",
+  "class.classLevel": "Livello della classe",
+  "class.yearGroupLabel": "Anno {n}",
+  "class.levelFrameworkTag": "QCER",
   "class.invalidSubject": "Inserisci una materia valida (codice predefinito o fino a 120 caratteri).",
   "class.customSubjectsTitle": "Materie personalizzate (questa scuola)",
   "class.customSubjectsLead":
@@ -596,6 +605,15 @@ export const PT_LABELS: Record<string, string> = {
   "class.selectOrDefineSubject": "Selecionar ou definir disciplina",
   "class.subjectPickerHint":
     "Escolha um código predefinido na lista (p.ex. efl) ou escreva um nome novo; os nomes novos ficam guardados para esta escola.",
+  "class.gradeRubricProfile": "Grelha de avaliação (títulos das linhas nos relatórios e PDF)",
+  "class.gradeRubricLanguage": "Aquisição de línguas",
+  "class.gradeRubricPrimary": "Primário / geral",
+  "class.gradeRubricSecondary": "Secundário / geral",
+  "class.gradeRubricHint":
+    "Apenas para nomes de disciplina personalizados. Os códigos predefinidos (p.ex. efl) usam sempre a grelha de aquisição de línguas.",
+  "class.classLevel": "Nível da turma",
+  "class.yearGroupLabel": "Ano {n}",
+  "class.levelFrameworkTag": "CEFR",
   "class.invalidSubject": "Introduza uma disciplina válida (código predefinido ou até 120 caracteres).",
   "class.customSubjectsTitle": "Disciplinas personalizadas (esta escola)",
   "class.customSubjectsLead":
@@ -936,6 +954,15 @@ export const DE_LABELS: Record<string, string> = {
   "class.selectOrDefineSubject": "Fach auswählen oder festlegen",
   "class.subjectPickerHint":
     "Wählen Sie einen voreingestellten Code (z. B. efl) oder geben Sie einen neuen Fachnamen ein; neue Namen werden für diese Schule gespeichert.",
+  "class.gradeRubricProfile": "Notenraster (Zeilentitel in Berichten und PDFs)",
+  "class.gradeRubricLanguage": "Spracherwerb",
+  "class.gradeRubricPrimary": "Primarstufe / allgemein",
+  "class.gradeRubricSecondary": "Sekundarstufe / allgemein",
+  "class.gradeRubricHint":
+    "Nur für benutzerdefinierte Fachnamen. Voreingestellte Codes (z. B. efl) verwenden immer das Raster für Spracherwerb.",
+  "class.classLevel": "Klassenstufe",
+  "class.yearGroupLabel": "Jahrgang {n}",
+  "class.levelFrameworkTag": "GER",
   "class.invalidSubject": "Geben Sie ein gültiges Fach ein (Voreinstellungscode oder bis zu 120 Zeichen).",
   "class.customSubjectsTitle": "Eigene Fächer (diese Schule)",
   "class.customSubjectsLead":

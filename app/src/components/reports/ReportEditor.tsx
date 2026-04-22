@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import {
   DATASET4_METRICS,
@@ -12,6 +12,7 @@ import {
   type ReportPeriod,
   type TermGrades,
   emptyReportInputs,
+  gradeRubricForReport,
   isShortCourseReport,
   nextReportStatusFromContent,
   parseReportInputs,
@@ -20,9 +21,9 @@ import {
   termAveragePercent,
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { metricLabelForRubric } from "@/lib/i18n/gradeRubricLabels";
 import {
   defaultSubjectDisplayLocalized,
-  metricLabel,
   reportLanguageOptionLabel,
   subjectLabelLocalized,
 } from "@/lib/i18n/uiStrings";
@@ -35,6 +36,7 @@ import {
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 
 type Student = {
   id: string;
@@ -52,6 +54,7 @@ type ClassInfo = {
   cefr_level: string | null;
   default_subject: string;
   default_output_language: string;
+  grade_rubric_profile?: GradeRubricProfile;
 };
 
 type Report = {
@@ -178,6 +181,17 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
   const classDefaultSubjectLine = defaultSubjectDisplayLocalized(
     lang,
     (klass?.default_subject ?? "").trim() || "efl",
+  );
+
+  const gradeRubric = useMemo(
+    () =>
+      gradeRubricForReport(
+        inputs,
+        (klass?.default_subject ?? "").trim() || "efl",
+        new Map(),
+        klass?.grade_rubric_profile,
+      ),
+    [inputs, klass?.default_subject, klass?.grade_rubric_profile],
   );
 
   const load = useCallback(async () => {
@@ -685,7 +699,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
               <div key={m.key} className="flex min-w-0 flex-col">
                 <span className="mb-1 flex min-h-[3rem] items-end">
                   <span className="line-clamp-3 text-[11px] leading-tight text-zinc-700 sm:text-sm">
-                    {metricLabel(lang, m.key)}
+                    {metricLabelForRubric(lang, m.key, gradeRubric)}
                   </span>
                 </span>
                 <GradeSelect

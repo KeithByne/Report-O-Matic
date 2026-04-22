@@ -335,6 +335,15 @@ export const EL_BODY: Record<string, string> = {
   "class.selectOrDefineSubject": "Επιλέξτε ή ορίστε μάθημα",
   "class.subjectPickerHint":
     "Επιλέξτε προκαθορισμένο κωδικό από τη λίστα (π.χ. efl) ή πληκτρολογήστε νέο όνομα μαθήματος· τα νέα ονόματα αποθηκεύονται για αυτό το σχολείο.",
+  "class.gradeRubricProfile": "Κλίμακα βαθμολογίας (τίτλοι γραμμών σε αναφορές και PDF)",
+  "class.gradeRubricLanguage": "Απόκτηση γλώσσας",
+  "class.gradeRubricPrimary": "Δημοτικό / γενική αγωγή",
+  "class.gradeRubricSecondary": "Δευτεροβάθμια / γενική αγωγή",
+  "class.gradeRubricHint":
+    "Μόνο για προσαρμοσμένα ονόματα μαθημάτων. Οι προκαθορισμένοι κωδικοί (π.χ. efl) χρησιμοποιούν πάντα την κλίμακα απόκτησης γλώσσας.",
+  "class.classLevel": "Επίπεδο τάξης",
+  "class.yearGroupLabel": "Έτος {n}",
+  "class.levelFrameworkTag": "CEFR",
   "class.invalidSubject": "Εισάγετε έγκυρο μάθημα (προκαθορισμένος κωδικός ή έως 120 χαρακτήρες).",
   "class.customSubjectsTitle": "Προσαρμοσμένα μαθήματα (αυτό το σχολείο)",
   "class.customSubjectsLead":
