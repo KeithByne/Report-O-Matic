@@ -182,7 +182,8 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
       const yBodyStart = y + 4;
       const availableForRows = PAGE_H - MARGIN_PT - yBodyStart - 6;
       const numDayRows = teacherSingle ? dayRowIndices.length : dayRowIndices.length * roomIndices.length;
-      const dayRowH = Math.max(76, Math.floor(availableForRows / Math.max(1, numDayRows)));
+      // Keep rows inside one page so by-teacher does not generate spillover/blank pages.
+      const dayRowH = Math.max(40, Math.floor(availableForRows / Math.max(1, numDayRows)));
 
       doc.font("Helvetica").fontSize(6.2).fillColor("#0f172a");
 

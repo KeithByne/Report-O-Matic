@@ -684,7 +684,7 @@ export function TimetablePageClient({
         </table>
       </div>
       {canStepTeacher || canStepRoom ? (
-        <div className="flex justify-center">
+        <div className="sticky bottom-3 z-20 flex justify-center">
           <div className="inline-flex items-center gap-2 rounded-xl border border-zinc-900 bg-zinc-950 px-3 py-2 text-white shadow-md dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950">
             <button
               type="button"
