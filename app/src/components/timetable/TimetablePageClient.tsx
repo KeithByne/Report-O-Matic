@@ -141,10 +141,17 @@ export function TimetablePageClient({
   }, [slots]);
 
   const classById = useMemo(() => new Map(classes.map((c) => [c.id, c])), [classes]);
-  const orderedTeacherEmails = useMemo(
-    () => teachers.map((t) => t.email).filter(Boolean),
-    [teachers],
-  );
+  /** Teachers who actually have at least one slot (avoids empty preview when stepping between staff). */
+  const navigableTeacherEmails = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of slots) {
+      const c = classById.get(s.class_id);
+      const fromClass = c?.assigned_teacher_email?.trim().toLowerCase() ?? "";
+      const email = fromClass || s.teacher_email.trim().toLowerCase();
+      if (email) set.add(email);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [slots, classById]);
 
   const defaultVisibleDayIndexes = useMemo(() => visibleMonFriDayIndexesFromClasses(classes), [classes]);
   const effectiveViewMode = viewerRole === "teacher" ? "by_teacher" : viewMode;
@@ -317,24 +324,27 @@ export function TimetablePageClient({
 
   useEffect(() => {
     if (viewerRole === "teacher") return;
-    if (!selectedTeacherEmail && teachers.length > 0) {
-      setSelectedTeacherEmail(teachers[0]!.email);
+    if (effectiveViewMode !== "by_teacher") return;
+    if (navigableTeacherEmails.length === 0) return;
+    const cur = selectedTeacherEmail.trim().toLowerCase();
+    if (!cur || !navigableTeacherEmails.includes(cur)) {
+      setSelectedTeacherEmail(navigableTeacherEmails[0]!);
     }
-  }, [selectedTeacherEmail, teachers, viewerRole]);
+  }, [viewerRole, effectiveViewMode, navigableTeacherEmails, selectedTeacherEmail]);
 
   useEffect(() => {
     if (settings && selectedRoomIndex >= settings.room_count) setSelectedRoomIndex(0);
   }, [selectedRoomIndex, settings]);
 
   const canStepTeacher =
-    viewerRole !== "teacher" && effectiveViewMode === "by_teacher" && orderedTeacherEmails.length > 1;
+    viewerRole !== "teacher" && effectiveViewMode === "by_teacher" && navigableTeacherEmails.length > 1;
   const canStepRoom = viewerRole !== "teacher" && effectiveViewMode === "by_room" && (settings?.room_count ?? 0) > 1;
 
   function stepTeacher(dir: -1 | 1) {
     if (!canStepTeacher) return;
-    const cur = Math.max(0, orderedTeacherEmails.indexOf(selectedTeacherEmail));
-    const next = (cur + dir + orderedTeacherEmails.length) % orderedTeacherEmails.length;
-    setSelectedTeacherEmail(orderedTeacherEmails[next] ?? selectedTeacherEmail);
+    const cur = Math.max(0, navigableTeacherEmails.indexOf(selectedTeacherEmail.trim().toLowerCase()));
+    const next = (cur + dir + navigableTeacherEmails.length) % navigableTeacherEmails.length;
+    setSelectedTeacherEmail(navigableTeacherEmails[next] ?? selectedTeacherEmail);
   }
 
   function stepRoom(dir: -1 | 1) {
@@ -460,16 +470,21 @@ export function TimetablePageClient({
             ) : null}
             {viewerRole !== "teacher" && effectiveViewMode === "by_teacher" ? (
               <select
-                value={selectedTeacherEmail}
+                value={navigableTeacherEmails.includes(selectedTeacherEmail.trim().toLowerCase()) ? selectedTeacherEmail : ""}
                 onChange={(e) => setSelectedTeacherEmail(e.target.value)}
                 className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
                 aria-label={t("timetable.teacher")}
+                disabled={navigableTeacherEmails.length === 0}
               >
-                {teachers.map((te) => (
-                  <option key={te.email} value={te.email}>
-                    {te.label || te.email}
-                  </option>
-                ))}
+                {navigableTeacherEmails.length === 0 ? (
+                  <option value="">{t("timetable.noTeacherTimetableYet")}</option>
+                ) : (
+                  navigableTeacherEmails.map((email) => (
+                    <option key={email} value={email}>
+                      {teacherLabelForEmail(email)}
+                    </option>
+                  ))
+                )}
               </select>
             ) : null}
             {viewerRole !== "teacher" && effectiveViewMode === "by_room" ? (

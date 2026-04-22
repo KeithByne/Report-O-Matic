@@ -4,8 +4,8 @@ import { listClasses } from "@/lib/data/classesDb";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant, getTenantName, listMembersForTenant } from "@/lib/data/memberships";
-import { getTimetableSettings, listTimetableSlots, listTimetableSlotsForClassIds } from "@/lib/data/timetableDb";
-import { isUiLang } from "@/lib/i18n/uiStrings";
+import { getTimetableSettings, listTimetableSlots } from "@/lib/data/timetableDb";
+import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { buildTimetablePdfBuffer, type TimetablePdfSlot } from "@/lib/pdf/timetablePdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
@@ -53,7 +53,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   const url = new URL(req.url);
   const langParam = (url.searchParams.get("lang") || "en").trim();
-  const uiLang = isUiLang(langParam) ? langParam : "en";
+  const uiLang: UiLang = isUiLang(langParam) ? langParam : "en";
   const inline = url.searchParams.get("inline") === "1";
   const modeParam = (url.searchParams.get("mode") || "").trim().toLowerCase();
   const ownerMode = modeParam === "by_teacher" || modeParam === "by_room" || modeParam === "overview" ? modeParam : "overview";
@@ -147,6 +147,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
           targetTeacherEmails.map((te) =>
             (() => {
               const teacherSlots = slots.filter((s) => s.teacher_email === te);
+              const headline = displayForEmail(members, te);
               return buildTimetablePdfBuffer({
                 letterhead,
                 letterheadLogo,
@@ -158,6 +159,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
                 uiLang,
                 visibleDayIndexes: visibleDayIndexesFromSlots(teacherSlots),
                 teacherSinglePage: true,
+                getPageHeadline: () => headline,
               });
             })(),
           ),
@@ -196,6 +198,9 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         teacherSinglePage: false,
         roomsPerPage: 1,
         includedRoomIndices: targetRoomIndices,
+        getPageHeadline: ({ roomIndices }) =>
+          translate(uiLang, "pdf.timetablePageRoom", { n: roomIndices[0]! + 1 }),
+        suppressRoomRangeSubtitle: true,
       });
     } else {
       pdf = await buildTimetablePdfBuffer({
@@ -210,6 +215,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         visibleDayIndexes,
         teacherSinglePage: false,
         roomsPerPage: 5,
+        getPageHeadline: () => translate(uiLang, "timetable.printModeOverview"),
       });
     }
     const fname = `${safeFilename(tenantRecordName)}-${role === "teacher" ? "my-timetable" : "timetable"}.pdf`;

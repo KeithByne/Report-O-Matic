@@ -688,6 +688,7 @@ const EN: UiMessages = {
   "timetable.loadError": "Could not load timetable.",
   "timetable.noClasses": "Create classes in Reports first.",
   "timetable.noTeachers": "Invite teachers from the dashboard first.",
+  "timetable.noTeacherTimetableYet": "No teachers with timetable entries yet.",
   "timetable.teacherFromClassHint":
     "Teacher is taken from the class page (assigned teacher). To change who teaches this class, update the class card—not here.",
   "timetable.assignTeacherOnClass": "Assign a teacher to this class on the class page before adding it to the timetable.",

@@ -31,6 +31,13 @@ export type TimetablePdfSlot = {
   teacher_email: string;
 };
 
+export type TimetablePdfPageHeadlineContext = {
+  lang: UiLang;
+  teacherSingle: boolean;
+  roomPageIndex: number;
+  roomIndices: number[];
+};
+
 export type TimetablePdfInput = {
   letterhead: ReportPdfLetterhead;
   letterheadLogo: Buffer | null;
@@ -51,6 +58,10 @@ export type TimetablePdfInput = {
   roomsPerPage?: number;
   /** Optional explicit room indices to render (used to skip empty room pages). */
   includedRoomIndices?: number[];
+  /** When set, used as the main headline for each page (falls back to `titleKey`). */
+  getPageHeadline?: (ctx: TimetablePdfPageHeadlineContext) => string | null;
+  /** Hide the secondary “Room x – Room y” line under the headline (e.g. when headline is already the room). */
+  suppressRoomRangeSubtitle?: boolean;
 };
 
 function colWidthPt(gc: number, periodsAm: number, periodColW: number): number {
@@ -162,10 +173,20 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
 
       doc.moveDown(0.6);
       doc.font("Helvetica-Bold").fontSize(14).fillColor("#0f172a");
-      doc.text(translate(lang, opts.titleKey), MARGIN_PT, doc.y, {
+      const customHeadline = opts.getPageHeadline?.({
+        lang,
+        teacherSingle,
+        roomPageIndex,
+        roomIndices,
+      });
+      const headline =
+        typeof customHeadline === "string" && customHeadline.trim().length > 0
+          ? customHeadline.trim()
+          : translate(lang, opts.titleKey);
+      doc.text(headline, MARGIN_PT, doc.y, {
         width: PAGE_W - MARGIN_PT * 2,
       });
-      if (!teacherSingle) {
+      if (!teacherSingle && !opts.suppressRoomRangeSubtitle) {
         doc.font("Helvetica-Bold").fontSize(11).fillColor("#334155");
         const roomTitle =
           roomIndices.length === 1
