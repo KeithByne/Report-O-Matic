@@ -3,9 +3,8 @@
 import { BookOpen, DoorOpen, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import {
   CLASS_SETTINGS_SAVED_EVENT,
@@ -15,8 +14,15 @@ import {
 } from "@/lib/appEvents";
 import type { RomRole } from "@/lib/data/memberships";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { GRADE_RUBRIC_PROFILES, isGradeRubricProfile, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { REPORT_SUBJECTS, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
+import {
+  GRADE_RUBRIC_PROFILES,
+  gradeRubricProfileDisplayLabel,
+  isGradeRubricProfile,
+  parseGradeRubricProfile,
+} from "@/lib/gradeRubricProfile";
+import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
+import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducationType";
+import { REPORT_SUBJECTS, isSubjectCode } from "@/lib/subjects";
 
 type ClassRow = { id: string; name: string; student_count: number; grade_rubric_profile?: GradeRubricProfile };
 
@@ -56,7 +62,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
   /** Empty until the user explicitly picks a type (name field stays disabled). */
   const [newClassGradeRubric, setNewClassGradeRubric] = useState<GradeRubricProfile | "">("");
   const [newClassDefaultSubject, setNewClassDefaultSubject] = useState("");
-  const [subjectAccountOptions, setSubjectAccountOptions] = useState<string[]>([]);
+  const [customSubjectRows, setCustomSubjectRows] = useState<{ name: string; rubric_profile: GradeRubricProfile }[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [bulkTerm, setBulkTerm] = useState<"first" | "second" | "third">("first");
@@ -96,27 +102,40 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       const res = await fetch(`${base}/subject-options`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return;
-      const built = Array.isArray(data.built_in) ? (data.built_in as string[]) : [];
       const custRaw = data.custom;
-      const names: string[] = [];
+      const rows: { name: string; rubric_profile: GradeRubricProfile }[] = [];
       if (Array.isArray(custRaw)) {
         for (const item of custRaw) {
           if (typeof item === "string") {
             const n = item.trim();
-            if (n) names.push(n);
+            if (n) rows.push({ name: n, rubric_profile: "secondary" });
           } else if (item && typeof item === "object") {
             const o = item as Record<string, unknown>;
             const n = typeof o.name === "string" ? o.name.trim() : "";
-            if (n) names.push(n);
+            if (n)
+              rows.push({
+                name: n,
+                rubric_profile: parseGradeRubricProfile(o.rubric_profile, "secondary"),
+              });
           }
         }
       }
-      const merged = [...built, ...names].map((x) => String(x).trim()).filter(Boolean);
-      setSubjectAccountOptions([...new Set(merged)]);
+      setCustomSubjectRows(rows);
     } catch {
-      setSubjectAccountOptions([]);
+      setCustomSubjectRows([]);
     }
   }, [base, isLead]);
+
+  /** Three separate `<datalist>` ids; `list` follows the chosen education type. */
+  const newClassSubjectSuggestionsByRubric = useMemo(
+    () => subjectSuggestionLabelsByRubric(customSubjectRows, uiLang),
+    [customSubjectRows, uiLang],
+  );
+
+  const newClassSubjectListId =
+    newClassGradeRubric && isGradeRubricProfile(newClassGradeRubric)
+      ? `tenant-new-class-subject-${tenantId}-${newClassGradeRubric}`
+      : undefined;
 
   useEffect(() => {
     if (!active || !isLead) return;
@@ -157,7 +176,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       return;
     }
     try {
-      normalizedSubject = normalizeDefaultSubjectForStorage(newClassDefaultSubject);
+      normalizedSubject = resolveDefaultSubjectInputToStorage(newClassDefaultSubject);
     } catch {
       alert(t("class.invalidSubject"));
       return;
@@ -229,7 +248,20 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                 value={newClassGradeRubric}
                 onChange={(e) => {
                   const v = e.target.value;
-                  setNewClassGradeRubric(v === "" ? "" : (v as GradeRubricProfile));
+                  const next = v === "" ? "" : (v as GradeRubricProfile);
+                  setNewClassGradeRubric(next);
+                  setNewClassDefaultSubject((cur) => {
+                    if (next === "" || next === "language") return cur;
+                    const trimmed = cur.trim();
+                    if (!trimmed) return cur;
+                    try {
+                      const resolved = resolveDefaultSubjectInputToStorage(trimmed);
+                      if (isSubjectCode(resolved)) return "";
+                    } catch {
+                      /* keep custom text */
+                    }
+                    return cur;
+                  });
                 }}
                 disabled={busy !== null}
                 required
@@ -239,11 +271,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                 <option value="">{t("tenant.educationTypePlaceholder")}</option>
                 {GRADE_RUBRIC_PROFILES.map((rp) => (
                   <option key={rp} value={rp}>
-                    {rp === "language"
-                      ? t("class.gradeRubricLanguage")
-                      : rp === "primary"
-                        ? t("class.gradeRubricPrimary")
-                        : t("class.gradeRubricSecondary")}
+                    {gradeRubricProfileDisplayLabel(t, rp)}
                   </option>
                 ))}
               </select>
@@ -252,7 +280,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
               <label className={`block text-sm ${newClassGradeRubric ? "" : "opacity-80"}`}>
                 <span className="font-semibold text-zinc-900">{t("tenant.addClassStep2Subject")}</span>
                 <input
-                  list={`tenant-new-class-subject-${tenantId}`}
+                  list={newClassSubjectListId}
                   value={newClassDefaultSubject}
                   onChange={(e) => setNewClassDefaultSubject(e.target.value)}
                   disabled={!newClassGradeRubric || busy !== null}
@@ -262,18 +290,13 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   autoComplete="off"
                   aria-label={t("tenant.addClassStep2Subject")}
                 />
-                <datalist id={`tenant-new-class-subject-${tenantId}`}>
-                  {REPORT_SUBJECTS.map((s) => (
-                    <option key={s.code} value={s.code}>
-                      {subjectLabelLocalized(uiLang, s.code)}
-                    </option>
-                  ))}
-                  {subjectAccountOptions
-                    .filter((name) => !REPORT_SUBJECTS.some((s) => s.code === name.toLowerCase()))
-                    .map((name) => (
-                      <option key={name} value={name} />
+                {GRADE_RUBRIC_PROFILES.map((rp) => (
+                  <datalist id={`tenant-new-class-subject-${tenantId}-${rp}`} key={rp}>
+                    {newClassSubjectSuggestionsByRubric[rp].map((label) => (
+                      <option key={`${rp}:${label}`} value={label} />
                     ))}
-                </datalist>
+                  </datalist>
+                ))}
                 <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
               </label>
             </div>
@@ -318,18 +341,12 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   <span className="font-medium text-zinc-900">{c.name}</span>
                   {(() => {
                     const ctx = parseGradeRubricProfile(c.grade_rubric_profile, "language");
-                    const ctxLabel =
-                      ctx === "language"
-                        ? t("class.gradeRubricLanguage")
-                        : ctx === "primary"
-                          ? t("class.gradeRubricPrimary")
-                          : t("class.gradeRubricSecondary");
                     return (
                       <span
                         className="ml-2 inline-flex max-w-[12rem] truncate rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-900"
                         title={t("tenant.educationalContext")}
                       >
-                        {ctxLabel}
+                        {gradeRubricProfileDisplayLabel(t, ctx)}
                       </span>
                     );
                   })()}

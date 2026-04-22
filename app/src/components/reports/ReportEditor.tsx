@@ -36,7 +36,7 @@ import {
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
-import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { parseGradeRubricProfile, type GradeRubricProfile } from "@/lib/gradeRubricProfile";
 
 type Student = {
   id: string;
@@ -194,6 +194,12 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     [inputs, klass?.default_subject, klass?.grade_rubric_profile],
   );
 
+  /** Built-in language subject overrides only apply to language-acquisition classes. */
+  const classUsesLanguageAcquisition = useMemo(
+    () => (klass ? parseGradeRubricProfile(klass.grade_rubric_profile, "language") === "language" : false),
+    [klass],
+  );
+
   const load = useCallback(async () => {
     setLoadError(null);
     try {
@@ -223,7 +229,14 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       setOutputLanguage(out);
       const tp = isReportLanguageCode(rep.teacher_preview_language) ? rep.teacher_preview_language : out;
       setTeacherPreviewLanguage(tp);
-      setInputs(parseReportInputs(rep.inputs));
+      {
+        let nextInputs = parseReportInputs(rep.inputs);
+        const rubric = parseGradeRubricProfile(cl?.grade_rubric_profile, "language");
+        if (rubric !== "language" && nextInputs.subject_code) {
+          nextInputs = { ...nextInputs, subject_code: null };
+        }
+        setInputs(nextInputs);
+      }
       setEditFirst(st.first_name?.trim() || st.display_name.split(/\s+/)[0] || "");
       setEditLast(st.last_name?.trim() || "");
       setEditGender(
@@ -587,11 +600,13 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
               <option value="">
                 {t("report.useClassDefault", { subject: classDefaultSubjectLine })}
               </option>
-              {REPORT_SUBJECTS.map((s) => (
-                <option key={s.code} value={s.code}>
-                  {subjectLabelLocalized(lang, s.code)}
-                </option>
-              ))}
+              {classUsesLanguageAcquisition
+                ? REPORT_SUBJECTS.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {subjectLabelLocalized(lang, s.code)}
+                    </option>
+                  ))
+                : null}
             </select>
           </label>
         </div>

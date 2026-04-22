@@ -8,7 +8,8 @@ import { resolveGradeRubricForClassSubject } from "@/lib/data/resolveGradeRubric
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { mergeTenantCustomSubjectEntries } from "@/lib/data/tenantCustomSubjects";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { isSubjectCode, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
+import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
+import { isSubjectCode } from "@/lib/subjects";
 import { listStudents } from "@/lib/data/students";
 
 function isUuid(s: string): boolean {
@@ -82,7 +83,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   let default_subject: string | undefined;
   if (typeof body.default_subject === "string" && body.default_subject.trim()) {
     try {
-      default_subject = normalizeDefaultSubjectForStorage(body.default_subject);
+      default_subject = resolveDefaultSubjectInputToStorage(body.default_subject);
     } catch {
       return NextResponse.json({ error: "Invalid default_subject." }, { status: 400 });
     }

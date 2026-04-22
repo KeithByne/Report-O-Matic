@@ -11,7 +11,7 @@ import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { mergeTenantCustomSubjectEntries } from "@/lib/data/tenantCustomSubjects";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
+import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { getTimetableSettings, isTimetableConflictError, moveClassTimetableSlotsToRoom } from "@/lib/data/timetableDb";
@@ -117,7 +117,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   if (typeof body.default_subject === "string" && isLead) {
     let norm: string;
     try {
-      norm = normalizeDefaultSubjectForStorage(body.default_subject);
+      norm = resolveDefaultSubjectInputToStorage(body.default_subject);
     } catch {
       return NextResponse.json({ error: "Invalid default_subject." }, { status: 400 });
     }

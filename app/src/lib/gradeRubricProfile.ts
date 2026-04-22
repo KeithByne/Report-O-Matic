@@ -12,6 +12,18 @@ export function parseGradeRubricProfile(raw: unknown, fallback: GradeRubricProfi
   return typeof raw === "string" && isGradeRubricProfile(raw) ? raw : fallback;
 }
 
+/** i18n keys for each rubric profile; keep in sync when extending `GRADE_RUBRIC_PROFILES`. */
+const GRADE_RUBRIC_UI_KEYS: Record<GradeRubricProfile, "class.gradeRubricLanguage" | "class.gradeRubricPrimary" | "class.gradeRubricSecondary"> = {
+  language: "class.gradeRubricLanguage",
+  primary: "class.gradeRubricPrimary",
+  secondary: "class.gradeRubricSecondary",
+};
+
+/** Localized label for education type (class grade rubric profile). */
+export function gradeRubricProfileDisplayLabel(t: (key: string) => string, rp: GradeRubricProfile): string {
+  return t(GRADE_RUBRIC_UI_KEYS[rp]);
+}
+
 /** Preset subject codes always use the language-acquisition rubric. */
 export function gradeRubricForClassDefaultSubject(
   defaultSubject: string,

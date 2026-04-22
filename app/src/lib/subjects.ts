@@ -46,13 +46,3 @@ export function coerceStoredDefaultSubject(raw: unknown): string {
   }
 }
 
-/**
- * Value for the class default-subject text field: legacy generic `efl` is shown empty
- * so the UI can use a “define subject name” placeholder instead of the raw code.
- */
-export function defaultSubjectInputValueFromStored(raw: unknown): string {
-  const s = String(raw ?? "").trim();
-  if (!s) return "";
-  if (s.toLowerCase() === "efl") return "";
-  return s;
-}

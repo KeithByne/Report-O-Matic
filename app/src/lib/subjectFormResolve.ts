@@ -1,0 +1,40 @@
+import type { SubjectCode } from "@/lib/subjects";
+import { CUSTOM_SUBJECT_MAX_LEN, isSubjectCode } from "@/lib/subjects";
+import { REPORT_SUBJECT_I18N, subjectLabelLocalized, type UiLang } from "@/lib/i18n/uiStrings";
+
+/**
+ * Normalizes subject field text for API/storage: ISO preset codes, or any localized
+ * preset label (all UI languages) maps to its code; otherwise treated as a custom name.
+ */
+export function resolveDefaultSubjectInputToStorage(raw: string): string {
+  const t = raw.trim();
+  if (!t) throw new Error("Empty subject.");
+  const lower = t.toLowerCase();
+  if (isSubjectCode(lower)) return lower;
+  for (const code of Object.keys(REPORT_SUBJECT_I18N) as SubjectCode[]) {
+    for (const lab of Object.values(REPORT_SUBJECT_I18N[code])) {
+      const n = lab.trim();
+      if (n.length > 0 && n.toLowerCase() === lower) return code;
+    }
+  }
+  const collapsed = t.replace(/\s+/g, " ").trim();
+  if (!collapsed) throw new Error("Empty subject.");
+  const low = collapsed.toLowerCase();
+  if (isSubjectCode(low)) return low;
+  if (collapsed.length > CUSTOM_SUBJECT_MAX_LEN) throw new Error("Subject too long.");
+  return collapsed;
+}
+
+/**
+ * Text shown in the subject <input> for a stored class default (codes → localized preset titles;
+ * legacy unset `efl` → empty so placeholder “Define Subject Name” shows).
+ */
+export function subjectFieldDisplayValueFromStored(raw: unknown, lang: UiLang): string {
+  const s = String(raw ?? "").trim();
+  if (!s) return "";
+  const low = s.toLowerCase();
+  if (low === "efl") return "";
+  if (isSubjectCode(low)) return subjectLabelLocalized(lang, low);
+  return s;
+}
+

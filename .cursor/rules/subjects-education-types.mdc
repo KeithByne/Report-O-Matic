@@ -1,0 +1,15 @@
+---
+description: Subjects, presets, and education types (grade rubric profiles)
+globs: app/src/**/*subject*,app/src/**/*Subject*,app/src/lib/subject*,app/src/lib/subjectOptionsByEducationType.ts,app/src/lib/gradeRubricProfile.ts,app/src/app/api/**/subject-options/**
+---
+
+# Subjects and education types
+
+- **Do not show preset subject codes** (`efl`, `ffl`, etc.) in the UI. The subject field uses full localized labels via `subjectLabelLocalized` / datalist options built from `REPORT_SUBJECTS` + tenant custom names.
+- **Form text → storage**: use `resolveDefaultSubjectInputToStorage` from `@/lib/subjectFormResolve` so typed labels map to ISO codes when they match a preset in any UI language; otherwise the trimmed string is stored as a custom subject (length rules in `@/lib/subjects`).
+- **Storage → input display**: use `subjectFieldDisplayValueFromStored(raw, uiLang)` so codes become labels; legacy unset `efl` shows empty so the placeholder (“Define subject name”) appears.
+- **Education type** is `grade_rubric_profile` / `GradeRubricProfile` from `GRADE_RUBRIC_PROFILES` in `@/lib/gradeRubricProfile`. Iterate that array for UI sections and options—when a new profile is added, subject lists and labels extend with it. Use `gradeRubricProfileDisplayLabel(t, rp)` for consistent labels.
+- **Subject suggestions** are **three separate lists** (one per `GradeRubricProfile`), built in `@/lib/subjectOptionsByEducationType.ts`: language = built-in `REPORT_SUBJECTS` labels + customs with `rubric_profile === "language"`; primary = customs with `primary` only; secondary = customs with `secondary` only. Render **one `<datalist>` per profile** (ids like `class-subject-dl-${classId}-language` / `-primary` / `-secondary`) and set the subject `<input list>` to the id for the **selected** education type so each list is independent (not one merged list with filters).
+- **Report subject override** (`ReportEditor`): render preset language `<option>`s only when `parseGradeRubricProfile(klass.grade_rubric_profile, "language") === "language"`; strip `inputs.subject_code` on load when the class is not language acquisition.
+- **Custom subject rows** in tenant JSON include `name` and `rubric_profile`. Custom names are **scoped per education type**; the API persists them that way. Built-in languages are not stored as custom rows.
+- **Changing education type** away from language should clear the subject field when it resolved to a **preset language code** (user-facing label), so primary/secondary classes do not keep a language-only preset.

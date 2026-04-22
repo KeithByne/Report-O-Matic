@@ -170,9 +170,11 @@ export function TimetablePageClient({
     return slots;
   }, [effectiveViewMode, selectedRoomIndex, selectedTeacherEmail, slots, viewerRole]);
   const visibleDayIndexes = useMemo(() => {
-    const d = schoolWeekdaysToSortedDayIndexes(settings.school_weekdays);
+    const weekdays =
+      settings?.school_weekdays?.length ? settings.school_weekdays : DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS;
+    const d = schoolWeekdaysToSortedDayIndexes(weekdays);
     return d.length > 0 ? d : [0, 1, 2, 3, 4];
-  }, [settings.school_weekdays]);
+  }, [settings?.school_weekdays]);
 
   const slotMapForView = useMemo(() => {
     const m = new Map<string, SlotApi>();
