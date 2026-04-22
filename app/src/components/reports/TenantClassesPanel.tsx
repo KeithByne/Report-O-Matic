@@ -15,7 +15,7 @@ import {
 import type { RomRole } from "@/lib/data/memberships";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { GRADE_RUBRIC_PROFILES, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { GRADE_RUBRIC_PROFILES, isGradeRubricProfile, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 
 type ClassRow = { id: string; name: string; student_count: number; grade_rubric_profile?: GradeRubricProfile };
 
@@ -52,7 +52,8 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [termByClass, setTermByClass] = useState<Record<string, TermCompletion>>({});
   const [newClassName, setNewClassName] = useState("");
-  const [newClassGradeRubric, setNewClassGradeRubric] = useState<GradeRubricProfile>("language");
+  /** Empty until the user explicitly picks a type (name field stays disabled). */
+  const [newClassGradeRubric, setNewClassGradeRubric] = useState<GradeRubricProfile | "">("");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [bulkTerm, setBulkTerm] = useState<"first" | "second" | "third">("first");
@@ -107,6 +108,10 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
 
   async function addClass(e: React.FormEvent) {
     e.preventDefault();
+    if (!newClassGradeRubric || !isGradeRubricProfile(newClassGradeRubric)) {
+      alert(t("tenant.chooseEducationTypeFirst"));
+      return;
+    }
     const name = newClassName.trim();
     if (!name) return;
     setBusy("class");
@@ -119,6 +124,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       setNewClassName("");
+      setNewClassGradeRubric("");
       await refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("common.failed"));
@@ -178,22 +184,29 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
             </button>
           </div>
         </div>
-        <p className="mt-2 text-xs text-zinc-500">{t("tenant.termReadinessHint")}</p>
         {isLead ? (
-          <form onSubmit={addClass} className="mt-4 space-y-4 border-t border-emerald-100 pt-4">
+          <form
+            onSubmit={addClass}
+            className="mt-4 space-y-4 rounded-xl border-2 border-emerald-400 bg-gradient-to-b from-emerald-50/90 to-white p-4 shadow-sm ring-1 ring-emerald-200/80 sm:p-5"
+          >
             <div>
-              <h3 className="text-sm font-semibold text-zinc-900">{t("tenant.addClassSectionTitle")}</h3>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("tenant.educationalContextHint")}</p>
+              <h3 className="text-base font-semibold text-emerald-950">{t("tenant.addClassSectionTitle")}</h3>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-700">{t("tenant.educationalContextHint")}</p>
             </div>
-            <label className="block max-w-xl text-sm">
-              <span className="font-medium text-zinc-800">{t("tenant.educationalContext")}</span>
+            <label className="block text-sm">
+              <span className="font-semibold text-zinc-900">{t("tenant.addClassStep1Education")}</span>
               <select
                 value={newClassGradeRubric}
-                onChange={(e) => setNewClassGradeRubric(e.target.value as GradeRubricProfile)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setNewClassGradeRubric(v === "" ? "" : (v as GradeRubricProfile));
+                }}
                 disabled={busy !== null}
-                className="mt-1.5 block w-full rounded-lg border-2 border-emerald-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
-                aria-label={t("tenant.educationalContext")}
+                required
+                className="mt-2 block w-full max-w-xl rounded-lg border-2 border-emerald-500 bg-white px-3 py-3 text-sm font-semibold text-zinc-900 shadow-sm focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:opacity-50"
+                aria-label={t("tenant.addClassStep1Education")}
               >
+                <option value="">{t("tenant.educationTypePlaceholder")}</option>
                 {GRADE_RUBRIC_PROFILES.map((rp) => (
                   <option key={rp} value={rp}>
                     {rp === "language"
@@ -205,29 +218,36 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                 ))}
               </select>
             </label>
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-              <label className="text-sm">
-                <span className="text-zinc-600">{t("tenant.newClassName")}</span>
+            <div className="border-t border-emerald-200/80 pt-4">
+              <label className={`block text-sm ${newClassGradeRubric ? "" : "opacity-80"}`}>
+                <span className="font-semibold text-zinc-900">{t("tenant.addClassStep2Name")}</span>
+                {!newClassGradeRubric ? (
+                  <p className="mt-1 text-xs text-amber-800">{t("tenant.classNameLockedHint")}</p>
+                ) : null}
                 <input
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
-                  className="mt-1 block min-w-[14rem] rounded-lg border border-emerald-200 px-3 py-2"
+                  disabled={!newClassGradeRubric || busy !== null}
+                  className="mt-2 block w-full max-w-xl rounded-lg border border-emerald-200 px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   placeholder={t("tenant.newClassPlaceholder")}
                 />
               </label>
-              <button
-                type="submit"
-                disabled={busy !== null}
-                className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-              >
-                <Plus className={ICON_INLINE} aria-hidden />
-                {t("tenant.createClass")}
-              </button>
+              <div className="mt-4">
+                <button
+                  type="submit"
+                  disabled={busy !== null || !newClassGradeRubric}
+                  className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <Plus className={ICON_INLINE} aria-hidden />
+                  {t("tenant.createClass")}
+                </button>
+              </div>
             </div>
           </form>
         ) : (
           <p className="mt-2 text-sm text-zinc-500">{t("tenant.onlyLeadsCreate")}</p>
         )}
+        <p className="mt-3 text-xs text-zinc-500">{t("tenant.termReadinessHint")}</p>
 
         <ul className="mt-4 divide-y divide-emerald-100">
           {classes.map((c) => {
