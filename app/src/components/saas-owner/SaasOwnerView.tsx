@@ -10,6 +10,7 @@ type TenantHit = {
   tenant_id: string;
   tenant_name: string;
   owner_emails: string[];
+  report_credits_remaining: number;
 };
 
 type CreditPack = {
@@ -1083,6 +1084,7 @@ export function SaasOwnerView({
                   <th className="py-2 pr-3 font-medium">{t("saas.thTenant")}</th>
                   <th className="py-2 pr-3 font-medium">{t("saas.thTenantId")}</th>
                   <th className="py-2 pr-3 font-medium">{t("saas.thOwners")}</th>
+                  <th className="py-2 pr-3 font-medium">{t("saas.thCreditsRemaining")}</th>
                   <th className="py-2 pr-3 font-medium">{t("saas.thGiftCredits")}</th>
                   <th className="py-2 pr-3 font-medium">{t("roster.thActions")}</th>
                 </tr>
@@ -1097,6 +1099,9 @@ export function SaasOwnerView({
                       <td className="py-2 pr-3 font-mono text-xs text-zinc-700">{row.tenant_id}</td>
                       <td className="py-2 pr-3 text-xs text-zinc-700">
                         {row.owner_emails.length ? row.owner_emails.join(", ") : "—"}
+                      </td>
+                      <td className="py-2 pr-3 text-xs font-semibold tabular-nums text-zinc-900">
+                        {Number(row.report_credits_remaining || 0).toLocaleString()}
                       </td>
                       <td className="py-2 pr-3">
                         <div className="flex items-center gap-2">
@@ -1167,7 +1172,7 @@ export function SaasOwnerView({
                 })}
                 {hits.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-4 text-sm text-zinc-500">
+                    <td colSpan={6} className="py-4 text-sm text-zinc-500">
                       {t("saas.noSearchResults")}
                     </td>
                   </tr>

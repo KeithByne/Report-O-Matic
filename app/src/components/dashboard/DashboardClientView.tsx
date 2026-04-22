@@ -1223,6 +1223,13 @@ export function DashboardClientView({
                         </Link>
                       )}
                     </div>
+                    {primaryMembership.role === "owner" && ownerReportCredits !== null ? (
+                      <div className="mt-4 rounded-xl border border-teal-300 bg-teal-50/80 px-4 py-3">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-teal-900">
+                          {t("dash.ownerCreditsRemaining", { n: ownerReportCredits })}
+                        </div>
+                      </div>
+                    ) : null}
 
                     <OverviewDataPrivacySection />
 

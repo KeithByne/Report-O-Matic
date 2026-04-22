@@ -1,5 +1,6 @@
 import { getOwnerEmailForTenant } from "@/lib/data/memberships";
 import { getServiceSupabase } from "@/lib/supabase/service";
+import { sendLowCreditsWarningEmail } from "@/lib/email/lowCreditsWarningEmail";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
@@ -127,6 +128,35 @@ export async function consumeCreditForReport(opts: { tenantId: string; reportId:
       }
     } catch {
       // If test-credit bookkeeping fails, don't block report generation.
+    }
+    // Warn owner when balance reaches exactly 50 credits.
+    try {
+      const ownerBalance = await getOwnerCreditBalance(owner);
+      if (ownerBalance === 50) {
+        const { data: tenantRow } = await supabase
+          .from("tenants")
+          .select("name, default_report_language")
+          .eq("id", opts.tenantId)
+          .maybeSingle();
+        const schoolName =
+          tenantRow && typeof (tenantRow as { name?: unknown }).name === "string"
+            ? String((tenantRow as { name?: string }).name || "").trim()
+            : "";
+        const preferredLang =
+          tenantRow && typeof (tenantRow as { default_report_language?: unknown }).default_report_language === "string"
+            ? String((tenantRow as { default_report_language?: string }).default_report_language || "").trim()
+            : "en";
+        await sendLowCreditsWarningEmail({
+          to: owner,
+          schoolName: schoolName || opts.tenantId,
+          language: preferredLang || "en",
+          remainingCredits: ownerBalance,
+          billingUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.report-o-matic.online"}/reports/${encodeURIComponent(opts.tenantId)}/billing`,
+        });
+      }
+    } catch (emailErr: unknown) {
+      const msg = emailErr instanceof Error ? emailErr.message : "unknown";
+      console.warn("[ROM credits] low-credit warning email failed:", msg);
     }
     return true;
   }

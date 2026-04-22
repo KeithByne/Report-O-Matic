@@ -1274,6 +1274,7 @@ const EN: UiMessages = {
   "saas.schoolsTitle": "Schools",
   "saas.thTenantId": "Tenant ID",
   "saas.thOwners": "Owners",
+  "saas.thCreditsRemaining": "Credits remaining",
   "saas.thGiftCredits": "Gift credits",
   "saas.giftCreditsPlaceholder": "credits",
   "saas.giftCreditsAction": "Gift",
