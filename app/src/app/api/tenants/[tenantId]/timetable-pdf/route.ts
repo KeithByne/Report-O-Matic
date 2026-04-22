@@ -9,7 +9,6 @@ import { isUiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { buildTimetablePdfBuffer, type TimetablePdfSlot } from "@/lib/pdf/timetablePdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
-import { visibleMonFriDayIndexesFromClasses } from "@/lib/timetable/visibleTimetableDays";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
@@ -33,6 +32,13 @@ function displayForEmail(
   const ln = (m.last_name ?? "").trim();
   const name = `${fn} ${ln}`.trim();
   return name || email;
+}
+
+function visibleDayIndexesFromSlots(slots: { day_of_week: number }[]): number[] {
+  const days = [...new Set(slots.map((s) => s.day_of_week).filter((d) => Number.isFinite(d) && d >= 0 && d <= 6))].sort(
+    (a, b) => a - b,
+  );
+  return days.length > 0 ? days : [0, 1, 2, 3, 4];
 }
 
 export async function GET(req: Request, context: { params: Promise<{ tenantId: string }> }) {
@@ -110,7 +116,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
 
   const titleKey = role === "teacher" ? "pdf.timetableMyTitle" : "pdf.timetableTitle";
-  const visibleDayIndexes = visibleMonFriDayIndexesFromClasses(classRows);
+  const visibleDayIndexes = visibleDayIndexesFromSlots(slots);
 
   try {
     const printMode = role === "teacher" ? "by_teacher" : ownerMode;
@@ -137,18 +143,21 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         }
         const perTeacher = await Promise.all(
           targetTeacherEmails.map((te) =>
-            buildTimetablePdfBuffer({
-              letterhead,
-              letterheadLogo,
-              titleKey: "pdf.timetableMyTitle",
-              periodsAm: settings.periods_am,
-              periodsPm: settings.periods_pm,
-              roomCount: 1,
-              slots: slots.filter((s) => s.teacher_email === te),
-              uiLang,
-              visibleDayIndexes,
-              teacherSinglePage: true,
-            }),
+            (() => {
+              const teacherSlots = slots.filter((s) => s.teacher_email === te);
+              return buildTimetablePdfBuffer({
+                letterhead,
+                letterheadLogo,
+                titleKey: "pdf.timetableMyTitle",
+                periodsAm: settings.periods_am,
+                periodsPm: settings.periods_pm,
+                roomCount: 1,
+                slots: teacherSlots,
+                uiLang,
+                visibleDayIndexes: visibleDayIndexesFromSlots(teacherSlots),
+                teacherSinglePage: true,
+              });
+            })(),
           ),
         );
         pdf = await mergePdfBuffers(perTeacher);
@@ -181,7 +190,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         roomCount: settings.room_count,
         slots,
         uiLang,
-        visibleDayIndexes: [0, 1, 2, 3, 4, 5, 6],
+        visibleDayIndexes: visibleDayIndexesFromSlots(slots.filter((s) => targetRoomIndices.includes(s.room_index))),
         teacherSinglePage: false,
         roomsPerPage: 1,
         includedRoomIndices: targetRoomIndices,

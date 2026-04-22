@@ -231,10 +231,10 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
               const classLine = `${classLineBase} (${Number(slot.class_size ?? 0)})`;
               const teacherLine = slot.teacher_display.trim() || "—";
               const classBlockH = teacherSingle
-                ? Math.max(28, blockH * 0.58)
+                ? Math.max(24, blockH * 0.46)
                 : Math.max(24, blockH * 0.52);
               const teacherBlockH = teacherSingle
-                ? 0
+                ? Math.max(14, blockH - classBlockH - 14)
                 : Math.max(18, blockH - classBlockH - 14);
               doc.font("Helvetica").fontSize(6.5).fillColor("#0f172a");
               doc.text(classLine, innerLeft, blockTop + 12, {
@@ -243,7 +243,7 @@ export function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer
                 height: classBlockH,
                 ellipsis: true,
               });
-              if (!teacherSingle && teacherBlockH > 0) {
+              if (teacherBlockH > 0) {
                 doc.font("Helvetica").fontSize(6).fillColor("#0f172a");
                 doc.text(teacherLine, innerLeft, blockTop + 12 + classBlockH + 2, {
                   width: innerW,

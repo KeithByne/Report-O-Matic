@@ -56,7 +56,7 @@ type Props = {
   onOpenClassesAndReports?: () => void;
 };
 
-const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri"] as const;
+const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 const ROOM_ROW_HEIGHT_PX = 56;
 
 export function TimetablePageClient({
@@ -146,7 +146,7 @@ export function TimetablePageClient({
     [teachers],
   );
 
-  const visibleDayIndexes = useMemo(() => visibleMonFriDayIndexesFromClasses(classes), [classes]);
+  const defaultVisibleDayIndexes = useMemo(() => visibleMonFriDayIndexesFromClasses(classes), [classes]);
   const effectiveViewMode = viewerRole === "teacher" ? "by_teacher" : viewMode;
   const filteredSlotsForView = useMemo(() => {
     if (effectiveViewMode === "by_teacher") {
@@ -161,6 +161,12 @@ export function TimetablePageClient({
     }
     return slots;
   }, [effectiveViewMode, selectedRoomIndex, selectedTeacherEmail, slots, viewerRole]);
+  const visibleDayIndexes = useMemo(() => {
+    const days = [...new Set(filteredSlotsForView.map((s) => s.day_of_week).filter((d) => d >= 0 && d <= 6))].sort(
+      (a, b) => a - b,
+    );
+    return days.length > 0 ? days : defaultVisibleDayIndexes;
+  }, [defaultVisibleDayIndexes, filteredSlotsForView]);
 
   const slotMapForView = useMemo(() => {
     const m = new Map<string, SlotApi>();
@@ -405,46 +411,6 @@ export function TimetablePageClient({
               <option value="by_room">{t("timetable.printModeByRoom")}</option>
             </select>
           ) : null}
-            {canStepTeacher ? (
-              <div className="inline-flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => stepTeacher(-1)}
-                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
-                  aria-label={t("timetable.prevInstance")}
-                >
-                  <ChevronLeft className={ICON_INLINE} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => stepTeacher(1)}
-                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
-                  aria-label={t("timetable.nextInstance")}
-                >
-                  <ChevronRight className={ICON_INLINE} aria-hidden />
-                </button>
-              </div>
-            ) : null}
-            {canStepRoom ? (
-              <div className="inline-flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => stepRoom(-1)}
-                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
-                  aria-label={t("timetable.prevInstance")}
-                >
-                  <ChevronLeft className={ICON_INLINE} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => stepRoom(1)}
-                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
-                  aria-label={t("timetable.nextInstance")}
-                >
-                  <ChevronRight className={ICON_INLINE} aria-hidden />
-                </button>
-              </div>
-            ) : null}
         </div>
       ) : (
         <div>
@@ -520,46 +486,6 @@ export function TimetablePageClient({
                   </option>
                 ))}
               </select>
-            ) : null}
-            {canStepTeacher ? (
-              <div className="inline-flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => stepTeacher(-1)}
-                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
-                  aria-label={t("timetable.prevInstance")}
-                >
-                  <ChevronLeft className={ICON_INLINE} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => stepTeacher(1)}
-                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
-                  aria-label={t("timetable.nextInstance")}
-                >
-                  <ChevronRight className={ICON_INLINE} aria-hidden />
-                </button>
-              </div>
-            ) : null}
-            {canStepRoom ? (
-              <div className="inline-flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => stepRoom(-1)}
-                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
-                  aria-label={t("timetable.prevInstance")}
-                >
-                  <ChevronLeft className={ICON_INLINE} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => stepRoom(1)}
-                  className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-emerald-50"
-                  aria-label={t("timetable.nextInstance")}
-                >
-                  <ChevronRight className={ICON_INLINE} aria-hidden />
-                </button>
-              </div>
             ) : null}
           </div>
         </div>
@@ -697,6 +623,9 @@ export function TimetablePageClient({
                               <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
                                 {`${(slot.class_name ?? "").trim() || "—"} (${classById.get(slot.class_id)?.student_count ?? 0})`}
                               </div>
+                              <div className="mt-0.5 text-[10px] leading-tight text-zinc-700">
+                                {teacherLabelForEmail(teacherEmailForDisplay(slot))}
+                              </div>
                             </>
                           ) : (
                             <div className="flex min-h-[100px] items-center justify-center text-[11px] text-zinc-500">
@@ -731,14 +660,14 @@ export function TimetablePageClient({
                                 {t("pdf.timetablePageRoom", { n: roomRowIndex + 1 })}
                               </div>
                               {slot ? (
-                                <div className="mt-0.5 truncate text-[11px] font-medium leading-tight text-zinc-900">
+                                <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
                                   {`${(slot.class_name ?? "").trim() || "—"} (${classById.get(slot.class_id)?.student_count ?? 0})`}
                                 </div>
                               ) : (
                                 <div className="mt-0.5 truncate text-[11px] text-zinc-500">{t("timetable.emptyCell")}</div>
                               )}
                               {slot ? (
-                                <div className="mt-0.5 truncate text-[10px] text-zinc-700">
+                                <div className="mt-0.5 text-[10px] leading-tight text-zinc-700">
                                   {teacherLabelForEmail(teacherEmailForDisplay(slot))}
                                 </div>
                               ) : null}
@@ -754,6 +683,42 @@ export function TimetablePageClient({
           </tbody>
         </table>
       </div>
+      {canStepTeacher || canStepRoom ? (
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-2 rounded-xl border border-zinc-900 bg-zinc-950 px-3 py-2 text-white shadow-md dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950">
+            <button
+              type="button"
+              onClick={() => {
+                if (canStepTeacher) {
+                  stepTeacher(-1);
+                  return;
+                }
+                if (canStepRoom) stepRoom(-1);
+              }}
+              className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
+              aria-label={t("timetable.prevInstance")}
+            >
+              <ChevronLeft className={ICON_INLINE} aria-hidden />
+              {t("timetable.prevInstance")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (canStepTeacher) {
+                  stepTeacher(1);
+                  return;
+                }
+                if (canStepRoom) stepRoom(1);
+              }}
+              className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
+              aria-label={t("timetable.nextInstance")}
+            >
+              {t("timetable.nextInstance")}
+              <ChevronRight className={ICON_INLINE} aria-hidden />
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {modal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog">
