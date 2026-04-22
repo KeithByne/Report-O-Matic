@@ -47,7 +47,7 @@ export type TimetablePdfInput = {
   roomCount: number;
   slots: TimetablePdfSlot[];
   uiLang: string;
-  /** Mon–Fri row indices to include (e.g. from class meeting days). Default all five. */
+  /** Mon–Sun row indices (0=Mon … 6=Sun) to include from school timetable settings. Default Mon–Fri. */
   visibleDayIndexes?: number[];
   /**
    * One page: key slots by day+period only; each cell shows class + room row for that lesson.

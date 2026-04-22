@@ -667,6 +667,10 @@ const EN: UiMessages = {
   "dash.timetableRoomsLabel": "Rooms",
   "dash.timetablePeriodsAmLabel": "Periods before lunch",
   "dash.timetablePeriodsPmLabel": "Periods after lunch",
+  "dash.timetableSchoolDaysLabel": "School days per week",
+  "dash.timetableSchoolDaysHint":
+    "Tick the weekdays that appear on the timetable. Unticking a day removes any lessons placed on that day.",
+  "dash.timetableSchoolDaysNeedOne": "Select at least one school day.",
   "dash.timetableSaveLayout": "Save layout",
   "dash.timetableSavingLayout": "Saving…",
   "dash.timetableLayoutSaved": "Layout saved.",

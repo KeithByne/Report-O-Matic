@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant, listMembersForTenant } from "@/lib/data/memberships";
+import { normalizeActiveWeekdays, type WeekdayKey } from "@/lib/activeWeekdays";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import {
   getTimetableSettings,
@@ -117,14 +118,14 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     return NextResponse.json({ error: "Only the account owner can change timetable room and period settings." }, { status: 403 });
   }
 
-  let body: { room_count?: unknown; periods_am?: unknown; periods_pm?: unknown };
+  let body: { room_count?: unknown; periods_am?: unknown; periods_pm?: unknown; school_weekdays?: unknown };
   try {
     body = (await req.json()) as typeof body;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const patch: { room_count?: number; periods_am?: number; periods_pm?: number } = {};
+  const patch: { room_count?: number; periods_am?: number; periods_pm?: number; school_weekdays?: WeekdayKey[] } = {};
   if (body.room_count !== undefined) {
     if (typeof body.room_count !== "number" || !Number.isFinite(body.room_count)) {
       return NextResponse.json({ error: "room_count must be a number." }, { status: 400 });
@@ -143,8 +144,19 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     }
     patch.periods_pm = Math.floor(body.periods_pm);
   }
+  if (body.school_weekdays !== undefined) {
+    if (!Array.isArray(body.school_weekdays)) {
+      return NextResponse.json({ error: "school_weekdays must be an array of weekday codes." }, { status: 400 });
+    }
+    patch.school_weekdays = normalizeActiveWeekdays(body.school_weekdays);
+  }
 
-  if (patch.room_count === undefined && patch.periods_am === undefined && patch.periods_pm === undefined) {
+  if (
+    patch.room_count === undefined &&
+    patch.periods_am === undefined &&
+    patch.periods_pm === undefined &&
+    patch.school_weekdays === undefined
+  ) {
     return NextResponse.json({ error: "No changes supplied." }, { status: 400 });
   }
 

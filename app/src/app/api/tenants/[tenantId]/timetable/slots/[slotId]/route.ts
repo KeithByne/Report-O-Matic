@@ -11,6 +11,7 @@ import {
   listTimetableSlotsAt,
 } from "@/lib/data/timetableDb";
 import { timetableMirrorDayIndices } from "@/lib/timetable/timetableMirrorDays";
+import { allowedTimetableDayIndexSet, timetableMirrorDaysFilteredForSchool } from "@/lib/timetable/timetableSchoolWeekdays";
 
 export const runtime = "nodejs";
 
@@ -71,8 +72,8 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       return NextResponse.json({ error: "day_of_week must be a number." }, { status: 400 });
     }
     patch.day_of_week = Math.floor(body.day_of_week);
-    if (patch.day_of_week < 0 || patch.day_of_week > 4) {
-      return NextResponse.json({ error: "day_of_week must be 0–4 (Monday–Friday)." }, { status: 400 });
+    if (patch.day_of_week < 0 || patch.day_of_week > 6) {
+      return NextResponse.json({ error: "day_of_week must be 0–6 (Monday–Sunday)." }, { status: 400 });
     }
   }
   if (body.period_index !== undefined) {
@@ -96,6 +97,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
 
   const settings = await getTimetableSettings(tenantId);
   if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
+  const schoolDaySet = allowedTimetableDayIndexSet(settings.school_weekdays);
 
   const periodTotal = settings.periods_am + settings.periods_pm;
   const resolvedDay = patch.day_of_week !== undefined ? patch.day_of_week : before.day_of_week;
@@ -108,6 +110,12 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   }
   if (resolvedRoom < 0 || resolvedRoom >= settings.room_count) {
     return NextResponse.json({ error: "room_index is out of range for this school’s room count." }, { status: 400 });
+  }
+  if (!schoolDaySet.has(resolvedDay)) {
+    return NextResponse.json(
+      { error: "That weekday is not enabled for this school’s timetable. Change school days in timetable settings first." },
+      { status: 400 },
+    );
   }
 
   const beforeKlass = await getClassInTenant(tenantId, before.class_id);
@@ -131,7 +139,16 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   }
 
   const oldDays = timetableMirrorDayIndices(beforeKlass, before.day_of_week);
-  const newDays = timetableMirrorDayIndices(afterKlass, resolvedDay);
+  const newDays = timetableMirrorDaysFilteredForSchool(afterKlass, resolvedDay, settings.school_weekdays);
+  if (newDays.length === 0) {
+    return NextResponse.json(
+      {
+        error:
+          "No class meeting day matches the target on the school’s timetable. Adjust class active weekdays or school working days.",
+      },
+      { status: 400 },
+    );
+  }
 
   const siblingsToRestore = await listTimetableSlotsAt(
     tenantId,
@@ -161,13 +178,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     return NextResponse.json({ slot: anchor, slots: created });
   } catch (e: unknown) {
     try {
-      await deleteTimetableSlotsMirrorKeys(
-        tenantId,
-        resolvedClassId,
-        resolvedPeriod,
-        resolvedRoom,
-        newDays,
-      );
+      await deleteTimetableSlotsMirrorKeys(tenantId, resolvedClassId, resolvedPeriod, resolvedRoom, newDays);
     } catch {
       /* ignore */
     }

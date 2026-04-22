@@ -36,6 +36,10 @@ export const UI_FILL_ES: Record<string, string> = {
   "dash.timetableRoomsLabel": "Aulas",
   "dash.timetablePeriodsAmLabel": "Periodos antes del almuerzo",
   "dash.timetablePeriodsPmLabel": "Periodos después del almuerzo",
+  "dash.timetableSchoolDaysLabel": "Días lectivos por semana",
+  "dash.timetableSchoolDaysHint":
+    "Marque los días que aparecen en el horario. Al quitar un día se eliminan las clases colocadas ese día.",
+  "dash.timetableSchoolDaysNeedOne": "Seleccione al menos un día lectivo.",
   "dash.timetableSaveLayout": "Guardar diseño",
   "dash.timetableSavingLayout": "Guardando…",
   "dash.timetableLayoutSaved": "Diseño guardado.",
@@ -354,6 +358,10 @@ export const UI_FILL_FR: Record<string, string> = {
   "dash.timetableRoomsLabel": "Salles",
   "dash.timetablePeriodsAmLabel": "Cours avant le déjeuner",
   "dash.timetablePeriodsPmLabel": "Cours après le déjeuner",
+  "dash.timetableSchoolDaysLabel": "Jours d'école par semaine",
+  "dash.timetableSchoolDaysHint":
+    "Cochez les jours affichés sur l'emploi du temps. Décocher un jour supprime les cours placés ce jour-là.",
+  "dash.timetableSchoolDaysNeedOne": "Sélectionnez au moins un jour d'école.",
   "dash.timetableSaveLayout": "Enregistrer la grille",
   "dash.timetableSavingLayout": "Enregistrement…",
   "dash.timetableLayoutSaved": "Grille enregistrée.",

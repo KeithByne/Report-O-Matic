@@ -8,7 +8,7 @@ import {
   insertTimetableSlot,
   isTimetableConflictError,
 } from "@/lib/data/timetableDb";
-import { timetableMirrorDayIndices } from "@/lib/timetable/timetableMirrorDays";
+import { allowedTimetableDayIndexSet, timetableMirrorDaysFilteredForSchool } from "@/lib/timetable/timetableSchoolWeekdays";
 
 export const runtime = "nodejs";
 
@@ -53,8 +53,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const room_index = typeof body.room_index === "number" ? Math.floor(body.room_index) : NaN;
   const class_id = typeof body.class_id === "string" ? body.class_id.trim() : "";
 
-  if (!Number.isFinite(day_of_week) || day_of_week < 0 || day_of_week > 4) {
-    return NextResponse.json({ error: "day_of_week must be 0–4 (Monday–Friday)." }, { status: 400 });
+  if (!Number.isFinite(day_of_week) || day_of_week < 0 || day_of_week > 6) {
+    return NextResponse.json({ error: "day_of_week must be 0–6 (Monday–Sunday)." }, { status: 400 });
   }
   if (!class_id || !isUuid(class_id)) {
     return NextResponse.json({ error: "class_id is required." }, { status: 400 });
@@ -62,6 +62,12 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
 
   const settings = await getTimetableSettings(tenantId);
   if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
+  if (!allowedTimetableDayIndexSet(settings.school_weekdays).has(day_of_week)) {
+    return NextResponse.json(
+      { error: "That weekday is not enabled for this school’s timetable. Change school days in timetable settings first." },
+      { status: 400 },
+    );
+  }
 
   const periodTotal = settings.periods_am + settings.periods_pm;
   if (!Number.isFinite(period_index) || period_index < 0 || period_index >= periodTotal) {
@@ -88,7 +94,16 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     );
   }
 
-  const days = timetableMirrorDayIndices(klass, day_of_week);
+  const days = timetableMirrorDaysFilteredForSchool(klass, day_of_week, settings.school_weekdays);
+  if (days.length === 0) {
+    return NextResponse.json(
+      {
+        error:
+          "No class meeting day matches this cell on the school’s timetable. Adjust class active weekdays or school working days.",
+      },
+      { status: 400 },
+    );
+  }
   const created: Awaited<ReturnType<typeof insertTimetableSlot>>[] = [];
 
   try {

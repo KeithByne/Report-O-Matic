@@ -1,3 +1,5 @@
+import { normalizeActiveWeekdays, type WeekdayKey } from "@/lib/activeWeekdays";
+import { schoolWeekdaysToSortedDayIndexes, timetableSchoolWeekdaysFromDb } from "@/lib/timetable/timetableSchoolWeekdays";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
@@ -9,6 +11,8 @@ export type TimetableSettings = {
   room_count: number;
   periods_am: number;
   periods_pm: number;
+  /** Mon=0 … Sun=6 row indices enabled for this school’s timetable. */
+  school_weekdays: WeekdayKey[];
 };
 
 export type TimetableSlotRow = {
@@ -23,7 +27,7 @@ export type TimetableSlotRow = {
   class_name: string | null;
 };
 
-const tenantTimetableSelect = "timetable_room_count, timetable_periods_am, timetable_periods_pm";
+const tenantTimetableSelect = "timetable_room_count, timetable_periods_am, timetable_periods_pm, timetable_school_weekdays";
 
 export async function getTimetableSettings(tenantId: string): Promise<TimetableSettings | null> {
   const supabase = getServiceSupabase();
@@ -39,17 +43,19 @@ export async function getTimetableSettings(tenantId: string): Promise<TimetableS
     timetable_room_count: number;
     timetable_periods_am: number;
     timetable_periods_pm: number;
+    timetable_school_weekdays?: unknown;
   };
   return {
     room_count: Number(row.timetable_room_count),
     periods_am: Number(row.timetable_periods_am),
     periods_pm: Number(row.timetable_periods_pm),
+    school_weekdays: timetableSchoolWeekdaysFromDb(row.timetable_school_weekdays),
   };
 }
 
 export async function updateTimetableSettings(
   tenantId: string,
-  patch: { room_count?: number; periods_am?: number; periods_pm?: number },
+  patch: { room_count?: number; periods_am?: number; periods_pm?: number; school_weekdays?: WeekdayKey[] },
 ): Promise<TimetableSettings> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
@@ -60,12 +66,16 @@ export async function updateTimetableSettings(
   const room_count = patch.room_count ?? current.room_count;
   const periods_am = patch.periods_am ?? current.periods_am;
   const periods_pm = patch.periods_pm ?? current.periods_pm;
+  const school_weekdays =
+    patch.school_weekdays !== undefined ? normalizeActiveWeekdays(patch.school_weekdays) : current.school_weekdays;
 
   if (room_count < 1 || room_count > 50) throw new Error("Rooms must be between 1 and 50.");
   if (periods_am < 1 || periods_am > 6) throw new Error("Morning periods must be between 1 and 6.");
   if (periods_pm < 1 || periods_pm > 6) throw new Error("Afternoon periods must be between 1 and 6.");
+  if (school_weekdays.length === 0) throw new Error("Select at least one school day for the timetable.");
 
   const periodTotal = periods_am + periods_pm;
+  const allowedSet = new Set(schoolWeekdaysToSortedDayIndexes(school_weekdays));
 
   const { error: upErr } = await supabase
     .from("tenants")
@@ -73,6 +83,7 @@ export async function updateTimetableSettings(
       timetable_room_count: room_count,
       timetable_periods_am: periods_am,
       timetable_periods_pm: periods_pm,
+      timetable_school_weekdays: school_weekdays,
     })
     .eq("id", tenantId);
   if (upErr) throw new Error(formatErr(upErr));
@@ -90,7 +101,13 @@ export async function updateTimetableSettings(
     .gte("period_index", periodTotal);
   if (d2) throw new Error(formatErr(d2));
 
-  return { room_count, periods_am, periods_pm };
+  for (let d = 0; d <= 6; d += 1) {
+    if (allowedSet.has(d)) continue;
+    const { error: d3 } = await supabase.from("timetable_slots").delete().eq("tenant_id", tenantId).eq("day_of_week", d);
+    if (d3) throw new Error(formatErr(d3));
+  }
+
+  return { room_count, periods_am, periods_pm, school_weekdays };
 }
 
 function mapSlot(raw: Record<string, unknown>): TimetableSlotRow {

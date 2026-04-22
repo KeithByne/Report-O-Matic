@@ -4,7 +4,8 @@ import { listClasses } from "@/lib/data/classesDb";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant, getTenantName, listMembersForTenant } from "@/lib/data/memberships";
-import { getTimetableSettings, listTimetableSlots } from "@/lib/data/timetableDb";
+import { getTimetableSettings, listTimetableSlots, type TimetableSettings } from "@/lib/data/timetableDb";
+import { schoolWeekdaysToSortedDayIndexes } from "@/lib/timetable/timetableSchoolWeekdays";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { buildTimetablePdfBuffer, type TimetablePdfSlot } from "@/lib/pdf/timetablePdf";
@@ -34,10 +35,8 @@ function displayForEmail(
   return name || email;
 }
 
-function visibleDayIndexesFromSlots(slots: { day_of_week: number }[]): number[] {
-  const days = [...new Set(slots.map((s) => s.day_of_week).filter((d) => Number.isFinite(d) && d >= 0 && d <= 6))].sort(
-    (a, b) => a - b,
-  );
+function visibleDayIndexesForPdf(settings: TimetableSettings): number[] {
+  const days = schoolWeekdaysToSortedDayIndexes(settings.school_weekdays);
   return days.length > 0 ? days : [0, 1, 2, 3, 4];
 }
 
@@ -115,7 +114,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
 
   const titleKey = role === "teacher" ? "pdf.timetableMyTitle" : "pdf.timetableTitle";
-  const visibleDayIndexes = visibleDayIndexesFromSlots(slots);
+  const visibleDayIndexes = visibleDayIndexesForPdf(settings);
 
   try {
     const printMode = role === "teacher" ? "by_teacher" : ownerMode;
@@ -157,7 +156,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
                 roomCount: 1,
                 slots: teacherSlots,
                 uiLang,
-                visibleDayIndexes: visibleDayIndexesFromSlots(teacherSlots),
+                visibleDayIndexes: visibleDayIndexesForPdf(settings),
                 teacherSinglePage: true,
                 getPageHeadline: () => headline,
               });
@@ -194,7 +193,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         roomCount: settings.room_count,
         slots,
         uiLang,
-        visibleDayIndexes: visibleDayIndexesFromSlots(slots.filter((s) => targetRoomIndices.includes(s.room_index))),
+        visibleDayIndexes: visibleDayIndexesForPdf(settings),
         teacherSinglePage: false,
         roomsPerPage: 1,
         includedRoomIndices: targetRoomIndices,

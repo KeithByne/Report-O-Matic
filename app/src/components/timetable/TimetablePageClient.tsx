@@ -22,10 +22,11 @@ import type { RomRole } from "@/lib/data/memberships";
 import { classesListHref } from "@/lib/app/classesNavigation";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
+import { WEEKDAY_KEYS, type WeekdayKey } from "@/lib/activeWeekdays";
+import { DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS, schoolWeekdaysToSortedDayIndexes } from "@/lib/timetable/timetableSchoolWeekdays";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
-import { visibleMonFriDayIndexesFromClasses } from "@/lib/timetable/visibleTimetableDays";
 
-type Settings = { room_count: number; periods_am: number; periods_pm: number };
+type Settings = { room_count: number; periods_am: number; periods_pm: number; school_weekdays: WeekdayKey[] };
 
 type SlotApi = {
   id: string;
@@ -56,7 +57,6 @@ type Props = {
   onOpenClassesAndReports?: () => void;
 };
 
-const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 const ROOM_ROW_HEIGHT_PX = 56;
 
 export function TimetablePageClient({
@@ -79,6 +79,7 @@ export function TimetablePageClient({
   const [ownerRooms, setOwnerRooms] = useState("");
   const [ownerAm, setOwnerAm] = useState("");
   const [ownerPm, setOwnerPm] = useState("");
+  const [ownerSchoolDays, setOwnerSchoolDays] = useState<Set<WeekdayKey>>(() => new Set(DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS));
 
   const [modal, setModal] = useState<{
     day: number;
@@ -108,6 +109,7 @@ export function TimetablePageClient({
       setOwnerRooms(String(s.room_count));
       setOwnerAm(String(s.periods_am));
       setOwnerPm(String(s.periods_pm));
+      setOwnerSchoolDays(new Set(s.school_weekdays?.length ? s.school_weekdays : DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS));
       setSlots((data.slots as SlotApi[]) ?? []);
       setClasses((data.classes as ClassOpt[]) ?? []);
       setTeachers((data.teachers as TeacherOpt[]) ?? []);
@@ -153,7 +155,6 @@ export function TimetablePageClient({
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [slots, classById]);
 
-  const defaultVisibleDayIndexes = useMemo(() => visibleMonFriDayIndexesFromClasses(classes), [classes]);
   const effectiveViewMode = viewerRole === "teacher" ? "by_teacher" : viewMode;
   const filteredSlotsForView = useMemo(() => {
     if (effectiveViewMode === "by_teacher") {
@@ -169,11 +170,9 @@ export function TimetablePageClient({
     return slots;
   }, [effectiveViewMode, selectedRoomIndex, selectedTeacherEmail, slots, viewerRole]);
   const visibleDayIndexes = useMemo(() => {
-    const days = [...new Set(filteredSlotsForView.map((s) => s.day_of_week).filter((d) => d >= 0 && d <= 6))].sort(
-      (a, b) => a - b,
-    );
-    return days.length > 0 ? days : defaultVisibleDayIndexes;
-  }, [defaultVisibleDayIndexes, filteredSlotsForView]);
+    const d = schoolWeekdaysToSortedDayIndexes(settings.school_weekdays);
+    return d.length > 0 ? d : [0, 1, 2, 3, 4];
+  }, [settings.school_weekdays]);
 
   const slotMapForView = useMemo(() => {
     const m = new Map<string, SlotApi>();
@@ -207,17 +206,35 @@ export function TimetablePageClient({
     return t("class.teacherNameNotSet");
   }
 
+  function toggleOwnerSchoolDay(key: WeekdayKey) {
+    setOwnerSchoolDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        if (next.size <= 1) return prev;
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
   async function saveLayout() {
     if (!canEditLayout) return;
     const rc = Number.parseInt(ownerRooms, 10);
     const am = Number.parseInt(ownerAm, 10);
     const pm = Number.parseInt(ownerPm, 10);
+    const school_weekdays = WEEKDAY_KEYS.filter((k) => ownerSchoolDays.has(k));
+    if (school_weekdays.length === 0) {
+      alert(t("dash.timetableSchoolDaysNeedOne"));
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch(`${base}/timetable`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ room_count: rc, periods_am: am, periods_pm: pm }),
+        body: JSON.stringify({ room_count: rc, periods_am: am, periods_pm: pm, school_weekdays }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
@@ -554,6 +571,23 @@ export function TimetablePageClient({
                 ))}
               </select>
             </label>
+            <div className="min-w-[min(100%,28rem)] flex-1 basis-full sm:basis-auto">
+              <span className="block text-xs font-medium text-zinc-700">{t("dash.timetableSchoolDaysLabel")}</span>
+              <p className="mt-0.5 text-[11px] text-zinc-500">{t("dash.timetableSchoolDaysHint")}</p>
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-2">
+                {WEEKDAY_KEYS.map((k) => (
+                  <label key={k} className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-zinc-800">
+                    <input
+                      type="checkbox"
+                      checked={ownerSchoolDays.has(k)}
+                      onChange={() => toggleOwnerSchoolDay(k)}
+                      className="rounded border-zinc-300"
+                    />
+                    {t(`weekday.${k}`)}
+                  </label>
+                ))}
+              </div>
+            </div>
             <button
               type="button"
               disabled={busy}

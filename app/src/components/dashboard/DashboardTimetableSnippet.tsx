@@ -7,6 +7,8 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
+import { WEEKDAY_KEYS, type WeekdayKey } from "@/lib/activeWeekdays";
+import { DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS } from "@/lib/timetable/timetableSchoolWeekdays";
 
 type Props = {
   tenantId: string;
@@ -23,6 +25,7 @@ export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: P
   const [rooms, setRooms] = useState("");
   const [am, setAm] = useState("");
   const [pm, setPm] = useState("");
+  const [schoolDays, setSchoolDays] = useState<Set<WeekdayKey>>(() => new Set(DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS));
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -37,10 +40,16 @@ export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: P
       const res = await fetch(`${base}/timetable`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.settings) {
-        const s = data.settings as { room_count: number; periods_am: number; periods_pm: number };
+        const s = data.settings as {
+          room_count: number;
+          periods_am: number;
+          periods_pm: number;
+          school_weekdays?: WeekdayKey[];
+        };
         setRooms(String(s.room_count));
         setAm(String(s.periods_am));
         setPm(String(s.periods_pm));
+        setSchoolDays(new Set(s.school_weekdays?.length ? s.school_weekdays : DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS));
       }
     } catch {
       /* ignore */
@@ -53,16 +62,32 @@ export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: P
     void load();
   }, [load]);
 
+  function toggleSchoolDay(key: WeekdayKey) {
+    setSchoolDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        if (next.size <= 1) return prev;
+        next.delete(key);
+      } else next.add(key);
+      return next;
+    });
+  }
+
   async function saveLayout() {
     const rc = Number.parseInt(rooms, 10);
     const periodsAm = Number.parseInt(am, 10);
     const periodsPm = Number.parseInt(pm, 10);
+    const school_weekdays = WEEKDAY_KEYS.filter((k) => schoolDays.has(k));
+    if (school_weekdays.length === 0) {
+      alert(t("dash.timetableSchoolDaysNeedOne"));
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch(`${base}/timetable`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ room_count: rc, periods_am: periodsAm, periods_pm: periodsPm }),
+        body: JSON.stringify({ room_count: rc, periods_am: periodsAm, periods_pm: periodsPm, school_weekdays }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
@@ -113,6 +138,22 @@ export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: P
               ))}
             </select>
           </label>
+          <div className="min-w-0 basis-full">
+            <span className="text-[11px] font-medium text-zinc-700">{t("dash.timetableSchoolDaysLabel")}</span>
+            <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1">
+              {WEEKDAY_KEYS.map((k) => (
+                <label key={k} className="inline-flex cursor-pointer items-center gap-0.5 text-[10px] text-zinc-800">
+                  <input
+                    type="checkbox"
+                    checked={schoolDays.has(k)}
+                    onChange={() => toggleSchoolDay(k)}
+                    className="rounded border-zinc-300"
+                  />
+                  {t(`weekday.${k}`)}
+                </label>
+              ))}
+            </div>
+          </div>
           <button
             type="button"
             disabled={busy}
