@@ -54,6 +54,7 @@ type Props = {
 };
 
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri"] as const;
+const ROOM_ROW_HEIGHT_PX = 56;
 
 export function TimetablePageClient({
   tenantId,
@@ -519,20 +520,20 @@ export function TimetablePageClient({
                               className={`border-b border-zinc-100 px-1.5 py-1.5 text-left last:border-b-0 ${
                                 interactive ? "cursor-pointer hover:brightness-95" : "cursor-default"
                               }`}
-                              style={{ backgroundColor: bg }}
+                              style={{ backgroundColor: bg, height: `${ROOM_ROW_HEIGHT_PX}px` }}
                             >
                               <div className="text-[10px] font-semibold text-zinc-600">
                                 {t("pdf.timetablePageRoom", { n: r + 1 })}
                               </div>
                               {slot ? (
-                                <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
+                                <div className="mt-0.5 truncate text-[11px] font-medium leading-tight text-zinc-900">
                                   {(slot.class_name ?? "").trim() || "—"}
                                 </div>
                               ) : (
-                                <div className="mt-0.5 text-[11px] text-zinc-500">{t("timetable.emptyCell")}</div>
+                                <div className="mt-0.5 truncate text-[11px] text-zinc-500">{t("timetable.emptyCell")}</div>
                               )}
                               {slot ? (
-                                <div className="mt-0.5 text-[10px] text-zinc-700">
+                                <div className="mt-0.5 truncate text-[10px] text-zinc-700">
                                   {teacherLabelForEmail(teacherEmailForDisplay(slot))}
                                 </div>
                               ) : null}
