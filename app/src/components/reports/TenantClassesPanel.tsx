@@ -56,7 +56,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
   const [newClassName, setNewClassName] = useState("");
   /** Empty until the user explicitly picks a type (name field stays disabled). */
   const [newClassGradeRubric, setNewClassGradeRubric] = useState<GradeRubricProfile | "">("");
-  const [newClassDefaultSubject, setNewClassDefaultSubject] = useState("efl");
+  const [newClassDefaultSubject, setNewClassDefaultSubject] = useState("");
   const [subjectAccountOptions, setSubjectAccountOptions] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -153,6 +153,10 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     const name = newClassName.trim();
     if (!name) return;
     let normalizedSubject: string;
+    if (!newClassDefaultSubject.trim()) {
+      alert(t("class.invalidSubject"));
+      return;
+    }
     try {
       normalizedSubject = normalizeDefaultSubjectForStorage(newClassDefaultSubject);
     } catch {
@@ -178,7 +182,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       setNewClassName("");
       setNewClassGradeRubric("");
-      setNewClassDefaultSubject("efl");
+      setNewClassDefaultSubject("");
       await refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("common.failed"));
@@ -277,6 +281,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   onChange={(e) => setNewClassDefaultSubject(e.target.value)}
                   disabled={!newClassGradeRubric || busy !== null}
                   title={!newClassGradeRubric ? t("tenant.chooseEducationTypeFirst") : undefined}
+                  placeholder={t("tenant.defineSubjectNamePlaceholder")}
                   className="mt-2 block w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   autoComplete="off"
                   aria-label={t("tenant.addClassStep2Subject")}
@@ -311,7 +316,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
               <div className="mt-4">
                 <button
                   type="submit"
-                  disabled={busy !== null || !newClassGradeRubric || !newClassName.trim()}
+                  disabled={busy !== null || !newClassGradeRubric || !newClassName.trim() || !newClassDefaultSubject.trim()}
                   className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <Plus className={ICON_INLINE} aria-hidden />

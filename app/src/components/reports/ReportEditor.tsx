@@ -23,7 +23,7 @@ import {
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { metricLabelForRubric } from "@/lib/i18n/gradeRubricLabels";
 import {
-  defaultSubjectDisplayLocalized,
+  classDefaultSubjectUiLine,
   reportLanguageOptionLabel,
   subjectLabelLocalized,
 } from "@/lib/i18n/uiStrings";
@@ -178,7 +178,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const [pdfPreviewKey, setPdfPreviewKey] = useState(0);
 
-  const classDefaultSubjectLine = defaultSubjectDisplayLocalized(
+  const classDefaultSubjectLine = classDefaultSubjectUiLine(
     lang,
     (klass?.default_subject ?? "").trim() || "efl",
   );

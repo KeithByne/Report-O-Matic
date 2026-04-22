@@ -15,7 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { allowedClassLevelsForRubric } from "@/lib/classLevel";
 import {
-  defaultSubjectDisplayLocalized,
+  classDefaultSubjectUiLine,
   formatClassLevelOptionLabel,
   reportLanguageOptionLabel,
   subjectLabelLocalized,
@@ -31,7 +31,7 @@ import {
 } from "@/lib/reportInputs";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { GRADE_RUBRIC_PROFILES, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { REPORT_SUBJECTS, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
+import { REPORT_SUBJECTS, defaultSubjectInputValueFromStored, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { classesListHref } from "@/lib/app/classesNavigation";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
@@ -239,7 +239,7 @@ export function ClassWorkspace({
   const [cName, setCName] = useState(initialClassName);
   const [scholasticYear, setScholasticYear] = useState("");
   const [cefr, setCefr] = useState("");
-  const [defSubject, setDefSubject] = useState("efl");
+  const [defSubject, setDefSubject] = useState("");
   /** Class educational context (CEFR vs year bands); stored on the class row. */
   const [classGradeRubric, setClassGradeRubric] = useState<GradeRubricProfile>("language");
   const [editingCustomSubject, setEditingCustomSubject] = useState<string | null>(null);
@@ -364,7 +364,7 @@ export function ClassWorkspace({
       setCName(c.name);
       setScholasticYear(c.scholastic_year?.trim() ?? "");
       setCefr(c.cefr_level ?? "");
-      setDefSubject((c.default_subject ?? "").trim() || "efl");
+      setDefSubject(defaultSubjectInputValueFromStored(c.default_subject));
       setClassGradeRubric(parseGradeRubricProfile(c.grade_rubric_profile, "language"));
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
@@ -424,7 +424,8 @@ export function ClassWorkspace({
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectRenameFailed"));
-        if (defSubject.trim().toLowerCase() === oldName.trim().toLowerCase()) setDefSubject(normalized);
+        if (defSubject.trim().toLowerCase() === oldName.trim().toLowerCase())
+          setDefSubject(defaultSubjectInputValueFromStored(normalized));
         setEditingCustomSubject(null);
         setEditCustomDraft("");
         await refreshSubjectAccountOptions();
@@ -454,7 +455,7 @@ export function ClassWorkspace({
         const res = await fetch(`${base}/subject-options?name=${encodeURIComponent(name)}`, { method: "DELETE" });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectDeleteFailed"));
-        if (defSubject.trim().toLowerCase() === name.trim().toLowerCase()) setDefSubject("efl");
+        if (defSubject.trim().toLowerCase() === name.trim().toLowerCase()) setDefSubject("");
         setEditingCustomSubject(null);
         setEditCustomDraft("");
         await refreshSubjectAccountOptions();
@@ -601,7 +602,7 @@ export function ClassWorkspace({
     if (!isLead) return;
     let normalizedSubject: string;
     try {
-      normalizedSubject = normalizeDefaultSubjectForStorage(defSubject);
+      normalizedSubject = normalizeDefaultSubjectForStorage(defSubject.trim() || "efl");
     } catch {
       alert(t("class.invalidSubject"));
       return;
@@ -639,7 +640,7 @@ export function ClassWorkspace({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
-      setDefSubject(normalizedSubject);
+      setDefSubject(defaultSubjectInputValueFromStored(normalizedSubject));
       await loadClass();
       await refreshStudents();
       await refreshSubjectAccountOptions();
@@ -1065,6 +1066,7 @@ export function ClassWorkspace({
                   value={defSubject}
                   onChange={(e) => setDefSubject(e.target.value)}
                   disabled={subjectListBusy}
+                  placeholder={t("tenant.defineSubjectNamePlaceholder")}
                   className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
                   autoComplete="off"
                 />
@@ -1176,7 +1178,7 @@ export function ClassWorkspace({
               </>
             ) : (
               <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
-                {defaultSubjectDisplayLocalized(uiLang, defSubject)}
+                {classDefaultSubjectUiLine(uiLang, (detail?.default_subject ?? "").trim() || "efl")}
               </p>
             )}
           </label>

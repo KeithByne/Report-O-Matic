@@ -776,6 +776,7 @@ const EN: UiMessages = {
     "Choose language school (CEFR levels), primary, or secondary. This controls class level options and how grade rows read on reports; you can change it later in each class’s settings.",
   "tenant.addClassStep1Education": "1. Type of education (choose this first)",
   "tenant.addClassStep2Subject": "Define Subject",
+  "tenant.defineSubjectNamePlaceholder": "Define Subject Name",
   "tenant.addClassStep3Name": "3. Class name",
   "tenant.educationTypePlaceholder": "Select type of education…",
   "tenant.chooseEducationTypeFirst": "Please choose the type of education in step 1 before naming the class.",
@@ -1120,26 +1121,26 @@ const EN: UiMessages = {
   "class.defaultSubject": "Default subject",
   "class.selectOrDefineSubject": "Select or define subject",
   "class.subjectPickerHint":
-    "Choose a preset code from the list (e.g. efl) or type a new subject name; new names are saved to this school’s subject list for next time.",
+    "Choose a preset from the list or type a new subject name; new names are saved to this school’s subject list for next time.",
   "class.gradeRubricProfile": "Grade rubric (row titles on reports and PDFs)",
   "class.gradeRubricLanguage": "Language acquisition",
   "class.gradeRubricPrimary": "Primary / general",
   "class.gradeRubricSecondary": "Secondary / general",
   "class.gradeRubricHint":
-    "For custom subject names only. Preset codes (e.g. efl) always use the language-acquisition rubric.",
+    "For custom subject names only. Preset codes from the list always use the language-acquisition rubric.",
   "class.classLevel": "Class level",
   "class.yearGroupLabel": "Year {n}",
   "class.levelFrameworkTag": "CEFR",
   "class.invalidSubject": "Enter a valid subject (a preset code or up to 120 characters).",
   "class.customSubjectsTitle": "Custom subjects (this school)",
   "class.customSubjectsLead":
-    "Rename or remove subjects you added to the school list. Preset codes cannot be changed here. Deleting a subject sets any class that used it to English (efl).",
+    "Rename or remove subjects you added to the school list. Preset codes cannot be changed here. Deleting a subject sets any class that used it to the default English subject.",
   "class.editCustomSubject": "Edit",
   "class.deleteCustomSubject": "Delete",
   "class.saveCustomSubjectRename": "Save",
   "class.cancelCustomSubjectRename": "Cancel",
   "class.confirmDeleteCustomSubject":
-    "Remove “{name}” from this school’s subject list? Any class using it will default to English (efl).",
+    "Remove “{name}” from this school’s subject list? Any class using it will default to the default English subject.",
   "class.subjectRenameFailed": "Could not rename subject.",
   "class.subjectDeleteFailed": "Could not delete subject.",
   "class.defaultOutputLang": "Default output language",
@@ -1533,6 +1534,7 @@ const FR: UiMessages = {
     "Choisissez langue (niveaux CEFR), primaire ou secondaire. Cela pilote les niveaux de classe et les intitulés des lignes de notes ; modifiable ensuite dans les réglages de chaque classe.",
   "tenant.addClassStep1Education": "1. Type d’enseignement (à choisir en premier)",
   "tenant.addClassStep2Subject": "Définir la matière",
+  "tenant.defineSubjectNamePlaceholder": "Définir le nom de la matière",
   "tenant.addClassStep3Name": "3. Nom de la classe",
   "tenant.educationTypePlaceholder": "Sélectionnez le type d’enseignement…",
   "tenant.chooseEducationTypeFirst": "Veuillez d’abord choisir le type d’enseignement à l’étape 1 avant de nommer la classe.",
@@ -1864,26 +1866,26 @@ const FR: UiMessages = {
   "class.defaultSubject": "Matière par défaut",
   "class.selectOrDefineSubject": "Sélectionner ou définir la matière",
   "class.subjectPickerHint":
-    "Choisissez un code préréglé dans la liste (p. ex. efl) ou saisissez un nouveau nom de matière ; les nouveaux noms sont enregistrés pour cette école.",
+    "Choisissez un préréglage dans la liste ou saisissez un nouveau nom de matière ; les nouveaux noms sont enregistrés pour cette école.",
   "class.gradeRubricProfile": "Grille de compétences (titres des lignes dans les rapports et PDF)",
   "class.gradeRubricLanguage": "Acquisition des langues",
   "class.gradeRubricPrimary": "Primaire / enseignement général",
   "class.gradeRubricSecondary": "Secondaire / enseignement général",
   "class.gradeRubricHint":
-    "Uniquement pour les noms de matière personnalisés. Les codes préréglés (p. ex. efl) utilisent toujours la grille d’acquisition des langues.",
+    "Uniquement pour les noms de matière personnalisés. Les codes préréglés de la liste utilisent toujours la grille d’acquisition des langues.",
   "class.classLevel": "Niveau de la classe",
   "class.yearGroupLabel": "Année {n}",
   "class.levelFrameworkTag": "CECR",
   "class.invalidSubject": "Saisissez une matière valide (code préréglé ou jusqu’à 120 caractères).",
   "class.customSubjectsTitle": "Matières personnalisées (cette école)",
   "class.customSubjectsLead":
-    "Renommez ou supprimez les matières ajoutées à la liste de l’école. Les codes préréglés ne peuvent pas être modifiés ici. La suppression ramène les classes concernées sur l’anglais (efl).",
+    "Renommez ou supprimez les matières ajoutées à la liste de l’école. Les codes préréglés ne peuvent pas être modifiés ici. La suppression ramène les classes concernées sur la matière anglaise par défaut.",
   "class.editCustomSubject": "Modifier",
   "class.deleteCustomSubject": "Supprimer",
   "class.saveCustomSubjectRename": "Enregistrer",
   "class.cancelCustomSubjectRename": "Annuler",
   "class.confirmDeleteCustomSubject":
-    "Retirer « {name} » de la liste des matières de cette école ? Les classes qui l’utilisaient passeront sur l’anglais (efl).",
+    "Retirer « {name} » de la liste des matières de cette école ? Les classes qui l’utilisaient passeront sur la matière anglaise par défaut.",
   "class.subjectRenameFailed": "Impossible de renommer la matière.",
   "class.subjectDeleteFailed": "Impossible de supprimer la matière.",
   "class.defaultOutputLang": "Langue de sortie par défaut",
@@ -2126,6 +2128,7 @@ const ES: UiMessages = {
     "Elija idiomas (niveles MCER), primaria o secundaria. Controla los niveles de clase y las filas de calificaciones; se puede cambiar después en los ajustes de cada clase.",
   "tenant.addClassStep1Education": "1. Tipo de enseñanza (elija esto primero)",
   "tenant.addClassStep2Subject": "Definir la asignatura",
+  "tenant.defineSubjectNamePlaceholder": "Definir el nombre de la asignatura",
   "tenant.addClassStep3Name": "3. Nombre de la clase",
   "tenant.educationTypePlaceholder": "Seleccione el tipo de enseñanza…",
   "tenant.chooseEducationTypeFirst": "Elija primero el tipo de enseñanza en el paso 1 antes de poner el nombre de la clase.",
@@ -2459,26 +2462,26 @@ const ES: UiMessages = {
   "class.defaultSubject": "Materia por defecto",
   "class.selectOrDefineSubject": "Seleccionar o definir asignatura",
   "class.subjectPickerHint":
-    "Elija un código predefinido de la lista (p. ej. efl) o escriba un nombre nuevo de asignatura; los nombres nuevos quedan guardados para esta escuela.",
+    "Elija un predefinido de la lista o escriba un nombre nuevo de asignatura; los nombres nuevos quedan guardados para esta escuela.",
   "class.gradeRubricProfile": "Rúbrica de calificaciones (títulos de fila en informes y PDF)",
   "class.gradeRubricLanguage": "Adquisición de lenguas",
   "class.gradeRubricPrimary": "Primaria / general",
   "class.gradeRubricSecondary": "Secundaria / general",
   "class.gradeRubricHint":
-    "Solo para nombres de asignatura personalizados. Los códigos predefinidos (p. ej. efl) siempre usan la rúbrica de adquisición lingüística.",
+    "Solo para nombres de asignatura personalizados. Los códigos predefinidos de la lista siempre usan la rúbrica de adquisición lingüística.",
   "class.classLevel": "Nivel de la clase",
   "class.yearGroupLabel": "Año {n}",
   "class.levelFrameworkTag": "MCER",
   "class.invalidSubject": "Introduzca una asignatura válida (código predefinido o hasta 120 caracteres).",
   "class.customSubjectsTitle": "Asignaturas personalizadas (esta escuela)",
   "class.customSubjectsLead":
-    "Cambie el nombre o elimine las asignaturas que añadió a la lista de la escuela. Los códigos predefinidos no se pueden editar aquí. Si elimina una asignatura, las clases que la usaban pasan a inglés (efl).",
+    "Cambie el nombre o elimine las asignaturas que añadió a la lista de la escuela. Los códigos predefinidos no se pueden editar aquí. Si elimina una asignatura, las clases que la usaban pasan a la asignatura de inglés por defecto.",
   "class.editCustomSubject": "Editar",
   "class.deleteCustomSubject": "Eliminar",
   "class.saveCustomSubjectRename": "Guardar",
   "class.cancelCustomSubjectRename": "Cancelar",
   "class.confirmDeleteCustomSubject":
-    "¿Quitar «{name}» de la lista de asignaturas de esta escuela? Las clases que la usaban quedarán con inglés (efl) por defecto.",
+    "¿Quitar «{name}» de la lista de asignaturas de esta escuela? Las clases que la usaban quedarán con la asignatura de inglés por defecto.",
   "class.subjectRenameFailed": "No se pudo renombrar la asignatura.",
   "class.subjectDeleteFailed": "No se pudo eliminar la asignatura.",
   "class.defaultOutputLang": "Idioma de salida por defecto",
@@ -2608,6 +2611,18 @@ export function subjectLabelLocalized(lang: UiLang, code: SubjectCode): string {
 export function defaultSubjectDisplayLocalized(lang: UiLang, stored: string): string {
   const s = stored.trim();
   if (!s) return subjectLabelLocalized(lang, "efl");
+  const low = s.toLowerCase();
+  if (isSubjectCode(low)) return subjectLabelLocalized(lang, low);
+  return s;
+}
+
+/**
+ * In-app label for the class default subject when unset or still the legacy generic `efl`.
+ * Parent PDFs continue to use {@link defaultSubjectDisplayLocalized} / {@link resolvedSubjectLabelForPdf}.
+ */
+export function classDefaultSubjectUiLine(lang: UiLang, stored: string): string {
+  const s = stored.trim();
+  if (!s || s.toLowerCase() === "efl") return translate(lang, "tenant.defineSubjectNamePlaceholder");
   const low = s.toLowerCase();
   if (isSubjectCode(low)) return subjectLabelLocalized(lang, low);
   return s;
