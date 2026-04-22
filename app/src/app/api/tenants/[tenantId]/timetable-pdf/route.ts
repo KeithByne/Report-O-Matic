@@ -57,7 +57,6 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const inline = url.searchParams.get("inline") === "1";
   const modeParam = (url.searchParams.get("mode") || "").trim().toLowerCase();
   const ownerMode = modeParam === "by_teacher" || modeParam === "by_room" || modeParam === "overview" ? modeParam : "overview";
-  const teacherFilter = (url.searchParams.get("teacher_email") || "").trim().toLowerCase();
   const roomFilterRaw = (url.searchParams.get("room_index") || "").trim();
 
   const settings = await getTimetableSettings(tenantId);
@@ -136,10 +135,13 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
           teacherSinglePage: true,
         });
       } else {
-        const teacherEmails = [...new Set(slots.map((s) => s.teacher_email).filter(Boolean))];
-        const targetTeacherEmails = teacherFilter ? teacherEmails.filter((e) => e === teacherFilter) : teacherEmails;
+        const teacherEmails = [...new Set(slots.map((s) => s.teacher_email).filter(Boolean))].sort((a, b) =>
+          a.localeCompare(b),
+        );
+        // School admins always get one merged PDF (one A4 page per teacher). Ignore any legacy teacher_email query param.
+        const targetTeacherEmails = teacherEmails;
         if (targetTeacherEmails.length === 0) {
-          return NextResponse.json({ error: "No timetable entries for that teacher." }, { status: 409 });
+          return NextResponse.json({ error: "No timetable entries for any teacher yet." }, { status: 409 });
         }
         const perTeacher = await Promise.all(
           targetTeacherEmails.map((te) =>

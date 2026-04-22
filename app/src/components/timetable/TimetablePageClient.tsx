@@ -307,14 +307,13 @@ export function TimetablePageClient({
     const params = new URLSearchParams();
     params.set("lang", lang);
     params.set("mode", effectiveViewMode);
-    if (effectiveViewMode === "by_teacher" && selectedTeacherEmail.trim()) {
-      params.set("teacher_email", selectedTeacherEmail.trim().toLowerCase());
-    }
-    if (effectiveViewMode === "by_room") {
+    // Owner / department head: by-teacher PDF is always the full school (all teachers, one page each).
+    // Teacher-only PDF uses the dedicated teacher branch on the server (no teacher_email param).
+    if (effectiveViewMode === "by_room" && (viewerRole === "owner" || viewerRole === "department_head")) {
       params.set("room_index", String(selectedRoomIndex));
     }
     return `${base}/timetable-pdf?${params.toString()}`;
-  }, [base, effectiveViewMode, lang, selectedRoomIndex, selectedTeacherEmail]);
+  }, [base, effectiveViewMode, lang, selectedRoomIndex, viewerRole]);
 
   useEffect(() => {
     if (viewerRole === "teacher") return;

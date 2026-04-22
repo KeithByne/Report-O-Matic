@@ -76,13 +76,15 @@ export async function getRoleForTenant(email: string, tenantId: string): Promise
     .from("memberships")
     .select("role")
     .eq("user_email", normalized)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-  if (error || !data) return null;
-  const r = data.role as string;
-  if (r !== "owner" && r !== "department_head" && r !== "teacher") return null;
-
-  return r as RomRole;
+    .eq("tenant_id", tenantId);
+  if (error || !data?.length) return null;
+  const roles = (data as { role: string }[])
+    .map((row) => row.role)
+    .filter((r): r is RomRole => r === "owner" || r === "department_head" || r === "teacher");
+  if (!roles.length) return null;
+  if (roles.includes("owner")) return "owner";
+  if (roles.includes("department_head")) return "department_head";
+  return "teacher";
 }
 
 /** First/last name on the membership row for a user in a tenant (for class settings display, etc.). */
