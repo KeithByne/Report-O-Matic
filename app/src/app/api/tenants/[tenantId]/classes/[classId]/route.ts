@@ -9,7 +9,8 @@ import { syncReportsLanguagesAfterClassOutputDefaultChange } from "@/lib/data/re
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { isSubjectCode } from "@/lib/subjects";
+import { mergeTenantCustomSubjectNames } from "@/lib/data/tenantCustomSubjects";
+import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { getTimetableSettings, isTimetableConflictError, moveClassTimetableSlotsToRoom } from "@/lib/data/timetableDb";
@@ -108,8 +109,20 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       return NextResponse.json({ error: "Invalid cefr_level." }, { status: 400 });
     }
   }
-  if (typeof body.default_subject === "string" && isSubjectCode(body.default_subject) && isLead) {
-    patch.default_subject = body.default_subject;
+  if (typeof body.default_subject === "string" && isLead) {
+    let norm: string;
+    try {
+      norm = normalizeDefaultSubjectForStorage(body.default_subject);
+    } catch {
+      return NextResponse.json({ error: "Invalid default_subject." }, { status: 400 });
+    }
+    patch.default_subject = norm;
+    try {
+      await mergeTenantCustomSubjectNames(tenantId, [norm]);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Could not update subject list.";
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
   }
   if (typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language) && isLead) {
     patch.default_output_language = body.default_output_language as ReportLanguageCode;

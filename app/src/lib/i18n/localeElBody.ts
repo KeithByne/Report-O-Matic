@@ -332,6 +332,10 @@ export const EL_BODY: Record<string, string> = {
   "class.teacherPerReportOutputLangHint": "Μπορείτε ακόμη να ορίσετε γλώσσα εξόδου ανά αναφορά.",
   "class.cefr": "Επίπεδο τάξης (CEFR)",
   "class.defaultSubject": "Προεπιλεγμένο μάθημα",
+  "class.selectOrDefineSubject": "Επιλέξτε ή ορίστε μάθημα",
+  "class.subjectPickerHint":
+    "Επιλέξτε προκαθορισμένο κωδικό από τη λίστα (π.χ. efl) ή πληκτρολογήστε νέο όνομα μαθήματος· τα νέα ονόματα αποθηκεύονται για αυτό το σχολείο.",
+  "class.invalidSubject": "Εισάγετε έγκυρο μάθημα (προκαθορισμένος κωδικός ή έως 120 χαρακτήρες).",
   "class.defaultOutputLang": "Προεπιλεγμένη γλώσσα εξόδου",
   "class.teacherHeading": "Εκπαιδευτικός",
   "class.teacherNameNotSet": "Δεν υπάρχει καταχωρημένο όνομα",

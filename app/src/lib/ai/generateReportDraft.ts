@@ -6,8 +6,8 @@ import {
   isShortCourseReport,
   parseReportInputs,
   reportInputsToTeacherNotes,
-  resolvedSubjectCode,
-  resolvedSubjectLabel,
+  resolvedSubjectCodeForPrompts,
+  resolvedSubjectLineForAi,
 } from "@/lib/reportInputs";
 import type { CefrLevel } from "@/lib/data/classesDb";
 import type { SubjectCode } from "@/lib/subjects";
@@ -48,7 +48,7 @@ export async function generateSchoolReportDraft(opts: {
   className: string | null;
   schoolName: string;
   outputLanguage: ReportLanguageCode;
-  classDefaultSubject: SubjectCode;
+  classDefaultSubject: string;
   inputs: ReportInputs;
   existingBody?: string;
   extraNotes?: string;
@@ -66,8 +66,8 @@ export async function generateSchoolReportDraft(opts: {
   const inputs = parseReportInputs(opts.inputs as unknown);
 
   const langName = LANGUAGE_INSTRUCTION[opts.outputLanguage] ?? languageLabel(opts.outputLanguage);
-  const subjectCode = resolvedSubjectCode(inputs, opts.classDefaultSubject);
-  const subjectLine = resolvedSubjectLabel(inputs, opts.classDefaultSubject);
+  const subjectCode = resolvedSubjectCodeForPrompts(inputs, opts.classDefaultSubject);
+  const subjectLine = resolvedSubjectLineForAi(inputs, opts.classDefaultSubject);
   const datasetBlock = reportInputsToTeacherNotes(inputs, subjectLine);
 
   const ctx = {
@@ -203,7 +203,7 @@ export async function generateSchoolReportDraftPair(opts: {
   schoolName: string;
   pdfLanguage: ReportLanguageCode;
   teacherLanguage: ReportLanguageCode;
-  classDefaultSubject: SubjectCode;
+  classDefaultSubject: string;
   inputs: ReportInputs;
   extraNotes?: string;
   classCefrLevel?: CefrLevel | null;

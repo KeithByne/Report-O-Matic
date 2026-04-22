@@ -20,7 +20,12 @@ import {
   termAveragePercent,
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { metricLabel, reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
+import {
+  defaultSubjectDisplayLocalized,
+  metricLabel,
+  reportLanguageOptionLabel,
+  subjectLabelLocalized,
+} from "@/lib/i18n/uiStrings";
 import {
   CLASS_SETTINGS_SAVED_EVENT,
   REPORT_AI_SAVED_EVENT,
@@ -170,10 +175,10 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const [pdfPreviewKey, setPdfPreviewKey] = useState(0);
 
-  const classDefaultSubject: SubjectCode =
-    klass?.default_subject && REPORT_SUBJECTS.some((s) => s.code === klass.default_subject)
-      ? (klass.default_subject as SubjectCode)
-      : "efl";
+  const classDefaultSubjectLine = defaultSubjectDisplayLocalized(
+    lang,
+    (klass?.default_subject ?? "").trim() || "efl",
+  );
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -566,7 +571,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
               className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
             >
               <option value="">
-                {t("report.useClassDefault", { subject: subjectLabelLocalized(lang, classDefaultSubject) })}
+                {t("report.useClassDefault", { subject: classDefaultSubjectLine })}
               </option>
               {REPORT_SUBJECTS.map((s) => (
                 <option key={s.code} value={s.code}>

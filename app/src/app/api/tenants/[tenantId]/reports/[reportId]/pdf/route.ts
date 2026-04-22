@@ -7,10 +7,9 @@ import { getReport } from "@/lib/data/reportsDb";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { isReportLanguageCode, languageLabel } from "@/lib/i18n/reportLanguages";
-import { isUiLang, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
+import { isUiLang, resolvedSubjectLabelForPdf } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
-import { resolvedSubjectCode } from "@/lib/reportInputs";
-import { isSubjectCode } from "@/lib/subjects";
+import { coerceStoredDefaultSubject } from "@/lib/subjects";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { getTenantCreditBalance } from "@/lib/data/credits";
 
@@ -60,7 +59,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   if (klass && !canAccessClass({ role, viewerEmail: gate.email, klass })) {
     return NextResponse.json({ error: "You do not have access to this report." }, { status: 403 });
   }
-  const classDefault = klass?.default_subject && isSubjectCode(klass.default_subject) ? klass.default_subject : "efl";
+  const classDefault = coerceStoredDefaultSubject(klass?.default_subject);
 
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
@@ -72,7 +71,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       : "en";
   const outputLanguageLabel = languageLabel(outputLanguageCode);
   const lang = isUiLang(outputLanguageCode) ? outputLanguageCode : "en";
-  const subjectLabel = subjectLabelLocalized(lang, resolvedSubjectCode(report.inputs, classDefault));
+  const subjectLabel = resolvedSubjectLabelForPdf(lang, report.inputs, classDefault);
 
   try {
     const buf = await buildReportPdfBuffer({

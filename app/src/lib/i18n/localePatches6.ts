@@ -1,5 +1,6 @@
 /** Core UI strings for locales without full hand-built bundles (merged over EN in uiStrings). */
 
+import { EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT } from "@/lib/i18n/localePdfTimetableAndClassSubject";
 import { AR_EXTRA, NL_EXTRA, PL_EXTRA, RO_EXTRA, RU_EXTRA, UK_EXTRA } from "@/lib/i18n/localePatches6Extra";
 import {
   GETTING_STARTED_AR,
@@ -106,6 +107,7 @@ export const NL_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_NL,
   ...GETTING_STARTED_NL,
   ...NL_EXTRA,
+  ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.nl,
 });
 
 /** Polish */
@@ -192,6 +194,7 @@ export const PL_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_PL,
   ...GETTING_STARTED_PL,
   ...PL_EXTRA,
+  ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.pl,
 });
 
 /** Romanian */
@@ -277,6 +280,7 @@ export const RO_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_RO,
   ...GETTING_STARTED_RO,
   ...RO_EXTRA,
+  ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.ro,
 });
 
 /** Russian */
@@ -363,6 +367,7 @@ export const RU_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_RU,
   ...GETTING_STARTED_RU,
   ...RU_EXTRA,
+  ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.ru,
 });
 
 /** Ukrainian */
@@ -449,6 +454,7 @@ export const UK_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_UK,
   ...GETTING_STARTED_UK,
   ...UK_EXTRA,
+  ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.uk,
 });
 
 /** Arabic */
@@ -534,4 +540,5 @@ export const AR_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_AR,
   ...GETTING_STARTED_AR,
   ...AR_EXTRA,
+  ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.ar,
 });

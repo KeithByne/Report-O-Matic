@@ -365,10 +365,20 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
   return lines.join("\n");
 }
 
-export function resolvedSubjectCode(inputs: ReportInputs, classDefault: SubjectCode): SubjectCode {
-  return inputs.subject_code ?? classDefault;
+/**
+ * Subject code used for AI prompt routing (registry keys). Custom class defaults map to `efl`
+ * when the report does not override with a preset code.
+ */
+export function resolvedSubjectCodeForPrompts(inputs: ReportInputs, classDefault: string): SubjectCode {
+  if (inputs.subject_code) return inputs.subject_code;
+  const low = classDefault.trim().toLowerCase();
+  return isSubjectCode(low) ? low : "efl";
 }
 
-export function resolvedSubjectLabel(inputs: ReportInputs, classDefault: SubjectCode): string {
-  return subjectLabel(resolvedSubjectCode(inputs, classDefault));
+/** English plaintext subject line for AI / teacher notes (custom class default preserved). */
+export function resolvedSubjectLineForAi(inputs: ReportInputs, classDefault: string): string {
+  if (inputs.subject_code) return subjectLabel(inputs.subject_code);
+  const raw = classDefault.trim();
+  if (raw && !isSubjectCode(raw.toLowerCase())) return raw;
+  return subjectLabel(resolvedSubjectCodeForPrompts(inputs, classDefault));
 }

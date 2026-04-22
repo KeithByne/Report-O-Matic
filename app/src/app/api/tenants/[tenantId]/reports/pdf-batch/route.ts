@@ -7,16 +7,11 @@ import { listStudents } from "@/lib/data/students";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { languageLabel } from "@/lib/i18n/reportLanguages";
-import { isUiLang, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
+import { isUiLang, resolvedSubjectLabelForPdf } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
-import {
-  parseClassBulkPdfTermFilter,
-  reportReadyForClassBulkPdf,
-  resolvedSubjectCode,
-  type ReportPeriod,
-} from "@/lib/reportInputs";
-import { isSubjectCode } from "@/lib/subjects";
+import { parseClassBulkPdfTermFilter, reportReadyForClassBulkPdf, type ReportPeriod } from "@/lib/reportInputs";
+import { coerceStoredDefaultSubject } from "@/lib/subjects";
 
 export const runtime = "nodejs";
 
@@ -173,13 +168,12 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const st = studentById.get(r.student_id);
     const studentName = st?.display_name ?? "Student";
     const klass = st ? classById.get(st.class_id) : null;
-    const classDefault =
-      klass?.default_subject && isSubjectCode(klass.default_subject) ? klass.default_subject : "efl";
+    const classDefault = coerceStoredDefaultSubject(klass?.default_subject);
 
     const outputLanguageCode = r.output_language;
     const outputLanguageLabel = languageLabel(outputLanguageCode);
     const lang = isUiLang(outputLanguageCode) ? outputLanguageCode : "en";
-    const subjectLabel = subjectLabelLocalized(lang, resolvedSubjectCode(r.inputs, classDefault));
+    const subjectLabel = resolvedSubjectLabelForPdf(lang, r.inputs, classDefault);
 
     const buf = await buildReportPdfBuffer({
       letterhead,

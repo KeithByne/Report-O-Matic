@@ -5,7 +5,8 @@ import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { CefrLevel } from "@/lib/data/classesDb";
 import { insertClass, listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
-import { isSubjectCode } from "@/lib/subjects";
+import { mergeTenantCustomSubjectNames } from "@/lib/data/tenantCustomSubjects";
+import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import { listStudents } from "@/lib/data/students";
 
 function isUuid(s: string): boolean {
@@ -81,10 +82,14 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   if (cefr_level === null && cefrRaw !== "") {
     return NextResponse.json({ error: "cefr_level must be A1–C2 or empty." }, { status: 400 });
   }
-  const default_subject =
-    typeof body.default_subject === "string" && isSubjectCode(body.default_subject)
-      ? body.default_subject
-      : undefined;
+  let default_subject: string | undefined;
+  if (typeof body.default_subject === "string" && body.default_subject.trim()) {
+    try {
+      default_subject = normalizeDefaultSubjectForStorage(body.default_subject);
+    } catch {
+      return NextResponse.json({ error: "Invalid default_subject." }, { status: 400 });
+    }
+  }
   const default_output_language =
     typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language)
       ? (body.default_output_language as ReportLanguageCode)
@@ -111,6 +116,14 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       defaultOutputLanguage: default_output_language,
       assignedTeacherEmail: assignedTeacher,
     });
+    if (default_subject) {
+      try {
+        await mergeTenantCustomSubjectNames(tenantId, [default_subject]);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Could not update subject list.";
+        return NextResponse.json({ error: msg }, { status: 500 });
+      }
+    }
     return NextResponse.json({ class: row });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to create class.";
