@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, DoorOpen, Plus, Printer, Trash2, Users } from "lucide-react";
+import { BookOpen, DoorOpen, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -14,7 +14,6 @@ import {
   type ReportAiSavedDetail,
 } from "@/lib/appEvents";
 import type { RomRole } from "@/lib/data/memberships";
-import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { GRADE_RUBRIC_PROFILES, isGradeRubricProfile, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { REPORT_SUBJECTS, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
@@ -45,7 +44,7 @@ function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
 }
 
 /**
- * Single school “Classes” card: list, term readiness, bulk PDF by term, add/delete (leads), open class + students links.
+ * Single school “Classes” card: list, term readiness, add/delete (leads), open class + students links.
  * Shown on the dashboard workspace for leads; teachers open the same component via `/reports/[tenant]?panel=classes`.
  */
 export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClassesPanelProps) {
@@ -215,33 +214,10 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
       ) : null}
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-            <BookOpen className={ICON_SECTION} aria-hidden />
-            {t("tenant.classesTitle")}
-          </h2>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-700">
-            <span>{t("tenant.bulkDownloadAllReportsIn")}</span>
-            <select
-              value={bulkTerm}
-              onChange={(e) => setBulkTerm(e.target.value as "first" | "second" | "third")}
-              className="ml-[2ch] rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm font-medium text-zinc-900"
-              aria-label={t("class.bulkDownloadTermLabel")}
-            >
-              <option value="first">{t("archive.term1")}</option>
-              <option value="second">{t("archive.term2")}</option>
-              <option value="third">{t("archive.term3")}</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => openPdfForPrint(bulkHref)}
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-100"
-            >
-              <Printer className={ICON_INLINE} aria-hidden />
-              {t("common.printPdf")}
-            </button>
-          </div>
-        </div>
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+          <BookOpen className={ICON_SECTION} aria-hidden />
+          {t("tenant.classesTitle")}
+        </h2>
         {isLead ? (
           <form
             onSubmit={addClass}
