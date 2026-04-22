@@ -775,7 +775,7 @@ const EN: UiMessages = {
   "tenant.educationalContextHint":
     "Choose language school (CEFR levels), primary, or secondary. This controls class level options and how grade rows read on reports; you can change it later in each class’s settings.",
   "tenant.addClassStep1Education": "1. Type of education (choose this first)",
-  "tenant.addClassStep2Subject": "2. Default subject",
+  "tenant.addClassStep2Subject": "Define Subject",
   "tenant.addClassStep3Name": "3. Class name",
   "tenant.educationTypePlaceholder": "Select type of education…",
   "tenant.chooseEducationTypeFirst": "Please choose the type of education in step 1 before naming the class.",
@@ -1532,7 +1532,7 @@ const FR: UiMessages = {
   "tenant.educationalContextHint":
     "Choisissez langue (niveaux CEFR), primaire ou secondaire. Cela pilote les niveaux de classe et les intitulés des lignes de notes ; modifiable ensuite dans les réglages de chaque classe.",
   "tenant.addClassStep1Education": "1. Type d’enseignement (à choisir en premier)",
-  "tenant.addClassStep2Subject": "2. Matière par défaut",
+  "tenant.addClassStep2Subject": "Définir la matière",
   "tenant.addClassStep3Name": "3. Nom de la classe",
   "tenant.educationTypePlaceholder": "Sélectionnez le type d’enseignement…",
   "tenant.chooseEducationTypeFirst": "Veuillez d’abord choisir le type d’enseignement à l’étape 1 avant de nommer la classe.",
@@ -2125,7 +2125,7 @@ const ES: UiMessages = {
   "tenant.educationalContextHint":
     "Elija idiomas (niveles MCER), primaria o secundaria. Controla los niveles de clase y las filas de calificaciones; se puede cambiar después en los ajustes de cada clase.",
   "tenant.addClassStep1Education": "1. Tipo de enseñanza (elija esto primero)",
-  "tenant.addClassStep2Subject": "2. Materia por defecto",
+  "tenant.addClassStep2Subject": "Definir la asignatura",
   "tenant.addClassStep3Name": "3. Nombre de la clase",
   "tenant.educationTypePlaceholder": "Seleccione el tipo de enseñanza…",
   "tenant.chooseEducationTypeFirst": "Elija primero el tipo de enseñanza en el paso 1 antes de poner el nombre de la clase.",
