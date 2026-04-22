@@ -524,7 +524,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
               </tr>
               <tr>
                 <td className="py-2 pr-4 text-zinc-500">{t("report.defaultSubject")}</td>
-                <td className="py-2">{subjectLabelLocalized(lang, classDefaultSubject)}</td>
+                <td className="py-2">{classDefaultSubjectLine}</td>
               </tr>
               <tr>
                 <td className="py-2 pr-4 text-zinc-500">{t("report.teacherSignedIn")}</td>
