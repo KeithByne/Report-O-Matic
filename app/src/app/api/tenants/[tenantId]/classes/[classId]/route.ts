@@ -12,6 +12,7 @@ import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isSubjectCode } from "@/lib/subjects";
 import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
+import { getTimetableSettings, isTimetableConflictError, moveClassTimetableSlotsToRoom } from "@/lib/data/timetableDb";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -19,6 +20,11 @@ function isUuid(s: string): boolean {
 
 function normalizeScholasticYear(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function conflictMessage(kind: "room" | "teacher"): string {
+  if (kind === "room") return "That room is already used in this period. Change or remove the other entry first.";
+  return "That teacher is already teaching in this period. Change or remove the other entry first.";
 }
 
 export async function GET(_req: Request, context: { params: Promise<{ tenantId: string; classId: string }> }) {
@@ -72,7 +78,8 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       body.default_output_language !== undefined ||
       body.default_new_report_kind !== undefined ||
       body.default_new_report_period !== undefined ||
-      body.active_weekdays !== undefined
+      body.active_weekdays !== undefined ||
+      body.preferred_room_index !== undefined
     ) {
       return NextResponse.json(
         {
@@ -134,7 +141,18 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     patch.active_weekdays = normalizeActiveWeekdays(keys);
   }
 
-  if (Object.keys(patch).length === 0) {
+  let preferredRoomIndex: number | null | undefined;
+  if (isLead && body.preferred_room_index !== undefined) {
+    if (body.preferred_room_index === null || body.preferred_room_index === "") {
+      preferredRoomIndex = null;
+    } else if (typeof body.preferred_room_index === "number" && Number.isFinite(body.preferred_room_index)) {
+      preferredRoomIndex = Math.floor(body.preferred_room_index);
+    } else {
+      return NextResponse.json({ error: "preferred_room_index must be a number or null." }, { status: 400 });
+    }
+  }
+
+  if (Object.keys(patch).length === 0 && preferredRoomIndex === undefined) {
     return NextResponse.json({ error: "No valid fields to update." }, { status: 400 });
   }
 
@@ -159,7 +177,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       });
     }
 
-    const klass = await updateClass(tenantId, classId, patch);
+    const klass = Object.keys(patch).length > 0 ? await updateClass(tenantId, classId, patch) : existing;
 
     if (isLead && patch.default_output_language !== undefined) {
       await syncReportsLanguagesAfterClassOutputDefaultChange(
@@ -168,6 +186,22 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
         patch.default_output_language,
         existing.default_output_language,
       );
+    }
+
+    if (isLead && preferredRoomIndex !== undefined && preferredRoomIndex !== null) {
+      const settings = await getTimetableSettings(tenantId);
+      if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
+      if (preferredRoomIndex < 0 || preferredRoomIndex >= settings.room_count) {
+        return NextResponse.json({ error: "preferred_room_index is out of range for this school’s room count." }, { status: 400 });
+      }
+      try {
+        await moveClassTimetableSlotsToRoom(tenantId, classId, preferredRoomIndex);
+      } catch (roomErr: unknown) {
+        const msg = roomErr instanceof Error ? roomErr.message : "";
+        const c = isTimetableConflictError(msg);
+        if (c) return NextResponse.json({ error: conflictMessage(c) }, { status: 409 });
+        throw roomErr;
+      }
     }
 
     const withNames = await enrichClassWithAssignedTeacherDisplay(tenantId, klass);

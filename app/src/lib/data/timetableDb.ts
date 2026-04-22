@@ -134,6 +134,22 @@ export async function syncTimetableSlotsTeacherForClass(
   if (upErr) throw new Error(formatErr(upErr));
 }
 
+/** Move all timetable slots for a class to a chosen room row. */
+export async function moveClassTimetableSlotsToRoom(
+  tenantId: string,
+  classId: string,
+  roomIndex: number,
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const { error } = await supabase
+    .from("timetable_slots")
+    .update({ room_index: roomIndex })
+    .eq("tenant_id", tenantId)
+    .eq("class_id", classId);
+  if (error) throw new Error(formatErr(error));
+}
+
 export async function getTimetableSlot(slotId: string, tenantId: string): Promise<TimetableSlotRow | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;

@@ -90,6 +90,7 @@ type ClassDetail = {
 };
 
 type ClassListRow = { id: string; name: string };
+type TimetableSlotLite = { class_id: string; room_index: number };
 
 type ViewerRole = "owner" | "department_head" | "teacher";
 
@@ -189,6 +190,8 @@ export function ClassWorkspace({
   const [assignTeacher, setAssignTeacher] = useState("");
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [allClasses, setAllClasses] = useState<ClassListRow[]>([]);
+  const [timetableRoomCount, setTimetableRoomCount] = useState<number>(1);
+  const [preferredRoomNumber, setPreferredRoomNumber] = useState("");
   const [moveStudentId, setMoveStudentId] = useState("");
   const [moveToClassId, setMoveToClassId] = useState("");
 
@@ -302,6 +305,27 @@ export function ClassWorkspace({
         aw.map((x) => (typeof x === "string" ? x.trim().toLowerCase() : "")).filter(isWeekdayKey),
       );
       setActiveDays(WEEKDAY_KEYS.filter((k) => keySet.has(k)));
+      if (viewerRole === "owner" || viewerRole === "department_head") {
+        try {
+          const ttRes = await fetch(`${base}/timetable`, { cache: "no-store" });
+          const ttData = await ttRes.json().catch(() => ({}));
+          if (ttRes.ok) {
+            const roomCount = Number((ttData.settings as { room_count?: unknown } | undefined)?.room_count ?? 1);
+            setTimetableRoomCount(Number.isFinite(roomCount) && roomCount > 0 ? roomCount : 1);
+            const classSlots = Array.isArray(ttData.slots)
+              ? (ttData.slots as TimetableSlotLite[]).filter((s) => s.class_id === classId)
+              : [];
+            const rooms = [...new Set(classSlots.map((s) => Number(s.room_index)).filter((n) => Number.isFinite(n) && n >= 0))];
+            if (rooms.length === 1) {
+              setPreferredRoomNumber(String(rooms[0]! + 1));
+            } else if (rooms.length === 0) {
+              setPreferredRoomNumber("");
+            }
+          }
+        } catch {
+          /* ignore timetable metadata load */
+        }
+      }
     } catch (e: unknown) {
       if (reqId !== loadClassRequestId.current) return;
       setLoadError(e instanceof Error ? e.message : t("class.errLoadClass"));
@@ -452,6 +476,10 @@ export function ClassWorkspace({
           default_new_report_period: defNewReportPeriod,
           active_weekdays: activeDays,
           assigned_teacher_email: assignTeacher.trim() ? assignTeacher.trim().toLowerCase() : null,
+          preferred_room_index:
+            preferredRoomNumber.trim() === ""
+              ? null
+              : Math.max(0, Number.parseInt(preferredRoomNumber, 10) - 1),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -901,6 +929,24 @@ export function ClassWorkspace({
               </p>
             )}
           </label>
+          {viewerRole === "owner" || viewerRole === "department_head" ? (
+            <label className="text-sm">
+              <span className="text-zinc-600">{t("class.roomNumber")}</span>
+              <select
+                value={preferredRoomNumber}
+                onChange={(e) => setPreferredRoomNumber(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">{t("class.roomNumberUnchanged")}</option>
+                {Array.from({ length: timetableRoomCount }, (_, i) => String(i + 1)).map((n) => (
+                  <option key={n} value={n}>
+                    {t("class.roomNumberOption", { n })}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-zinc-500">{t("class.roomNumberHint")}</p>
+            </label>
+          ) : null}
           <label className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.defaultNewReportKind")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
