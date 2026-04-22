@@ -1110,6 +1110,17 @@ const EN: UiMessages = {
   "class.subjectPickerHint":
     "Choose a preset code from the list (e.g. efl) or type a new subject name; new names are saved to this school’s subject list for next time.",
   "class.invalidSubject": "Enter a valid subject (a preset code or up to 120 characters).",
+  "class.customSubjectsTitle": "Custom subjects (this school)",
+  "class.customSubjectsLead":
+    "Rename or remove subjects you added to the school list. Preset codes cannot be changed here. Deleting a subject sets any class that used it to English (efl).",
+  "class.editCustomSubject": "Edit",
+  "class.deleteCustomSubject": "Delete",
+  "class.saveCustomSubjectRename": "Save",
+  "class.cancelCustomSubjectRename": "Cancel",
+  "class.confirmDeleteCustomSubject":
+    "Remove “{name}” from this school’s subject list? Any class using it will default to English (efl).",
+  "class.subjectRenameFailed": "Could not rename subject.",
+  "class.subjectDeleteFailed": "Could not delete subject.",
   "class.defaultOutputLang": "Default output language",
   "class.roomNumber": "Timetable room",
   "class.roomNumberOption": "Room {n}",
@@ -1824,6 +1835,17 @@ const FR: UiMessages = {
   "class.subjectPickerHint":
     "Choisissez un code préréglé dans la liste (p. ex. efl) ou saisissez un nouveau nom de matière ; les nouveaux noms sont enregistrés pour cette école.",
   "class.invalidSubject": "Saisissez une matière valide (code préréglé ou jusqu’à 120 caractères).",
+  "class.customSubjectsTitle": "Matières personnalisées (cette école)",
+  "class.customSubjectsLead":
+    "Renommez ou supprimez les matières ajoutées à la liste de l’école. Les codes préréglés ne peuvent pas être modifiés ici. La suppression ramène les classes concernées sur l’anglais (efl).",
+  "class.editCustomSubject": "Modifier",
+  "class.deleteCustomSubject": "Supprimer",
+  "class.saveCustomSubjectRename": "Enregistrer",
+  "class.cancelCustomSubjectRename": "Annuler",
+  "class.confirmDeleteCustomSubject":
+    "Retirer « {name} » de la liste des matières de cette école ? Les classes qui l’utilisaient passeront sur l’anglais (efl).",
+  "class.subjectRenameFailed": "Impossible de renommer la matière.",
+  "class.subjectDeleteFailed": "Impossible de supprimer la matière.",
   "class.defaultOutputLang": "Langue de sortie par défaut",
   "class.roomNumber": "Salle de l'emploi du temps",
   "class.roomNumberOption": "Salle {n}",
@@ -2389,6 +2411,17 @@ const ES: UiMessages = {
   "class.subjectPickerHint":
     "Elija un código predefinido de la lista (p. ej. efl) o escriba un nombre nuevo de asignatura; los nombres nuevos quedan guardados para esta escuela.",
   "class.invalidSubject": "Introduzca una asignatura válida (código predefinido o hasta 120 caracteres).",
+  "class.customSubjectsTitle": "Asignaturas personalizadas (esta escuela)",
+  "class.customSubjectsLead":
+    "Cambie el nombre o elimine las asignaturas que añadió a la lista de la escuela. Los códigos predefinidos no se pueden editar aquí. Si elimina una asignatura, las clases que la usaban pasan a inglés (efl).",
+  "class.editCustomSubject": "Editar",
+  "class.deleteCustomSubject": "Eliminar",
+  "class.saveCustomSubjectRename": "Guardar",
+  "class.cancelCustomSubjectRename": "Cancelar",
+  "class.confirmDeleteCustomSubject":
+    "¿Quitar «{name}» de la lista de asignaturas de esta escuela? Las clases que la usaban quedarán con inglés (efl) por defecto.",
+  "class.subjectRenameFailed": "No se pudo renombrar la asignatura.",
+  "class.subjectDeleteFailed": "No se pudo eliminar la asignatura.",
   "class.defaultOutputLang": "Idioma de salida por defecto",
   "class.roomNumber": "Aula del horario",
   "class.roomNumberOption": "Aula {n}",

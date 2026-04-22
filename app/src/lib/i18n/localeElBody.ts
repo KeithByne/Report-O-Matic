@@ -336,6 +336,17 @@ export const EL_BODY: Record<string, string> = {
   "class.subjectPickerHint":
     "Επιλέξτε προκαθορισμένο κωδικό από τη λίστα (π.χ. efl) ή πληκτρολογήστε νέο όνομα μαθήματος· τα νέα ονόματα αποθηκεύονται για αυτό το σχολείο.",
   "class.invalidSubject": "Εισάγετε έγκυρο μάθημα (προκαθορισμένος κωδικός ή έως 120 χαρακτήρες).",
+  "class.customSubjectsTitle": "Προσαρμοσμένα μαθήματα (αυτό το σχολείο)",
+  "class.customSubjectsLead":
+    "Μετονομάστε ή αφαιρέστε μαθήματα που προσθέσατε στη λίστα του σχολείου. Οι προκαθορισμένοι κωδικοί δεν αλλάζουν εδώ. Με διαγραφή, τάξεις που το χρησιμοποιούσαν περνούν σε αγγλικά (efl).",
+  "class.editCustomSubject": "Επεξεργασία",
+  "class.deleteCustomSubject": "Διαγραφή",
+  "class.saveCustomSubjectRename": "Αποθήκευση",
+  "class.cancelCustomSubjectRename": "Ακύρωση",
+  "class.confirmDeleteCustomSubject":
+    "Να αφαιρεθεί το «{name}» από τη λίστα μαθημάτων του σχολείου; Οι τάξεις που το χρησιμοποιούσαν θα έχουν προεπιλογή αγγλικά (efl).",
+  "class.subjectRenameFailed": "Η μετονομασία απέτυχε.",
+  "class.subjectDeleteFailed": "Η διαγραφή απέτυχε.",
   "class.defaultOutputLang": "Προεπιλεγμένη γλώσσα εξόδου",
   "class.teacherHeading": "Εκπαιδευτικός",
   "class.teacherNameNotSet": "Δεν υπάρχει καταχωρημένο όνομα",

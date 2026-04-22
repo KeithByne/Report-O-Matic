@@ -267,6 +267,17 @@ export const IT_LABELS: Record<string, string> = {
   "class.subjectPickerHint":
     "Scegli un codice predefinito dall’elenco (es. efl) o digita un nuovo nome di materia; i nuovi nomi restano salvati per questa scuola.",
   "class.invalidSubject": "Inserisci una materia valida (codice predefinito o fino a 120 caratteri).",
+  "class.customSubjectsTitle": "Materie personalizzate (questa scuola)",
+  "class.customSubjectsLead":
+    "Rinomina o rimuovi le materie aggiunte all’elenco della scuola. I codici predefiniti non si modificano qui. Eliminando una materia, le classi che la usavano passano a inglese (efl).",
+  "class.editCustomSubject": "Modifica",
+  "class.deleteCustomSubject": "Elimina",
+  "class.saveCustomSubjectRename": "Salva",
+  "class.cancelCustomSubjectRename": "Annulla",
+  "class.confirmDeleteCustomSubject":
+    "Rimuovere «{name}» dall’elenco materie di questa scuola? Le classi che la usavano avranno come predefinito inglese (efl).",
+  "class.subjectRenameFailed": "Impossibile rinominare la materia.",
+  "class.subjectDeleteFailed": "Impossibile eliminare la materia.",
   "class.defaultOutputLang": "Lingua di output predefinita",
   "class.teacherHeading": "Docente",
   "class.teacherNameNotSet": "Nome non registrato",
@@ -586,6 +597,17 @@ export const PT_LABELS: Record<string, string> = {
   "class.subjectPickerHint":
     "Escolha um código predefinido na lista (p.ex. efl) ou escreva um nome novo; os nomes novos ficam guardados para esta escola.",
   "class.invalidSubject": "Introduza uma disciplina válida (código predefinido ou até 120 caracteres).",
+  "class.customSubjectsTitle": "Disciplinas personalizadas (esta escola)",
+  "class.customSubjectsLead":
+    "Mude o nome ou elimine disciplinas que adicionou à lista da escola. Os códigos predefinidos não podem ser editados aqui. Ao eliminar, as turmas que a usavam passam a inglês (efl).",
+  "class.editCustomSubject": "Editar",
+  "class.deleteCustomSubject": "Eliminar",
+  "class.saveCustomSubjectRename": "Guardar",
+  "class.cancelCustomSubjectRename": "Cancelar",
+  "class.confirmDeleteCustomSubject":
+    "Remover «{name}» da lista de disciplinas desta escola? As turmas que a usavam ficam com inglês (efl) por predefinição.",
+  "class.subjectRenameFailed": "Não foi possível renomear a disciplina.",
+  "class.subjectDeleteFailed": "Não foi possível eliminar a disciplina.",
   "pdf.timetableTitle": "Horário semanal",
   "pdf.timetableMyTitle": "O meu horário",
   "pdf.timetableLunch": "Almoço",
@@ -915,6 +937,17 @@ export const DE_LABELS: Record<string, string> = {
   "class.subjectPickerHint":
     "Wählen Sie einen voreingestellten Code (z. B. efl) oder geben Sie einen neuen Fachnamen ein; neue Namen werden für diese Schule gespeichert.",
   "class.invalidSubject": "Geben Sie ein gültiges Fach ein (Voreinstellungscode oder bis zu 120 Zeichen).",
+  "class.customSubjectsTitle": "Eigene Fächer (diese Schule)",
+  "class.customSubjectsLead":
+    "Benennen Sie Fächer um oder entfernen Sie sie aus der Schulliste. Voreingestellte Codes können hier nicht geändert werden. Beim Löschen erhalten betroffene Klassen Englisch (efl) als Standard.",
+  "class.editCustomSubject": "Bearbeiten",
+  "class.deleteCustomSubject": "Löschen",
+  "class.saveCustomSubjectRename": "Speichern",
+  "class.cancelCustomSubjectRename": "Abbrechen",
+  "class.confirmDeleteCustomSubject":
+    "„{name}“ aus der Fächerliste dieser Schule entfernen? Klassen, die es nutzten, stellen auf Englisch (efl) um.",
+  "class.subjectRenameFailed": "Fach konnte nicht umbenannt werden.",
+  "class.subjectDeleteFailed": "Fach konnte nicht gelöscht werden.",
   "pdf.timetableTitle": "Wochenstundenplan",
   "pdf.timetableMyTitle": "Mein Stundenplan",
   "pdf.timetableLunch": "Mittagessen",

@@ -217,3 +217,24 @@ export async function deleteClassInTenant(tenantId: string, classId: string): Pr
   const { error } = await supabase.from("classes").delete().eq("tenant_id", tenantId).eq("id", classId);
   if (error) throw new Error(formatErr(error));
 }
+
+/**
+ * Updates every class in the tenant whose `default_subject` matches `fromName` (case-insensitive trim).
+ * Used when renaming or removing a custom subject from the school list.
+ */
+export async function rewriteDefaultSubjectForTenantClasses(
+  tenantId: string,
+  fromName: string,
+  toStored: string,
+): Promise<number> {
+  const fromLow = fromName.trim().toLowerCase();
+  if (!fromLow) return 0;
+  const classes = await listClasses(tenantId);
+  let count = 0;
+  for (const c of classes) {
+    if (c.default_subject.trim().toLowerCase() !== fromLow) continue;
+    await updateClass(tenantId, c.id, { default_subject: toStored });
+    count++;
+  }
+  return count;
+}

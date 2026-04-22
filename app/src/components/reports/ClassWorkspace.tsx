@@ -158,6 +158,14 @@ export function ClassWorkspace({
     }
   }, [base, canManageClassSettings]);
 
+  const customSubjectNamesOnly = useMemo(
+    () =>
+      subjectAccountOptions.filter(
+        (name) => !REPORT_SUBJECTS.some((s) => s.code === name.trim().toLowerCase()),
+      ),
+    [subjectAccountOptions],
+  );
+
   const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
   const [batchTermFilter, setBatchTermFilter] = useState<ReportPeriod>("first");
 
@@ -206,6 +214,9 @@ export function ClassWorkspace({
   const [cefr, setCefr] = useState("");
   const [defSubject, setDefSubject] = useState("efl");
   const [subjectAccountOptions, setSubjectAccountOptions] = useState<string[]>([]);
+  const [editingCustomSubject, setEditingCustomSubject] = useState<string | null>(null);
+  const [editCustomDraft, setEditCustomDraft] = useState("");
+  const [subjectListBusy, setSubjectListBusy] = useState(false);
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [defNewReportKind, setDefNewReportKind] = useState<ReportKind>("standard");
   const [defNewReportPeriod, setDefNewReportPeriod] = useState<ReportPeriod>("first");
@@ -357,6 +368,76 @@ export function ClassWorkspace({
       setLoadError(e instanceof Error ? e.message : t("class.errLoadClass"));
     }
   }, [base, classId, t]);
+
+  const renameCustomSchoolSubject = useCallback(
+    async (oldName: string) => {
+      let normalized: string;
+      try {
+        normalized = normalizeDefaultSubjectForStorage(editCustomDraft);
+      } catch {
+        alert(t("class.invalidSubject"));
+        return;
+      }
+      setSubjectListBusy(true);
+      try {
+        const res = await fetch(`${base}/subject-options`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ old_name: oldName, new_name: normalized }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectRenameFailed"));
+        if (defSubject.trim().toLowerCase() === oldName.trim().toLowerCase()) setDefSubject(normalized);
+        setEditingCustomSubject(null);
+        setEditCustomDraft("");
+        await refreshSubjectAccountOptions();
+        await loadClass();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, {
+              detail: { tenantId, classId },
+            }),
+          );
+        }
+        router.refresh();
+      } catch (e: unknown) {
+        alert(e instanceof Error ? e.message : t("class.subjectRenameFailed"));
+      } finally {
+        setSubjectListBusy(false);
+      }
+    },
+    [base, classId, defSubject, editCustomDraft, loadClass, refreshSubjectAccountOptions, router, t, tenantId],
+  );
+
+  const deleteCustomSchoolSubject = useCallback(
+    async (name: string) => {
+      if (!window.confirm(t("class.confirmDeleteCustomSubject", { name }))) return;
+      setSubjectListBusy(true);
+      try {
+        const res = await fetch(`${base}/subject-options?name=${encodeURIComponent(name)}`, { method: "DELETE" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectDeleteFailed"));
+        if (defSubject.trim().toLowerCase() === name.trim().toLowerCase()) setDefSubject("efl");
+        setEditingCustomSubject(null);
+        setEditCustomDraft("");
+        await refreshSubjectAccountOptions();
+        await loadClass();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, {
+              detail: { tenantId, classId },
+            }),
+          );
+        }
+        router.refresh();
+      } catch (e: unknown) {
+        alert(e instanceof Error ? e.message : t("class.subjectDeleteFailed"));
+      } finally {
+        setSubjectListBusy(false);
+      }
+    },
+    [base, classId, defSubject, loadClass, refreshSubjectAccountOptions, router, t, tenantId],
+  );
 
   const refreshOrgStudents = useCallback(async () => {
     try {
@@ -932,7 +1013,8 @@ export function ClassWorkspace({
                   list={`class-subject-dl-${classId}`}
                   value={defSubject}
                   onChange={(e) => setDefSubject(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  disabled={subjectListBusy}
+                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
                   autoComplete="off"
                 />
                 <datalist id={`class-subject-dl-${classId}`}>
@@ -948,6 +1030,71 @@ export function ClassWorkspace({
                     ))}
                 </datalist>
                 <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
+                {customSubjectNamesOnly.length > 0 ? (
+                  <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3">
+                    <p className="text-xs font-semibold text-zinc-800">{t("class.customSubjectsTitle")}</p>
+                    <p className="mt-1 text-xs text-zinc-600">{t("class.customSubjectsLead")}</p>
+                    <ul className="mt-2 space-y-2">
+                      {customSubjectNamesOnly.map((name) => (
+                        <li key={name} className="flex flex-wrap items-center gap-2">
+                          {editingCustomSubject === name ? (
+                            <>
+                              <input
+                                value={editCustomDraft}
+                                onChange={(e) => setEditCustomDraft(e.target.value)}
+                                disabled={subjectListBusy}
+                                className="min-w-[10rem] flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm"
+                                autoComplete="off"
+                              />
+                              <button
+                                type="button"
+                                disabled={subjectListBusy}
+                                onClick={() => void renameCustomSchoolSubject(name)}
+                                className="rounded border border-emerald-600 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-900 disabled:opacity-50"
+                              >
+                                {t("class.saveCustomSubjectRename")}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={subjectListBusy}
+                                onClick={() => {
+                                  setEditingCustomSubject(null);
+                                  setEditCustomDraft("");
+                                }}
+                                className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 disabled:opacity-50"
+                              >
+                                {t("class.cancelCustomSubjectRename")}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <span className="min-w-0 flex-1 truncate text-sm text-zinc-800">{name}</span>
+                              <button
+                                type="button"
+                                disabled={subjectListBusy}
+                                onClick={() => {
+                                  setEditingCustomSubject(name);
+                                  setEditCustomDraft(name);
+                                }}
+                                className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 disabled:opacity-50"
+                              >
+                                {t("class.editCustomSubject")}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={subjectListBusy}
+                                onClick={() => void deleteCustomSchoolSubject(name)}
+                                className="rounded border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-900 disabled:opacity-50"
+                              >
+                                {t("class.deleteCustomSubject")}
+                              </button>
+                            </>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </>
             ) : (
               <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
