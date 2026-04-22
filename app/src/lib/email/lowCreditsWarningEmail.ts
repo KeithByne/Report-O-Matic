@@ -16,7 +16,7 @@ type Copy = {
   closing: string;
 };
 
-const NON_EN_COPY: Record<ReportLanguageCode, Copy> = {
+const LOW_CREDIT_COPY: Partial<Record<ReportLanguageCode, Copy>> = {
   en: {
     subject: "Low credits warning — Report-O-Matic",
     heading: "Low credits warning",
@@ -88,8 +88,8 @@ export async function sendLowCreditsWarningEmail(opts: {
 
   const resend = new Resend(apiKey);
   const lang: ReportLanguageCode = isReportLanguageCode(opts.language) ? opts.language : "en";
-  const localized = NON_EN_COPY[lang];
-  const english = NON_EN_COPY.en;
+  const english = LOW_CREDIT_COPY.en as Copy;
+  const localized = LOW_CREDIT_COPY[lang] ?? english;
   const subject = localized.subject;
   const school = opts.schoolName || "your school";
   const remaining = Math.trunc(Number(opts.remainingCredits) || 0);
