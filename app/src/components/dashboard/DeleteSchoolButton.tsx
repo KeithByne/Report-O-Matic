@@ -6,14 +6,18 @@ import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { useState } from "react";
 
-type Props = { tenantId: string; schoolName: string };
+type Props = { tenantId: string; schoolName: string; className?: string };
 
-export function DeleteSchoolButton({ tenantId, schoolName }: Props) {
+export function DeleteSchoolButton({ tenantId, schoolName, className }: Props) {
   const { t } = useUiLanguage();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function onDelete() {
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete "${schoolName}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
     const token = t("deleteSchool.confirmToken");
     const typed = window.prompt(t("deleteSchool.prompt", { name: schoolName }));
     if (typed !== token) return;
@@ -36,7 +40,7 @@ export function DeleteSchoolButton({ tenantId, schoolName }: Props) {
       type="button"
       disabled={busy}
       onClick={() => void onDelete()}
-      className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
+      className={`${className ?? "mt-3"} inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-900 hover:bg-red-100 disabled:opacity-50`}
     >
       <Trash2 className={`${ICON_INLINE} opacity-90`} aria-hidden />
       {busy ? t("deleteSchool.deleting") : t("deleteSchool.button")}

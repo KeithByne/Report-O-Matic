@@ -130,6 +130,10 @@ export function DashboardClientView({
       a[1].localeCompare(b[1], undefined, { sensitivity: "base" }),
     );
   }, [memberships]);
+  const ownerTenantIds = useMemo(
+    () => new Set(memberships.filter((m) => m.role === "owner").map((m) => m.tenantId)),
+    [memberships],
+  );
 
   /** Teacher "My schools" panel only when allocated to more than one organisation. */
   const teacherHasMultipleSchools = hasTeacherOnly && uniqueSchools.length > 1;
@@ -494,30 +498,39 @@ export function DashboardClientView({
                 <ul className="mt-4 space-y-2" role="radiogroup" aria-label={t("dash.schoolFocusTitle")}>
                   {uniqueSchools.map(([tenantId, tenantName]) => (
                     <li key={tenantId}>
-                      <label
-                        className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2.5 has-[:checked]:border-emerald-300 has-[:checked]:bg-emerald-50"
-                        onClick={(e) => {
-                          if (ownerFocusTenantId === tenantId) {
-                            e.preventDefault();
-                            userClearedSchoolFocus.current = true;
-                            setOwnerFocusTenantId(null);
-                            setWorkspaceDashPanel(null);
-                          }
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name="owner-school-focus"
-                          className="h-4 w-4 border-emerald-300 text-emerald-800"
-                          checked={ownerFocusTenantId === tenantId}
-                          onChange={() => {
-                            userClearedSchoolFocus.current = false;
-                            setOwnerFocusTenantId(tenantId);
-                            setWorkspaceDashPanel(null);
+                      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2.5">
+                        <label
+                          className="flex min-w-0 flex-1 cursor-pointer flex-wrap items-center gap-x-3 gap-y-2"
+                          onClick={(e) => {
+                            if (ownerFocusTenantId === tenantId) {
+                              e.preventDefault();
+                              userClearedSchoolFocus.current = true;
+                              setOwnerFocusTenantId(null);
+                              setWorkspaceDashPanel(null);
+                            }
                           }}
-                        />
-                        <span className="min-w-0 flex-1 font-medium text-zinc-900">{tenantName}</span>
-                      </label>
+                        >
+                          <input
+                            type="radio"
+                            name="owner-school-focus"
+                            className="h-4 w-4 border-emerald-300 text-emerald-800"
+                            checked={ownerFocusTenantId === tenantId}
+                            onChange={() => {
+                              userClearedSchoolFocus.current = false;
+                              setOwnerFocusTenantId(tenantId);
+                              setWorkspaceDashPanel(null);
+                            }}
+                          />
+                          <span className="min-w-0 flex-1 font-medium text-zinc-900">{tenantName}</span>
+                        </label>
+                        {ownerTenantIds.has(tenantId) ? (
+                          <DeleteSchoolButton
+                            tenantId={tenantId}
+                            schoolName={tenantName}
+                            className="mt-0 shrink-0"
+                          />
+                        ) : null}
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -765,14 +778,8 @@ export function DashboardClientView({
             </div>
             <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
             <h2 className="sr-only">{t("dash.schoolWorkspaceMenuTitle")}</h2>
-            <p className="mb-3 text-sm">
-              <Link
-                href="/dashboard/profile"
-                className="inline-flex items-center gap-2 font-medium text-emerald-900 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-950"
-              >
-                <UserRound className={ICON_INLINE} aria-hidden />
-                {t("dash.profileButton")}
-              </Link>
+            <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-emerald-950">
+              {t("dash.ownerViewingSchool", { name: primaryMembership.tenantName })}
             </p>
             <nav
               className="flex flex-wrap gap-2"
