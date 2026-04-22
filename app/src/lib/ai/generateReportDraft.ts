@@ -210,6 +210,8 @@ export async function generateSchoolReportDraftPair(opts: {
   inputs: ReportInputs;
   extraNotes?: string;
   classCefrLevel?: CefrLevel | null;
+  /** Metric labels in the numeric block sent to the model (language vs primary vs secondary). */
+  gradeRubricProfile: GradeRubricProfile;
 }): Promise<{
   pdfBody: string;
   teacherPreview: string;
