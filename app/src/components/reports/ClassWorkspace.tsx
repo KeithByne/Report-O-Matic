@@ -148,6 +148,7 @@ export function ClassWorkspace({
   const canManageClassSettings = viewerRole === "owner" || viewerRole === "department_head";
 
   const [customSubjectRows, setCustomSubjectRows] = useState<{ name: string; rubric_profile: GradeRubricProfile }[]>([]);
+  const [subjectAccountOptions, setSubjectAccountOptions] = useState<string[]>([]);
 
   const refreshSubjectAccountOptions = useCallback(async () => {
     if (!canManageClassSettings) return;
@@ -241,7 +242,6 @@ export function ClassWorkspace({
   const [defSubject, setDefSubject] = useState("efl");
   /** Class educational context (CEFR vs year bands); stored on the class row. */
   const [classGradeRubric, setClassGradeRubric] = useState<GradeRubricProfile>("language");
-  const [subjectAccountOptions, setSubjectAccountOptions] = useState<string[]>([]);
   const [editingCustomSubject, setEditingCustomSubject] = useState<string | null>(null);
   const [editCustomDraft, setEditCustomDraft] = useState("");
   const [editRubricDraft, setEditRubricDraft] = useState<GradeRubricProfile>("secondary");
