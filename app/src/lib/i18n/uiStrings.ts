@@ -2462,7 +2462,7 @@ const ES: UiMessages = {
   "class.defaultSubject": "Materia por defecto",
   "class.selectOrDefineSubject": "Seleccionar o definir asignatura",
   "class.subjectPickerHint":
-    "Elija un predefinido de la lista o escriba un nombre nuevo de asignatura; los nombres nuevos quedan guardados para esta escuela.",
+    "Elija un código de la lista o escriba un nombre nuevo de asignatura; los nombres nuevos quedan guardados para esta escuela.",
   "class.gradeRubricProfile": "Rúbrica de calificaciones (títulos de fila en informes y PDF)",
   "class.gradeRubricLanguage": "Adquisición de lenguas",
   "class.gradeRubricPrimary": "Primaria / general",
