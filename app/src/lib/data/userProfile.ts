@@ -1,6 +1,7 @@
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { getPasswordHashForEmail, setPasswordHash } from "@/lib/auth/passwordStore";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwordHash";
+import { getStoredUiLanguageForEmail, setStoredUiLanguageForEmail, userUiLanguagePrefKey } from "@/lib/data/userUiLanguage";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -100,6 +101,9 @@ export async function changeAccountEmail(oldEmail: string, newEmail: string): Pr
   const { error: mErr } = await supabase.from("memberships").update({ user_email: newN }).eq("user_email", oldN);
   if (mErr) throw new Error(formatErr(mErr));
 
+  const uiLang = await getStoredUiLanguageForEmail(oldN);
+  if (uiLang) await setStoredUiLanguageForEmail(newN, uiLang);
+
   await supabase.from("classes").update({ assigned_teacher_email: newN }).eq("assigned_teacher_email", oldN);
 
   await supabase.from("reports").update({ author_email: newN }).eq("author_email", oldN);
@@ -120,6 +124,7 @@ export async function changeAccountEmail(oldEmail: string, newEmail: string): Pr
 
   const { error: delErr } = await supabase.from("auth_passwords").delete().eq("email", oldN);
   if (delErr) throw new Error(formatErr(delErr));
+  await supabase.from("auth_passwords").delete().eq("email", userUiLanguagePrefKey(oldN));
 
   const { error: insErr } = await supabase.from("auth_passwords").insert({ email: newN, password_hash: hash });
   if (insErr) throw new Error(formatErr(insErr));

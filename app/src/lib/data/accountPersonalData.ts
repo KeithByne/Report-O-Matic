@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getServiceSupabase } from "@/lib/supabase/service";
+import { userUiLanguagePrefKey } from "@/lib/data/userUiLanguage";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
@@ -134,6 +135,7 @@ export async function closePersonalAccount(email: string): Promise<void> {
 
   await run("memberships", supabase.from("memberships").delete().eq("user_email", e));
   await run("auth_passwords", supabase.from("auth_passwords").delete().eq("email", e));
+  await run("auth_passwords_ui_lang", supabase.from("auth_passwords").delete().eq("email", userUiLanguagePrefKey(e)));
 }
 
 export async function buildPersonalDataExport(email: string): Promise<Record<string, unknown>> {

@@ -1,6 +1,7 @@
 import { getOwnerEmailForTenant } from "@/lib/data/memberships";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { sendLowCreditsWarningEmail } from "@/lib/email/lowCreditsWarningEmail";
+import { getStoredUiLanguageForEmail } from "@/lib/data/userUiLanguage";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
@@ -143,9 +144,10 @@ export async function consumeCreditForReport(opts: { tenantId: string; reportId:
             ? String((tenantRow as { name?: string }).name || "").trim()
             : "";
         const preferredLang =
-          tenantRow && typeof (tenantRow as { default_report_language?: unknown }).default_report_language === "string"
+          (await getStoredUiLanguageForEmail(owner)) ||
+          (tenantRow && typeof (tenantRow as { default_report_language?: unknown }).default_report_language === "string"
             ? String((tenantRow as { default_report_language?: string }).default_report_language || "").trim()
-            : "en";
+            : "en");
         await sendLowCreditsWarningEmail({
           to: owner,
           schoolName: schoolName || opts.tenantId,

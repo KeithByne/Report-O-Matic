@@ -48,6 +48,31 @@ export function UiLanguageProvider({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/me/ui-language", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => ({}))) as { language?: unknown };
+        const serverLang = typeof data.language === "string" ? data.language.trim() : "";
+        if (serverLang && isUiLang(serverLang) && !cancelled) {
+          setLangState(serverLang);
+          try {
+            localStorage.setItem(STORAGE_KEY, serverLang);
+          } catch {
+            /* ignore */
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const setLang = useCallback((l: UiLang) => {
     setLangState(l);
     try {
@@ -59,6 +84,13 @@ export function UiLanguageProvider({ children }: { children: ReactNode }) {
       document.documentElement.lang = l;
       document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
     }
+    void fetch("/api/me/ui-language", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ language: l }),
+    }).catch(() => {
+      /* ignore */
+    });
   }, []);
 
   const setDisplayTheme = useCallback((v: DisplayTheme) => {
