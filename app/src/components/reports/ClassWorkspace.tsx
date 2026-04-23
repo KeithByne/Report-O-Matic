@@ -14,7 +14,11 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { allowedClassLevelsForRubric } from "@/lib/classLevel";
-import { formatClassLevelOptionLabel, reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
+import {
+  classDefaultSubjectUiLine,
+  formatClassLevelOptionLabel,
+  reportLanguageOptionLabel,
+} from "@/lib/i18n/uiStrings";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import {
   type ReportKind,
@@ -25,8 +29,10 @@ import {
   reportPeriodTermNumber,
 } from "@/lib/reportInputs";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { GRADE_RUBRIC_PROFILES, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { REPORT_SUBJECTS } from "@/lib/subjects";
+import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducationType";
+import { resolveDefaultSubjectInputToStorage, subjectFieldDisplayValueFromStored } from "@/lib/subjectFormResolve";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { labelForLessonPeriodIndex } from "@/lib/timetable/lessonPeriodLabels";
 import { classesListHref } from "@/lib/app/classesNavigation";
@@ -208,6 +214,11 @@ export function ClassWorkspace({
   const [timetablePeriodsAm, setTimetablePeriodsAm] = useState(4);
   const [timetablePeriodsPm, setTimetablePeriodsPm] = useState(4);
   const [lessonPeriodSelect, setLessonPeriodSelect] = useState("");
+  const [defSubject, setDefSubject] = useState("");
+  const [customSubjectRows, setCustomSubjectRows] = useState<
+    { name: string; rubric_profile: GradeRubricProfile }[]
+  >([]);
+  const [subjectListBusy, setSubjectListBusy] = useState(false);
   const [preferredRoomNumber, setPreferredRoomNumber] = useState("");
   const [moveStudentId, setMoveStudentId] = useState("");
   const [moveToClassId, setMoveToClassId] = useState("");
@@ -253,6 +264,61 @@ export function ClassWorkspace({
       label: labelForLessonPeriodIndex(timetablePeriodsAm, timetablePeriodsPm, i, t),
     }));
   }, [timetablePeriodsAm, timetablePeriodsPm, t]);
+
+  const classWorkspaceSubjectSuggestionsByRubric = useMemo(
+    () => subjectSuggestionLabelsByRubric(customSubjectRows, uiLang),
+    [customSubjectRows, uiLang],
+  );
+
+  const classSubjectListId = `class-workspace-subject-${tenantId}-${classId}-${classGradeRubric}`;
+
+  const loadSubjectAccountOptions = useCallback(async () => {
+    if (!canManageClassSettings) return;
+    setSubjectListBusy(true);
+    try {
+      const res = await fetch(`${base}/subject-options`, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      const custRaw = data.custom;
+      const rows: { name: string; rubric_profile: GradeRubricProfile }[] = [];
+      if (Array.isArray(custRaw)) {
+        for (const item of custRaw) {
+          if (typeof item === "string") {
+            const n = item.trim();
+            if (n) rows.push({ name: n, rubric_profile: "secondary" });
+          } else if (item && typeof item === "object") {
+            const o = item as Record<string, unknown>;
+            const n = typeof o.name === "string" ? o.name.trim() : "";
+            if (n)
+              rows.push({
+                name: n,
+                rubric_profile: parseGradeRubricProfile(o.rubric_profile, "secondary"),
+              });
+          }
+        }
+      }
+      setCustomSubjectRows(rows);
+    } catch {
+      setCustomSubjectRows([]);
+    } finally {
+      setSubjectListBusy(false);
+    }
+  }, [base, canManageClassSettings]);
+
+  useEffect(() => {
+    if (!canManageClassSettings) return;
+    void loadSubjectAccountOptions();
+  }, [canManageClassSettings, loadSubjectAccountOptions]);
+
+  useEffect(() => {
+    const onClassSettingsSaved = (ev: Event) => {
+      const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
+      const id = ce.detail?.tenantId?.trim();
+      if (id && id === tenantId && canManageClassSettings) void loadSubjectAccountOptions();
+    };
+    window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+    return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+  }, [tenantId, canManageClassSettings, loadSubjectAccountOptions]);
 
   useEffect(() => {
     if (!cefr.trim()) return;
@@ -331,6 +397,7 @@ export function ClassWorkspace({
       setCName(c.name);
       setScholasticYear(c.scholastic_year?.trim() ?? "");
       setCefr(c.cefr_level ?? "");
+      setDefSubject(subjectFieldDisplayValueFromStored(c.default_subject, uiLang));
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
       setDefNewReportPeriod(
@@ -401,7 +468,7 @@ export function ClassWorkspace({
       if (reqId !== loadClassRequestId.current) return;
       setLoadError(e instanceof Error ? e.message : t("class.errLoadClass"));
     }
-  }, [base, classId, t, viewerRole]);
+  }, [base, classId, t, uiLang, viewerRole]);
 
   const refreshOrgStudents = useCallback(async () => {
     try {
@@ -526,7 +593,18 @@ export function ClassWorkspace({
     e.preventDefault();
     const isLead = viewerRole === "owner" || viewerRole === "department_head";
     if (!isLead) return;
-    const normalizedSubject = (detail?.default_subject ?? "efl").trim() || "efl";
+    let normalizedSubject: string;
+    const trimmedSubject = defSubject.trim();
+    if (!trimmedSubject) {
+      normalizedSubject = (detail?.default_subject ?? "efl").trim() || "efl";
+    } else {
+      try {
+        normalizedSubject = resolveDefaultSubjectInputToStorage(trimmedSubject, uiLang);
+      } catch {
+        alert(t("class.invalidSubject"));
+        return;
+      }
+    }
     if (
       normalizeScholasticYearLabel(scholasticYear) !== normalizeScholasticYearLabel(detail?.scholastic_year ?? null)
     ) {
@@ -1014,6 +1092,35 @@ export function ClassWorkspace({
             ) : (
               <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {cefr.trim() ? formatClassLevelOptionLabel(uiLang, cefr, classGradeRubric) : "—"}
+              </p>
+            )}
+          </label>
+          <label className="text-sm sm:col-span-2">
+            <span className="text-zinc-600">{t("class.defaultSubject")}</span>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <>
+                <input
+                  list={classSubjectListId}
+                  value={defSubject}
+                  onChange={(e) => setDefSubject(e.target.value)}
+                  disabled={busy !== null || subjectListBusy}
+                  placeholder={t("tenant.defineSubjectNamePlaceholder")}
+                  className="mt-1 w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  autoComplete="off"
+                  aria-label={t("class.defaultSubject")}
+                />
+                {GRADE_RUBRIC_PROFILES.map((rp) => (
+                  <datalist id={`class-workspace-subject-${tenantId}-${classId}-${rp}`} key={rp}>
+                    {classWorkspaceSubjectSuggestionsByRubric[rp].map((label) => (
+                      <option key={`${rp}:${label}`} value={label} />
+                    ))}
+                  </datalist>
+                ))}
+                <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
+              </>
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {classDefaultSubjectUiLine(uiLang, detail?.default_subject ?? "efl")}
               </p>
             )}
           </label>

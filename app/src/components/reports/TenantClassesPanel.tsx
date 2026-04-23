@@ -182,7 +182,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       return;
     }
     try {
-      normalizedSubject = resolveDefaultSubjectInputToStorage(newClassDefaultSubject);
+      normalizedSubject = resolveDefaultSubjectInputToStorage(newClassDefaultSubject, uiLang);
     } catch {
       alert(t("class.invalidSubject"));
       return;
@@ -233,7 +233,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
   async function renameCustomSchoolSubject(oldName: string) {
     let normalized: string;
     try {
-      normalized = resolveDefaultSubjectInputToStorage(editCustomDraft);
+      normalized = resolveDefaultSubjectInputToStorage(editCustomDraft, uiLang);
     } catch {
       alert(t("class.invalidSubject"));
       return;

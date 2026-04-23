@@ -1160,6 +1160,7 @@ const EN: UiMessages = {
   "class.classLevelForPrimary": "Year group (primary)",
   "class.classLevelForSecondary": "Year group (secondary)",
   "class.defaultSubject": "Default subject",
+  "class.subjectToBeDefinedLabel": "Subject to be Defined",
   "class.selectOrDefineSubject": "Select or define subject",
   "class.subjectPickerHint":
     "Pick a suggested subject from the list or type a new name. New names are saved for this school for this class.",
@@ -1186,13 +1187,13 @@ const EN: UiMessages = {
   "class.renameSelectedSubject": "Rename",
   "class.newNameForSubject": "New name",
   "class.customSubjectsLead":
-    "Rename or remove subjects you added under each education type. Built-in languages cannot be deleted. Deleting a subject sets any class that used it to the default English subject.",
+    "Rename or remove subjects you added under each education type. Built-in languages cannot be deleted. Deleting a subject sets any class that used it back to Subject to be Defined.",
   "class.editCustomSubject": "Edit",
   "class.deleteCustomSubject": "Delete",
   "class.saveCustomSubjectRename": "Save",
   "class.cancelCustomSubjectRename": "Cancel",
   "class.confirmDeleteCustomSubject":
-    "Remove “{name}” from this school’s subject list? Any class using it will default to the default English subject.",
+    "Remove “{name}” from this school’s subject list? Any class that used it will revert to Subject to be Defined as the class default subject.",
   "class.subjectRenameFailed": "Could not rename subject.",
   "class.subjectDeleteFailed": "Could not delete subject.",
   "class.defaultOutputLang": "Default output language",
@@ -1929,6 +1930,7 @@ const FR: UiMessages = {
   "class.classLevelForPrimary": "Cycle / année (primaire)",
   "class.classLevelForSecondary": "Cycle / année (secondaire)",
   "class.defaultSubject": "Matière par défaut",
+  "class.subjectToBeDefinedLabel": "Matière à définir",
   "class.selectOrDefineSubject": "Sélectionner ou définir la matière",
   "class.subjectPickerHint":
     "Choisissez une suggestion dans la liste ou saisissez un nouveau nom. Les nouveaux noms sont enregistrés pour cette école pour cette classe.",
@@ -1955,13 +1957,13 @@ const FR: UiMessages = {
   "class.renameSelectedSubject": "Renommer",
   "class.newNameForSubject": "Nouveau nom",
   "class.customSubjectsLead":
-    "Renommez ou supprimez les matières ajoutées sous chaque type d’enseignement. Les langues intégrées ne peuvent pas être supprimées. La suppression ramène les classes concernées sur la matière anglaise par défaut.",
+    "Renommez ou supprimez les matières ajoutées sous chaque type d’enseignement. Les langues intégrées ne peuvent pas être supprimées. La suppression ramène les classes concernées sur « Matière à définir ».",
   "class.editCustomSubject": "Modifier",
   "class.deleteCustomSubject": "Supprimer",
   "class.saveCustomSubjectRename": "Enregistrer",
   "class.cancelCustomSubjectRename": "Annuler",
   "class.confirmDeleteCustomSubject":
-    "Retirer « {name} » de la liste des matières de cette école ? Les classes qui l’utilisaient passeront sur la matière anglaise par défaut.",
+    "Retirer « {name} » de la liste des matières de cette école ? Les classes qui l’utilisaient repassent sur « Matière à définir » comme matière par défaut.",
   "class.subjectRenameFailed": "Impossible de renommer la matière.",
   "class.subjectDeleteFailed": "Impossible de supprimer la matière.",
   "class.defaultOutputLang": "Langue de sortie par défaut",
@@ -2549,6 +2551,7 @@ const ES: UiMessages = {
   "class.classLevelForPrimary": "Curso / etapa (primaria)",
   "class.classLevelForSecondary": "Curso / etapa (secundaria)",
   "class.defaultSubject": "Materia por defecto",
+  "class.subjectToBeDefinedLabel": "Asignatura por definir",
   "class.selectOrDefineSubject": "Seleccionar o definir asignatura",
   "class.subjectPickerHint":
     "Elija una sugerencia de la lista o escriba un nombre nuevo de asignatura. Los nombres nuevos quedan guardados para esta escuela para esta clase.",
@@ -2575,13 +2578,13 @@ const ES: UiMessages = {
   "class.renameSelectedSubject": "Renombrar",
   "class.newNameForSubject": "Nombre nuevo",
   "class.customSubjectsLead":
-    "Cambie el nombre o elimine las asignaturas añadidas bajo cada tipo de enseñanza. Las lenguas integradas no se pueden eliminar. Si elimina una asignatura, las clases que la usaban pasan a la asignatura de inglés por defecto.",
+    "Cambie el nombre o elimine las asignaturas añadidas bajo cada tipo de enseñanza. Las lenguas integradas no se pueden eliminar. Si elimina una asignatura, las clases que la usaban vuelven a «Asignatura por definir».",
   "class.editCustomSubject": "Editar",
   "class.deleteCustomSubject": "Eliminar",
   "class.saveCustomSubjectRename": "Guardar",
   "class.cancelCustomSubjectRename": "Cancelar",
   "class.confirmDeleteCustomSubject":
-    "¿Quitar «{name}» de la lista de asignaturas de esta escuela? Las clases que la usaban quedarán con la asignatura de inglés por defecto.",
+    "¿Quitar «{name}» de la lista de asignaturas de esta escuela? Las clases que la usaban volverán a «Asignatura por definir» como materia por defecto.",
   "class.subjectRenameFailed": "No se pudo renombrar la asignatura.",
   "class.subjectDeleteFailed": "No se pudo eliminar la asignatura.",
   "class.defaultOutputLang": "Idioma de salida por defecto",
@@ -2722,6 +2725,7 @@ export function defaultSubjectDisplayLocalized(lang: UiLang, stored: string): st
   const s = stored.trim();
   if (!s) return subjectLabelLocalized(lang, "efl");
   const low = s.toLowerCase();
+  if (low === "subject to be defined") return translate(lang, "class.subjectToBeDefinedLabel");
   if (isSubjectCode(low)) return subjectLabelLocalized(lang, low);
   return s;
 }
@@ -2734,6 +2738,7 @@ export function classDefaultSubjectUiLine(lang: UiLang, stored: string): string 
   const s = stored.trim();
   if (!s || s.toLowerCase() === "efl") return translate(lang, "tenant.defineSubjectNamePlaceholder");
   const low = s.toLowerCase();
+  if (low === "subject to be defined") return translate(lang, "class.subjectToBeDefinedLabel");
   if (isSubjectCode(low)) return subjectLabelLocalized(lang, low);
   return s;
 }
