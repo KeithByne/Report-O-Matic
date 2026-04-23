@@ -1054,45 +1054,45 @@ export function ClassWorkspace({
               {t("class.nameTimetableTip")}
             </p>
           ) : null}
-          <label className="text-sm sm:col-span-2">
-            <span className="text-zinc-600">{t("class.className")}</span>
+          <label className="block min-w-0 text-sm sm:col-span-2">
+            <span className="mb-1 block text-zinc-600">{t("class.className")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <input
                 value={cName}
                 onChange={(e) => setCName(e.target.value)}
-                className="mt-1 w-full max-w-[20rem] rounded-lg border border-emerald-200 px-3 py-2"
+                className="block w-full max-w-[20rem] rounded-lg border border-emerald-200 px-3 py-2"
                 maxLength={30}
                 required
               />
             ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+              <p className="mt-0 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {cName.trim() || "—"}
               </p>
             )}
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.scholasticYear")}</span>
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("class.scholasticYear")}</span>
             {viewerRole === "teacher" ? (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+              <p className="mt-0 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {scholasticYear.trim() || "—"}
               </p>
             ) : (
               <input
                 value={scholasticYear}
                 onChange={(e) => setScholasticYear(e.target.value)}
-                className="mt-1 w-full max-w-[12rem] rounded-lg border border-emerald-200 px-3 py-2"
+                className="block w-full max-w-[12rem] rounded-lg border border-emerald-200 px-3 py-2"
                 placeholder={t("class.scholasticPlaceholder")}
                 maxLength={15}
               />
             )}
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">{classLevelFieldLabel}</span>
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{classLevelFieldLabel}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <select
                 value={cefr}
                 onChange={(e) => setCefr(e.target.value)}
-                className="mt-1 w-full max-w-[12rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="block w-full max-w-[12rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="">—</option>
                 {classLevelOptions.map((x) => (
@@ -1103,15 +1103,15 @@ export function ClassWorkspace({
               </select>
             ) : (
               <p
-                className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800"
+                className="mt-0 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800"
                 title={cefr.trim() ? formatClassLevelOptionLabel(uiLang, cefr, classGradeRubric) : ""}
               >
                 {cefr.trim() ? trimDisplayLabel(formatClassLevelOptionLabel(uiLang, cefr, classGradeRubric), 15) : "—"}
               </p>
             )}
           </label>
-          <label className="text-sm sm:col-span-2">
-            <span className="text-zinc-600">Subject</span>
+          <label className="block min-w-0 text-sm sm:col-span-2">
+            <span className="mb-1 block text-zinc-600">Subject</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <>
                 <input
@@ -1120,7 +1120,7 @@ export function ClassWorkspace({
                   onChange={(e) => setDefSubject(e.target.value)}
                   disabled={busy !== null || subjectListBusy}
                   placeholder={t("tenant.defineSubjectNamePlaceholder")}
-                  className="mt-2 w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  className="block w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   autoComplete="off"
                   aria-label="Subject"
                   maxLength={40}
@@ -1133,18 +1133,18 @@ export function ClassWorkspace({
                 <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
               </>
             ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+              <p className="mt-0 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {classDefaultSubjectUiLine(uiLang, detail?.default_subject ?? "efl")}
               </p>
             )}
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.defaultOutputLang")}</span>
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("class.defaultOutputLang")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <select
                 value={defLang}
                 onChange={(e) => setDefLang(e.target.value as ReportLanguageCode)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="block w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 {REPORT_LANGUAGES.map((o) => (
                   <option key={o.code} value={o.code}>
@@ -1153,18 +1153,18 @@ export function ClassWorkspace({
                 ))}
               </select>
             ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+              <p className="mt-0 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {reportLanguageOptionLabel(uiLang, defLang)}
               </p>
             )}
           </label>
           {viewerRole === "owner" || viewerRole === "department_head" ? (
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("class.roomNumber")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("class.roomNumber")}</span>
               <select
                 value={preferredRoomNumber}
                 onChange={(e) => setPreferredRoomNumber(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="block w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="">{t("class.roomNumberUnchanged")}</option>
                 {Array.from({ length: timetableRoomCount }, (_, i) => String(i + 1)).map((n) => (
@@ -1176,14 +1176,14 @@ export function ClassWorkspace({
               <p className="mt-1 text-xs text-zinc-500">{t("class.roomNumberHint")}</p>
             </label>
           ) : null}
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.lessonPeriodLabel")}</span>
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("class.lessonPeriodLabel")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <>
                 <select
                   value={lessonPeriodSelect}
                   onChange={(e) => setLessonPeriodSelect(e.target.value)}
-                  className="mt-1 w-full max-w-[12rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  className="block w-full max-w-[12rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
                   <option value="">{t("class.lessonPeriodUnset")}</option>
                   {lessonPeriodOptions.map((o) => (
@@ -1194,7 +1194,7 @@ export function ClassWorkspace({
                 </select>
               </>
             ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+              <p className="mt-0 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {(() => {
                   const pref = detail?.preferred_lesson_period_index;
                   if (typeof pref !== "number" || !Number.isFinite(pref)) return "—";
@@ -1206,14 +1206,14 @@ export function ClassWorkspace({
               </p>
             )}
           </label>
-          <label className="text-sm sm:col-span-2">
-            <span className="text-zinc-600">Reports per Course</span>
+          <label className="block min-w-0 text-sm sm:col-span-2">
+            <span className="mb-1 block text-zinc-600">Reports per Course</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <>
                 <select
                   value={defNewReportKind}
                   onChange={(e) => setDefNewReportKind(e.target.value as ReportKind)}
-                  className="mt-1 w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  className="block w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
                   <option value="standard" title={t("class.reportKindStandard")}>
                     {trimDisplayLabel(t("class.reportKindStandard"), 30)}
@@ -1226,7 +1226,7 @@ export function ClassWorkspace({
               </>
             ) : (
               <>
-                <p className="mt-1 max-w-xl rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                <p className="mt-0 max-w-xl rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                   {defNewReportKind === "short_course"
                     ? t("class.reportKindShortCourse")
                     : t("class.reportKindStandard")}
@@ -1236,7 +1236,7 @@ export function ClassWorkspace({
             )}
           </label>
           <div className="text-sm sm:col-span-2">
-            <span className="text-zinc-600">{t("class.activeDaysLabel")}</span>
+            <span className="mb-1 block text-zinc-600">{t("class.activeDaysLabel")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -1276,7 +1276,7 @@ export function ClassWorkspace({
                 </p>
               </>
             ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+              <p className="mt-0 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {WEEKDAY_KEYS.filter((k) => activeDays.includes(k))
                   .map((k) => t(`weekday.${k}`))
                   .join(", ") || "—"}
@@ -1291,13 +1291,14 @@ export function ClassWorkspace({
           ) : null}
           {viewerRole === "owner" || viewerRole === "department_head" ? (
             <div className="sm:col-span-2 max-w-[20rem]">
-              <h4 id="class-teacher-heading" className="text-sm font-semibold text-zinc-900">
+              <h4 id="class-teacher-heading" className="mb-1 block text-sm font-semibold text-zinc-900">
                 {t("class.teacherHeading")}
               </h4>
               <select
+                id="class-assigned-teacher"
                 value={assignTeacher}
                 onChange={(e) => setAssignTeacher(e.target.value)}
-                className="mt-2 w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="block w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 aria-labelledby="class-teacher-heading"
               >
                 <option value="">{t("class.notAssigned")}</option>
