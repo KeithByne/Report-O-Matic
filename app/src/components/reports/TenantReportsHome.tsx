@@ -371,22 +371,24 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
           </h2>
           <p className="mt-1 text-xs text-zinc-500">{t("tenant.bulkDownloadsLead")}</p>
           <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-3">
-            <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
-              <input
-                type="checkbox"
-                checked={teacherOnlyFinal}
-                onChange={(e) => setTeacherOnlyFinal(e.target.checked)}
-                className="h-4 w-4"
-              />
-              {t("tenant.finalOnly")}
+            <label className="text-sm text-zinc-700">
+              <span className="block text-zinc-600">{t("tenant.finalOnly")}</span>
+              <span className="mt-1 inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={teacherOnlyFinal}
+                  onChange={(e) => setTeacherOnlyFinal(e.target.checked)}
+                  className="h-4 w-4"
+                />
+              </span>
             </label>
             <div className="flex w-full flex-wrap items-end justify-end gap-x-4 gap-y-2 sm:ml-auto sm:w-auto">
-              <label className="flex items-center gap-[2ch] text-sm">
-                <span className="shrink-0 text-zinc-600">{t("tenant.bulkGroupByLabel")}</span>
+              <label className="text-sm">
+                <span className="block text-zinc-600">{t("tenant.bulkGroupByLabel")}</span>
                 <select
                   value={bulkGroupBy}
                   onChange={(e) => setBulkGroupBy(e.target.value as typeof bulkGroupBy)}
-                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
                   <option value="term">{t("tenant.bulkGroupTerm")}</option>
                   <option value="teacher">{t("tenant.bulkGroupTeacher")}</option>

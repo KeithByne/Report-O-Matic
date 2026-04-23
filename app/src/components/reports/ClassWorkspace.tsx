@@ -1598,13 +1598,13 @@ export function ClassWorkspace({
         >
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.printClassReports")}</h3>
           <p className="mt-1 text-xs text-zinc-500">{t("class.bulkDownloadPanelHint")}</p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-            <label className="inline-flex flex-row flex-wrap items-center gap-[2ch] text-sm">
-              <span className="shrink-0 text-zinc-600">{t("class.bulkDownloadSelectLabel")}</span>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+            <label className="text-sm">
+              <span className="block text-zinc-600">{t("class.bulkDownloadSelectLabel")}</span>
               <select
                 value={batchTermFilter}
                 onChange={(e) => setBatchTermFilter(e.target.value as ReportPeriod)}
-                className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="first">{t("archive.term1")}</option>
                 <option value="second">{t("archive.term2")}</option>
