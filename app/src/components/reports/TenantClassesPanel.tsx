@@ -113,15 +113,20 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       if (!res.ok) return;
       const custRaw = data.custom;
       const rows: { name: string; rubric_profile: GradeRubricProfile }[] = [];
+      const subjectToBeDefinedLower = t("class.subjectToBeDefinedLabel").trim().toLowerCase();
       if (Array.isArray(custRaw)) {
         for (const item of custRaw) {
           if (typeof item === "string") {
             const n = item.trim();
-            if (n) rows.push({ name: n, rubric_profile: "secondary" });
+            const lower = n.toLowerCase();
+            if (n && lower !== "subject to be defined" && lower !== subjectToBeDefinedLower) {
+              rows.push({ name: n, rubric_profile: "secondary" });
+            }
           } else if (item && typeof item === "object") {
             const o = item as Record<string, unknown>;
             const n = typeof o.name === "string" ? o.name.trim() : "";
-            if (n)
+            const lower = n.toLowerCase();
+            if (n && lower !== "subject to be defined" && lower !== subjectToBeDefinedLower)
               rows.push({
                 name: n,
                 rubric_profile: parseGradeRubricProfile(o.rubric_profile, "secondary"),
@@ -133,12 +138,16 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     } catch {
       setCustomSubjectRows([]);
     }
-  }, [base, isLead]);
+  }, [base, isLead, t]);
 
   /** Three separate `<datalist>` ids; `list` follows the current school preset. */
   const newClassSubjectSuggestionsByRubric = useMemo(
     () => subjectSuggestionLabelsByRubric(customSubjectRows, uiLang),
     [customSubjectRows, uiLang],
+  );
+  const newClassAllSubjectSuggestions = useMemo(
+    () => [...new Set(Object.values(newClassSubjectSuggestionsByRubric).flat())],
+    [newClassSubjectSuggestionsByRubric],
   );
 
   const newClassSubjectListId = `tenant-new-class-subject-${tenantId}-${newClassGradeRubric}`;
@@ -151,6 +160,15 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     if (!active || !isLead) return;
     void loadSubjectAccountOptions();
   }, [active, isLead, loadSubjectAccountOptions]);
+
+  useEffect(() => {
+    setNewClassDefaultSubject((prev) => {
+      const lower = prev.trim().toLowerCase();
+      const subjectToBeDefinedLower = t("class.subjectToBeDefinedLabel").trim().toLowerCase();
+      if (lower === "subject to be defined" || lower === subjectToBeDefinedLower) return "";
+      return prev;
+    });
+  }, [t]);
 
   useEffect(() => {
     const onClassSettingsSaved = (ev: Event) => {
@@ -250,6 +268,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       setEditingCustomSubject(null);
       setEditCustomDraft("");
       setSelectedCustomSchoolSubject("");
+      setNewClassDefaultSubject("");
       await loadSubjectAccountOptions();
       await refresh();
       router.refresh();
@@ -270,6 +289,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       setEditingCustomSubject(null);
       setEditCustomDraft("");
       setSelectedCustomSchoolSubject("");
+      setNewClassDefaultSubject("");
       await loadSubjectAccountOptions();
       await refresh();
       router.refresh();
@@ -313,7 +333,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                 />
                 {GRADE_RUBRIC_PROFILES.map((rp) => (
                   <datalist id={`tenant-new-class-subject-${tenantId}-${rp}`} key={rp}>
-                    {newClassSubjectSuggestionsByRubric[rp].map((label) => (
+                    {newClassAllSubjectSuggestions.map((label) => (
                       <option key={`${rp}:${label}`} value={label} />
                     ))}
                   </datalist>
