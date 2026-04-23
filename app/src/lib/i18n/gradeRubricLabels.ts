@@ -23,7 +23,7 @@ const PRIMARY_METRIC_EN: Record<Dataset4MetricKey, string> = {
   writing: "Written communication of learning",
   listening: "Follows explanations and instructions",
   speaking: "Oral communication and discussion",
-  pronunciation: "Accuracy (conventions, notation, terminology)",
+  pronunciation: "Overall Progress",
   handwriting: "Organisation and presentation of work",
   audio_comprehension: "Understanding of key concepts",
   reading_comprehension: "Application, reasoning and problem-solving",
