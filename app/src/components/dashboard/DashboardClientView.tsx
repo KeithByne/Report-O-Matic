@@ -1448,11 +1448,6 @@ export function DashboardClientView({
                       schoolName={primaryMembership.tenantName}
                       viewerRole={primaryMembership.role}
                       embedded
-                      onOpenClassesAndReports={
-                        primaryMembership.role === "owner"
-                          ? () => setWorkspaceDashPanel("classes")
-                          : undefined
-                      }
                     />
                   </div>
                 ) : null}
