@@ -14,11 +14,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { allowedClassLevelsForRubric } from "@/lib/classLevel";
-import {
-  classDefaultSubjectUiLine,
-  formatClassLevelOptionLabel,
-  reportLanguageOptionLabel,
-} from "@/lib/i18n/uiStrings";
+import { formatClassLevelOptionLabel, reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import {
   type ReportKind,
@@ -30,8 +26,6 @@ import {
 } from "@/lib/reportInputs";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { resolveDefaultSubjectInputToStorage, subjectFieldDisplayValueFromStored } from "@/lib/subjectFormResolve";
-import { subjectSuggestionLabelsForRubric } from "@/lib/subjectOptionsByEducationType";
 import { REPORT_SUBJECTS } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { classesListHref } from "@/lib/app/classesNavigation";
@@ -148,38 +142,6 @@ export function ClassWorkspace({
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const canManageClassSettings = viewerRole === "owner" || viewerRole === "department_head";
 
-  const [customSubjectRows, setCustomSubjectRows] = useState<{ name: string; rubric_profile: GradeRubricProfile }[]>([]);
-
-  const refreshSubjectAccountOptions = useCallback(async () => {
-    if (!canManageClassSettings) return;
-    try {
-      const res = await fetch(`${base}/subject-options`);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) return;
-      const custRaw = data.custom;
-      const rows: { name: string; rubric_profile: GradeRubricProfile }[] = [];
-      if (Array.isArray(custRaw)) {
-        for (const item of custRaw) {
-          if (typeof item === "string") {
-            const n = item.trim();
-            if (n) rows.push({ name: n, rubric_profile: "secondary" });
-          } else if (item && typeof item === "object") {
-            const o = item as Record<string, unknown>;
-            const n = typeof o.name === "string" ? o.name.trim() : "";
-            if (n)
-              rows.push({
-                name: n,
-                rubric_profile: parseGradeRubricProfile(o.rubric_profile, "secondary"),
-              });
-          }
-        }
-      }
-      setCustomSubjectRows(rows);
-    } catch {
-      setCustomSubjectRows([]);
-    }
-  }, [base, canManageClassSettings]);
-
   const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
   const [batchTermFilter, setBatchTermFilter] = useState<ReportPeriod>("first");
 
@@ -231,7 +193,6 @@ export function ClassWorkspace({
   const [cName, setCName] = useState(initialClassName);
   const [scholasticYear, setScholasticYear] = useState("");
   const [cefr, setCefr] = useState("");
-  const [defSubject, setDefSubject] = useState("");
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [defNewReportKind, setDefNewReportKind] = useState<ReportKind>("standard");
   const [defNewReportPeriod, setDefNewReportPeriod] = useState<ReportPeriod>("first");
@@ -245,12 +206,6 @@ export function ClassWorkspace({
 
   /** Mon→Sun order; avoids Set + ensures PATCH/GET stay aligned. */
   const [activeDays, setActiveDays] = useState<WeekdayKey[]>([]);
-
-  /** Suggestions for the default subject field: only this class’s education type (from the server). */
-  const subjectDatalistLabels = useMemo(
-    () => subjectSuggestionLabelsForRubric(classGradeRubric, customSubjectRows, uiLang),
-    [classGradeRubric, customSubjectRows, uiLang],
-  );
 
   const loadClassRequestId = useRef(0);
   const didScrollToFocusStudent = useRef(false);
@@ -273,10 +228,6 @@ export function ClassWorkspace({
     existingReportId: string;
     termLabel: string;
   } | null>(null);
-
-  useEffect(() => {
-    void refreshSubjectAccountOptions();
-  }, [refreshSubjectAccountOptions, tenantId, classId]);
 
   const classLevelOptions = useMemo(() => [...allowedClassLevelsForRubric(classGradeRubric)], [classGradeRubric]);
 
@@ -363,7 +314,6 @@ export function ClassWorkspace({
       setCName(c.name);
       setScholasticYear(c.scholastic_year?.trim() ?? "");
       setCefr(c.cefr_level ?? "");
-      setDefSubject(subjectFieldDisplayValueFromStored(c.default_subject, uiLang));
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
       setDefNewReportPeriod(
@@ -527,13 +477,7 @@ export function ClassWorkspace({
     e.preventDefault();
     const isLead = viewerRole === "owner" || viewerRole === "department_head";
     if (!isLead) return;
-    let normalizedSubject: string;
-    try {
-      normalizedSubject = resolveDefaultSubjectInputToStorage(defSubject.trim() || "efl");
-    } catch {
-      alert(t("class.invalidSubject"));
-      return;
-    }
+    const normalizedSubject = (detail?.default_subject ?? "efl").trim() || "efl";
     if (
       normalizeScholasticYearLabel(scholasticYear) !== normalizeScholasticYearLabel(detail?.scholastic_year ?? null)
     ) {
@@ -566,10 +510,8 @@ export function ClassWorkspace({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
-      setDefSubject(subjectFieldDisplayValueFromStored(normalizedSubject, uiLang));
       await loadClass();
       await refreshStudents();
-      await refreshSubjectAccountOptions();
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, {
@@ -950,31 +892,6 @@ export function ClassWorkspace({
                 className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
                 placeholder={t("class.scholasticPlaceholder")}
               />
-            )}
-          </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.selectOrDefineSubject")}</span>
-            {canManageClassSettings ? (
-              <>
-                <input
-                  list={`class-subject-dl-${classId}`}
-                  value={defSubject}
-                  onChange={(e) => setDefSubject(e.target.value)}
-                  placeholder={t("tenant.defineSubjectNamePlaceholder")}
-                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                  autoComplete="off"
-                />
-                <datalist id={`class-subject-dl-${classId}`}>
-                  {subjectDatalistLabels.map((label) => (
-                    <option key={label} value={label} />
-                  ))}
-                </datalist>
-                <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
-              </>
-            ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
-                {classDefaultSubjectUiLine(uiLang, (detail?.default_subject ?? "").trim() || "efl")}
-              </p>
             )}
           </label>
           <label className="text-sm">
