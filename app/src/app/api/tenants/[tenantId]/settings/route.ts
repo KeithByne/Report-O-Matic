@@ -11,7 +11,7 @@ import {
 } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { parseGradeRubricProfile, type GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { syncTenantClassesGradeRubricProfile } from "@/lib/data/classesDb";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
@@ -127,7 +127,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       default_report_language = await getTenantDefaultReportLanguage(tenantId);
     }
 
-    let default_grade_rubric_profile = "language";
+    let default_grade_rubric_profile: GradeRubricProfile = "language";
     if (hasGradeRubric) {
       const next = parseGradeRubricProfile(body.default_grade_rubric_profile, "language");
       const supabase = getServiceSupabase();
@@ -140,8 +140,9 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
         .single();
       if (rubErr) throw new Error(rubErr.message);
       const rec = row as Record<string, unknown>;
-      default_grade_rubric_profile = parseGradeRubricProfile(rec.default_grade_rubric_profile, "language");
-      await syncTenantClassesGradeRubricProfile(tenantId, default_grade_rubric_profile);
+      const rubricFromDb: GradeRubricProfile = parseGradeRubricProfile(rec.default_grade_rubric_profile, "language");
+      default_grade_rubric_profile = rubricFromDb;
+      await syncTenantClassesGradeRubricProfile(tenantId, rubricFromDb);
     } else {
       const supabase = getServiceSupabase();
       if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
