@@ -332,6 +332,14 @@ export async function deleteTimetableSlot(slotId: string, tenantId: string): Pro
   return (count ?? 0) > 0;
 }
 
+/** Remove every timetable cell for this class (before rebuilding from class preset). */
+export async function deleteTimetableSlotsForClass(tenantId: string, classId: string): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const { error } = await supabase.from("timetable_slots").delete().eq("tenant_id", tenantId).eq("class_id", classId);
+  if (error) throw new Error(formatErr(error));
+}
+
 export async function listTimetableSlotsAt(
   tenantId: string,
   classId: string,

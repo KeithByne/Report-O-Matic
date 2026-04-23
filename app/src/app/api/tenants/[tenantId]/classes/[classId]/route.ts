@@ -15,6 +15,7 @@ import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { getTimetableSettings, isTimetableConflictError, moveClassTimetableSlotsToRoom } from "@/lib/data/timetableDb";
+import { syncClassPresetToTimetableSlots } from "@/lib/timetable/syncClassPresetToTimetableSlots";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -234,6 +235,13 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     return NextResponse.json({ error: "No valid fields to update." }, { status: 400 });
   }
 
+  const presetLayoutFieldsTouched =
+    isLead &&
+    (body.preferred_room_index !== undefined ||
+      body.preferred_lesson_period_index !== undefined ||
+      body.active_weekdays !== undefined ||
+      body.assigned_teacher_email !== undefined);
+
   try {
     if (
       isLead &&
@@ -258,6 +266,17 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
         patch.default_output_language,
         klassExisting.default_output_language,
       );
+    }
+
+    if (presetLayoutFieldsTouched) {
+      try {
+        await syncClassPresetToTimetableSlots(tenantId, klass);
+      } catch (slotErr: unknown) {
+        const msg = slotErr instanceof Error ? slotErr.message : "";
+        const c = isTimetableConflictError(msg);
+        if (c) return NextResponse.json({ error: conflictMessage(c) }, { status: 409 });
+        throw slotErr;
+      }
     }
 
     if (isLead && timetableRoomMoveTarget !== undefined) {
