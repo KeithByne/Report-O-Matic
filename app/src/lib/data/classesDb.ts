@@ -22,9 +22,17 @@ function isMissingGradeRubricProfileColumnError(e: { message?: string | null; de
   return msg.includes("grade_rubric_profile") && msg.includes("schema cache");
 }
 
+function isMissingPreferredLessonPeriodColumnError(e: { message?: string | null; details?: string | null; hint?: string | null }): boolean {
+  const msg = [e.message, e.details, e.hint].filter(Boolean).join(" ").toLowerCase();
+  return msg.includes("preferred_lesson_period_index") && msg.includes("schema cache");
+}
+
 function formatClassWriteErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   if (isMissingGradeRubricProfileColumnError(e)) {
     return "Database schema is behind: `classes.grade_rubric_profile` is missing from Supabase schema cache. Run the latest migrations, then reload PostgREST schema (or restart Supabase) and retry.";
+  }
+  if (isMissingPreferredLessonPeriodColumnError(e)) {
+    return "Database schema is behind: `classes.preferred_lesson_period_index` is missing from Supabase schema cache. Run migration 0036 (if not applied), execute `NOTIFY pgrst, 'reload schema';` or restart Supabase, then retry.";
   }
   return formatErr(e);
 }
@@ -230,26 +238,33 @@ export async function updateClass(
   if (patch.active_weekdays !== undefined) {
     row.active_weekdays = normalizeActiveWeekdays(patch.active_weekdays);
   }
-  const { data, error } = await supabase
-    .from("classes")
-    .update(row)
-    .eq("tenant_id", tenantId)
-    .eq("id", classId)
-    .select(classSelect)
-    .single();
-  if (error && isMissingGradeRubricProfileColumnError(error) && "grade_rubric_profile" in row) {
-    const legacyPatch = { ...row };
-    delete legacyPatch.grade_rubric_profile;
-    const { data: retryData, error: retryError } = await supabase
+  let attemptRow: Record<string, unknown> = { ...row };
+  let data: Record<string, unknown> | null = null;
+  let error: { message: string; details?: string | null; hint?: string | null } | null = null;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const res = await supabase
       .from("classes")
-      .update(legacyPatch)
+      .update(attemptRow)
       .eq("tenant_id", tenantId)
       .eq("id", classId)
       .select(classSelect)
       .single();
-    if (retryError) throw new Error(formatErr(retryError));
-    const updatedLegacy = mapClassRow(retryData as Record<string, unknown>);
-    return updatedLegacy;
+    data = res.data as Record<string, unknown> | null;
+    error = res.error;
+    if (!error) break;
+    if (isMissingGradeRubricProfileColumnError(error) && "grade_rubric_profile" in attemptRow) {
+      const legacy = { ...attemptRow };
+      delete legacy.grade_rubric_profile;
+      attemptRow = legacy;
+      continue;
+    }
+    if (isMissingPreferredLessonPeriodColumnError(error) && "preferred_lesson_period_index" in attemptRow) {
+      const legacy = { ...attemptRow };
+      delete legacy.preferred_lesson_period_index;
+      attemptRow = legacy;
+      continue;
+    }
+    break;
   }
   if (error) throw new Error(formatClassWriteErr(error));
   const updated = mapClassRow(data as Record<string, unknown>);
