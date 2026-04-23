@@ -22,7 +22,7 @@ import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducationType";
 import { REPORT_SUBJECTS } from "@/lib/subjects";
 
-type ClassRow = { id: string; name: string; student_count: number; grade_rubric_profile?: GradeRubricProfile };
+type ClassRow = { id: string; name: string; student_count: number };
 
 type TermCompletion = { first: boolean; second: boolean; third: boolean };
 
@@ -131,7 +131,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     }
   }, [base, isLead]);
 
-  /** Three separate `<datalist>` ids; `list` follows the chosen education type. */
+  /** Three separate `<datalist>` ids; `list` follows the current school preset. */
   const newClassSubjectSuggestionsByRubric = useMemo(
     () => subjectSuggestionLabelsByRubric(customSubjectRows, uiLang),
     [customSubjectRows, uiLang],

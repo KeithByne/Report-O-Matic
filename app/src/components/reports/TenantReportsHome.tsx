@@ -168,6 +168,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
   }
 
   const isLead = viewerRole === "owner" || viewerRole === "department_head";
+  const showBulkInMenu = viewerRole === "department_head";
   const teacherBatchHref = useMemo(() => {
     const qp = new URLSearchParams();
     if (teacherOnlyFinal) qp.set("onlyFinal", "1");
@@ -188,9 +189,9 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
             { id: "classes", label: t("tenant.panelClasses"), Icon: PANEL_ICON.classes },
             { id: "timetable", label: t("tenant.panelTimetable"), Icon: PANEL_ICON.timetable },
           ];
-    if (isLead) items.push({ id: "bulk", label: t("tenant.panelDownloads"), Icon: PANEL_ICON.bulk });
+    if (showBulkInMenu) items.push({ id: "bulk", label: t("tenant.panelDownloads"), Icon: PANEL_ICON.bulk });
     return items;
-  }, [isLead, t, viewerRole]);
+  }, [showBulkInMenu, t, viewerRole]);
 
   if (viewerRole === "teacher") {
     return (
@@ -362,7 +363,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
         </section>
       ) : null}
 
-      {openPanels.has("bulk") && isLead ? (
+      {openPanels.has("bulk") && showBulkInMenu ? (
         <section id="tenant-panel-bulk" className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
             <Download className={ICON_SECTION} aria-hidden />
