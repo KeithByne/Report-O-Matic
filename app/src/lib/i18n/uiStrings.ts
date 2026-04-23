@@ -1281,6 +1281,14 @@ const EN: UiMessages = {
     "A report already exists for {name} for this period ({term}). Open the existing report to edit it instead of creating a duplicate.",
   "class.duplicateReportEditExisting": "Open existing report",
   "class.duplicateReportCancel": "Cancel",
+  "class.timetableConflictTitle": "That time slot is already taken",
+  "class.timetableConflictRoomBody":
+    "That room already has another class in the lesson period and day you selected. Choose a different room, period, or active day, or free that cell on the timetable first.",
+  "class.timetableConflictTeacherBody":
+    "The assigned teacher already has another class in that period on one of the days you selected. Change the teacher, period, or active days, or adjust the timetable first.",
+  "class.timetableConflictGenericBody":
+    "Your class cannot be placed where you chose because something else already uses that slot. Change room, lesson period, active days, or the timetable grid, then save again.",
+  "class.timetableConflictOk": "OK",
   "saas.platformBadge": "Platform",
   "saas.ownerDashboardTitle": "SaaS Owner Dashboard",
   "saas.schoolDetailsTitle": "School details",
@@ -2002,6 +2010,14 @@ const FR: UiMessages = {
     "Un rapport existe déjà pour {name} pour cette période ({term}). Ouvrez le rapport existant pour le modifier plutôt que d’en créer un doublon.",
   "class.duplicateReportEditExisting": "Ouvrir le rapport existant",
   "class.duplicateReportCancel": "Annuler",
+  "class.timetableConflictTitle": "Ce créneau est déjà pris",
+  "class.timetableConflictRoomBody":
+    "Cette salle accueille déjà une autre classe pour la période et le jour choisis. Choisissez une autre salle, période ou jour actif, ou libérez la case sur l’emploi du temps.",
+  "class.timetableConflictTeacherBody":
+    "L’enseignant·e assigné·e a déjà une autre classe à cette période pour l’un des jours choisis. Modifiez l’enseignant·e, la période ou les jours actifs, ou l’emploi du temps.",
+  "class.timetableConflictGenericBody":
+    "Impossible de placer la classe comme demandé : un autre créneau occupe déjà cet emplacement. Modifiez salle, période, jours ou grille, puis enregistrez à nouveau.",
+  "class.timetableConflictOk": "OK",
   "class.deletePupil": "Supprimer l’élève",
   "class.editPupil": "Modifier",
   "class.savePupilEdits": "Enregistrer",
@@ -2613,6 +2629,14 @@ const ES: UiMessages = {
     "Ya existe un informe para {name} en este periodo ({term}). Abra el informe existente para editarlo en lugar de crear un duplicado.",
   "class.duplicateReportEditExisting": "Abrir informe existente",
   "class.duplicateReportCancel": "Cancelar",
+  "class.timetableConflictTitle": "Ese hueco horario ya está ocupado",
+  "class.timetableConflictRoomBody":
+    "Ese aula ya tiene otra clase en el periodo y día que eligió. Elija otro aula, periodo o día activo, o libere esa celda en el horario.",
+  "class.timetableConflictTeacherBody":
+    "El profesor asignado ya tiene otra clase en ese periodo en uno de los días elegidos. Cambie profesor, periodo o días activos, o ajuste el horario.",
+  "class.timetableConflictGenericBody":
+    "No se puede colocar la clase ahí porque otro uso ya ocupa ese hueco. Cambie aula, periodo, días o la cuadrícula del horario y guarde de nuevo.",
+  "class.timetableConflictOk": "Aceptar",
   "class.deletePupil": "Eliminar alumno",
   "class.editPupil": "Editar",
   "class.savePupilEdits": "Guardar",

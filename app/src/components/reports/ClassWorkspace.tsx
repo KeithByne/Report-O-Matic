@@ -236,6 +236,7 @@ export function ClassWorkspace({
     existingReportId: string;
     termLabel: string;
   } | null>(null);
+  const [timetableConflictDialog, setTimetableConflictDialog] = useState<"room" | "teacher" | "generic" | null>(null);
 
   const classLevelOptions = useMemo(() => [...allowedClassLevelsForRubric(classGradeRubric)], [classGradeRubric]);
 
@@ -564,7 +565,19 @@ export function ClassWorkspace({
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || t("common.failed"));
+      if (!res.ok) {
+        if (res.status === 409) {
+          const err = typeof data.error === "string" ? data.error.toLowerCase() : "";
+          const kind: "room" | "teacher" | "generic" = err.includes("teacher")
+            ? "teacher"
+            : err.includes("room")
+              ? "room"
+              : "generic";
+          setTimetableConflictDialog(kind);
+          return;
+        }
+        throw new Error(typeof data.error === "string" ? data.error : t("common.failed"));
+      }
       await loadClass();
       await refreshStudents();
       if (typeof window !== "undefined") {
@@ -855,6 +868,40 @@ export function ClassWorkspace({
                 onClick={() => setDuplicateReportDialog(null)}
               >
                 {t("class.duplicateReportCancel")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {timetableConflictDialog ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="timetable-conflict-dialog-title"
+          onClick={() => setTimetableConflictDialog(null)}
+        >
+          <div
+            className="max-w-md rounded-2xl border border-amber-200 bg-white p-5 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="timetable-conflict-dialog-title" className="text-base font-semibold text-zinc-900">
+              {t("class.timetableConflictTitle")}
+            </h3>
+            <p className="mt-3 text-sm text-zinc-600">
+              {timetableConflictDialog === "teacher"
+                ? t("class.timetableConflictTeacherBody")
+                : timetableConflictDialog === "room"
+                  ? t("class.timetableConflictRoomBody")
+                  : t("class.timetableConflictGenericBody")}
+            </p>
+            <div className="mt-5">
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-900"
+                onClick={() => setTimetableConflictDialog(null)}
+              >
+                {t("class.timetableConflictOk")}
               </button>
             </div>
           </div>
