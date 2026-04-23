@@ -54,6 +54,7 @@ import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
+import { GRADE_RUBRIC_PROFILES, gradeRubricProfileDisplayLabel, parseGradeRubricProfile, type GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { TeacherStats, TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
 import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
@@ -67,7 +68,7 @@ type MyAgentLink = {
   payout_stripe_account_id?: string | null;
 };
 
-type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "classes" | "timetable";
+type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "classes" | "timetable" | "schoolType";
 
 type TeacherWorkspacePanel = "schools" | "downloads";
 
@@ -222,6 +223,8 @@ export function DashboardClientView({
 
   const [workspaceDashPanel, setWorkspaceDashPanel] = useState<WorkspaceDashPanel | null>(null);
   const [teacherWorkspacePanel, setTeacherWorkspacePanel] = useState<TeacherWorkspacePanel | null>(null);
+  const [schoolGradeRubricByTenant, setSchoolGradeRubricByTenant] = useState<Record<string, GradeRubricProfile>>({});
+  const [schoolTypeSaving, setSchoolTypeSaving] = useState(false);
 
   const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
     setTeacherWorkspacePanel((current) => (current === panel ? null : panel));
@@ -313,6 +316,8 @@ export function DashboardClientView({
         const data = await res.json().catch(() => ({}));
         const raw = typeof data.default_report_language === "string" ? data.default_report_language.trim() : "";
         next[m.tenantId] = res.ok && isReportLanguageCode(raw) ? raw : "en";
+        const rubric = parseGradeRubricProfile(data.default_grade_rubric_profile, "language");
+        setSchoolGradeRubricByTenant((prev) => ({ ...prev, [m.tenantId]: rubric }));
       }),
     );
     setReportLangByTenant(next);
@@ -366,6 +371,24 @@ export function DashboardClientView({
         return t("dash.roleDesc.teacher");
       default:
         return "";
+    }
+  }
+
+  async function saveSchoolEducationType(tenantId: string, next: GradeRubricProfile) {
+    setSchoolGradeRubricByTenant((prev) => ({ ...prev, [tenantId]: next }));
+    setSchoolTypeSaving(true);
+    try {
+      const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}/settings`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ default_grade_rubric_profile: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setSchoolTypeSaving(false);
     }
   }
 
@@ -830,29 +853,16 @@ export function DashboardClientView({
                 ) : null}
                 <button
                   type="button"
-                  aria-pressed={workspaceDashPanel === "classes"}
-                  onClick={() => toggleWorkspaceDashPanel("classes")}
+                  aria-pressed={workspaceDashPanel === "schoolType"}
+                  onClick={() => toggleWorkspaceDashPanel("schoolType")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "classes"
+                    workspaceDashPanel === "schoolType"
                       ? "border-emerald-600 bg-emerald-100 text-emerald-950"
                       : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
                   }`}
                 >
                   <BookOpen className={ICON_INLINE} aria-hidden />
-                  {t("dash.ownerMenuClassesAndReports")}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={workspaceDashPanel === "timetable"}
-                  onClick={() => toggleWorkspaceDashPanel("timetable")}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "timetable"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <CalendarDays className={ICON_INLINE} aria-hidden />
-                  {t("tenant.panelTimetable")}
+                  School's Educational Type
                 </button>
                 {primaryMembership.role !== "owner" ? (
                   <button
@@ -1206,16 +1216,7 @@ export function DashboardClientView({
                       <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50/70 px-3 py-1 text-xs font-semibold text-zinc-800">
                         {roleLabel(primaryMembership.role)}
                       </span>
-                      {primaryMembership.role === "owner" ? (
-                        <button
-                          type="button"
-                          onClick={() => setWorkspaceDashPanel("classes")}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
-                        >
-                          <BookOpen className={`${ICON_INLINE} opacity-90`} aria-hidden />
-                          {t("dash.ownerMenuClassesAndReports")}
-                        </button>
-                      ) : (
+                      {primaryMembership.role === "owner" ? null : (
                         <Link
                           href={`/reports/${primaryMembership.tenantId}`}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
@@ -1290,9 +1291,7 @@ export function DashboardClientView({
                       </div>
                     ) : null}
 
-                    {primaryMembership.role === "owner" ||
-                    primaryMembership.role === "department_head" ||
-                    primaryMembership.role === "teacher" ? (
+                    {primaryMembership.role === "department_head" || primaryMembership.role === "teacher" ? (
                       <div className="mt-4">
                         <DashboardTimetableSnippet
                           tenantId={primaryMembership.tenantId}
@@ -1406,9 +1405,38 @@ export function DashboardClientView({
                   </div>
                 ) : null}
 
+                {primaryMembership && workspaceDashPanel === "schoolType" && primaryMembership.role === "owner" ? (
+                  <section
+                    id="dash-workspace-panel-schoolType"
+                    className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+                  >
+                    <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">School's Educational Type</h2>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <select
+                        value={schoolGradeRubricByTenant[primaryMembership.tenantId] ?? "language"}
+                        onChange={(e) =>
+                          void saveSchoolEducationType(
+                            primaryMembership.tenantId,
+                            parseGradeRubricProfile(e.target.value, "language"),
+                          )
+                        }
+                        disabled={schoolTypeSaving}
+                        className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600"
+                      >
+                        {GRADE_RUBRIC_PROFILES.map((rp) => (
+                          <option key={rp} value={rp}>
+                            {gradeRubricProfileDisplayLabel(t, rp)}
+                          </option>
+                        ))}
+                      </select>
+                      {schoolTypeSaving ? <span className="text-xs text-zinc-500">{t("tenant.saving")}</span> : null}
+                    </div>
+                  </section>
+                ) : null}
+
                 {primaryMembership &&
                 workspaceDashPanel === "timetable" &&
-                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
+                primaryMembership.role === "department_head" ? (
                   <div
                     id="dash-workspace-panel-timetable"
                     className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5"
