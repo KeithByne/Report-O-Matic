@@ -828,7 +828,7 @@ export function DashboardClientView({
                   }`}
                 >
                   <BookOpen className={ICON_INLINE} aria-hidden />
-                  School's Educational Type
+                  {t("tenant.schoolTypeTitle")}
                 </button>
                 {showWorkspacePdfTab ? (
                   <button
@@ -1284,7 +1284,7 @@ export function DashboardClientView({
                     id="dash-workspace-panel-schoolType"
                     className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
                   >
-                    <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">School's Educational Type</h2>
+                    <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">{t("tenant.schoolTypeTitle")}</h2>
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                       <select
                         value={schoolGradeRubricByTenant[primaryMembership.tenantId] ?? "language"}

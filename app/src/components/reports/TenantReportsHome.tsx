@@ -261,7 +261,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
               onClick={() => setOpenOwnerEducationCard((v) => !v)}
               className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
             >
-              School education type
+              {t("tenant.schoolTypeTitle")}
             </button>
           ) : null}
         </nav>
@@ -269,7 +269,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
 
       {viewerRole === "owner" && openOwnerEducationCard ? (
         <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">School education type</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">{t("tenant.schoolTypeTitle")}</h2>
           <div className="mt-3 max-w-md">
             <select
               value={schoolGradeRubric}
