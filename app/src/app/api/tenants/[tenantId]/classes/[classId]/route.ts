@@ -208,18 +208,29 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     }
   }
 
-  let preferredRoomIndex: number | null | undefined;
+  /** When set after validation, move existing timetable slots for this class to this room (no-op if there are no slots). */
+  let timetableRoomMoveTarget: number | undefined;
   if (isLead && body.preferred_room_index !== undefined) {
+    const settings = await getTimetableSettings(tenantId);
+    if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
     if (body.preferred_room_index === null || body.preferred_room_index === "") {
-      preferredRoomIndex = null;
+      patch.preferred_room_index = null;
     } else if (typeof body.preferred_room_index === "number" && Number.isFinite(body.preferred_room_index)) {
-      preferredRoomIndex = Math.floor(body.preferred_room_index);
+      const n = Math.floor(body.preferred_room_index);
+      if (n < 0 || n >= settings.room_count) {
+        return NextResponse.json(
+          { error: "preferred_room_index is out of range for this school’s room count." },
+          { status: 400 },
+        );
+      }
+      patch.preferred_room_index = n;
+      timetableRoomMoveTarget = n;
     } else {
       return NextResponse.json({ error: "preferred_room_index must be a number or null." }, { status: 400 });
     }
   }
 
-  if (Object.keys(patch).length === 0 && preferredRoomIndex === undefined) {
+  if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "No valid fields to update." }, { status: 400 });
   }
 
@@ -249,14 +260,9 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       );
     }
 
-    if (isLead && preferredRoomIndex !== undefined && preferredRoomIndex !== null) {
-      const settings = await getTimetableSettings(tenantId);
-      if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
-      if (preferredRoomIndex < 0 || preferredRoomIndex >= settings.room_count) {
-        return NextResponse.json({ error: "preferred_room_index is out of range for this school’s room count." }, { status: 400 });
-      }
+    if (isLead && timetableRoomMoveTarget !== undefined) {
       try {
-        await moveClassTimetableSlotsToRoom(tenantId, classId, preferredRoomIndex);
+        await moveClassTimetableSlotsToRoom(tenantId, classId, timetableRoomMoveTarget);
       } catch (roomErr: unknown) {
         const msg = roomErr instanceof Error ? roomErr.message : "";
         const c = isTimetableConflictError(msg);

@@ -27,12 +27,20 @@ function isMissingPreferredLessonPeriodColumnError(e: { message?: string | null;
   return msg.includes("preferred_lesson_period_index") && msg.includes("schema cache");
 }
 
+function isMissingPreferredRoomIndexColumnError(e: { message?: string | null; details?: string | null; hint?: string | null }): boolean {
+  const msg = [e.message, e.details, e.hint].filter(Boolean).join(" ").toLowerCase();
+  return msg.includes("preferred_room_index") && msg.includes("schema cache");
+}
+
 function formatClassWriteErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   if (isMissingGradeRubricProfileColumnError(e)) {
     return "Database schema is behind: `classes.grade_rubric_profile` is missing from Supabase schema cache. Run the latest migrations, then reload PostgREST schema (or restart Supabase) and retry.";
   }
   if (isMissingPreferredLessonPeriodColumnError(e)) {
     return "Database schema is behind: `classes.preferred_lesson_period_index` is missing from Supabase schema cache. Run migration 0036 (if not applied), execute `NOTIFY pgrst, 'reload schema';` or restart Supabase, then retry.";
+  }
+  if (isMissingPreferredRoomIndexColumnError(e)) {
+    return "Database schema is behind: `classes.preferred_room_index` is missing from Supabase schema cache. Run migration 0037, execute `NOTIFY pgrst, 'reload schema';` or restart Supabase, then retry.";
   }
   return formatErr(e);
 }
@@ -52,6 +60,8 @@ export type ClassRow = {
   /** Educational context: drives class level options (CEFR vs year) and default report rubric. */
   grade_rubric_profile: GradeRubricProfile;
   assigned_teacher_email: string | null;
+  /** Preferred timetable room row (0-based); persisted even when the class has no slots yet. */
+  preferred_room_index: number | null;
   /** Timetable teaching-period index (AM then PM); matches owner timetable period counts. */
   preferred_lesson_period_index: number | null;
   active_weekdays: WeekdayKey[];
@@ -98,6 +108,13 @@ function parsePreferredLessonPeriodIndex(raw: unknown): number | null {
   return Math.floor(n);
 }
 
+function parsePreferredRoomIndex(raw: unknown): number | null {
+  if (raw == null) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return null;
+  return Math.floor(n);
+}
+
 function mapClassRow(raw: Record<string, unknown>): ClassRow {
   return {
     id: raw.id as string,
@@ -111,6 +128,7 @@ function mapClassRow(raw: Record<string, unknown>): ClassRow {
     default_new_report_period: parseDefaultNewReportPeriod(raw.default_new_report_period),
     grade_rubric_profile: parseGradeRubricProfile(raw.grade_rubric_profile, "language"),
     assigned_teacher_email: (raw.assigned_teacher_email as string | null) ?? null,
+    preferred_room_index: parsePreferredRoomIndex(raw.preferred_room_index),
     preferred_lesson_period_index: parsePreferredLessonPeriodIndex(raw.preferred_lesson_period_index),
     active_weekdays: parseActiveWeekdaysFromDb(raw.active_weekdays),
     created_at: raw.created_at as string,
@@ -200,6 +218,7 @@ export async function updateClass(
     default_new_report_period?: ReportPeriod;
     grade_rubric_profile?: GradeRubricProfile;
     assigned_teacher_email?: string | null;
+    preferred_room_index?: number | null;
     preferred_lesson_period_index?: number | null;
     active_weekdays?: WeekdayKey[];
   },
@@ -232,6 +251,9 @@ export async function updateClass(
   if (patch.assigned_teacher_email !== undefined) {
     row.assigned_teacher_email = patch.assigned_teacher_email?.trim().toLowerCase() || null;
   }
+  if (patch.preferred_room_index !== undefined) {
+    row.preferred_room_index = patch.preferred_room_index;
+  }
   if (patch.preferred_lesson_period_index !== undefined) {
     row.preferred_lesson_period_index = patch.preferred_lesson_period_index;
   }
@@ -261,6 +283,12 @@ export async function updateClass(
     if (isMissingPreferredLessonPeriodColumnError(error) && "preferred_lesson_period_index" in attemptRow) {
       const legacy = { ...attemptRow };
       delete legacy.preferred_lesson_period_index;
+      attemptRow = legacy;
+      continue;
+    }
+    if (isMissingPreferredRoomIndexColumnError(error) && "preferred_room_index" in attemptRow) {
+      const legacy = { ...attemptRow };
+      delete legacy.preferred_room_index;
       attemptRow = legacy;
       continue;
     }

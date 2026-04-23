@@ -94,6 +94,8 @@ type ClassDetail = {
   assigned_teacher_last_name?: string | null;
   /** Teaching-period index from school timetable (AM then PM). */
   preferred_lesson_period_index?: number | null;
+  /** Timetable room row (0-based), persisted on the class. */
+  preferred_room_index?: number | null;
   active_weekdays: WeekdayKey[];
 };
 
@@ -351,24 +353,32 @@ export function ClassWorkspace({
           const settings = ttData.settings as
             | { room_count?: unknown; periods_am?: unknown; periods_pm?: unknown }
             | undefined;
-          const roomCount = Number(settings?.room_count ?? 1);
-          setTimetableRoomCount(Number.isFinite(roomCount) && roomCount > 0 ? roomCount : 1);
+          const roomCountRaw = Number(settings?.room_count ?? 1);
+          const rcVal = Number.isFinite(roomCountRaw) && roomCountRaw > 0 ? Math.floor(roomCountRaw) : 1;
+          setTimetableRoomCount(rcVal);
           const am = Number(settings?.periods_am);
           const pm = Number(settings?.periods_pm);
           if (Number.isFinite(am) && am >= 1 && am <= 6) periodsAm = Math.floor(am);
           if (Number.isFinite(pm) && pm >= 1 && pm <= 6) periodsPm = Math.floor(pm);
 
           if (viewerRole === "owner" || viewerRole === "department_head") {
-            const classSlots = Array.isArray(ttData.slots)
-              ? (ttData.slots as TimetableSlotLite[]).filter((s) => s.class_id === classId)
-              : [];
-            const rooms = [
-              ...new Set(classSlots.map((s) => Number(s.room_index)).filter((n) => Number.isFinite(n) && n >= 0)),
-            ];
-            if (rooms.length === 1) {
-              setPreferredRoomNumber(String(rooms[0]! + 1));
-            } else if (rooms.length === 0) {
-              setPreferredRoomNumber("");
+            const stRoom = c.preferred_room_index;
+            const storedRi =
+              typeof stRoom === "number" && Number.isFinite(stRoom) ? Math.floor(stRoom) : null;
+            if (storedRi !== null && storedRi >= 0 && storedRi < rcVal) {
+              setPreferredRoomNumber(String(storedRi + 1));
+            } else {
+              const classSlots = Array.isArray(ttData.slots)
+                ? (ttData.slots as TimetableSlotLite[]).filter((s) => s.class_id === classId)
+                : [];
+              const rooms = [
+                ...new Set(classSlots.map((s) => Number(s.room_index)).filter((n) => Number.isFinite(n) && n >= 0)),
+              ];
+              if (rooms.length === 1) {
+                setPreferredRoomNumber(String(rooms[0]! + 1));
+              } else {
+                setPreferredRoomNumber("");
+              }
             }
           }
         }
