@@ -12,6 +12,7 @@ import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { mergeTenantCustomSubjectEntries } from "@/lib/data/tenantCustomSubjects";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
+import { isSubjectCode } from "@/lib/subjects";
 import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { getTimetableSettings, isTimetableConflictError, moveClassTimetableSlotsToRoom } from "@/lib/data/timetableDb";
@@ -103,9 +104,17 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   }
 
   const patch: Parameters<typeof updateClass>[2] = {};
-  if (typeof body.name === "string" && isLead) patch.name = body.name;
+  if (typeof body.name === "string" && isLead) {
+    const n = body.name.trim();
+    if (n.length > 30) return NextResponse.json({ error: "Class name must be 30 characters or fewer." }, { status: 400 });
+    patch.name = n;
+  }
   if (isLead && (body.scholastic_year === null || typeof body.scholastic_year === "string")) {
-    patch.scholastic_year = body.scholastic_year === null ? null : (body.scholastic_year as string).trim() || null;
+    const y = body.scholastic_year === null ? null : (body.scholastic_year as string).trim();
+    if (typeof y === "string" && y.length > 15) {
+      return NextResponse.json({ error: "Scholastic year must be 15 characters or fewer." }, { status: 400 });
+    }
+    patch.scholastic_year = y || null;
   }
   if (isLead && body.grade_rubric_profile !== undefined) {
     patch.grade_rubric_profile = parseGradeRubricProfile(body.grade_rubric_profile, klassExisting.grade_rubric_profile);
@@ -122,6 +131,9 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       norm = resolveDefaultSubjectInputToStorage(body.default_subject);
     } catch {
       return NextResponse.json({ error: "Invalid default_subject." }, { status: 400 });
+    }
+    if (!isSubjectCode(norm.toLowerCase()) && norm.length > 40) {
+      return NextResponse.json({ error: "Default subject must be 40 characters or fewer." }, { status: 400 });
     }
     patch.default_subject = norm;
     try {

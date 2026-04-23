@@ -76,8 +76,12 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   }
   const name = typeof body.name === "string" ? body.name.trim() : "";
   if (!name) return NextResponse.json({ error: "name is required." }, { status: 400 });
+  if (name.length > 30) return NextResponse.json({ error: "Class name must be 30 characters or fewer." }, { status: 400 });
 
   const scholasticYear = typeof body.scholastic_year === "string" ? body.scholastic_year.trim() : undefined;
+  if (typeof scholasticYear === "string" && scholasticYear.length > 15) {
+    return NextResponse.json({ error: "Scholastic year must be 15 characters or fewer." }, { status: 400 });
+  }
   const cefrRaw = typeof body.cefr_level === "string" ? body.cefr_level.trim() : "";
   const cefrStored: string | null | undefined =
     typeof body.cefr_level !== "string" ? undefined : cefrRaw === "" ? null : cefrRaw;
@@ -87,6 +91,9 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       default_subject = resolveDefaultSubjectInputToStorage(body.default_subject);
     } catch {
       return NextResponse.json({ error: "Invalid default_subject." }, { status: 400 });
+    }
+    if (!isSubjectCode(default_subject.toLowerCase()) && default_subject.length > 40) {
+      return NextResponse.json({ error: "Default subject must be 40 characters or fewer." }, { status: 400 });
     }
   }
   const normForRubric = default_subject ?? "efl";

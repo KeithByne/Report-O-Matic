@@ -139,6 +139,12 @@ function formatTeacherNameParts(first: string | null | undefined, last: string |
   return null;
 }
 
+function trimDisplayLabel(s: string, maxChars: number): string {
+  const v = s.trim();
+  if (v.length <= maxChars) return v;
+  return `${v.slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`;
+}
+
 export function ClassWorkspace({
   tenantId,
   classId,
@@ -1004,7 +1010,7 @@ export function ClassWorkspace({
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
       ) : null}
 
-      <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
           <FolderKanban className={ICON_SECTION} aria-hidden />
           {t("tenant.sectionMenuTitle")}
@@ -1029,7 +1035,7 @@ export function ClassWorkspace({
       {openClassPanel === "settings" ? (
       <section
         id="class-workspace-panel-settings"
-        className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+        className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
       >
         <h3 className="text-sm font-semibold text-zinc-900">
           <span className="mr-1" aria-hidden>
@@ -1037,7 +1043,7 @@ export function ClassWorkspace({
           </span>
           {t("class.settingsTitle")}
         </h3>
-        <form onSubmit={saveClassSettings} className="mt-4 grid gap-4 sm:grid-cols-2">
+        <form onSubmit={saveClassSettings} className="mt-4 grid gap-4 rounded-xl border border-emerald-100 bg-zinc-50/40 p-4 sm:grid-cols-2">
           {viewerRole === "owner" || viewerRole === "department_head" ? (
             <p className="rounded-lg border border-amber-100 bg-amber-50/80 px-3 py-2 text-xs leading-snug text-zinc-700 sm:col-span-2">
               <span className="font-semibold text-zinc-800">{t("class.tipLabel")}: </span>
@@ -1050,7 +1056,8 @@ export function ClassWorkspace({
               <input
                 value={cName}
                 onChange={(e) => setCName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
+                className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 px-3 py-2"
+                maxLength={30}
                 required
               />
             ) : (
@@ -1069,8 +1076,9 @@ export function ClassWorkspace({
               <input
                 value={scholasticYear}
                 onChange={(e) => setScholasticYear(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
+                className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 px-3 py-2"
                 placeholder={t("class.scholasticPlaceholder")}
+                maxLength={15}
               />
             )}
           </label>
@@ -1080,18 +1088,21 @@ export function ClassWorkspace({
               <select
                 value={cefr}
                 onChange={(e) => setCefr(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="">—</option>
                 {classLevelOptions.map((x) => (
-                  <option key={x} value={x}>
-                    {formatClassLevelOptionLabel(uiLang, x, classGradeRubric)}
+                  <option key={x} value={x} title={formatClassLevelOptionLabel(uiLang, x, classGradeRubric)}>
+                    {trimDisplayLabel(formatClassLevelOptionLabel(uiLang, x, classGradeRubric), 15)}
                   </option>
                 ))}
               </select>
             ) : (
-              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
-                {cefr.trim() ? formatClassLevelOptionLabel(uiLang, cefr, classGradeRubric) : "—"}
+              <p
+                className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800"
+                title={cefr.trim() ? formatClassLevelOptionLabel(uiLang, cefr, classGradeRubric) : ""}
+              >
+                {cefr.trim() ? trimDisplayLabel(formatClassLevelOptionLabel(uiLang, cefr, classGradeRubric), 15) : "—"}
               </p>
             )}
           </label>
@@ -1105,9 +1116,10 @@ export function ClassWorkspace({
                   onChange={(e) => setDefSubject(e.target.value)}
                   disabled={busy !== null || subjectListBusy}
                   placeholder={t("tenant.defineSubjectNamePlaceholder")}
-                  className="mt-1 w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   autoComplete="off"
                   aria-label={t("class.defaultSubject")}
+                  maxLength={40}
                 />
                 {GRADE_RUBRIC_PROFILES.map((rp) => (
                   <datalist id={`class-workspace-subject-${tenantId}-${classId}-${rp}`} key={rp}>
@@ -1169,12 +1181,12 @@ export function ClassWorkspace({
                 <select
                   value={lessonPeriodSelect}
                   onChange={(e) => setLessonPeriodSelect(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
                   <option value="">{t("class.lessonPeriodUnset")}</option>
                   {lessonPeriodOptions.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
+                    <option key={o.value} value={o.value} title={o.label}>
+                      {trimDisplayLabel(o.label, 15)}
                     </option>
                   ))}
                 </select>
@@ -1187,22 +1199,26 @@ export function ClassWorkspace({
                   const n = Math.floor(pref);
                   const total = timetablePeriodsAm + timetablePeriodsPm;
                   if (n < 0 || n >= total) return "—";
-                  return labelForLessonPeriodIndex(timetablePeriodsAm, timetablePeriodsPm, n, t);
+                  return trimDisplayLabel(labelForLessonPeriodIndex(timetablePeriodsAm, timetablePeriodsPm, n, t), 15);
                 })()}
               </p>
             )}
           </label>
           <label className="text-sm sm:col-span-2">
-            <span className="text-zinc-600">{t("class.defaultNewReportKind")}</span>
+            <span className="text-zinc-600">Reports per Course</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <>
                 <select
                   value={defNewReportKind}
                   onChange={(e) => setDefNewReportKind(e.target.value as ReportKind)}
-                  className="mt-1 w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
-                  <option value="standard">{t("class.reportKindStandard")}</option>
-                  <option value="short_course">{t("class.reportKindShortCourse")}</option>
+                  <option value="standard" title={t("class.reportKindStandard")}>
+                    {trimDisplayLabel(t("class.reportKindStandard"), 30)}
+                  </option>
+                  <option value="short_course" title={t("class.reportKindShortCourse")}>
+                    {trimDisplayLabel(t("class.reportKindShortCourse"), 30)}
+                  </option>
                 </select>
                 <p className="mt-1 text-xs text-zinc-500">{t("class.defaultNewReportKindHint")}</p>
               </>
@@ -1279,13 +1295,19 @@ export function ClassWorkspace({
               <select
                 value={assignTeacher}
                 onChange={(e) => setAssignTeacher(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="mt-2 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 aria-labelledby="class-teacher-heading"
               >
                 <option value="">{t("class.notAssigned")}</option>
                 {assignTeacher && !teachers.some((x) => x.email === assignTeacher) ? (
-                  <option value={assignTeacher}>
-                    {assignedTeacherLabelInSettings ?? t("class.teacherNameNotSet")} {t("class.currentSuffix")}
+                  <option
+                    value={assignTeacher}
+                    title={`${assignedTeacherLabelInSettings ?? t("class.teacherNameNotSet")} ${t("class.currentSuffix")}`}
+                  >
+                    {trimDisplayLabel(
+                      `${assignedTeacherLabelInSettings ?? t("class.teacherNameNotSet")} ${t("class.currentSuffix")}`,
+                      30,
+                    )}
                   </option>
                 ) : null}
                 {teachers.map((x) => {
@@ -1299,9 +1321,8 @@ export function ClassWorkspace({
                           ? ` — ${t("roster.roleTeacher")}`
                           : "";
                   return (
-                    <option key={x.email} value={x.email}>
-                      {name}
-                      {roleSuffix}
+                    <option key={x.email} value={x.email} title={`${name}${roleSuffix}`}>
+                      {trimDisplayLabel(`${name}${roleSuffix}`, 30)}
                     </option>
                   );
                 })}
@@ -1311,7 +1332,9 @@ export function ClassWorkspace({
           ) : detail?.assigned_teacher_email ? (
             <div className="sm:col-span-2">
               <h4 className="text-sm font-semibold text-zinc-900">{t("class.teacherHeading")}</h4>
-              <p className="mt-1 text-sm text-zinc-700">{assignedTeacherLabelInSettings}</p>
+              <p className="mt-1 text-sm text-zinc-700" title={assignedTeacherLabelInSettings ?? ""}>
+                {trimDisplayLabel(assignedTeacherLabelInSettings ?? "—", 30)}
+              </p>
             </div>
           ) : null}
           <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
@@ -1342,7 +1365,7 @@ export function ClassWorkspace({
       {openClassPanel === "students" ? (
       <section
         id="class-workspace-panel-students"
-        className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+        className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
       >
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <Link
@@ -1569,7 +1592,7 @@ export function ClassWorkspace({
       {openClassPanel === "bulkDownload" ? (
         <section
           id="class-workspace-panel-bulkDownload"
-          className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+          className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
         >
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.printClassReports")}</h3>
           <p className="mt-1 text-xs text-zinc-500">{t("class.bulkDownloadPanelHint")}</p>
@@ -1615,7 +1638,7 @@ export function ClassWorkspace({
       {openClassPanel === "movePupil" && (viewerRole === "owner" || viewerRole === "department_head") ? (
         <section
           id="class-workspace-panel-movePupil"
-          className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+          className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
         >
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.movePupilSectionTitle")}</h3>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -1669,7 +1692,7 @@ export function ClassWorkspace({
       {openClassPanel === "registerPreview" ? (
         <section
           id="class-workspace-panel-registerPreview"
-          className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+          className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
         >
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.registerPreviewTitle")}</h3>
           <p className="mt-1 text-xs text-zinc-500">{t("class.registerPreviewHint")}</p>

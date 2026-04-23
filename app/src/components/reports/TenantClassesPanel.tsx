@@ -287,7 +287,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       {loadError ? (
         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
       ) : null}
-      <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
           <BookOpen className={ICON_SECTION} aria-hidden />
           {t("tenant.classesTitle")}
@@ -295,7 +295,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
         {isLead ? (
           <form
             onSubmit={addClass}
-            className="mt-4 space-y-4 rounded-xl border-2 border-emerald-400 bg-gradient-to-b from-emerald-50/90 to-white p-4 shadow-sm ring-1 ring-emerald-200/80 sm:p-5"
+            className="mt-4 space-y-4 rounded-xl border border-emerald-200 bg-zinc-50/40 p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5"
           >
             <div className="border-t border-emerald-200/80 pt-4">
               <label className="block text-sm">
@@ -306,9 +306,10 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   onChange={(e) => setNewClassDefaultSubject(e.target.value)}
                   disabled={busy !== null || subjectListBusy}
                   placeholder={t("tenant.defineSubjectNamePlaceholder")}
-                  className="mt-2 block w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  className="mt-2 block w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   autoComplete="off"
                   aria-label={t("tenant.addClassStep2Subject")}
+                  maxLength={40}
                 />
                 {GRADE_RUBRIC_PROFILES.map((rp) => (
                   <datalist id={`tenant-new-class-subject-${tenantId}-${rp}`} key={rp}>
@@ -371,6 +372,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                               disabled={subjectListBusy}
                               className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm"
                               autoComplete="off"
+                              maxLength={40}
                             />
                           </label>
                           <button
@@ -408,8 +410,9 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
                   disabled={busy !== null}
-                  className="mt-2 block w-full max-w-xl rounded-lg border border-emerald-200 px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  className="mt-2 block w-full max-w-md rounded-lg border border-emerald-200 px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   placeholder={t("tenant.newClassPlaceholder")}
+                  maxLength={30}
                 />
               </label>
               <div className="mt-4">
