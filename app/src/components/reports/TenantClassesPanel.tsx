@@ -317,15 +317,13 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                     ))}
                   </datalist>
                 ))}
-                <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
                 <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3">
-                  <p className="text-xs font-semibold text-zinc-800">{t("class.schoolSubjectsCardTitle")}</p>
-                  <p className="mt-1 text-xs text-zinc-600">{t("class.schoolSubjectsCardHint")}</p>
+                  <p className="text-xs font-semibold text-zinc-800">Delete Custom Subject</p>
                   {customsForCurrentRubric.length > 0 ? (
                     <>
                       <div className="mt-3 flex flex-wrap items-end gap-2">
                         <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
-                          <span className="block">{t("class.chooseSubjectFromList")}</span>
+                          <span className="block">Delete Custom Subject</span>
                           <select
                             value={selectedCustomSchoolSubject}
                             onChange={(e) => {

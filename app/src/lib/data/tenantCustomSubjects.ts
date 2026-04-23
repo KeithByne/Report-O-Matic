@@ -134,7 +134,7 @@ export async function renameTenantCustomSubjectName(
   await rewriteDefaultSubjectForTenantClasses(tenantId, from, normTo);
 }
 
-/** Removes a custom subject from the school list and resets matching class defaults to `efl`. */
+/** Removes a custom subject from the school list and marks matching class defaults for re-definition. */
 export async function removeTenantCustomSubjectName(tenantId: string, name: string): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
@@ -149,5 +149,5 @@ export async function removeTenantCustomSubjectName(tenantId: string, name: stri
   const { error } = await supabase.from("tenants").update({ custom_subjects: nextList }).eq("id", tenantId);
   if (error) throw new Error(formatErr(error));
 
-  await rewriteDefaultSubjectForTenantClasses(tenantId, n, "efl");
+  await rewriteDefaultSubjectForTenantClasses(tenantId, n, "Subject to be Defined");
 }
