@@ -25,6 +25,7 @@ import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { reportLanguageOptionLabel } from "@/lib/i18n/uiStrings";
 import type { RomRole } from "@/lib/data/memberships";
+import { GRADE_RUBRIC_PROFILES, gradeRubricProfileDisplayLabel, parseGradeRubricProfile, type GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
 
@@ -50,6 +51,8 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const [lang, setLang] = useState<ReportLanguageCode>("en");
+  const [schoolGradeRubric, setSchoolGradeRubric] = useState<GradeRubricProfile>("language");
+  const [openOwnerEducationCard, setOpenOwnerEducationCard] = useState(false);
   const [teacherOnlyFinal, setTeacherOnlyFinal] = useState(false);
   const [bulkGroupBy, setBulkGroupBy] = useState<"term" | "teacher" | "class" | "student">("term");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -83,6 +86,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
         const code = sData.default_report_language as ReportLanguageCode;
         if (REPORT_LANGUAGES.some((x) => x.code === code)) setLang(code);
       }
+      setSchoolGradeRubric(parseGradeRubricProfile(sData.default_grade_rubric_profile, "language"));
     } catch (e: unknown) {
       setLoadError(e instanceof Error ? e.message : t("common.loadFailed"));
     }
@@ -135,6 +139,24 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ default_report_language: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("tenant.errSaveSettings"));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function saveSchoolEducationType(next: GradeRubricProfile) {
+    setSchoolGradeRubric(next);
+    setBusy("education");
+    try {
+      const res = await fetch(`${base}/settings`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ default_grade_rubric_profile: next }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("tenant.errSaveSettings"));
@@ -232,8 +254,38 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
               {t("dash.panelInviteTeam")}
             </Link>
           ) : null}
+          {viewerRole === "owner" ? (
+            <button
+              type="button"
+              onClick={() => setOpenOwnerEducationCard((v) => !v)}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+            >
+              School education type
+            </button>
+          ) : null}
         </nav>
       </section>
+
+      {viewerRole === "owner" && openOwnerEducationCard ? (
+        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">School education type</h2>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <select
+              value={schoolGradeRubric}
+              onChange={(e) => void saveSchoolEducationType(parseGradeRubricProfile(e.target.value, "language"))}
+              disabled={busy !== null}
+              className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600"
+            >
+              {GRADE_RUBRIC_PROFILES.map((rp) => (
+                <option key={rp} value={rp}>
+                  {gradeRubricProfileDisplayLabel(t, rp)}
+                </option>
+              ))}
+            </select>
+            {busy === "education" ? <span className="text-xs text-zinc-500">{t("tenant.saving")}</span> : null}
+          </div>
+        </section>
+      ) : null}
 
       {loadError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>

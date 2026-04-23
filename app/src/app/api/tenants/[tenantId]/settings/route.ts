@@ -11,6 +11,7 @@ import {
 } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
@@ -39,7 +40,7 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     const { data, error } = await supabase
       .from("tenants")
       .select(
-        "default_report_language, pdf_letterhead_name, pdf_letterhead_tagline, pdf_letterhead_address, pdf_letterhead_contact, pdf_letterhead_logo_path",
+        "default_report_language, default_grade_rubric_profile, pdf_letterhead_name, pdf_letterhead_tagline, pdf_letterhead_address, pdf_letterhead_contact, pdf_letterhead_logo_path",
       )
       .eq("id", tenantId)
       .maybeSingle();
@@ -51,6 +52,7 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     const rawLang = row.default_report_language;
     const default_report_language =
       typeof rawLang === "string" && isReportLanguageCode(rawLang.trim()) ? rawLang.trim() : "en";
+    const default_grade_rubric_profile = parseGradeRubricProfile(row.default_grade_rubric_profile, "language");
     const logoPath = typeof row.pdf_letterhead_logo_path === "string" ? row.pdf_letterhead_logo_path.trim() : "";
     const lh = {
       name: typeof row.pdf_letterhead_name === "string" ? row.pdf_letterhead_name : null,
@@ -62,6 +64,7 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
 
     return NextResponse.json({
       default_report_language,
+      default_grade_rubric_profile,
       pdf_letterhead: lh,
     });
   } catch (e: unknown) {
@@ -80,6 +83,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
 
   let body: {
     default_report_language?: unknown;
+    default_grade_rubric_profile?: unknown;
     pdf_letterhead?: unknown;
   };
   try {
@@ -89,9 +93,10 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   }
 
   const hasLang = typeof body.default_report_language === "string" && body.default_report_language.trim().length > 0;
+  const hasGradeRubric = body.default_grade_rubric_profile !== undefined;
   const hasLh = body.pdf_letterhead !== undefined && body.pdf_letterhead !== null;
 
-  if (!hasLang && !hasLh) {
+  if (!hasLang && !hasGradeRubric && !hasLh) {
     return NextResponse.json({ error: "No recognised fields to update." }, { status: 400 });
   }
 
@@ -101,6 +106,9 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
 
   if (hasLh && role !== "owner") {
     return NextResponse.json({ error: "Only the account owner can edit PDF letterhead." }, { status: 403 });
+  }
+  if (hasGradeRubric && role !== "owner") {
+    return NextResponse.json({ error: "Only the account owner can change school education type." }, { status: 403 });
   }
 
   try {
@@ -116,6 +124,33 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       default_report_language = await setTenantDefaultReportLanguage(tenantId, raw);
     } else {
       default_report_language = await getTenantDefaultReportLanguage(tenantId);
+    }
+
+    let default_grade_rubric_profile = "language";
+    if (hasGradeRubric) {
+      const next = parseGradeRubricProfile(body.default_grade_rubric_profile, "language");
+      const supabase = getServiceSupabase();
+      if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
+      const { data: row, error: rubErr } = await supabase
+        .from("tenants")
+        .update({ default_grade_rubric_profile: next })
+        .eq("id", tenantId)
+        .select("default_grade_rubric_profile")
+        .single();
+      if (rubErr) throw new Error(rubErr.message);
+      const rec = row as Record<string, unknown>;
+      default_grade_rubric_profile = parseGradeRubricProfile(rec.default_grade_rubric_profile, "language");
+    } else {
+      const supabase = getServiceSupabase();
+      if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
+      const { data: row, error: rubErr } = await supabase
+        .from("tenants")
+        .select("default_grade_rubric_profile")
+        .eq("id", tenantId)
+        .maybeSingle();
+      if (rubErr) throw new Error(rubErr.message);
+      const rec = row as Record<string, unknown> | null;
+      default_grade_rubric_profile = parseGradeRubricProfile(rec?.default_grade_rubric_profile, "language");
     }
 
     let pdf_letterhead = await getTenantPdfLetterhead(tenantId);
@@ -136,6 +171,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
 
     return NextResponse.json({
       default_report_language,
+      default_grade_rubric_profile,
       pdf_letterhead: {
         name: pdf_letterhead.pdf_letterhead_name,
         tagline: pdf_letterhead.pdf_letterhead_tagline,

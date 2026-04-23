@@ -11,6 +11,7 @@ import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import { isSubjectCode } from "@/lib/subjects";
 import { listStudents } from "@/lib/data/students";
+import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -108,6 +109,23 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       { status: 400 },
     );
   }
+
+  let tenantDefaultRubric = parseGradeRubricProfile(undefined, "language");
+  try {
+    const supabase = getServiceSupabase();
+    if (supabase) {
+      const { data: tenantRow, error: tenantErr } = await supabase
+        .from("tenants")
+        .select("default_grade_rubric_profile")
+        .eq("id", tenantId)
+        .maybeSingle();
+      if (tenantErr) throw tenantErr;
+      const rec = tenantRow as Record<string, unknown> | null;
+      tenantDefaultRubric = parseGradeRubricProfile(rec?.default_grade_rubric_profile, "language");
+    }
+  } catch {
+    tenantDefaultRubric = parseGradeRubricProfile(undefined, "language");
+  }
   const default_output_language =
     typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language)
       ? (body.default_output_language as ReportLanguageCode)
@@ -131,7 +149,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       scholasticYear: scholasticYear ?? null,
       cefrLevel: cefrStored === undefined ? undefined : cefrStored,
       defaultSubject: default_subject,
-      gradeRubricProfile: classRubricFromBody,
+      gradeRubricProfile: classRubricFromBody ?? tenantDefaultRubric,
       defaultOutputLanguage: default_output_language,
       assignedTeacherEmail: assignedTeacher,
     });

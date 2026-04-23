@@ -693,7 +693,7 @@ const EN: UiMessages = {
   "timetable.cancel": "Cancel",
   "timetable.emptyCell": "Empty",
   "timetable.loadError": "Could not load timetable.",
-  "timetable.noClasses": "Create classes in Reports first.",
+  "timetable.noClasses": "",
   "timetable.noTeachers": "Invite teachers from the dashboard first.",
   "timetable.noTeacherTimetableYet": "No teachers with timetable entries yet.",
   "timetable.teacherFromClassHint":
@@ -1057,8 +1057,7 @@ const EN: UiMessages = {
   "billing.continueToSchool": "Continue to {school}",
   "billing.backBilling": "Back to billing",
   "dash.tenantLangTitle": "Default report language (per school)",
-  "dash.tenantLangHint":
-    "Applies to new classes and reports unless overridden on the class or individual report. Owners and department heads can change this; teachers see the current default read-only.",
+  "dash.tenantLangHint": "Default language for this school.",
   "invite.headingOwner": "Invite to {school}",
   "invite.headingDh": "Invite teachers — {school}",
   "invite.descriptionOwner":
