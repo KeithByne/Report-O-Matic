@@ -60,6 +60,10 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
   const [newClassGradeRubric, setNewClassGradeRubric] = useState<GradeRubricProfile>("language");
   const [newClassDefaultSubject, setNewClassDefaultSubject] = useState("");
   const [customSubjectRows, setCustomSubjectRows] = useState<{ name: string; rubric_profile: GradeRubricProfile }[]>([]);
+  const [selectedCustomSchoolSubject, setSelectedCustomSchoolSubject] = useState("");
+  const [editingCustomSubject, setEditingCustomSubject] = useState<string | null>(null);
+  const [editCustomDraft, setEditCustomDraft] = useState("");
+  const [subjectListBusy, setSubjectListBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [bulkTerm, setBulkTerm] = useState<"first" | "second" | "third">("first");
@@ -138,6 +142,10 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
   );
 
   const newClassSubjectListId = `tenant-new-class-subject-${tenantId}-${newClassGradeRubric}`;
+  const customsForCurrentRubric = useMemo(
+    () => customSubjectRows.filter((r) => r.rubric_profile === newClassGradeRubric),
+    [customSubjectRows, newClassGradeRubric],
+  );
 
   useEffect(() => {
     if (!active || !isLead) return;
@@ -222,6 +230,56 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     }
   }
 
+  async function renameCustomSchoolSubject(oldName: string) {
+    let normalized: string;
+    try {
+      normalized = resolveDefaultSubjectInputToStorage(editCustomDraft);
+    } catch {
+      alert(t("class.invalidSubject"));
+      return;
+    }
+    setSubjectListBusy(true);
+    try {
+      const res = await fetch(`${base}/subject-options`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ old_name: oldName, new_name: normalized, rubric_profile: newClassGradeRubric }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectRenameFailed"));
+      setEditingCustomSubject(null);
+      setEditCustomDraft("");
+      setSelectedCustomSchoolSubject("");
+      await loadSubjectAccountOptions();
+      await refresh();
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("class.subjectRenameFailed"));
+    } finally {
+      setSubjectListBusy(false);
+    }
+  }
+
+  async function deleteCustomSchoolSubject(name: string) {
+    if (!confirm(t("class.confirmDeleteCustomSubject", { name }))) return;
+    setSubjectListBusy(true);
+    try {
+      const res = await fetch(`${base}/subject-options?name=${encodeURIComponent(name)}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectDeleteFailed"));
+      setEditingCustomSubject(null);
+      setEditCustomDraft("");
+      setSelectedCustomSchoolSubject("");
+      await loadSubjectAccountOptions();
+      await refresh();
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("class.subjectDeleteFailed"));
+    } finally {
+      setSubjectListBusy(false);
+    }
+  }
+
   if (!active) return null;
 
   return (
@@ -246,7 +304,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   list={newClassSubjectListId}
                   value={newClassDefaultSubject}
                   onChange={(e) => setNewClassDefaultSubject(e.target.value)}
-                  disabled={busy !== null}
+                  disabled={busy !== null || subjectListBusy}
                   placeholder={t("tenant.defineSubjectNamePlaceholder")}
                   className="mt-2 block w-full max-w-xl rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   autoComplete="off"
@@ -260,6 +318,90 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   </datalist>
                 ))}
                 <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
+                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3">
+                  <p className="text-xs font-semibold text-zinc-800">{t("class.schoolSubjectsCardTitle")}</p>
+                  <p className="mt-1 text-xs text-zinc-600">{t("class.schoolSubjectsCardHint")}</p>
+                  {customsForCurrentRubric.length > 0 ? (
+                    <>
+                      <div className="mt-3 flex flex-wrap items-end gap-2">
+                        <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
+                          <span className="block">{t("class.chooseSubjectFromList")}</span>
+                          <select
+                            value={selectedCustomSchoolSubject}
+                            onChange={(e) => {
+                              setSelectedCustomSchoolSubject(e.target.value);
+                              setEditingCustomSubject(null);
+                              setEditCustomDraft("");
+                            }}
+                            disabled={subjectListBusy}
+                            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm text-zinc-900"
+                          >
+                            <option value="">{t("class.selectSubjectInList")}</option>
+                            {customsForCurrentRubric.map((row) => (
+                              <option key={row.name} value={row.name}>
+                                {row.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <button
+                          type="button"
+                          disabled={subjectListBusy || !selectedCustomSchoolSubject}
+                          onClick={() => void deleteCustomSchoolSubject(selectedCustomSchoolSubject)}
+                          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-900 disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          {t("class.deleteSubject")}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={subjectListBusy || !selectedCustomSchoolSubject}
+                          onClick={() => {
+                            setEditingCustomSubject(selectedCustomSchoolSubject);
+                            setEditCustomDraft(selectedCustomSchoolSubject);
+                          }}
+                          className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-800 disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          {t("class.renameSelectedSubject")}
+                        </button>
+                      </div>
+                      {editingCustomSubject ? (
+                        <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-zinc-200 pt-3">
+                          <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
+                            <span className="block">{t("class.newNameForSubject")}</span>
+                            <input
+                              value={editCustomDraft}
+                              onChange={(e) => setEditCustomDraft(e.target.value)}
+                              disabled={subjectListBusy}
+                              className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm"
+                              autoComplete="off"
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            disabled={subjectListBusy}
+                            onClick={() => void renameCustomSchoolSubject(editingCustomSubject)}
+                            className="rounded-lg border border-emerald-600 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900 disabled:opacity-50"
+                          >
+                            {t("class.saveCustomSubjectRename")}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={subjectListBusy}
+                            onClick={() => {
+                              setEditingCustomSubject(null);
+                              setEditCustomDraft("");
+                            }}
+                            className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700 disabled:opacity-50"
+                          >
+                            {t("class.cancelCustomSubjectRename")}
+                          </button>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    <p className="mt-2 text-xs text-zinc-500">{t("class.noCustomSubjectsForEducationType")}</p>
+                  )}
+                </div>
               </label>
             </div>
             <div className="border-t border-emerald-200/80 pt-4">

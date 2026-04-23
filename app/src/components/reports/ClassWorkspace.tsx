@@ -232,11 +232,6 @@ export function ClassWorkspace({
   const [scholasticYear, setScholasticYear] = useState("");
   const [cefr, setCefr] = useState("");
   const [defSubject, setDefSubject] = useState("");
-  const [editingCustomSubject, setEditingCustomSubject] = useState<string | null>(null);
-  const [editCustomDraft, setEditCustomDraft] = useState("");
-  const [subjectListBusy, setSubjectListBusy] = useState(false);
-  /** Custom subject chosen in the manage dropdown (remove / rename). */
-  const [selectedCustomSchoolSubject, setSelectedCustomSchoolSubject] = useState("");
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [defNewReportKind, setDefNewReportKind] = useState<ReportKind>("standard");
   const [defNewReportPeriod, setDefNewReportPeriod] = useState<ReportPeriod>("first");
@@ -255,11 +250,6 @@ export function ClassWorkspace({
   const subjectDatalistLabels = useMemo(
     () => subjectSuggestionLabelsForRubric(classGradeRubric, customSubjectRows, uiLang),
     [classGradeRubric, customSubjectRows, uiLang],
-  );
-
-  const customsForClassRubric = useMemo(
-    () => customSubjectRows.filter((r) => r.rubric_profile === classGradeRubric),
-    [customSubjectRows, classGradeRubric],
   );
 
   const loadClassRequestId = useRef(0);
@@ -414,79 +404,6 @@ export function ClassWorkspace({
       setLoadError(e instanceof Error ? e.message : t("class.errLoadClass"));
     }
   }, [base, classId, t, uiLang]);
-
-  const renameCustomSchoolSubject = useCallback(
-    async (oldName: string) => {
-      let normalized: string;
-      try {
-        normalized = resolveDefaultSubjectInputToStorage(editCustomDraft);
-      } catch {
-        alert(t("class.invalidSubject"));
-        return;
-      }
-      setSubjectListBusy(true);
-      try {
-        const res = await fetch(`${base}/subject-options`, {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ old_name: oldName, new_name: normalized, rubric_profile: classGradeRubric }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectRenameFailed"));
-        if (defSubject.trim().toLowerCase() === oldName.trim().toLowerCase())
-          setDefSubject(subjectFieldDisplayValueFromStored(normalized, uiLang));
-        setEditingCustomSubject(null);
-        setEditCustomDraft("");
-        setSelectedCustomSchoolSubject("");
-        await refreshSubjectAccountOptions();
-        await loadClass();
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, {
-              detail: { tenantId, classId },
-            }),
-          );
-        }
-        router.refresh();
-      } catch (e: unknown) {
-        alert(e instanceof Error ? e.message : t("class.subjectRenameFailed"));
-      } finally {
-        setSubjectListBusy(false);
-      }
-    },
-    [base, classId, classGradeRubric, defSubject, editCustomDraft, loadClass, refreshSubjectAccountOptions, router, t, tenantId, uiLang],
-  );
-
-  const deleteCustomSchoolSubject = useCallback(
-    async (name: string) => {
-      if (!window.confirm(t("class.confirmDeleteCustomSubject", { name }))) return;
-      setSubjectListBusy(true);
-      try {
-        const res = await fetch(`${base}/subject-options?name=${encodeURIComponent(name)}`, { method: "DELETE" });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error((data as { error?: string }).error || t("class.subjectDeleteFailed"));
-        if (defSubject.trim().toLowerCase() === name.trim().toLowerCase()) setDefSubject("");
-        setEditingCustomSubject(null);
-        setEditCustomDraft("");
-        setSelectedCustomSchoolSubject("");
-        await refreshSubjectAccountOptions();
-        await loadClass();
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, {
-              detail: { tenantId, classId },
-            }),
-          );
-        }
-        router.refresh();
-      } catch (e: unknown) {
-        alert(e instanceof Error ? e.message : t("class.subjectDeleteFailed"));
-      } finally {
-        setSubjectListBusy(false);
-      }
-    },
-    [base, classId, defSubject, loadClass, refreshSubjectAccountOptions, router, t, tenantId],
-  );
 
   const refreshOrgStudents = useCallback(async () => {
     try {
@@ -1044,9 +961,8 @@ export function ClassWorkspace({
                   list={`class-subject-dl-${classId}`}
                   value={defSubject}
                   onChange={(e) => setDefSubject(e.target.value)}
-                  disabled={subjectListBusy}
                   placeholder={t("tenant.defineSubjectNamePlaceholder")}
-                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
+                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                   autoComplete="off"
                 />
                 <datalist id={`class-subject-dl-${classId}`}>
@@ -1055,90 +971,6 @@ export function ClassWorkspace({
                   ))}
                 </datalist>
                 <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
-                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3">
-                  <p className="text-xs font-semibold text-zinc-800">{t("class.schoolSubjectsCardTitle")}</p>
-                  <p className="mt-1 text-xs text-zinc-600">{t("class.schoolSubjectsCardHint")}</p>
-                  {customsForClassRubric.length > 0 ? (
-                    <>
-                      <div className="mt-3 flex flex-wrap items-end gap-2">
-                        <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
-                          <span className="block">{t("class.chooseSubjectFromList")}</span>
-                          <select
-                            value={selectedCustomSchoolSubject}
-                            onChange={(e) => {
-                              setSelectedCustomSchoolSubject(e.target.value);
-                              setEditingCustomSubject(null);
-                              setEditCustomDraft("");
-                            }}
-                            disabled={subjectListBusy}
-                            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm text-zinc-900"
-                          >
-                            <option value="">{t("class.selectSubjectInList")}</option>
-                            {customsForClassRubric.map((row) => (
-                              <option key={row.name} value={row.name}>
-                                {row.name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <button
-                          type="button"
-                          disabled={subjectListBusy || !selectedCustomSchoolSubject}
-                          onClick={() => void deleteCustomSchoolSubject(selectedCustomSchoolSubject)}
-                          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-900 disabled:cursor-not-allowed disabled:opacity-45"
-                        >
-                          {t("class.deleteSubject")}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={subjectListBusy || !selectedCustomSchoolSubject}
-                          onClick={() => {
-                            setEditingCustomSubject(selectedCustomSchoolSubject);
-                            setEditCustomDraft(selectedCustomSchoolSubject);
-                          }}
-                          className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-800 disabled:cursor-not-allowed disabled:opacity-45"
-                        >
-                          {t("class.renameSelectedSubject")}
-                        </button>
-                      </div>
-                      {editingCustomSubject ? (
-                        <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-zinc-200 pt-3">
-                          <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
-                            <span className="block">{t("class.newNameForSubject")}</span>
-                            <input
-                              value={editCustomDraft}
-                              onChange={(e) => setEditCustomDraft(e.target.value)}
-                              disabled={subjectListBusy}
-                              className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm"
-                              autoComplete="off"
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            disabled={subjectListBusy}
-                            onClick={() => void renameCustomSchoolSubject(editingCustomSubject)}
-                            className="rounded-lg border border-emerald-600 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900 disabled:opacity-50"
-                          >
-                            {t("class.saveCustomSubjectRename")}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={subjectListBusy}
-                            onClick={() => {
-                              setEditingCustomSubject(null);
-                              setEditCustomDraft("");
-                            }}
-                            className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700 disabled:opacity-50"
-                          >
-                            {t("class.cancelCustomSubjectRename")}
-                          </button>
-                        </div>
-                      ) : null}
-                    </>
-                  ) : (
-                    <p className="mt-2 text-xs text-zinc-500">{t("class.noCustomSubjectsForEducationType")}</p>
-                  )}
-                </div>
               </>
             ) : (
               <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
