@@ -7,6 +7,13 @@ function formatErr(e: { message: string; details?: string | null; hint?: string 
   return parts.join(" — ") || "Database error.";
 }
 
+const LEGACY_WEEKDAYS: WeekdayKey[] = ["mon", "tue", "wed", "thu", "fri"];
+
+function isMissingSchoolWeekdaysColumnError(e: { message?: string | null; details?: string | null; hint?: string | null }): boolean {
+  const msg = [e.message, e.details, e.hint].filter(Boolean).join(" ").toLowerCase();
+  return msg.includes("timetable_school_weekdays") && msg.includes("does not exist");
+}
+
 export type TimetableSettings = {
   room_count: number;
   periods_am: number;
@@ -37,7 +44,27 @@ export async function getTimetableSettings(tenantId: string): Promise<TimetableS
     .select(tenantTimetableSelect)
     .eq("id", tenantId)
     .maybeSingle();
-  if (error) throw new Error(formatErr(error));
+  if (error && !isMissingSchoolWeekdaysColumnError(error)) throw new Error(formatErr(error));
+  if (error && isMissingSchoolWeekdaysColumnError(error)) {
+    const { data: legacyData, error: legacyError } = await supabase
+      .from("tenants")
+      .select("timetable_room_count, timetable_periods_am, timetable_periods_pm")
+      .eq("id", tenantId)
+      .maybeSingle();
+    if (legacyError) throw new Error(formatErr(legacyError));
+    if (!legacyData) return null;
+    const legacyRow = legacyData as {
+      timetable_room_count: number;
+      timetable_periods_am: number;
+      timetable_periods_pm: number;
+    };
+    return {
+      room_count: Number(legacyRow.timetable_room_count),
+      periods_am: Number(legacyRow.timetable_periods_am),
+      periods_pm: Number(legacyRow.timetable_periods_pm),
+      school_weekdays: LEGACY_WEEKDAYS,
+    };
+  }
   if (!data) return null;
   const row = data as {
     timetable_room_count: number;
@@ -86,7 +113,18 @@ export async function updateTimetableSettings(
       timetable_school_weekdays: school_weekdays,
     })
     .eq("id", tenantId);
-  if (upErr) throw new Error(formatErr(upErr));
+  if (upErr && !isMissingSchoolWeekdaysColumnError(upErr)) throw new Error(formatErr(upErr));
+  if (upErr && isMissingSchoolWeekdaysColumnError(upErr)) {
+    const { error: legacyUpErr } = await supabase
+      .from("tenants")
+      .update({
+        timetable_room_count: room_count,
+        timetable_periods_am: periods_am,
+        timetable_periods_pm: periods_pm,
+      })
+      .eq("id", tenantId);
+    if (legacyUpErr) throw new Error(formatErr(legacyUpErr));
+  }
 
   const { error: d1 } = await supabase
     .from("timetable_slots")
