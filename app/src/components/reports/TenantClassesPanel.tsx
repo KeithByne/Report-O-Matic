@@ -339,17 +339,6 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   className="min-w-0 flex-1 rounded-lg py-0.5 text-left outline-none ring-emerald-500/40 transition hover:bg-emerald-50/70 focus-visible:ring-2"
                 >
                   <span className="font-medium text-zinc-900">{c.name}</span>
-                  {(() => {
-                    const ctx = parseGradeRubricProfile(c.grade_rubric_profile, "language");
-                    return (
-                      <span
-                        className="ml-2 inline-flex max-w-[12rem] truncate rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-900"
-                        title={t("tenant.educationalContext")}
-                      >
-                        {gradeRubricProfileDisplayLabel(t, ctx)}
-                      </span>
-                    );
-                  })()}
                   <span className="ml-2 text-sm text-zinc-500">
                     {c.student_count} {c.student_count === 1 ? t("tenant.pupil") : t("tenant.pupils")}
                   </span>

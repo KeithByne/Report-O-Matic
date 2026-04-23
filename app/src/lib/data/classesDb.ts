@@ -17,6 +17,18 @@ function formatErr(e: { message: string; details?: string | null; hint?: string 
   return parts.join(" — ") || "Database error.";
 }
 
+function isMissingGradeRubricProfileColumnError(e: { message?: string | null; details?: string | null; hint?: string | null }): boolean {
+  const msg = [e.message, e.details, e.hint].filter(Boolean).join(" ").toLowerCase();
+  return msg.includes("grade_rubric_profile") && msg.includes("schema cache");
+}
+
+function formatClassWriteErr(e: { message: string; details?: string | null; hint?: string | null }): string {
+  if (isMissingGradeRubricProfileColumnError(e)) {
+    return "Database schema is behind: `classes.grade_rubric_profile` is missing from Supabase schema cache. Run the latest migrations, then reload PostgREST schema (or restart Supabase) and retry.";
+  }
+  return formatErr(e);
+}
+
 export type ClassRow = {
   id: string;
   tenant_id: string;
@@ -133,7 +145,7 @@ export async function insertClass(opts: {
     grade_rubric_profile: opts.gradeRubricProfile ?? "language",
   };
   const { data, error } = await supabase.from("classes").insert(row).select(classSelect).single();
-  if (error) throw new Error(formatErr(error));
+  if (error) throw new Error(formatClassWriteErr(error));
   return mapClassRow(data as Record<string, unknown>);
 }
 
@@ -204,7 +216,7 @@ export async function updateClass(
     .eq("id", classId)
     .select(classSelect)
     .single();
-  if (error) throw new Error(formatErr(error));
+  if (error) throw new Error(formatClassWriteErr(error));
   const updated = mapClassRow(data as Record<string, unknown>);
 
   if (patch.assigned_teacher_email !== undefined) {
