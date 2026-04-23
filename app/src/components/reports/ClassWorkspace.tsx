@@ -291,15 +291,20 @@ export function ClassWorkspace({
       if (!res.ok) return;
       const custRaw = data.custom;
       const rows: { name: string; rubric_profile: GradeRubricProfile }[] = [];
+      const subjectToBeDefinedLower = t("class.subjectToBeDefinedLabel").trim().toLowerCase();
       if (Array.isArray(custRaw)) {
         for (const item of custRaw) {
           if (typeof item === "string") {
             const n = item.trim();
-            if (n) rows.push({ name: n, rubric_profile: "secondary" });
+            const lower = n.toLowerCase();
+            if (n && lower !== "subject to be defined" && lower !== subjectToBeDefinedLower) {
+              rows.push({ name: n, rubric_profile: "secondary" });
+            }
           } else if (item && typeof item === "object") {
             const o = item as Record<string, unknown>;
             const n = typeof o.name === "string" ? o.name.trim() : "";
-            if (n)
+            const lower = n.toLowerCase();
+            if (n && lower !== "subject to be defined" && lower !== subjectToBeDefinedLower)
               rows.push({
                 name: n,
                 rubric_profile: parseGradeRubricProfile(o.rubric_profile, "secondary"),
@@ -313,7 +318,7 @@ export function ClassWorkspace({
     } finally {
       setSubjectListBusy(false);
     }
-  }, [base, canManageClassSettings]);
+  }, [base, canManageClassSettings, t]);
 
   useEffect(() => {
     if (!canManageClassSettings) return;

@@ -31,13 +31,17 @@ export function resolveDefaultSubjectInputToStorage(raw: string, lang?: UiLang):
 /**
  * Text shown in the subject <input> for a stored class default (codes → localized preset titles;
  * legacy unset `efl` → empty so placeholder “Define Subject Name” shows).
+ * Sentinel `Subject to be Defined` is also shown empty so the field stays open for datalist / typing
+ * (stored value is unchanged until the user saves a real subject).
  */
 export function subjectFieldDisplayValueFromStored(raw: unknown, lang: UiLang): string {
   const s = String(raw ?? "").trim();
   if (!s) return "";
   const low = s.toLowerCase();
   if (low === "efl") return "";
-  if (low === "subject to be defined") return translate(lang, "class.subjectToBeDefinedLabel");
+  if (low === "subject to be defined") return "";
+  const undefLab = translate(lang, "class.subjectToBeDefinedLabel").trim().toLowerCase();
+  if (undefLab.length > 0 && low === undefLab) return "";
   if (isSubjectCode(low)) return subjectLabelLocalized(lang, low);
   return s;
 }
