@@ -298,15 +298,15 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
             className="mt-4 space-y-4 rounded-xl border border-emerald-200 bg-zinc-50/40 p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5"
           >
             <div className="border-t border-emerald-200/80 pt-4">
-              <label className="block text-sm">
-                <span className="font-semibold text-zinc-900">{t("tenant.addClassStep2Subject")}</span>
+              <label className="block min-w-0 text-sm">
+                <span className="mb-1 block font-semibold text-zinc-900">{t("tenant.addClassStep2Subject")}</span>
                 <input
                   list={newClassSubjectListId}
                   value={newClassDefaultSubject}
                   onChange={(e) => setNewClassDefaultSubject(e.target.value)}
                   disabled={busy !== null || subjectListBusy}
                   placeholder={t("tenant.defineSubjectNamePlaceholder")}
-                  className="mt-2 block w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  className="mt-0 block w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   autoComplete="off"
                   aria-label={t("tenant.addClassStep2Subject")}
                   maxLength={40}
@@ -323,8 +323,8 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                   {customsForCurrentRubric.length > 0 ? (
                     <>
                       <div className="mt-3 flex flex-wrap items-end gap-2">
-                        <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
-                          <span className="block">{t("class.chooseSubjectFromList")}</span>
+                        <label className="block min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
+                          <span className="mb-1 block">{t("class.chooseSubjectFromList")}</span>
                           <select
                             value={selectedCustomSchoolSubject}
                             onChange={(e) => {
@@ -333,7 +333,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                               setEditCustomDraft("");
                             }}
                             disabled={subjectListBusy}
-                            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm text-zinc-900"
+                            className="block w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm text-zinc-900"
                           >
                             <option value="">{t("class.selectSubjectInList")}</option>
                             {customsForCurrentRubric.map((row) => (
@@ -365,13 +365,13 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                       </div>
                       {editingCustomSubject ? (
                         <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-zinc-200 pt-3">
-                          <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
-                            <span className="block">{t("class.newNameForSubject")}</span>
+                          <label className="block min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
+                            <span className="mb-1 block">{t("class.newNameForSubject")}</span>
                             <input
                               value={editCustomDraft}
                               onChange={(e) => setEditCustomDraft(e.target.value)}
                               disabled={subjectListBusy}
-                              className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm"
+                              className="block w-full rounded-lg border border-zinc-300 bg-white px-2 py-2 text-sm"
                               autoComplete="off"
                               maxLength={40}
                             />
@@ -405,13 +405,13 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
               </label>
             </div>
             <div className="border-t border-emerald-200/80 pt-4">
-              <label className="block text-sm">
-                <span className="font-semibold text-zinc-900">{t("tenant.addClassStep3Name")}</span>
+              <label className="block min-w-0 text-sm">
+                <span className="mb-1 block font-semibold text-zinc-900">{t("tenant.addClassStep3Name")}</span>
                 <input
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
                   disabled={busy !== null}
-                  className="mt-2 block w-full max-w-md rounded-lg border border-emerald-200 px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  className="mt-0 block w-full max-w-md rounded-lg border border-emerald-200 px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   placeholder={t("tenant.newClassPlaceholder")}
                   maxLength={30}
                 />

@@ -247,41 +247,41 @@ export function DashboardTenantPdfLetterhead({
                         </button>
                       ) : null}
                     </div>
-                    <label className="mt-4 block text-sm">
-                      <span className="text-zinc-600">{t("dash.pdfLetterheadTagline")}</span>
+                    <label className="mt-4 block min-w-0 text-sm">
+                      <span className="mb-1 block text-zinc-600">{t("dash.pdfLetterheadTagline")}</span>
                       <input
                         value={f.tagline}
                         onChange={(e) => updateField(ten.tenantId, "tagline", e.target.value)}
-                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                        className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                       />
                     </label>
                   </div>
                   <div className="min-w-0 flex-1 space-y-3">
-                    <label className="block text-sm">
-                      <span className="text-zinc-600">{t("dash.pdfLetterheadName")}</span>
+                    <label className="block min-w-0 text-sm">
+                      <span className="mb-1 block text-zinc-600">{t("dash.pdfLetterheadName")}</span>
                       <input
                         value={f.name}
                         onChange={(e) => updateField(ten.tenantId, "name", e.target.value)}
                         placeholder={ten.tenantName}
-                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                        className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                       />
                     </label>
-                    <label className="block text-sm">
-                      <span className="text-zinc-600">{t("dash.pdfLetterheadAddress")}</span>
+                    <label className="block min-w-0 text-sm">
+                      <span className="mb-1 block text-zinc-600">{t("dash.pdfLetterheadAddress")}</span>
                       <textarea
                         value={f.address}
                         onChange={(e) => updateField(ten.tenantId, "address", e.target.value)}
                         rows={3}
-                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                        className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                       />
                     </label>
-                    <label className="block text-sm">
-                      <span className="text-zinc-600">{t("dash.pdfLetterheadContact")}</span>
+                    <label className="block min-w-0 text-sm">
+                      <span className="mb-1 block text-zinc-600">{t("dash.pdfLetterheadContact")}</span>
                       <input
                         value={f.contact}
                         onChange={(e) => updateField(ten.tenantId, "contact", e.target.value)}
                         placeholder={t("dash.pdfLetterheadContactPlaceholder")}
-                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                        className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                       />
                     </label>
                   </div>

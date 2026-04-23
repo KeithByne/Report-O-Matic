@@ -525,21 +525,21 @@ export function TimetablePageClient({
             {t("dash.timetableRoomsLabel")} · {t("dash.timetablePeriodsAmLabel")} · {t("dash.timetablePeriodsPmLabel")} (1–6 each)
           </p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
-            <label className="flex flex-col text-xs font-medium text-zinc-700">
-              {t("dash.timetableRoomsLabel")}
+            <label className="block min-w-0 text-xs font-medium text-zinc-700">
+              <span className="mb-1 block">{t("dash.timetableRoomsLabel")}</span>
               <input
                 type="number"
                 min={1}
                 max={50}
-                className="mt-1 w-24 rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                className="block w-24 rounded border border-zinc-300 px-2 py-1.5 text-sm"
                 value={ownerRooms}
                 onChange={(e) => setOwnerRooms(e.target.value)}
               />
             </label>
-            <label className="flex flex-col text-xs font-medium text-zinc-700">
-              {t("dash.timetablePeriodsAmLabel")}
+            <label className="block min-w-0 text-xs font-medium text-zinc-700">
+              <span className="mb-1 block">{t("dash.timetablePeriodsAmLabel")}</span>
               <select
-                className="mt-1 rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                className="block rounded border border-zinc-300 px-2 py-1.5 text-sm"
                 value={ownerAm}
                 onChange={(e) => setOwnerAm(e.target.value)}
               >
@@ -550,10 +550,10 @@ export function TimetablePageClient({
                 ))}
               </select>
             </label>
-            <label className="flex flex-col text-xs font-medium text-zinc-700">
-              {t("dash.timetablePeriodsPmLabel")}
+            <label className="block min-w-0 text-xs font-medium text-zinc-700">
+              <span className="mb-1 block">{t("dash.timetablePeriodsPmLabel")}</span>
               <select
-                className="mt-1 rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                className="block rounded border border-zinc-300 px-2 py-1.5 text-sm"
                 value={ownerPm}
                 onChange={(e) => setOwnerPm(e.target.value)}
               >
@@ -569,14 +569,17 @@ export function TimetablePageClient({
               <p className="mt-0.5 text-[11px] text-zinc-500">{t("dash.timetableSchoolDaysHint")}</p>
               <div className="mt-2 flex flex-wrap gap-x-3 gap-y-2">
                 {WEEKDAY_KEYS.map((k) => (
-                  <label key={k} className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-zinc-800">
+                  <label
+                    key={k}
+                    className="flex cursor-pointer flex-col items-center gap-1 rounded-md border border-transparent px-1 py-0.5 text-xs text-zinc-800 hover:border-zinc-200"
+                  >
+                    <span className="text-center leading-tight">{t(`weekday.${k}`)}</span>
                     <input
                       type="checkbox"
                       checked={ownerSchoolDays.has(k)}
                       onChange={() => toggleOwnerSchoolDay(k)}
                       className="rounded border-zinc-300"
                     />
-                    {t(`weekday.${k}`)}
                   </label>
                 ))}
               </div>
@@ -777,10 +780,10 @@ export function TimetablePageClient({
               })}
             </p>
             <div className="mt-4 space-y-3">
-              <label className="block text-xs font-medium text-zinc-700">
-                {t("timetable.class")}
+              <label className="block min-w-0 text-xs font-medium text-zinc-700">
+                <span className="mb-1 block">{t("timetable.class")}</span>
                 <select
-                  className="mt-1 w-full rounded border border-zinc-300 px-2 py-2 text-sm"
+                  className="block w-full rounded border border-zinc-300 px-2 py-2 text-sm"
                   value={formClassId}
                   onChange={(e) => setFormClassId(e.target.value)}
                 >

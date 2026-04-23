@@ -8,16 +8,18 @@ export function GlobeLanguageSwitcher() {
   const { lang, setLang, t, options } = useUiLanguage();
 
   return (
-    <label className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2 py-1.5 text-sm shadow-sm">
-      <span className="text-lg leading-none" aria-hidden>
-        🌐
+    <label className="flex min-w-0 flex-col gap-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2 py-1.5 text-sm shadow-sm">
+      <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-700">
+        <span className="text-lg leading-none" aria-hidden>
+          🌐
+        </span>
+        {t("a11y.uiLanguage")}
       </span>
-      <span className="sr-only">{t("a11y.uiLanguage")}</span>
       <select
         value={lang}
         onChange={(e) => setLang(e.target.value as UiLang)}
         aria-label={t("a11y.uiLanguage")}
-        className="rom-ui-language-select min-w-[8rem] max-w-[min(18rem,100%)] cursor-pointer border-0 bg-transparent py-0.5 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-0"
+        className="rom-ui-language-select block w-full min-w-0 max-w-[min(18rem,100%)] cursor-pointer rounded-md border-0 bg-transparent py-0.5 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-0"
       >
         {options.map((o) => (
           <option key={o.code} value={o.code}>

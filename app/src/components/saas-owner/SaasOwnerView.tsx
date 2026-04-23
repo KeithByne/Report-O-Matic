@@ -550,21 +550,21 @@ export function SaasOwnerView({
           {agentsErr ? <div className="mt-3 text-sm text-red-700">{agentsErr}</div> : null}
 
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("saas.agentEmailLabel")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("saas.agentEmailLabel")}</span>
               <input
                 value={newAgentEmail}
                 onChange={(e) => setNewAgentEmail(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
                 placeholder={t("saas.placeholderAgentEmail")}
               />
             </label>
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("saas.displayNameLabel")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("saas.displayNameLabel")}</span>
               <input
                 value={newAgentName}
                 onChange={(e) => setNewAgentName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
                 placeholder={t("saas.optionalPlaceholder")}
               />
             </label>
@@ -732,21 +732,21 @@ export function SaasOwnerView({
           </div>
           {earnErr ? <div className="mt-3 text-sm text-red-700">{earnErr}</div> : null}
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("saas.agentEmailOptional")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("saas.agentEmailOptional")}</span>
               <input
                 value={earnAgentFilter}
                 onChange={(e) => setEarnAgentFilter(e.target.value)}
-                className="mt-1 rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                className="mt-1 block w-full min-w-0 rounded-xl border border-zinc-300 px-3 py-2 text-sm"
                 placeholder={t("saas.placeholderAgentEmail")}
               />
             </label>
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("saas.statusLabel")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("saas.statusLabel")}</span>
               <select
                 value={earnStatus}
                 onChange={(e) => setEarnStatus(e.target.value as any)}
-                className="mt-1 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
+                className="mt-1 block w-full min-w-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
               >
                 <option value="">{t("saas.statusAll")}</option>
                 <option value="pending">{t("saas.statusPending")}</option>
@@ -854,12 +854,12 @@ export function SaasOwnerView({
             </div>
           </div>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("saas.rangeLabel")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("saas.rangeLabel")}</span>
               <select
                 value={spendRange}
                 onChange={(e) => setSpendRange(e.target.value as typeof spendRange)}
-                className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
               >
                 <option value="day">{t("saas.rangeDay")}</option>
                 <option value="week">{t("saas.rangeWeek")}</option>
@@ -1013,12 +1013,12 @@ export function SaasOwnerView({
               ) : null}
 
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-                <label className="text-sm">
-                  <span className="text-zinc-600">{t("saas.rangeLabel")}</span>
+                <label className="block min-w-0 text-sm">
+                  <span className="mb-1 block text-zinc-600">{t("saas.rangeLabel")}</span>
                   <select
                     value={range}
                     onChange={(e) => setRange(e.target.value as typeof range)}
-                    className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
+                    className="mt-1 block w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
                   >
                     <option value="day">{t("saas.rangeDay")}</option>
                     <option value="week">{t("saas.rangeWeek")}</option>
@@ -1028,13 +1028,13 @@ export function SaasOwnerView({
                     <option value="all">{t("saas.rangeAll")}</option>
                   </select>
                 </label>
-                <label className="text-sm">
-                  <span className="text-zinc-600">{t("saas.agentOptional")}</span>
+                <label className="block min-w-0 text-sm">
+                  <span className="mb-1 block text-zinc-600">{t("saas.agentOptional")}</span>
                   <input
                     value={agentFilter}
                     onChange={(e) => setAgentFilter(e.target.value)}
                     placeholder={t("saas.agentFilterPlaceholder")}
-                    className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
+                    className="mt-1 block w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"
                   />
                 </label>
                 <div className="text-sm text-zinc-600">{finBusy ? t("dash.agentLoading") : ""}</div>
@@ -1061,13 +1061,15 @@ export function SaasOwnerView({
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="w-full">
-              <label className="text-sm font-medium text-zinc-800">{t("saas.searchSchoolsLabel")}</label>
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t("saas.searchPlaceholder")}
-                className="mt-2 w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none focus:border-zinc-400"
-              />
+              <label className="block min-w-0 text-sm font-medium text-zinc-800">
+                <span className="mb-1 block">{t("saas.searchSchoolsLabel")}</span>
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t("saas.searchPlaceholder")}
+                  className="block w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none focus:border-zinc-400"
+                />
+              </label>
               <div className="mt-2 text-xs text-zinc-500">{t("saas.searchHint")}</div>
             </div>
             <div className="text-sm text-zinc-600">{busy ? t("dash.agentLoading") : t("saas.resultsCount", { n: hits.length })}</div>

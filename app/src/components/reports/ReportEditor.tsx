@@ -549,15 +549,17 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
 
         <div className="mt-4 grid grid-cols-1 gap-4 border-t border-emerald-100 pt-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="block min-w-0 text-sm">
-            <span className="inline-flex items-center gap-2 text-zinc-600">
-              <span aria-hidden>🌐</span> {t("report.pdfLang")}
+            <span className="mb-1 block text-zinc-600">
+              <span className="inline-flex items-center gap-2">
+                <span aria-hidden>🌐</span> {t("report.pdfLang")}
+              </span>
             </span>
-            <p className="mt-0.5 text-xs text-zinc-500">{t("report.pdfLangHint")}</p>
+            <p className="text-xs text-zinc-500">{t("report.pdfLangHint")}</p>
             <select
               value={outputLanguage}
               onChange={(e) => void persistOutputLanguage(e.target.value as ReportLanguageCode)}
               disabled={busy !== null}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
+              className="mt-1 block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
             >
               {REPORT_LANGUAGES.map((o) => (
                 <option key={o.code} value={o.code}>
@@ -568,13 +570,13 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           </label>
 
           <label className="block min-w-0 text-sm">
-            <span className="text-zinc-600">{t("report.teacherPreviewLang")}</span>
-            <p className="mt-0.5 text-xs text-zinc-500">{t("report.teacherPreviewHint")}</p>
+            <span className="mb-1 block text-zinc-600">{t("report.teacherPreviewLang")}</span>
+            <p className="text-xs text-zinc-500">{t("report.teacherPreviewHint")}</p>
             <select
               value={teacherPreviewLanguage}
               onChange={(e) => void persistTeacherLanguage(e.target.value as ReportLanguageCode)}
               disabled={busy !== null}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
+              className="mt-1 block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
             >
               {REPORT_LANGUAGES.map((o) => (
                 <option key={o.code} value={o.code}>
@@ -585,7 +587,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           </label>
 
           <label className="block min-w-0 text-sm">
-            <span className="text-zinc-600">{t("report.subjectOverride")}</span>
+            <span className="mb-1 block text-zinc-600">{t("report.subjectOverride")}</span>
             <select
               value={inputs.subject_code ?? ""}
               onChange={(e) => {
@@ -595,7 +597,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
                   subject_code: v === "" ? null : (v as SubjectCode),
                 }));
               }}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
             >
               <option value="">
                 {t("report.useClassDefault", { subject: classDefaultSubjectLine })}
@@ -615,28 +617,28 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-zinc-900">{t("report.studentTitle")}</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm">
-            {t("report.firstName")}
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("report.firstName")}</span>
             <input
               value={editFirst}
               onChange={(e) => setEditFirst(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm"
+              className="block w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm"
             />
           </label>
-          <label className="text-sm">
-            {t("report.lastName")}
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("report.lastName")}</span>
             <input
               value={editLast}
               onChange={(e) => setEditLast(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm"
+              className="block w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm"
             />
           </label>
-          <label className="text-sm sm:col-span-2">
-            {t("report.gender")}
+          <label className="block min-w-0 text-sm sm:col-span-2">
+            <span className="mb-1 block text-zinc-600">{t("report.gender")}</span>
             <select
               value={editGender}
               onChange={(e) => setEditGender(e.target.value as typeof editGender)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
             >
               <option value="">—</option>
               <option value="male">{t("report.genderMale")}</option>
@@ -676,8 +678,8 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         </p>
         <div className="mt-4 max-w-md">
           {shortCourse ? null : (
-            <label className="block text-sm font-medium text-zinc-800">
-              {t("report.termForReport")}
+            <label className="block min-w-0 text-sm font-medium text-zinc-800">
+              <span className="mb-1 block">{t("report.termForReport")}</span>
               <select
                 value={inputs.report_period}
                 onChange={(e) =>
@@ -686,7 +688,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
                     report_period: e.target.value as ReportInputs["report_period"],
                   }))
                 }
-                className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 shadow-sm"
+                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 shadow-sm"
               >
                 <option value="first">{t("report.termFirst")}</option>
                 <option value="second">{t("report.termSecond")}</option>

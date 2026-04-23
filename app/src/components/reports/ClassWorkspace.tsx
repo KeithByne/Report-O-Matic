@@ -1407,30 +1407,30 @@ export function ClassWorkspace({
           )}
         </div>
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.firstName")}</span>
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("class.firstName")}</span>
             <input
               value={newFirst}
               onChange={(e) => setNewFirst(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
+              className="block w-full rounded-lg border border-emerald-200 px-3 py-2"
               required
             />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.lastName")}</span>
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("class.lastName")}</span>
             <input
               value={newLast}
               onChange={(e) => setNewLast(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
+              className="block w-full rounded-lg border border-emerald-200 px-3 py-2"
               required
             />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">{t("class.genderOptional")}</span>
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("class.genderOptional")}</span>
             <select
               value={newGender}
               onChange={(e) => setNewGender(e.target.value as typeof newGender)}
-              className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
             >
               <option value="">—</option>
               <option value="male">{t("class.genderMale")}</option>
@@ -1471,30 +1471,30 @@ export function ClassWorkspace({
               {editingStudentId === s.id ? (
                 <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <label className="text-sm">
-                      <span className="text-zinc-600">{t("class.firstName")}</span>
+                    <label className="block min-w-0 text-sm">
+                      <span className="mb-1 block text-zinc-600">{t("class.firstName")}</span>
                       <input
                         value={editFirst}
                         onChange={(e) => setEditFirst(e.target.value)}
-                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2"
+                        className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2"
                         autoComplete="given-name"
                       />
                     </label>
-                    <label className="text-sm">
-                      <span className="text-zinc-600">{t("class.lastName")}</span>
+                    <label className="block min-w-0 text-sm">
+                      <span className="mb-1 block text-zinc-600">{t("class.lastName")}</span>
                       <input
                         value={editLast}
                         onChange={(e) => setEditLast(e.target.value)}
-                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2"
+                        className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2"
                         autoComplete="family-name"
                       />
                     </label>
-                    <label className="text-sm">
-                      <span className="text-zinc-600">{t("class.genderOptional")}</span>
+                    <label className="block min-w-0 text-sm">
+                      <span className="mb-1 block text-zinc-600">{t("class.genderOptional")}</span>
                       <select
                         value={editGender}
                         onChange={(e) => setEditGender(e.target.value as typeof editGender)}
-                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                        className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                       >
                         <option value="">—</option>
                         <option value="male">{t("class.genderMale")}</option>
@@ -1600,12 +1600,12 @@ export function ClassWorkspace({
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.printClassReports")}</h3>
           <p className="mt-1 text-xs text-zinc-500">{t("class.bulkDownloadPanelHint")}</p>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-            <label className="text-sm">
-              <span className="block text-zinc-600">{t("class.bulkDownloadSelectLabel")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("class.bulkDownloadSelectLabel")}</span>
               <select
                 value={batchTermFilter}
                 onChange={(e) => setBatchTermFilter(e.target.value as ReportPeriod)}
-                className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="block rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="first">{t("archive.term1")}</option>
                 <option value="second">{t("archive.term2")}</option>
@@ -1645,12 +1645,12 @@ export function ClassWorkspace({
         >
           <h3 className="text-sm font-semibold text-zinc-900">{t("class.movePupilSectionTitle")}</h3>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("class.movePupilLabel")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("class.movePupilLabel")}</span>
               <select
                 value={moveStudentId}
                 onChange={(e) => setMoveStudentId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="">—</option>
                 {students.map((s) => (
@@ -1660,12 +1660,12 @@ export function ClassWorkspace({
                 ))}
               </select>
             </label>
-            <label className="text-sm">
-              <span className="text-zinc-600">{t("class.moveDestinationLabel")}</span>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("class.moveDestinationLabel")}</span>
               <select
                 value={moveToClassId}
                 onChange={(e) => setMoveToClassId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="">—</option>
                 {allClasses

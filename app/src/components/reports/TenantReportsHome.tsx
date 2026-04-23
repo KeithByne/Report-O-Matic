@@ -270,12 +270,12 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
       {viewerRole === "owner" && openOwnerEducationCard ? (
         <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">School education type</h2>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="mt-3 max-w-md">
             <select
               value={schoolGradeRubric}
               onChange={(e) => void saveSchoolEducationType(parseGradeRubricProfile(e.target.value, "language"))}
               disabled={busy !== null}
-              className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600"
+              className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600"
             >
               {GRADE_RUBRIC_PROFILES.map((rp) => (
                 <option key={rp} value={rp}>
@@ -345,12 +345,12 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
             {t("tenant.schoolLangTitle")}
           </h2>
           <p className="mt-1 text-xs text-zinc-500">{isLead ? t("tenant.schoolLangLead") : t("tenant.schoolLangReadonly")}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="mt-3 max-w-md">
             <select
               value={lang}
               onChange={(e) => void saveLanguage(e.target.value as ReportLanguageCode)}
               disabled={busy !== null || !isLead}
-              className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600"
+              className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600"
             >
               {REPORT_LANGUAGES.map((o) => (
                 <option key={o.code} value={o.code}>
@@ -371,24 +371,22 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
           </h2>
           <p className="mt-1 text-xs text-zinc-500">{t("tenant.bulkDownloadsLead")}</p>
           <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-3">
-            <label className="text-sm text-zinc-700">
-              <span className="block text-zinc-600">{t("tenant.finalOnly")}</span>
-              <span className="mt-1 inline-flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={teacherOnlyFinal}
-                  onChange={(e) => setTeacherOnlyFinal(e.target.checked)}
-                  className="h-4 w-4"
-                />
-              </span>
+            <label className="block min-w-0 text-sm text-zinc-700">
+              <span className="mb-1 block text-zinc-600">{t("tenant.finalOnly")}</span>
+              <input
+                type="checkbox"
+                checked={teacherOnlyFinal}
+                onChange={(e) => setTeacherOnlyFinal(e.target.checked)}
+                className="mt-0 h-4 w-4"
+              />
             </label>
             <div className="flex w-full flex-wrap items-end justify-end gap-x-4 gap-y-2 sm:ml-auto sm:w-auto">
-              <label className="text-sm">
-                <span className="block text-zinc-600">{t("tenant.bulkGroupByLabel")}</span>
+              <label className="block min-w-0 text-sm">
+                <span className="mb-1 block text-zinc-600">{t("tenant.bulkGroupByLabel")}</span>
                 <select
                   value={bulkGroupBy}
                   onChange={(e) => setBulkGroupBy(e.target.value as typeof bulkGroupBy)}
-                  className="mt-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  className="block rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
                   <option value="term">{t("tenant.bulkGroupTerm")}</option>
                   <option value="teacher">{t("tenant.bulkGroupTeacher")}</option>

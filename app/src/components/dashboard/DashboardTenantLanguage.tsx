@@ -49,25 +49,25 @@ export function DashboardTenantLanguage({
   const controls = (
     <ul className={embedded ? "space-y-3" : "mt-4 space-y-4"}>
       {tenants.map((row) => (
-        <li
-          key={row.tenantId}
-          className={`flex flex-col gap-2 sm:flex-row sm:items-center ${embedded ? "" : "sm:justify-between"}`}
-        >
-          {embedded ? null : <span className="font-medium text-zinc-900">{row.tenantName}</span>}
-          <select
-            value={langs[row.tenantId] ?? "en"}
-            onChange={(e) => void save(row.tenantId, e.target.value as ReportLanguageCode)}
-            disabled={busy !== null || !row.canEditSettings}
-            className={`rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600 ${
-              embedded ? "w-full max-w-md sm:w-auto" : "max-w-xs"
-            }`}
-          >
-            {REPORT_LANGUAGES.map((o) => (
-              <option key={o.code} value={o.code}>
-                {reportLanguageOptionLabel(uiLang, o.code)}
-              </option>
-            ))}
-          </select>
+        <li key={row.tenantId} className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-zinc-900">{row.tenantName}</span>
+          <label className="block min-w-0 text-sm">
+            <span className="mb-1 block text-zinc-600">{t("dash.tenantLangTitle")}</span>
+            <select
+              value={langs[row.tenantId] ?? "en"}
+              onChange={(e) => void save(row.tenantId, e.target.value as ReportLanguageCode)}
+              disabled={busy !== null || !row.canEditSettings}
+              className={`block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-emerald-50 disabled:text-zinc-600 ${
+                embedded ? "max-w-md" : "max-w-xs"
+              }`}
+            >
+              {REPORT_LANGUAGES.map((o) => (
+                <option key={o.code} value={o.code}>
+                  {reportLanguageOptionLabel(uiLang, o.code)}
+                </option>
+              ))}
+            </select>
+          </label>
         </li>
       ))}
     </ul>

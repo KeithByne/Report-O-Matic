@@ -966,8 +966,8 @@ export function DashboardClientView({
                       </div>
                       <div />
 
-                      <label className="text-sm sm:col-span-2">
-                        <span className="text-zinc-600">
+                      <label className="block min-w-0 text-sm sm:col-span-2">
+                        <span className="mb-1 block text-zinc-600">
                           {stripePaymentsEnabled ? t("dash.agentStripeLabel") : t("dash.agentPayoutIdPausedLabel")}
                         </span>
                         {stripePaymentsEnabled ? (
@@ -976,7 +976,7 @@ export function DashboardClientView({
                             onChange={(e) =>
                               setMyAgentEdit((p) => ({ ...p, payout_stripe_account_id: e.target.value }))
                             }
-                            className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm font-mono"
+                            className="block w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm font-mono"
                             placeholder="acct_..."
                           />
                         ) : (

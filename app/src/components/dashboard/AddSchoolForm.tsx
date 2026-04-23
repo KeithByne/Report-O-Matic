@@ -43,18 +43,19 @@ export function AddSchoolForm({ embedded = false, suppressEmbeddedHeading = fals
 
   const form = (
     <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-      <div className="block min-w-[12rem] flex-1 text-sm">
+      <label className="block min-w-0 flex-1 text-sm sm:min-w-[12rem]">
+        <span className="mb-1 block text-zinc-700">{t("dash.addSchoolPlaceholder")}</span>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t("dash.addSchoolPlaceholder")}
           disabled={busy}
-          className={`w-full rounded-lg border px-3 py-2 text-sm text-zinc-900 ${
+          className={`block w-full rounded-lg border px-3 py-2 text-sm text-zinc-900 ${
             embedded ? "border-emerald-200 bg-white" : "border-emerald-200 bg-white"
           }`}
           aria-label={t("dash.addSchoolPlaceholder")}
         />
-      </div>
+      </label>
       <button
         type="submit"
         disabled={busy || !name.trim()}
