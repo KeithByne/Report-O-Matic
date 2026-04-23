@@ -220,12 +220,9 @@ export function DashboardClientView({
 
   const [workspaceDashPanel, setWorkspaceDashPanel] = useState<WorkspaceDashPanel | null>(null);
   const [teacherWorkspacePanel, setTeacherWorkspacePanel] = useState<TeacherWorkspacePanel | null>(null);
+  const [teacherGuideStageKey, setTeacherGuideStageKey] = useState("teacher_profile");
   const [schoolGradeRubricByTenant, setSchoolGradeRubricByTenant] = useState<Record<string, GradeRubricProfile>>({});
   const [schoolTypeSaving, setSchoolTypeSaving] = useState(false);
-
-  const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
-    setTeacherWorkspacePanel((current) => (current === panel ? null : panel));
-  }, []);
 
   useEffect(() => {
     if (!usesSchoolWorkspaceMenu) {
@@ -254,10 +251,6 @@ export function DashboardClientView({
     });
   }, [bootOpenClassesPanel, memberships, router]);
 
-  const toggleWorkspaceDashPanel = useCallback((panel: WorkspaceDashPanel) => {
-    setWorkspaceDashPanel((current) => (current === panel ? null : panel));
-  }, []);
-
   useEffect(() => {
     if (!workspaceDashPanel) return;
     const el = document.getElementById(`dash-workspace-panel-${workspaceDashPanel}`);
@@ -282,6 +275,24 @@ export function DashboardClientView({
   const showWorkspaceDownloadsTab = visibleMemberships.some(
     (m) => m.role === "owner" || m.role === "department_head",
   );
+  const ownerGuideStageKey =
+    workspaceDashPanel === "pdf"
+      ? "owner_pdf"
+      : workspaceDashPanel === "invites"
+        ? "owner_invite"
+        : workspaceDashPanel === "schoolType"
+          ? "owner_school_type"
+          : "owner_overview";
+  const deptHeadGuideStageKey =
+    workspaceDashPanel === "invites"
+      ? "dh_invite"
+      : workspaceDashPanel === "classes"
+        ? "dh_classes"
+        : workspaceDashPanel === "timetable"
+          ? "dh_timetable"
+          : workspaceDashPanel === "pdf"
+            ? "dh_pdf"
+            : "dh_overview";
 
   const menuOverviewSummary = useMemo(() => {
     if (!primaryMembership) return undefined;
@@ -594,7 +605,7 @@ export function DashboardClientView({
                     <button
                       type="button"
                       aria-pressed={workspaceDashPanel === "overview"}
-                      onClick={() => toggleWorkspaceDashPanel("overview")}
+                      onClick={() => setWorkspaceDashPanel("overview")}
                       className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                         workspaceDashPanel === "overview"
                           ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -608,7 +619,7 @@ export function DashboardClientView({
                       <button
                         type="button"
                         aria-pressed={workspaceDashPanel === "invites"}
-                        onClick={() => toggleWorkspaceDashPanel("invites")}
+                        onClick={() => setWorkspaceDashPanel("invites")}
                         className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                           workspaceDashPanel === "invites"
                             ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -624,7 +635,7 @@ export function DashboardClientView({
                         <button
                           type="button"
                           aria-pressed={workspaceDashPanel === "classes"}
-                          onClick={() => toggleWorkspaceDashPanel("classes")}
+                          onClick={() => setWorkspaceDashPanel("classes")}
                           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                             workspaceDashPanel === "classes"
                               ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -637,7 +648,7 @@ export function DashboardClientView({
                         <button
                           type="button"
                           aria-pressed={workspaceDashPanel === "timetable"}
-                          onClick={() => toggleWorkspaceDashPanel("timetable")}
+                          onClick={() => setWorkspaceDashPanel("timetable")}
                           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                             workspaceDashPanel === "timetable"
                               ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -665,7 +676,7 @@ export function DashboardClientView({
                       <button
                         type="button"
                         aria-pressed={workspaceDashPanel === "pdf"}
-                        onClick={() => toggleWorkspaceDashPanel("pdf")}
+                        onClick={() => setWorkspaceDashPanel("pdf")}
                         className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                           workspaceDashPanel === "pdf"
                             ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -691,7 +702,7 @@ export function DashboardClientView({
                       </span>
                     ) : null}
                   </nav>
-                  <DashboardStagedGuide mode="department_head" />
+                  <DashboardStagedGuide mode="department_head" activeStageKey={deptHeadGuideStageKey} showTabs={false} />
               </>
             </div>
           ) : null}
@@ -710,6 +721,7 @@ export function DashboardClientView({
                 >
                   <Link
                     href="/dashboard/profile"
+                    onClick={() => setTeacherGuideStageKey("teacher_profile")}
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                   >
                     <UserRound className={ICON_INLINE} aria-hidden />
@@ -717,6 +729,7 @@ export function DashboardClientView({
                   </Link>
                   <Link
                     href={reportsClassesHref(primaryMembership.tenantId, primaryMembership.role)}
+                    onClick={() => setTeacherGuideStageKey("teacher_classes_reports")}
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                   >
                     <Library className={ICON_INLINE} aria-hidden />
@@ -725,7 +738,10 @@ export function DashboardClientView({
                   <button
                     type="button"
                     aria-pressed={teacherWorkspacePanel === "downloads"}
-                    onClick={() => toggleTeacherWorkspacePanel("downloads")}
+                    onClick={() => {
+                      setTeacherGuideStageKey("teacher_downloads");
+                      setTeacherWorkspacePanel("downloads");
+                    }}
                     className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                       teacherWorkspacePanel === "downloads"
                         ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -741,7 +757,7 @@ export function DashboardClientView({
                     </span>
                   ) : null}
                 </nav>
-                <DashboardStagedGuide mode="teacher" />
+                <DashboardStagedGuide mode="teacher" activeStageKey={teacherGuideStageKey} showTabs={false} />
                 {teacherWorkspacePanel ? (
                   <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-xs font-medium text-emerald-950" role="status" aria-live="polite">
                     <span className="text-zinc-600">{t("dash.teacherSelectionShowing")}</span>{" "}
@@ -787,7 +803,7 @@ export function DashboardClientView({
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "overview"}
-                  onClick={() => toggleWorkspaceDashPanel("overview")}
+                  onClick={() => setWorkspaceDashPanel("overview")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     workspaceDashPanel === "overview"
                       ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -801,7 +817,7 @@ export function DashboardClientView({
                   <button
                     type="button"
                     aria-pressed={workspaceDashPanel === "pdf"}
-                    onClick={() => toggleWorkspaceDashPanel("pdf")}
+                    onClick={() => setWorkspaceDashPanel("pdf")}
                     className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                       workspaceDashPanel === "pdf"
                         ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -816,7 +832,7 @@ export function DashboardClientView({
                   <button
                     type="button"
                     aria-pressed={workspaceDashPanel === "invites"}
-                    onClick={() => toggleWorkspaceDashPanel("invites")}
+                    onClick={() => setWorkspaceDashPanel("invites")}
                     className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                       workspaceDashPanel === "invites"
                         ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -830,7 +846,7 @@ export function DashboardClientView({
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "schoolType"}
-                  onClick={() => toggleWorkspaceDashPanel("schoolType")}
+                  onClick={() => setWorkspaceDashPanel("schoolType")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     workspaceDashPanel === "schoolType"
                       ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -869,7 +885,7 @@ export function DashboardClientView({
                   </span>
                 ) : null}
             </nav>
-            <DashboardStagedGuide mode="owner_workspace" />
+            <DashboardStagedGuide mode="owner_workspace" activeStageKey={ownerGuideStageKey} showTabs={false} />
           </section>
           </>
         ) : null}
