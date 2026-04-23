@@ -145,6 +145,13 @@ export async function insertClass(opts: {
     grade_rubric_profile: opts.gradeRubricProfile ?? "language",
   };
   const { data, error } = await supabase.from("classes").insert(row).select(classSelect).single();
+  if (error && isMissingGradeRubricProfileColumnError(error)) {
+    const legacyRow = { ...row };
+    delete legacyRow.grade_rubric_profile;
+    const { data: retryData, error: retryError } = await supabase.from("classes").insert(legacyRow).select(classSelect).single();
+    if (retryError) throw new Error(formatErr(retryError));
+    return mapClassRow(retryData as Record<string, unknown>);
+  }
   if (error) throw new Error(formatClassWriteErr(error));
   return mapClassRow(data as Record<string, unknown>);
 }
@@ -216,6 +223,20 @@ export async function updateClass(
     .eq("id", classId)
     .select(classSelect)
     .single();
+  if (error && isMissingGradeRubricProfileColumnError(error) && "grade_rubric_profile" in row) {
+    const legacyPatch = { ...row };
+    delete legacyPatch.grade_rubric_profile;
+    const { data: retryData, error: retryError } = await supabase
+      .from("classes")
+      .update(legacyPatch)
+      .eq("tenant_id", tenantId)
+      .eq("id", classId)
+      .select(classSelect)
+      .single();
+    if (retryError) throw new Error(formatErr(retryError));
+    const updatedLegacy = mapClassRow(retryData as Record<string, unknown>);
+    return updatedLegacy;
+  }
   if (error) throw new Error(formatClassWriteErr(error));
   const updated = mapClassRow(data as Record<string, unknown>);
 
