@@ -70,7 +70,7 @@ type MyAgentLink = {
 
 type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "classes" | "timetable" | "schoolType";
 
-type TeacherWorkspacePanel = "schools" | "downloads";
+type TeacherWorkspacePanel = "downloads";
 
 export type DashboardClientViewProps = {
   email: string;
@@ -135,9 +135,6 @@ export function DashboardClientView({
     () => new Set(memberships.filter((m) => m.role === "owner").map((m) => m.tenantId)),
     [memberships],
   );
-
-  /** Teacher "My schools" panel only when allocated to more than one organisation. */
-  const teacherHasMultipleSchools = hasTeacherOnly && uniqueSchools.length > 1;
 
   /** Schools where this user is department head (alphabetical); used to pick a default workspace without a selector. */
   const deptHeadSchools = useMemo(() => {
@@ -229,12 +226,6 @@ export function DashboardClientView({
   const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
     setTeacherWorkspacePanel((current) => (current === panel ? null : panel));
   }, []);
-
-  useEffect(() => {
-    if (hasTeacherOnly && !teacherHasMultipleSchools && teacherWorkspacePanel === "schools") {
-      setTeacherWorkspacePanel(null);
-    }
-  }, [hasTeacherOnly, teacherHasMultipleSchools, teacherWorkspacePanel]);
 
   useEffect(() => {
     if (!usesSchoolWorkspaceMenu) {
@@ -724,21 +715,6 @@ export function DashboardClientView({
                     <UserRound className={ICON_INLINE} aria-hidden />
                     {t("dash.profileButton")}
                   </Link>
-                  {teacherHasMultipleSchools ? (
-                    <button
-                      type="button"
-                      aria-pressed={teacherWorkspacePanel === "schools"}
-                      onClick={() => toggleTeacherWorkspacePanel("schools")}
-                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                        teacherWorkspacePanel === "schools"
-                          ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                          : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                      }`}
-                    >
-                      <Building2 className={ICON_INLINE} aria-hidden />
-                      {t("dash.teacherPanelSchools")}
-                    </button>
-                  ) : null}
                   <Link
                     href={reportsClassesHref(primaryMembership.tenantId, primaryMembership.role)}
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
@@ -772,7 +748,7 @@ export function DashboardClientView({
                     <span className="text-zinc-900">
                       {teacherWorkspacePanel === "downloads"
                           ? t("tenant.panelDownloads")
-                          : t("dash.teacherPanelSchools")}
+                          : t("tenant.panelDownloads")}
                     </span>
                   </p>
                 ) : null}
@@ -1065,129 +1041,6 @@ export function DashboardClientView({
             ) : null}
             {usesTeacherWorkspaceMenu ? (
               <>
-                {teacherWorkspacePanel === "schools" && teacherHasMultipleSchools && visibleMemberships.length > 0 ? (
-                  <section
-                    id="dash-teacher-panel-schools"
-                    key="teacher-schools"
-                    className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
-                  >
-                    <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-                      <Building2 className={ICON_INLINE} aria-hidden />
-                      {t("dash.yourSchools")}
-                    </h2>
-                    <p className="mt-1 text-sm text-zinc-600">{t("dash.yourSchoolsHint")}</p>
-                    <ul className="mt-4 space-y-3">
-                      {visibleMemberships.map((m) => {
-                        const roster = rosterByTenant[m.tenantId] ?? [];
-                        const showRoster = m.role === "owner" || m.role === "department_head";
-                        const summary = summaryByTenant[m.tenantId];
-                        const teacherStats = teacherStatsByTenant[m.tenantId] ?? [];
-                        return (
-                          <li key={m.membershipId} className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-4 shadow-sm">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                              <div>
-                                <div className="flex items-center gap-2 font-semibold text-zinc-900">
-                                  <Building2 className={`${ICON_INLINE} text-emerald-800/90`} aria-hidden />
-                                  {m.tenantName}
-                                </div>
-                                <div className="mt-0.5 text-xs text-zinc-500">{roleDescription(m.role)}</div>
-                              </div>
-                              <div className="flex shrink-0 flex-wrap items-center gap-2">
-                                <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50/70 px-3 py-1 text-xs font-semibold text-zinc-800">
-                                  {roleLabel(m.role)}
-                                </span>
-                                <Link
-                                  href={reportsClassesHref(m.tenantId, m.role)}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
-                                >
-                                  <Library className={`${ICON_INLINE} opacity-90`} aria-hidden />
-                                  {t("dash.reportsClasses")}
-                                </Link>
-                              </div>
-                            </div>
-                            {m.role === "owner" && summary ? (
-                              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                                <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-                                  <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                                    <Users className={`${ICON_INLINE} h-3 w-3 shrink-0 opacity-80`} aria-hidden />
-                                    {t("dash.statTeachers")}
-                                  </div>
-                                  <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.teachers}</div>
-                                </div>
-                                <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-                                  <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                                    <BookOpen className={`${ICON_INLINE} h-3 w-3 shrink-0 opacity-80`} aria-hidden />
-                                    {t("dash.statClasses")}
-                                  </div>
-                                  <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.classes}</div>
-                                </div>
-                                <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-                                  <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                                    <UserRound className={`${ICON_INLINE} h-3 w-3 shrink-0 opacity-80`} aria-hidden />
-                                    {t("dash.statStudents")}
-                                  </div>
-                                  <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.students}</div>
-                                </div>
-                                <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-                                  <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                                    <FileCheck className={`${ICON_INLINE} h-3 w-3 shrink-0 opacity-80`} aria-hidden />
-                                    {t("dash.statReportsRendered")}
-                                  </div>
-                                  <div className="mt-0.5 text-sm font-semibold text-zinc-900">{summary.reportsRendered}</div>
-                                </div>
-                              </div>
-                            ) : null}
-                            {m.role === "owner" || m.role === "department_head" || m.role === "teacher" ? (
-                              <div className="mt-3">
-                                <DashboardTimetableSnippet
-                                  tenantId={m.tenantId}
-                                  role={m.role}
-                                  onOpenTimetable={
-                                    primaryMembership &&
-                                    (m.role === "owner" || m.role === "department_head") &&
-                                    m.tenantId === primaryMembership.tenantId
-                                      ? () => setWorkspaceDashPanel("timetable")
-                                      : undefined
-                                  }
-                                />
-                              </div>
-                            ) : null}
-                            {m.role === "owner" ? (
-                              <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <a
-                                  href={`/api/tenants/${encodeURIComponent(m.tenantId)}/export`}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-emerald-100"
-                                >
-                                  <FileSpreadsheet className={`${ICON_INLINE} opacity-90`} aria-hidden />
-                                  {t("dash.downloadSchoolDataExcel")}
-                                </a>
-                              </div>
-                            ) : null}
-                            {showRoster && roster.length > 0 ? (
-                              <div className="mt-4 border-t border-emerald-100 pt-3">
-                                <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                                  <ClipboardList className={`${ICON_INLINE} h-3.5 w-3.5 shrink-0 opacity-80`} aria-hidden />
-                                  {t("dash.teamRoster")}
-                                </h3>
-                                <div className="mt-2 overflow-x-auto">
-                                  <DashboardRosterTable
-                                    tenantId={m.tenantId}
-                                    viewerRole={m.role}
-                                    viewerEmail={email}
-                                    roster={roster}
-                                    teacherStats={teacherStats}
-                                  />
-                                </div>
-                              </div>
-                            ) : null}
-                            {m.role === "owner" ? <DeleteSchoolButton tenantId={m.tenantId} schoolName={m.tenantName} /> : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </section>
-                ) : null}
-
                 {teacherWorkspacePanel === "downloads" && primaryMembership ? (
                   <div id="dash-teacher-panel-downloads">
                     <TeacherDownloadsCard

@@ -34,63 +34,87 @@ export function DashboardStagedGuide({ mode }: { mode: DashboardStagedGuideMode 
     if (mode === "owner_workspace") {
       return [
         {
-          key: "letterhead",
+          key: "owner_overview",
           n: 1,
+          titleKey: "dash.guide.ownerMenuOverviewTitle",
+          linesKeys: ["dash.guide.ownerMenuOverview1", "dash.guide.ownerMenuOverview2", "dash.guide.ownerMenuOverview3"],
+        },
+        {
+          key: "owner_pdf",
+          n: 2,
           titleKey: "dash.guide.stepLetterheadTitle",
           linesKeys: ["dash.guide.ownerLetterhead1", "dash.guide.ownerLetterhead2", "dash.guide.ownerLetterhead3"],
         },
         {
-          key: "invite",
-          n: 2,
+          key: "owner_invite",
+          n: 3,
           titleKey: "dash.guide.stepInviteTitle",
           linesKeys: ["dash.guide.invite1", "dash.guide.invite2", "dash.guide.invite3"],
         },
         {
-          key: "classes",
-          n: 3,
-          titleKey: "dash.guide.stepClassesTitle",
-          linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
-        },
-        {
-          key: "reports",
+          key: "owner_school_type",
           n: 4,
-          titleKey: "dash.guide.stepReportsTitle",
-          linesKeys: ["dash.guide.report1", "dash.guide.report2", "dash.guide.report3"],
+          titleKey: "dash.guide.ownerSchoolTypeTitle",
+          linesKeys: ["dash.guide.ownerSchoolType1", "dash.guide.ownerSchoolType2", "dash.guide.ownerSchoolType3"],
         },
       ];
     }
     if (mode === "department_head") {
       return [
         {
-          key: "invite",
+          key: "dh_overview",
           n: 1,
+          titleKey: "dash.guide.ownerMenuOverviewTitle",
+          linesKeys: ["dash.guide.dhOverview1", "dash.guide.dhOverview2", "dash.guide.dhOverview3"],
+        },
+        {
+          key: "dh_invite",
+          n: 2,
           titleKey: "dash.guide.stepInviteTitle",
           linesKeys: ["dash.guide.invite1", "dash.guide.invite2", "dash.guide.invite3"],
         },
         {
-          key: "classes",
-          n: 2,
+          key: "dh_classes",
+          n: 3,
           titleKey: "dash.guide.stepClassesTitle",
           linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
         },
         {
-          key: "reports",
-          n: 3,
-          titleKey: "dash.guide.stepReportsTitle",
-          linesKeys: ["dash.guide.report1", "dash.guide.report2", "dash.guide.report3"],
+          key: "dh_timetable",
+          n: 4,
+          titleKey: "dash.guide.dhTimetableTitle",
+          linesKeys: ["dash.guide.dhTimetable1", "dash.guide.dhTimetable2", "dash.guide.dhTimetable3"],
+        },
+        {
+          key: "dh_pdf",
+          n: 5,
+          titleKey: "dash.guide.stepLetterheadTitle",
+          linesKeys: ["dash.guide.dhPdf1", "dash.guide.dhPdf2", "dash.guide.dhPdf3"],
         },
       ];
     }
     return [
       {
-        key: "class_teacher",
+        key: "teacher_profile",
         n: 1,
+        titleKey: "dash.guide.teacherProfileTitle",
+        linesKeys: ["dash.guide.teacherProfile1", "dash.guide.teacherProfile2", "dash.guide.teacherProfile3"],
+      },
+      {
+        key: "teacher_classes_reports",
+        n: 2,
         titleKey: "dash.guide.stepClassTeacherTitle",
         linesKeys: ["dash.guide.classT1", "dash.guide.classT2", "dash.guide.classT3"],
       },
       {
-        key: "reports",
-        n: 2,
+        key: "teacher_downloads",
+        n: 3,
+        titleKey: "dash.guide.teacherDownloadsTitle",
+        linesKeys: ["dash.guide.teacherDownloads1", "dash.guide.teacherDownloads2", "dash.guide.teacherDownloads3"],
+      },
+      {
+        key: "teacher_reports",
+        n: 4,
         titleKey: "dash.guide.stepReportsTitle",
         linesKeys: ["dash.guide.report1", "dash.guide.report2", "dash.guide.report3"],
       },
