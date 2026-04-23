@@ -4,7 +4,6 @@ import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isValidClassLevelForRubric } from "@/lib/classLevel";
 import { insertClass, listClasses } from "@/lib/data/classesDb";
-import { resolveGradeRubricForClassSubject } from "@/lib/data/resolveGradeRubricForClassSubject";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { mergeTenantCustomSubjectEntries } from "@/lib/data/tenantCustomSubjects";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
@@ -78,6 +77,24 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   if (!name) return NextResponse.json({ error: "name is required." }, { status: 400 });
   if (name.length > 30) return NextResponse.json({ error: "Class name must be 30 characters or fewer." }, { status: 400 });
 
+  /** Tenant school type is canonical; do not trust the client `grade_rubric_profile` (can be stale). */
+  let tenantDefaultRubric = parseGradeRubricProfile(undefined, "language");
+  try {
+    const supabase = getServiceSupabase();
+    if (supabase) {
+      const { data: tenantRow, error: tenantErr } = await supabase
+        .from("tenants")
+        .select("default_grade_rubric_profile")
+        .eq("id", tenantId)
+        .maybeSingle();
+      if (tenantErr) throw tenantErr;
+      const rec = tenantRow as Record<string, unknown> | null;
+      tenantDefaultRubric = parseGradeRubricProfile(rec?.default_grade_rubric_profile, "language");
+    }
+  } catch {
+    tenantDefaultRubric = parseGradeRubricProfile(undefined, "language");
+  }
+
   const scholasticYear = typeof body.scholastic_year === "string" ? body.scholastic_year.trim() : undefined;
   if (typeof scholasticYear === "string" && scholasticYear.length > 15) {
     return NextResponse.json({ error: "Scholastic year must be 15 characters or fewer." }, { status: 400 });
@@ -99,39 +116,13 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const normForRubric = default_subject ?? "efl";
   const explicitRubric =
     default_subject && !isSubjectCode(normForRubric.toLowerCase())
-      ? parseGradeRubricProfile(body.default_subject_rubric_profile, "secondary")
+      ? parseGradeRubricProfile(body.default_subject_rubric_profile, tenantDefaultRubric)
       : undefined;
-  const classRubricFromBody =
-    body.grade_rubric_profile !== undefined
-      ? parseGradeRubricProfile(body.grade_rubric_profile, "language")
-      : undefined;
-  const rubricForLevel =
-    classRubricFromBody ??
-    (await resolveGradeRubricForClassSubject(tenantId, normForRubric, {
-      explicitCustomRubric: explicitRubric,
-    }));
-  if (cefrStored !== undefined && cefrStored !== null && !isValidClassLevelForRubric(cefrStored, rubricForLevel)) {
+  if (cefrStored !== undefined && cefrStored !== null && !isValidClassLevelForRubric(cefrStored, tenantDefaultRubric)) {
     return NextResponse.json(
       { error: "Class level is not valid for this subject type (CEFR vs year group)." },
       { status: 400 },
     );
-  }
-
-  let tenantDefaultRubric = parseGradeRubricProfile(undefined, "language");
-  try {
-    const supabase = getServiceSupabase();
-    if (supabase) {
-      const { data: tenantRow, error: tenantErr } = await supabase
-        .from("tenants")
-        .select("default_grade_rubric_profile")
-        .eq("id", tenantId)
-        .maybeSingle();
-      if (tenantErr) throw tenantErr;
-      const rec = tenantRow as Record<string, unknown> | null;
-      tenantDefaultRubric = parseGradeRubricProfile(rec?.default_grade_rubric_profile, "language");
-    }
-  } catch {
-    tenantDefaultRubric = parseGradeRubricProfile(undefined, "language");
   }
   const default_output_language =
     typeof body.default_output_language === "string" && isReportLanguageCode(body.default_output_language)
@@ -156,16 +147,14 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       scholasticYear: scholasticYear ?? null,
       cefrLevel: cefrStored === undefined ? undefined : cefrStored,
       defaultSubject: default_subject,
-      gradeRubricProfile: classRubricFromBody ?? tenantDefaultRubric,
+      gradeRubricProfile: tenantDefaultRubric,
       defaultOutputLanguage: default_output_language,
       assignedTeacherEmail: assignedTeacher,
     });
     if (default_subject) {
       try {
         const mergeRubric =
-          classRubricFromBody ??
-          explicitRubric ??
-          parseGradeRubricProfile(body.default_subject_rubric_profile, "secondary");
+          explicitRubric ?? parseGradeRubricProfile(body.default_subject_rubric_profile, tenantDefaultRubric);
         await mergeTenantCustomSubjectEntries(tenantId, [{ name: default_subject, rubric_profile: mergeRubric }]);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Could not update subject list.";

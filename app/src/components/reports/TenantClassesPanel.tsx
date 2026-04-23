@@ -3,7 +3,7 @@
 import { BookOpen, DoorOpen, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import {
@@ -97,12 +97,9 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     }
   }, [base, isLead, t]);
 
-  const wasActiveRef = useRef(false);
   useEffect(() => {
-    if (active && !wasActiveRef.current) {
-      void refresh();
-    }
-    wasActiveRef.current = active;
+    if (!active) return;
+    void refresh();
   }, [active, refresh]);
 
   const loadSubjectAccountOptions = useCallback(async () => {
@@ -174,8 +171,10 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
     const onClassSettingsSaved = (ev: Event) => {
       const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
       const id = ce.detail?.tenantId?.trim();
-      if (id && id === tenantId && active) void refresh();
-      if (id && id === tenantId && active && isLead) void loadSubjectAccountOptions();
+      if (id && id === tenantId) {
+        void refresh();
+        if (isLead) void loadSubjectAccountOptions();
+      }
     };
     const onReportAiSaved = (ev: Event) => {
       const ce = ev as CustomEvent<ReportAiSavedDetail>;

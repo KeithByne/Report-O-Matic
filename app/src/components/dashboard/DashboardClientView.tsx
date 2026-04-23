@@ -40,6 +40,7 @@ import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTabl
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
+import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { classesListHref } from "@/lib/app/classesNavigation";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
@@ -391,6 +392,9 @@ export function DashboardClientView({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
+      window.dispatchEvent(
+        new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, { detail: { tenantId } }),
+      );
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
@@ -1272,6 +1276,7 @@ export function DashboardClientView({
                 (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
                   <div id="dash-workspace-panel-classes">
                     <TenantClassesPanel
+                      key={primaryMembership.tenantId}
                       tenantId={primaryMembership.tenantId}
                       viewerRole={primaryMembership.role}
                       active={workspaceDashPanel === "classes"}
