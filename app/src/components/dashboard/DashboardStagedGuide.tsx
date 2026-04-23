@@ -61,6 +61,12 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
         titleKey: "dash.guide.stepClassesTitle",
         linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
       },
+      {
+        key: "owner_timetable",
+        n: 6,
+        titleKey: "dash.guide.ownerTimetableTitle",
+        linesKeys: ["dash.guide.ownerTimetable1", "dash.guide.ownerTimetable2", "dash.guide.ownerTimetable3"],
+      },
     ];
   }
   if (mode === "department_head") {

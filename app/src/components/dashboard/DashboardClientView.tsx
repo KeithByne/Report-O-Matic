@@ -279,12 +279,14 @@ export function DashboardClientView({
     workspaceDashPanel === "schoolType"
       ? "owner_school_type"
       : workspaceDashPanel === "pdf"
-      ? "owner_pdf"
-      : workspaceDashPanel === "invites"
-        ? "owner_invite"
-        : workspaceDashPanel === "classes"
-          ? "owner_classes"
-          : "owner_overview";
+        ? "owner_pdf"
+        : workspaceDashPanel === "invites"
+          ? "owner_invite"
+          : workspaceDashPanel === "classes"
+            ? "owner_classes"
+            : workspaceDashPanel === "timetable"
+              ? "owner_timetable"
+              : "owner_overview";
   const deptHeadGuideStageKey =
     workspaceDashPanel === "invites"
       ? "dh_invite"
@@ -871,6 +873,19 @@ export function DashboardClientView({
                   <BookOpen className={ICON_INLINE} aria-hidden />
                   {t("tenant.panelClasses")}
                 </button>
+                <button
+                  type="button"
+                  aria-pressed={workspaceDashPanel === "timetable"}
+                  onClick={() => setWorkspaceDashPanel("timetable")}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    workspaceDashPanel === "timetable"
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                  }`}
+                >
+                  <CalendarDays className={ICON_INLINE} aria-hidden />
+                  {t("tenant.panelTimetable")}
+                </button>
                 {workspaceDashPanel ? (
                   <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
                     <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
@@ -1295,7 +1310,7 @@ export function DashboardClientView({
 
                 {primaryMembership &&
                 workspaceDashPanel === "timetable" &&
-                primaryMembership.role === "department_head" ? (
+                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
                   <div
                     id="dash-workspace-panel-timetable"
                     className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5"

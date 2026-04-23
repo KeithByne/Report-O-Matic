@@ -585,6 +585,11 @@ const EN: UiMessages = {
   "dash.guide.ownerSchoolType1": "Open School's Educational Type to choose the school-wide programme context.",
   "dash.guide.ownerSchoolType2": "This preset is used automatically when new classes are created.",
   "dash.guide.ownerSchoolType3": "Change it only when the school's default programme context changes.",
+  "dash.guide.ownerTimetableTitle": "Timetable",
+  "dash.guide.ownerTimetable1": "Open Timetable to view the full weekly grid for this school.",
+  "dash.guide.ownerTimetable2":
+    "As account owner you set how many rooms and morning/afternoon periods apply; department heads place classes, teachers, and rooms on the grid.",
+  "dash.guide.ownerTimetable3": "Use print when the timetable is ready for staff.",
   "dash.guide.dhOverview1": "Open Overview to check class, pupil, and report progress for this school.",
   "dash.guide.dhOverview2": "Use this first to see what needs attention before opening other sections.",
   "dash.guide.dhOverview3": "Return here after updates to verify progress.",
