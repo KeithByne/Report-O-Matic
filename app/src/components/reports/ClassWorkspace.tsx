@@ -326,18 +326,6 @@ export function ClassWorkspace({
   }, [canManageClassSettings, loadSubjectAccountOptions]);
 
   useEffect(() => {
-    const onClassSettingsSaved = (ev: Event) => {
-      const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
-      const id = ce.detail?.tenantId?.trim();
-      if (!id || id !== tenantId) return;
-      void loadClass();
-      if (canManageClassSettings) void loadSubjectAccountOptions();
-    };
-    window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
-    return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
-  }, [tenantId, canManageClassSettings, loadSubjectAccountOptions, loadClass]);
-
-  useEffect(() => {
     if (!cefr.trim()) return;
     if (!classLevelOptions.includes(cefr)) setCefr("");
   }, [cefr, classLevelOptions]);
@@ -486,6 +474,18 @@ export function ClassWorkspace({
       setLoadError(e instanceof Error ? e.message : t("class.errLoadClass"));
     }
   }, [base, classId, t, uiLang, viewerRole]);
+
+  useEffect(() => {
+    const onClassSettingsSaved = (ev: Event) => {
+      const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
+      const id = ce.detail?.tenantId?.trim();
+      if (!id || id !== tenantId) return;
+      void loadClass();
+      if (canManageClassSettings) void loadSubjectAccountOptions();
+    };
+    window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+    return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
+  }, [tenantId, canManageClassSettings, loadSubjectAccountOptions, loadClass]);
 
   const refreshOrgStudents = useCallback(async () => {
     try {
