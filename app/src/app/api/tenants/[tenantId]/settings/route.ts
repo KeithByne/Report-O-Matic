@@ -12,6 +12,7 @@ import {
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { syncTenantClassesGradeRubricProfile } from "@/lib/data/classesDb";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
@@ -140,6 +141,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       if (rubErr) throw new Error(rubErr.message);
       const rec = row as Record<string, unknown>;
       default_grade_rubric_profile = parseGradeRubricProfile(rec.default_grade_rubric_profile, "language");
+      await syncTenantClassesGradeRubricProfile(tenantId, default_grade_rubric_profile);
     } else {
       const supabase = getServiceSupabase();
       if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });

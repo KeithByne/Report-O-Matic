@@ -167,7 +167,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       classDefaultSubject,
       inputs: report.inputs,
       extraNotes,
-      classCefrLevel: cefrLevelForAiPrompts(klass?.cefr_level),
+      classCefrLevel:
+        gradeRubricProfile === "language" ? cefrLevelForAiPrompts(klass?.cefr_level) : null,
       gradeRubricProfile,
     });
     if (usage.draft) {

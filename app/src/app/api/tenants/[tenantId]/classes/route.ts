@@ -3,14 +3,13 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isValidClassLevelForRubric } from "@/lib/classLevel";
-import { insertClass, listClasses } from "@/lib/data/classesDb";
+import { getTenantDefaultGradeRubricProfile, insertClass, listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { mergeTenantCustomSubjectEntries } from "@/lib/data/tenantCustomSubjects";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import { isSubjectCode } from "@/lib/subjects";
 import { listStudents } from "@/lib/data/students";
-import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -78,22 +77,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   if (name.length > 30) return NextResponse.json({ error: "Class name must be 30 characters or fewer." }, { status: 400 });
 
   /** Tenant school type is canonical; do not trust the client `grade_rubric_profile` (can be stale). */
-  let tenantDefaultRubric = parseGradeRubricProfile(undefined, "language");
-  try {
-    const supabase = getServiceSupabase();
-    if (supabase) {
-      const { data: tenantRow, error: tenantErr } = await supabase
-        .from("tenants")
-        .select("default_grade_rubric_profile")
-        .eq("id", tenantId)
-        .maybeSingle();
-      if (tenantErr) throw tenantErr;
-      const rec = tenantRow as Record<string, unknown> | null;
-      tenantDefaultRubric = parseGradeRubricProfile(rec?.default_grade_rubric_profile, "language");
-    }
-  } catch {
-    tenantDefaultRubric = parseGradeRubricProfile(undefined, "language");
-  }
+  const tenantDefaultRubric = await getTenantDefaultGradeRubricProfile(tenantId);
 
   const scholasticYear = typeof body.scholastic_year === "string" ? body.scholastic_year.trim() : undefined;
   if (typeof scholasticYear === "string" && scholasticYear.length > 15) {

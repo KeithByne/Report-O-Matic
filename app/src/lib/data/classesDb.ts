@@ -9,6 +9,7 @@ import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { syncTimetableSlotsTeacherForClass } from "@/lib/data/timetableDb";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { isValidClassLevelForRubric } from "@/lib/classLevel";
 
 export type { CefrLevel } from "@/lib/classLevel";
 
@@ -182,11 +183,9 @@ export async function insertClass(opts: {
   };
   const { data, error } = await supabase.from("classes").insert(row).select(classSelect).single();
   if (error && isMissingGradeRubricProfileColumnError(error)) {
-    const legacyRow = { ...row };
-    delete legacyRow.grade_rubric_profile;
-    const { data: retryData, error: retryError } = await supabase.from("classes").insert(legacyRow).select(classSelect).single();
-    if (retryError) throw new Error(formatErr(retryError));
-    return mapClassRow(retryData as Record<string, unknown>);
+    throw new Error(
+      "Database schema is missing `classes.grade_rubric_profile` (or PostgREST schema cache is stale). Apply migration 0032, run `NOTIFY pgrst, 'reload schema';` or restart Supabase, then retry. Without this column the app cannot store primary/secondary rubrics per class.",
+    );
   }
   if (error) throw new Error(formatClassWriteErr(error));
   return mapClassRow(data as Record<string, unknown>);
@@ -340,4 +339,72 @@ export async function rewriteDefaultSubjectForTenantClasses(
     count++;
   }
   return count;
+}
+
+/** Reads `tenants.default_grade_rubric_profile` (same semantics as class-create POST). */
+export async function getTenantDefaultGradeRubricProfile(tenantId: string): Promise<GradeRubricProfile> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return parseGradeRubricProfile(undefined, "language");
+  try {
+    const { data, error } = await supabase
+      .from("tenants")
+      .select("default_grade_rubric_profile")
+      .eq("id", tenantId)
+      .maybeSingle();
+    if (error) throw error;
+    const rec = data as Record<string, unknown> | null;
+    return parseGradeRubricProfile(rec?.default_grade_rubric_profile, "language");
+  } catch {
+    return parseGradeRubricProfile(undefined, "language");
+  }
+}
+
+/**
+ * If this class row disagrees with the tenant school type, update it (and clear an invalid
+ * `cefr_level`). Self-heals drift from older clients, legacy inserts, or partial migrations.
+ */
+export async function alignClassGradeRubricWithTenantIfNeeded(tenantId: string, klass: ClassRow): Promise<ClassRow> {
+  const tenantRubric = await getTenantDefaultGradeRubricProfile(tenantId);
+  if (klass.grade_rubric_profile === tenantRubric) return klass;
+  const levelOk = isValidClassLevelForRubric(klass.cefr_level, tenantRubric);
+  return updateClass(tenantId, klass.id, {
+    grade_rubric_profile: tenantRubric,
+    cefr_level: levelOk ? klass.cefr_level : null,
+  });
+}
+
+/**
+ * When the tenant school education type (`default_grade_rubric_profile`) changes, align every
+ * class row so levels, grade labels, and AI resolution follow one rubric. Clears `cefr_level`
+ * (legacy column name) when the stored value is not valid for the new profile.
+ */
+export async function syncTenantClassesGradeRubricProfile(
+  tenantId: string,
+  nextRubric: GradeRubricProfile,
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+
+  const { error: upErr } = await supabase
+    .from("classes")
+    .update({ grade_rubric_profile: nextRubric })
+    .eq("tenant_id", tenantId);
+  if (upErr) throw new Error(formatClassWriteErr(upErr));
+
+  const { data: rows, error: selErr } = await supabase
+    .from("classes")
+    .select("id, cefr_level")
+    .eq("tenant_id", tenantId);
+  if (selErr) throw new Error(formatErr(selErr));
+
+  for (const r of rows ?? []) {
+    const row = r as { id: string; cefr_level: string | null };
+    if (isValidClassLevelForRubric(row.cefr_level, nextRubric)) continue;
+    const { error: clrErr } = await supabase
+      .from("classes")
+      .update({ cefr_level: null })
+      .eq("tenant_id", tenantId)
+      .eq("id", row.id);
+    if (clrErr) throw new Error(formatClassWriteErr(clrErr));
+  }
 }

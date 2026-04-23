@@ -83,7 +83,8 @@ export async function generateSchoolReportDraft(opts: {
     datasetBlock,
     extraNotes: opts.extraNotes,
     existingBody: opts.existingBody,
-    classCefrLevel: opts.classCefrLevel,
+    gradeRubricProfile: opts.gradeRubricProfile,
+    classCefrLevel: opts.gradeRubricProfile === "language" ? opts.classCefrLevel : null,
   };
 
   const { system, user, temperature } = isShortCourseReport(inputs)

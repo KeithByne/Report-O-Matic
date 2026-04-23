@@ -4,6 +4,7 @@
  */
 
 import type { CefrLevel } from "@/lib/classLevel";
+import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import type { SubjectCode } from "@/lib/subjects";
 
 /** A1–B1: do not suggest homework or extra work outside class in AI report comments. */
@@ -48,6 +49,21 @@ export function shortCourseReportDataCompletenessRules(): string {
 - Comment only on metrics and aggregates that appear with explicit numeric scores in the data block.`;
 }
 
+/** Who enters grades / how strands relate — must stay aligned with `GradeRubricProfile`. */
+export function schoolGradingContextRulesForRubric(rubric: GradeRubricProfile): string {
+  if (rubric === "primary") {
+    return `School grading context (primary — mandatory):
+- In typical primary settings one class teacher enters holistic feedback across the rubric areas shown in the dataset (one overall classroom programme, not separate specialist teachers per line unless teacher notes say otherwise).
+- Write as that class teacher synthesising learning across subjects and attitudes; do not invent multiple subject teachers.`;
+  }
+  if (rubric === "secondary") {
+    return `School grading context (secondary — mandatory):
+- Rubric scores may reflect several subject teachers. Keep a coherent class-teacher or form-tutor voice when synthesising, and do not assume one adult taught every scored strand unless teacher notes say so.
+- You may acknowledge subject-specific learning where the dataset suggests it, without inventing staff structures.`;
+  }
+  return "";
+}
+
 export type ReportDraftPromptContext = {
   /** Resolved subject code (class default or report override). */
   subjectCode: SubjectCode;
@@ -62,7 +78,9 @@ export type ReportDraftPromptContext = {
   datasetBlock: string;
   extraNotes?: string;
   existingBody?: string;
-  /** Class CEFR; when A1–B1, prompts forbid advising homework / extra work at home. */
+  /** Same as metric labels in the dataset; drives programme wording and CEFR-only rules. */
+  gradeRubricProfile: GradeRubricProfile;
+  /** Class CEFR; when A1–B1, prompts forbid advising homework / extra work at home (language schools only). */
   classCefrLevel?: CefrLevel | null;
 };
 
@@ -77,18 +95,26 @@ export function buildStandardReportDraftPrompts(ctx: ReportDraftPromptContext): 
   user: string;
   temperature: number;
 } {
-  const cefrBlock = homeworkAdviceRestrictionForCefr(ctx.classCefrLevel);
+  const languageSchool = ctx.gradeRubricProfile === "language";
+  const cefrBlock = languageSchool ? homeworkAdviceRestrictionForCefr(ctx.classCefrLevel) : "";
+  const schoolBlock = schoolGradingContextRulesForRubric(ctx.gradeRubricProfile);
+  const opening =
+    ctx.gradeRubricProfile === "language"
+      ? "You write school report comments for parents (English as a foreign language / similar language-acquisition contexts)."
+      : ctx.gradeRubricProfile === "primary"
+        ? "You write primary school report comments for parents (holistic class programme)."
+        : "You write secondary school report comments for parents.";
   const sequentialBlock = standardReportSequentialDataRules();
   const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
   const noClosingBlock = reportCommentNoLetterClosingRules();
-  const system = `You write school report comments for parents (English as a foreign language / similar contexts). 
+  const system = `${opening}
 The report narrative must be written entirely in ${ctx.langName}. Do not use another language for the main text.
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
 Use only the student's first name (${ctx.studentFirstName}) — do not use or invent a surname.
 Base the appraisal solely on the numerical 0–10 lines supplied; each line is an in-scope topic. Be fair and specific.
 ${voiceBlock}
 ${noClosingBlock}
-${sequentialBlock}${cefrBlock ? `\n${cefrBlock}` : ""}`;
+${schoolBlock ? `${schoolBlock}\n` : ""}${sequentialBlock}${cefrBlock ? `\n${cefrBlock}` : ""}`;
 
   const user = [
     `School: ${ctx.schoolName}`,

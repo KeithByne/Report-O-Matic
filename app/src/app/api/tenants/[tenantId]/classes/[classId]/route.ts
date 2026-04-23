@@ -4,7 +4,13 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { isValidClassLevelForRubric } from "@/lib/classLevel";
 import { canDeleteClass } from "@/lib/auth/resourceDelete";
 import { archiveScholasticYearAndResetReports } from "@/lib/data/classArchives";
-import { deleteClassInTenant, enrichClassWithAssignedTeacherDisplay, getClassInTenant, updateClass } from "@/lib/data/classesDb";
+import {
+  alignClassGradeRubricWithTenantIfNeeded,
+  deleteClassInTenant,
+  enrichClassWithAssignedTeacherDisplay,
+  getClassInTenant,
+  updateClass,
+} from "@/lib/data/classesDb";
 import { syncReportsLanguagesAfterClassOutputDefaultChange } from "@/lib/data/reportsDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -41,10 +47,15 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!role) return NextResponse.json({ error: "No access." }, { status: 403 });
   try {
-    const klass = await getClassInTenant(tenantId, classId);
+    let klass = await getClassInTenant(tenantId, classId);
     if (!klass) return NextResponse.json({ error: "Class not found." }, { status: 404 });
     if (!canAccessClass({ role, viewerEmail: gate.email, klass })) {
       return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
+    }
+    try {
+      klass = await alignClassGradeRubricWithTenantIfNeeded(tenantId, klass);
+    } catch {
+      /* keep klass as loaded; avoid blocking class page if repair fails */
     }
     const withNames = await enrichClassWithAssignedTeacherDisplay(tenantId, klass);
     return NextResponse.json({ class: withNames });

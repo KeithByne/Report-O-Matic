@@ -7,6 +7,7 @@ import type { ReportDraftPromptContext } from "@/lib/ai/reportCommentPrompts";
 import {
   homeworkAdviceRestrictionForCefr,
   reportCommentNoLetterClosingRules,
+  schoolGradingContextRulesForRubric,
   shortCourseReportDataCompletenessRules,
   teacherPerspectiveVoiceRules,
 } from "@/lib/ai/reportCommentPrompts";
@@ -19,14 +20,22 @@ export function buildShortCourseReportDraftPrompts(ctx: ReportDraftPromptContext
   user: string;
   temperature: number;
 } {
-  const cefrBlock = homeworkAdviceRestrictionForCefr(ctx.classCefrLevel);
+  const languageSchool = ctx.gradeRubricProfile === "language";
+  const cefrBlock = languageSchool ? homeworkAdviceRestrictionForCefr(ctx.classCefrLevel) : "";
+  const schoolBlock = schoolGradingContextRulesForRubric(ctx.gradeRubricProfile);
   const dataCompletenessBlock = shortCourseReportDataCompletenessRules();
   const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
   const noClosingBlock = reportCommentNoLetterClosingRules();
   const selfImproveLine = cefrBlock
     ? "Frame any improvement suggestions around effort and participation during the course sessions only — not tasks or practice outside scheduled class time."
     : "Any comments about what the student can do to improve are made in the context of what the student can do for themselves.";
-  const system = `You write school report comments for parents (English as a foreign language / similar contexts). 
+  const opening =
+    ctx.gradeRubricProfile === "language"
+      ? "You write school report comments for parents (English as a foreign language / similar language-acquisition contexts)."
+      : ctx.gradeRubricProfile === "primary"
+        ? "You write primary-style short-course report comments for parents."
+        : "You write secondary-style short-course report comments for parents.";
+  const system = `${opening}
 The student has attended a stand-alone course of short duration. 
 The comments are written in a context of how the student has evolved during the short course.
 The student will not be returning to any future courses.
@@ -37,7 +46,7 @@ Use only the student's first name (${ctx.studentFirstName}) — do not use or in
 Base the appraisal solely on the numerical 0–10 lines supplied; each line is an in-scope topic. Be fair and specific.
 ${voiceBlock}
 ${noClosingBlock}
-${dataCompletenessBlock}
+${schoolBlock ? `${schoolBlock}\n` : ""}${dataCompletenessBlock}
 In the comment text itself, never use the English word "term" or calendar labels for school reporting slices (e.g. trimester, trimestre, semester, Schultrimester, "marking period"). Refer only to the course or the programme. Write in ${ctx.langName} without importing phrasing from year-long school reports.${cefrBlock ? `\n${cefrBlock}` : ""}`;
 
   const user = [

@@ -160,6 +160,9 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("tenant.errSaveSettings"));
+      window.dispatchEvent(
+        new CustomEvent<ClassSettingsSavedDetail>(CLASS_SETTINGS_SAVED_EVENT, { detail: { tenantId } }),
+      );
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {

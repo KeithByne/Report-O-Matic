@@ -329,11 +329,13 @@ export function ClassWorkspace({
     const onClassSettingsSaved = (ev: Event) => {
       const ce = ev as CustomEvent<ClassSettingsSavedDetail>;
       const id = ce.detail?.tenantId?.trim();
-      if (id && id === tenantId && canManageClassSettings) void loadSubjectAccountOptions();
+      if (!id || id !== tenantId) return;
+      void loadClass();
+      if (canManageClassSettings) void loadSubjectAccountOptions();
     };
     window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
     return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
-  }, [tenantId, canManageClassSettings, loadSubjectAccountOptions]);
+  }, [tenantId, canManageClassSettings, loadSubjectAccountOptions, loadClass]);
 
   useEffect(() => {
     if (!cefr.trim()) return;
@@ -403,7 +405,7 @@ export function ClassWorkspace({
   const loadClass = useCallback(async () => {
     const reqId = ++loadClassRequestId.current;
     try {
-      const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`);
+      const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (reqId !== loadClassRequestId.current) return;
       if (!res.ok) throw new Error(data.error || t("class.errLoadClass"));
