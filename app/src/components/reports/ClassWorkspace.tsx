@@ -1014,7 +1014,6 @@ export function ClassWorkspace({
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-zinc-500">{t("class.lessonPeriodHint")}</p>
               </>
             ) : (
               <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
