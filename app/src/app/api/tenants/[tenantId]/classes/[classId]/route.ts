@@ -82,6 +82,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       body.default_new_report_period !== undefined ||
       body.active_weekdays !== undefined ||
       body.preferred_room_index !== undefined ||
+      body.preferred_lesson_period_index !== undefined ||
       body.grade_rubric_profile !== undefined
     ) {
       return NextResponse.json(
@@ -185,6 +186,26 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       .map((x) => x.trim().toLowerCase())
       .filter(isWeekdayKey);
     patch.active_weekdays = normalizeActiveWeekdays(keys);
+  }
+
+  if (isLead && body.preferred_lesson_period_index !== undefined) {
+    if (body.preferred_lesson_period_index === null || body.preferred_lesson_period_index === "") {
+      patch.preferred_lesson_period_index = null;
+    } else if (typeof body.preferred_lesson_period_index === "number" && Number.isFinite(body.preferred_lesson_period_index)) {
+      const n = Math.floor(body.preferred_lesson_period_index);
+      const settings = await getTimetableSettings(tenantId);
+      if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
+      const max = settings.periods_am + settings.periods_pm;
+      if (max < 1 || n < 0 || n >= max) {
+        return NextResponse.json(
+          { error: "preferred_lesson_period_index is out of range for this school’s AM/PM period counts." },
+          { status: 400 },
+        );
+      }
+      patch.preferred_lesson_period_index = n;
+    } else {
+      return NextResponse.json({ error: "preferred_lesson_period_index must be a number or null." }, { status: 400 });
+    }
   }
 
   let preferredRoomIndex: number | null | undefined;

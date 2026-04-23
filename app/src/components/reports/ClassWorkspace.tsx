@@ -28,6 +28,7 @@ import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { REPORT_SUBJECTS } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
+import { labelForLessonPeriodIndex } from "@/lib/timetable/lessonPeriodLabels";
 import { classesListHref } from "@/lib/app/classesNavigation";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
@@ -91,6 +92,8 @@ type ClassDetail = {
   /** From membership; used for display (never show raw email in class settings). */
   assigned_teacher_first_name?: string | null;
   assigned_teacher_last_name?: string | null;
+  /** Teaching-period index from school timetable (AM then PM). */
+  preferred_lesson_period_index?: number | null;
   active_weekdays: WeekdayKey[];
 };
 
@@ -200,6 +203,9 @@ export function ClassWorkspace({
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [allClasses, setAllClasses] = useState<ClassListRow[]>([]);
   const [timetableRoomCount, setTimetableRoomCount] = useState<number>(1);
+  const [timetablePeriodsAm, setTimetablePeriodsAm] = useState(4);
+  const [timetablePeriodsPm, setTimetablePeriodsPm] = useState(4);
+  const [lessonPeriodSelect, setLessonPeriodSelect] = useState("");
   const [preferredRoomNumber, setPreferredRoomNumber] = useState("");
   const [moveStudentId, setMoveStudentId] = useState("");
   const [moveToClassId, setMoveToClassId] = useState("");
@@ -236,6 +242,14 @@ export function ClassWorkspace({
     if (classGradeRubric === "primary") return t("class.classLevelForPrimary");
     return t("class.classLevelForSecondary");
   }, [classGradeRubric, t]);
+
+  const lessonPeriodOptions = useMemo(() => {
+    const total = timetablePeriodsAm + timetablePeriodsPm;
+    return Array.from({ length: total }, (_, i) => ({
+      value: String(i),
+      label: labelForLessonPeriodIndex(timetablePeriodsAm, timetablePeriodsPm, i, t),
+    }));
+  }, [timetablePeriodsAm, timetablePeriodsPm, t]);
 
   useEffect(() => {
     if (!cefr.trim()) return;
@@ -327,32 +341,56 @@ export function ClassWorkspace({
         aw.map((x) => (typeof x === "string" ? x.trim().toLowerCase() : "")).filter(isWeekdayKey),
       );
       setActiveDays(WEEKDAY_KEYS.filter((k) => keySet.has(k)));
-      if (viewerRole === "owner" || viewerRole === "department_head") {
-        try {
-          const ttRes = await fetch(`${base}/timetable`, { cache: "no-store" });
-          const ttData = await ttRes.json().catch(() => ({}));
-          if (ttRes.ok) {
-            const roomCount = Number((ttData.settings as { room_count?: unknown } | undefined)?.room_count ?? 1);
-            setTimetableRoomCount(Number.isFinite(roomCount) && roomCount > 0 ? roomCount : 1);
+
+      let periodsAm = 4;
+      let periodsPm = 4;
+      try {
+        const ttRes = await fetch(`${base}/timetable`, { cache: "no-store" });
+        const ttData = await ttRes.json().catch(() => ({}));
+        if (ttRes.ok) {
+          const settings = ttData.settings as
+            | { room_count?: unknown; periods_am?: unknown; periods_pm?: unknown }
+            | undefined;
+          const roomCount = Number(settings?.room_count ?? 1);
+          setTimetableRoomCount(Number.isFinite(roomCount) && roomCount > 0 ? roomCount : 1);
+          const am = Number(settings?.periods_am);
+          const pm = Number(settings?.periods_pm);
+          if (Number.isFinite(am) && am >= 1 && am <= 6) periodsAm = Math.floor(am);
+          if (Number.isFinite(pm) && pm >= 1 && pm <= 6) periodsPm = Math.floor(pm);
+
+          if (viewerRole === "owner" || viewerRole === "department_head") {
             const classSlots = Array.isArray(ttData.slots)
               ? (ttData.slots as TimetableSlotLite[]).filter((s) => s.class_id === classId)
               : [];
-            const rooms = [...new Set(classSlots.map((s) => Number(s.room_index)).filter((n) => Number.isFinite(n) && n >= 0))];
+            const rooms = [
+              ...new Set(classSlots.map((s) => Number(s.room_index)).filter((n) => Number.isFinite(n) && n >= 0)),
+            ];
             if (rooms.length === 1) {
               setPreferredRoomNumber(String(rooms[0]! + 1));
             } else if (rooms.length === 0) {
               setPreferredRoomNumber("");
             }
           }
-        } catch {
-          /* ignore timetable metadata load */
         }
+      } catch {
+        /* ignore timetable metadata load */
       }
+      setTimetablePeriodsAm(periodsAm);
+      setTimetablePeriodsPm(periodsPm);
+
+      const totalPeriods = periodsAm + periodsPm;
+      const prefRaw = c.preferred_lesson_period_index;
+      let prefSelect = "";
+      if (typeof prefRaw === "number" && Number.isFinite(prefRaw)) {
+        const n = Math.floor(prefRaw);
+        if (n >= 0 && n < totalPeriods) prefSelect = String(n);
+      }
+      setLessonPeriodSelect(prefSelect);
     } catch (e: unknown) {
       if (reqId !== loadClassRequestId.current) return;
       setLoadError(e instanceof Error ? e.message : t("class.errLoadClass"));
     }
-  }, [base, classId, t, uiLang]);
+  }, [base, classId, t, viewerRole]);
 
   const refreshOrgStudents = useCallback(async () => {
     try {
@@ -506,6 +544,13 @@ export function ClassWorkspace({
             preferredRoomNumber.trim() === ""
               ? null
               : Math.max(0, Number.parseInt(preferredRoomNumber, 10) - 1),
+          preferred_lesson_period_index:
+            lessonPeriodSelect.trim() === ""
+              ? null
+              : (() => {
+                  const n = Number.parseInt(lessonPeriodSelect, 10);
+                  return Number.isFinite(n) ? Math.max(0, n) : null;
+                })(),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -953,6 +998,37 @@ export function ClassWorkspace({
               <p className="mt-1 text-xs text-zinc-500">{t("class.roomNumberHint")}</p>
             </label>
           ) : null}
+          <label className="text-sm">
+            <span className="text-zinc-600">{t("class.lessonPeriodLabel")}</span>
+            {viewerRole === "owner" || viewerRole === "department_head" ? (
+              <>
+                <select
+                  value={lessonPeriodSelect}
+                  onChange={(e) => setLessonPeriodSelect(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">{t("class.lessonPeriodUnset")}</option>
+                  {lessonPeriodOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-zinc-500">{t("class.lessonPeriodHint")}</p>
+              </>
+            ) : (
+              <p className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
+                {(() => {
+                  const pref = detail?.preferred_lesson_period_index;
+                  if (typeof pref !== "number" || !Number.isFinite(pref)) return "—";
+                  const n = Math.floor(pref);
+                  const total = timetablePeriodsAm + timetablePeriodsPm;
+                  if (n < 0 || n >= total) return "—";
+                  return labelForLessonPeriodIndex(timetablePeriodsAm, timetablePeriodsPm, n, t);
+                })()}
+              </p>
+            )}
+          </label>
           <label className="text-sm sm:col-span-2">
             <span className="text-zinc-600">{t("class.defaultNewReportKind")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (

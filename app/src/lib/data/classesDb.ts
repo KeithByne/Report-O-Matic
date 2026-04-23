@@ -44,6 +44,8 @@ export type ClassRow = {
   /** Educational context: drives class level options (CEFR vs year) and default report rubric. */
   grade_rubric_profile: GradeRubricProfile;
   assigned_teacher_email: string | null;
+  /** Timetable teaching-period index (AM then PM); matches owner timetable period counts. */
+  preferred_lesson_period_index: number | null;
   active_weekdays: WeekdayKey[];
   created_at: string;
 };
@@ -81,6 +83,13 @@ export function parseDefaultNewReportPeriod(raw: unknown): ReportPeriod {
   return "first";
 }
 
+function parsePreferredLessonPeriodIndex(raw: unknown): number | null {
+  if (raw == null) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return null;
+  return Math.floor(n);
+}
+
 function mapClassRow(raw: Record<string, unknown>): ClassRow {
   return {
     id: raw.id as string,
@@ -94,6 +103,7 @@ function mapClassRow(raw: Record<string, unknown>): ClassRow {
     default_new_report_period: parseDefaultNewReportPeriod(raw.default_new_report_period),
     grade_rubric_profile: parseGradeRubricProfile(raw.grade_rubric_profile, "language"),
     assigned_teacher_email: (raw.assigned_teacher_email as string | null) ?? null,
+    preferred_lesson_period_index: parsePreferredLessonPeriodIndex(raw.preferred_lesson_period_index),
     active_weekdays: parseActiveWeekdaysFromDb(raw.active_weekdays),
     created_at: raw.created_at as string,
   };
@@ -182,6 +192,7 @@ export async function updateClass(
     default_new_report_period?: ReportPeriod;
     grade_rubric_profile?: GradeRubricProfile;
     assigned_teacher_email?: string | null;
+    preferred_lesson_period_index?: number | null;
     active_weekdays?: WeekdayKey[];
   },
 ): Promise<ClassRow> {
@@ -212,6 +223,9 @@ export async function updateClass(
   }
   if (patch.assigned_teacher_email !== undefined) {
     row.assigned_teacher_email = patch.assigned_teacher_email?.trim().toLowerCase() || null;
+  }
+  if (patch.preferred_lesson_period_index !== undefined) {
+    row.preferred_lesson_period_index = patch.preferred_lesson_period_index;
   }
   if (patch.active_weekdays !== undefined) {
     row.active_weekdays = normalizeActiveWeekdays(patch.active_weekdays);

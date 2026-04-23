@@ -1195,6 +1195,10 @@ const EN: UiMessages = {
   "class.roomNumberOption": "Room {n}",
   "class.roomNumberUnchanged": "No room preference",
   "class.roomNumberHint": "Choose a room to place this class into that room row on the timetable and timetable PDF.",
+  "class.lessonPeriodLabel": "Lesson period",
+  "class.lessonPeriodUnset": "— Not set —",
+  "class.lessonPeriodHint":
+    "Uses the same morning and afternoon period counts as the school timetable (owner timetable settings). Labels match the timetable grid.",
   "class.teacherHeading": "Teacher",
   "class.teacherNameNotSet": "No name on file",
   "class.assignedTeacher": "Assigned teacher (must match invited teacher email)",
@@ -1955,6 +1959,10 @@ const FR: UiMessages = {
   "class.roomNumberUnchanged": "Aucune préférence de salle",
   "class.roomNumberHint":
     "Choisissez une salle pour placer cette classe sur cette ligne de salle dans l'emploi du temps et le PDF.",
+  "class.lessonPeriodLabel": "Créneau horaire",
+  "class.lessonPeriodUnset": "— Non défini —",
+  "class.lessonPeriodHint":
+    "S’aligne sur les nombres de périodes du matin et de l’après-midi de l’emploi du temps (réglages du propriétaire). Les libellés correspondent à la grille.",
   "class.teacherHeading": "Enseignant·e",
   "class.teacherNameNotSet": "Nom non renseigné",
   "class.assignedTeacher": "Enseignant·e assigné·e (doit correspondre à l’e-mail invité)",
@@ -2564,6 +2572,10 @@ const ES: UiMessages = {
   "class.roomNumberOption": "Aula {n}",
   "class.roomNumberUnchanged": "Sin preferencia de aula",
   "class.roomNumberHint": "Elija un aula para colocar esta clase en esa fila de aula del horario y del PDF.",
+  "class.lessonPeriodLabel": "Periodo lectivo",
+  "class.lessonPeriodUnset": "— Sin definir —",
+  "class.lessonPeriodHint":
+    "Usa los mismos recuentos de periodos de mañana y tarde que el horario escolar (ajustes del titular). Las etiquetas coinciden con la cuadrícula.",
   "class.teacherHeading": "Profesor",
   "class.teacherNameNotSet": "Sin nombre registrado",
   "class.assignedTeacher": "Profesor asignado (debe coincidir con el correo invitado)",
