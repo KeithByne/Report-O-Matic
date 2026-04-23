@@ -324,6 +324,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
                     <>
                       <div className="mt-3 flex flex-wrap items-end gap-2">
                         <label className="min-w-[12rem] flex-1 text-xs font-medium text-zinc-700">
+                          <span className="block">{t("class.chooseSubjectFromList")}</span>
                           <select
                             value={selectedCustomSchoolSubject}
                             onChange={(e) => {
