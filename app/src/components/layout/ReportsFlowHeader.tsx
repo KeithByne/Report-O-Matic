@@ -1,6 +1,6 @@
 "use client";
 
-import { BookMarked, Building2, LayoutDashboard, type LucideIcon } from "lucide-react";
+import { Building2, LayoutDashboard, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
@@ -77,15 +77,7 @@ export function ReportsFlowHeader({
     }
     links.push({ href: "/dashboard", label: t("nav.dashboard"), Icon: LayoutDashboard });
   }
-  if (mode === "report" && tenantId && classId) {
-    links.push({
-      href: `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?panel=overview`,
-      label: t("nav.class"),
-      Icon: BookMarked,
-    });
-    if (showAllSchoolsLink) {
-      links.push({ href: "/reports", label: t("nav.allSchools"), Icon: Building2 });
-    }
+  if (mode === "report") {
     links.push({ href: "/dashboard", label: t("nav.dashboard"), Icon: LayoutDashboard });
   }
 
