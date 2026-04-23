@@ -29,7 +29,7 @@ import {
   reportPeriodTermNumber,
 } from "@/lib/reportInputs";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { GRADE_RUBRIC_PROFILES, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { REPORT_SUBJECTS } from "@/lib/subjects";
 import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducationType";
 import { resolveDefaultSubjectInputToStorage, subjectFieldDisplayValueFromStored } from "@/lib/subjectFormResolve";
@@ -274,6 +274,10 @@ export function ClassWorkspace({
   const classWorkspaceSubjectSuggestionsByRubric = useMemo(
     () => subjectSuggestionLabelsByRubric(customSubjectRows, uiLang),
     [customSubjectRows, uiLang],
+  );
+  const classWorkspaceAllSubjectSuggestions = useMemo(
+    () => [...new Set(Object.values(classWorkspaceSubjectSuggestionsByRubric).flat())],
+    [classWorkspaceSubjectSuggestionsByRubric],
   );
 
   const classSubjectListId = `class-workspace-subject-${tenantId}-${classId}-${classGradeRubric}`;
@@ -1056,7 +1060,7 @@ export function ClassWorkspace({
               <input
                 value={cName}
                 onChange={(e) => setCName(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 px-3 py-2"
+                className="mt-1 w-full max-w-[20rem] rounded-lg border border-emerald-200 px-3 py-2"
                 maxLength={30}
                 required
               />
@@ -1076,7 +1080,7 @@ export function ClassWorkspace({
               <input
                 value={scholasticYear}
                 onChange={(e) => setScholasticYear(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 px-3 py-2"
+                className="mt-1 w-full max-w-[12rem] rounded-lg border border-emerald-200 px-3 py-2"
                 placeholder={t("class.scholasticPlaceholder")}
                 maxLength={15}
               />
@@ -1088,7 +1092,7 @@ export function ClassWorkspace({
               <select
                 value={cefr}
                 onChange={(e) => setCefr(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-[12rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="">—</option>
                 {classLevelOptions.map((x) => (
@@ -1107,7 +1111,7 @@ export function ClassWorkspace({
             )}
           </label>
           <label className="text-sm sm:col-span-2">
-            <span className="text-zinc-600">{t("class.defaultSubject")}</span>
+            <span className="text-zinc-600">Subject</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <>
                 <input
@@ -1116,18 +1120,16 @@ export function ClassWorkspace({
                   onChange={(e) => setDefSubject(e.target.value)}
                   disabled={busy !== null || subjectListBusy}
                   placeholder={t("tenant.defineSubjectNamePlaceholder")}
-                  className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+                  className="mt-2 w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
                   autoComplete="off"
-                  aria-label={t("class.defaultSubject")}
+                  aria-label="Subject"
                   maxLength={40}
                 />
-                {GRADE_RUBRIC_PROFILES.map((rp) => (
-                  <datalist id={`class-workspace-subject-${tenantId}-${classId}-${rp}`} key={rp}>
-                    {classWorkspaceSubjectSuggestionsByRubric[rp].map((label) => (
-                      <option key={`${rp}:${label}`} value={label} />
-                    ))}
-                  </datalist>
-                ))}
+                <datalist id={classSubjectListId}>
+                  {classWorkspaceAllSubjectSuggestions.map((label) => (
+                    <option key={label} value={label} />
+                  ))}
+                </datalist>
                 <p className="mt-1 text-xs text-zinc-500">{t("class.subjectPickerHint")}</p>
               </>
             ) : (
@@ -1181,7 +1183,7 @@ export function ClassWorkspace({
                 <select
                   value={lessonPeriodSelect}
                   onChange={(e) => setLessonPeriodSelect(e.target.value)}
-                  className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  className="mt-1 w-full max-w-[12rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
                   <option value="">{t("class.lessonPeriodUnset")}</option>
                   {lessonPeriodOptions.map((o) => (
@@ -1211,7 +1213,7 @@ export function ClassWorkspace({
                 <select
                   value={defNewReportKind}
                   onChange={(e) => setDefNewReportKind(e.target.value as ReportKind)}
-                  className="mt-1 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  className="mt-1 w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
                   <option value="standard" title={t("class.reportKindStandard")}>
                     {trimDisplayLabel(t("class.reportKindStandard"), 30)}
@@ -1288,14 +1290,14 @@ export function ClassWorkspace({
             </div>
           ) : null}
           {viewerRole === "owner" || viewerRole === "department_head" ? (
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 max-w-[20rem]">
               <h4 id="class-teacher-heading" className="text-sm font-semibold text-zinc-900">
                 {t("class.teacherHeading")}
               </h4>
               <select
                 value={assignTeacher}
                 onChange={(e) => setAssignTeacher(e.target.value)}
-                className="mt-2 w-full max-w-md rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                className="mt-2 w-full max-w-[20rem] rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 aria-labelledby="class-teacher-heading"
               >
                 <option value="">{t("class.notAssigned")}</option>
