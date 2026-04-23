@@ -65,7 +65,7 @@ export default async function ClassReportsPage({
         title={schoolName}
         tenantId={tenantId}
         classId={classId}
-        showAllSchoolsLink={role === "owner"}
+        showAllSchoolsLink={false}
         userDisplayName={userDisplayName}
         viewerRole={role}
       />
