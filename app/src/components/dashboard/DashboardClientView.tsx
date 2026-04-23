@@ -1297,9 +1297,7 @@ export function DashboardClientView({
                           tenantId={primaryMembership.tenantId}
                           role={primaryMembership.role}
                           onOpenTimetable={
-                            primaryMembership.role === "owner" || primaryMembership.role === "department_head"
-                              ? () => setWorkspaceDashPanel("timetable")
-                              : undefined
+                            primaryMembership.role === "department_head" ? () => setWorkspaceDashPanel("timetable") : undefined
                           }
                         />
                       </div>
