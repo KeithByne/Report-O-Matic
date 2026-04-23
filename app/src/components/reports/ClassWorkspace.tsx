@@ -364,7 +364,6 @@ export function ClassWorkspace({
       setScholasticYear(c.scholastic_year?.trim() ?? "");
       setCefr(c.cefr_level ?? "");
       setDefSubject(subjectFieldDisplayValueFromStored(c.default_subject, uiLang));
-      setSelectedCustomSchoolSubject("");
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
       setDefNewReportPeriod(
