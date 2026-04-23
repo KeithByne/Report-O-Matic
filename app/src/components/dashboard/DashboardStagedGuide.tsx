@@ -38,22 +38,28 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
         linesKeys: ["dash.guide.ownerMenuOverview1", "dash.guide.ownerMenuOverview2", "dash.guide.ownerMenuOverview3"],
       },
       {
-        key: "owner_pdf",
+        key: "owner_school_type",
         n: 2,
+        titleKey: "dash.guide.ownerSchoolTypeTitle",
+        linesKeys: ["dash.guide.ownerSchoolType1", "dash.guide.ownerSchoolType2", "dash.guide.ownerSchoolType3"],
+      },
+      {
+        key: "owner_pdf",
+        n: 3,
         titleKey: "dash.guide.stepLetterheadTitle",
         linesKeys: ["dash.guide.ownerLetterhead1", "dash.guide.ownerLetterhead2", "dash.guide.ownerLetterhead3"],
       },
       {
         key: "owner_invite",
-        n: 3,
+        n: 4,
         titleKey: "dash.guide.stepInviteTitle",
         linesKeys: ["dash.guide.invite1", "dash.guide.invite2", "dash.guide.invite3"],
       },
       {
-        key: "owner_school_type",
-        n: 4,
-        titleKey: "dash.guide.ownerSchoolTypeTitle",
-        linesKeys: ["dash.guide.ownerSchoolType1", "dash.guide.ownerSchoolType2", "dash.guide.ownerSchoolType3"],
+        key: "owner_classes",
+        n: 5,
+        titleKey: "dash.guide.stepClassesTitle",
+        linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
       },
     ];
   }

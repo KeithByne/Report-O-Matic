@@ -276,12 +276,14 @@ export function DashboardClientView({
     (m) => m.role === "owner" || m.role === "department_head",
   );
   const ownerGuideStageKey =
-    workspaceDashPanel === "pdf"
+    workspaceDashPanel === "schoolType"
+      ? "owner_school_type"
+      : workspaceDashPanel === "pdf"
       ? "owner_pdf"
       : workspaceDashPanel === "invites"
         ? "owner_invite"
-        : workspaceDashPanel === "schoolType"
-          ? "owner_school_type"
+        : workspaceDashPanel === "classes"
+          ? "owner_classes"
           : "owner_overview";
   const deptHeadGuideStageKey =
     workspaceDashPanel === "invites"
@@ -813,6 +815,19 @@ export function DashboardClientView({
                   <LayoutList className={ICON_INLINE} aria-hidden />
                   {t("dash.panelOverview")}
                 </button>
+                <button
+                  type="button"
+                  aria-pressed={workspaceDashPanel === "schoolType"}
+                  onClick={() => setWorkspaceDashPanel("schoolType")}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    workspaceDashPanel === "schoolType"
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                  }`}
+                >
+                  <BookOpen className={ICON_INLINE} aria-hidden />
+                  School's Educational Type
+                </button>
                 {showWorkspacePdfTab ? (
                   <button
                     type="button"
@@ -845,40 +860,17 @@ export function DashboardClientView({
                 ) : null}
                 <button
                   type="button"
-                  aria-pressed={workspaceDashPanel === "schoolType"}
-                  onClick={() => setWorkspaceDashPanel("schoolType")}
+                  aria-pressed={workspaceDashPanel === "classes"}
+                  onClick={() => setWorkspaceDashPanel("classes")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "schoolType"
+                    workspaceDashPanel === "classes"
                       ? "border-emerald-600 bg-emerald-100 text-emerald-950"
                       : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
                   }`}
                 >
                   <BookOpen className={ICON_INLINE} aria-hidden />
-                  School's Educational Type
+                  {t("tenant.panelClasses")}
                 </button>
-                {primaryMembership.role !== "owner" ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openPdfForPrint(
-                        `/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
-                      )
-                    }
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
-                  >
-                    <Printer className={ICON_INLINE} aria-hidden />
-                    {t("common.printPdf")}
-                  </button>
-                ) : null}
-                {showWorkspaceDownloadsTab && primaryMembership.role !== "owner" ? (
-                  <Link
-                    href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}?panel=downloads`}
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
-                  >
-                    <Download className={ICON_INLINE} aria-hidden />
-                    {t("tenant.panelDownloads")}
-                  </Link>
-                ) : null}
                 {workspaceDashPanel ? (
                   <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
                     <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
