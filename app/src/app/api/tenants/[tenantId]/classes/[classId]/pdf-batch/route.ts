@@ -8,17 +8,17 @@ import { listStudents } from "@/lib/data/students";
 import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { languageLabel } from "@/lib/i18n/reportLanguages";
-import { isUiLang, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
+import { isUiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
 import {
   parseClassBulkPdfTermFilter,
   reportReadyForClassBulkPdf,
-  resolvedSubjectCode,
+  resolvedSubjectLabelForPdf,
   reportTermReadyForClassesDashboard,
   type ReportPeriod,
 } from "@/lib/reportInputs";
-import { isSubjectCode } from "@/lib/subjects";
+import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 
 export const runtime = "nodejs";
 
@@ -137,7 +137,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const letterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow);
   const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
 
-  const classDefault = klass.default_subject && isSubjectCode(klass.default_subject) ? klass.default_subject : "efl";
+  const classDefault = normalizeDefaultSubjectForStorage((klass.default_subject ?? "").trim()) ?? "efl";
 
   const pdfs: Buffer[] = [];
   for (const r of toMerge) {
@@ -146,7 +146,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const outputLanguageCode = r.output_language;
     const outputLanguageLabel = languageLabel(outputLanguageCode);
     const lang = isUiLang(outputLanguageCode) ? outputLanguageCode : "en";
-    const subjectLabel = subjectLabelLocalized(lang, resolvedSubjectCode(r.inputs, classDefault));
+    const subjectLabel = resolvedSubjectLabelForPdf(lang, r.inputs, classDefault);
 
     const bodyResolved = (r.body || "").trim() ? r.body : (r.body_teacher_preview || "");
     const reportPeriodResolved: ReportPeriod = termFilter === "all" ? r.inputs.report_period : (termFilter as ReportPeriod);

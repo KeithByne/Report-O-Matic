@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
+import { defaultSubjectDisplayLocalized, reportLanguageOptionLabel, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 import { REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import {
   type ReportKind,
@@ -23,7 +23,7 @@ import {
   parseReportInputs,
   reportPeriodTermNumber,
 } from "@/lib/reportInputs";
-import { REPORT_SUBJECTS, type SubjectCode } from "@/lib/subjects";
+import { REPORT_SUBJECTS, normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { classesListHref } from "@/lib/app/classesNavigation";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
@@ -183,7 +183,8 @@ export function ClassWorkspace({
   const [cName, setCName] = useState(initialClassName);
   const [scholasticYear, setScholasticYear] = useState("");
   const [cefr, setCefr] = useState("");
-  const [defSubject, setDefSubject] = useState<SubjectCode>("efl");
+  const [defSubject, setDefSubject] = useState("efl");
+  const [subjectAccountOptions, setSubjectAccountOptions] = useState<string[]>([]);
   const [defLang, setDefLang] = useState<ReportLanguageCode>("en");
   const [defNewReportKind, setDefNewReportKind] = useState<ReportKind>("standard");
   const [defNewReportPeriod, setDefNewReportPeriod] = useState<ReportPeriod>("first");
@@ -291,7 +292,7 @@ export function ClassWorkspace({
       setCName(c.name);
       setScholasticYear(c.scholastic_year?.trim() ?? "");
       setCefr(c.cefr_level ?? "");
-      setDefSubject((c.default_subject as SubjectCode) || "efl");
+      setDefSubject((c.default_subject ?? "").trim() || "efl");
       setDefLang((c.default_output_language as ReportLanguageCode) || "en");
       setDefNewReportKind(c.default_new_report_kind === "short_course" ? "short_course" : "standard");
       setDefNewReportPeriod(

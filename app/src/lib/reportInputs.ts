@@ -6,6 +6,8 @@
 
 import { isSubjectCode, subjectLabel } from "@/lib/subjects";
 import type { SubjectCode } from "@/lib/subjects";
+import type { UiLang } from "@/lib/i18n/uiStrings";
+import { defaultSubjectDisplayLocalized, subjectLabelLocalized } from "@/lib/i18n/uiStrings";
 
 export const METRIC_DIVISION_KEYS = ["classroom_behaviour", "direct_skills", "indirect_skills"] as const;
 export type MetricDivisionKey = (typeof METRIC_DIVISION_KEYS)[number];
@@ -365,10 +367,33 @@ export function reportInputsToTeacherNotes(inputs: ReportInputs, subjectResolved
   return lines.join("\n");
 }
 
-export function resolvedSubjectCode(inputs: ReportInputs, classDefault: SubjectCode): SubjectCode {
-  return inputs.subject_code ?? classDefault;
+/** Subject code for AI prompt registry; custom class defaults map to `efl` prompts with a custom display line. */
+export function resolvedSubjectCodeForPrompts(inputs: ReportInputs, classDefault: string): SubjectCode {
+  if (inputs.subject_code) return inputs.subject_code;
+  const def = (classDefault || "efl").trim().toLowerCase();
+  if (isSubjectCode(def)) return def;
+  return "efl";
 }
 
-export function resolvedSubjectLabel(inputs: ReportInputs, classDefault: SubjectCode): string {
-  return subjectLabel(resolvedSubjectCode(inputs, classDefault));
+/** English plaintext subject line for AI / teacher notes (not parent PDF). */
+export function resolvedSubjectLineForAi(inputs: ReportInputs, classDefault: string): string {
+  if (inputs.subject_code) return subjectLabel(inputs.subject_code);
+  const def = (classDefault || "").trim();
+  if (!def) return subjectLabel("efl");
+  if (isSubjectCode(def)) return subjectLabel(def);
+  return def;
+}
+
+export function resolvedSubjectCode(inputs: ReportInputs, classDefault: string): SubjectCode {
+  return resolvedSubjectCodeForPrompts(inputs, classDefault);
+}
+
+export function resolvedSubjectLabel(inputs: ReportInputs, classDefault: string): string {
+  return resolvedSubjectLineForAi(inputs, classDefault);
+}
+
+/** Localized subject label for parent-facing PDF metadata. */
+export function resolvedSubjectLabelForPdf(lang: UiLang, inputs: ReportInputs, classDefault: string): string {
+  if (inputs.subject_code) return subjectLabelLocalized(lang, inputs.subject_code);
+  return defaultSubjectDisplayLocalized(lang, (classDefault || "efl").trim());
 }

@@ -11,7 +11,7 @@ import { getReport, updateReport } from "@/lib/data/reportsDb";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { ReportInputs } from "@/lib/reportInputs";
 import { focusTermComplete, focusTermIndex, isShortCourseReport, parseReportInputs } from "@/lib/reportInputs";
-import { isSubjectCode } from "@/lib/subjects";
+import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
@@ -109,7 +109,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   if (klass && !canAccessClass({ role, viewerEmail: gate.email, klass })) {
     return NextResponse.json({ error: "You do not have access to this report." }, { status: 403 });
   }
-  const classDefaultSubject = klass?.default_subject && isSubjectCode(klass.default_subject) ? klass.default_subject : "efl";
+  const classDefaultSubject = normalizeDefaultSubjectForStorage((klass?.default_subject ?? "").trim()) ?? "efl";
   const pdfLang = isReportLanguageCode(report.output_language) ? report.output_language : "en";
   const teacherLang = isReportLanguageCode(report.teacher_preview_language)
     ? report.teacher_preview_language

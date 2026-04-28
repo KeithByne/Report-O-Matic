@@ -314,6 +314,17 @@ export const IT_LABELS: Record<string, string> = {
   "weekday.fri": "venerdì",
   "weekday.sat": "sabato",
   "weekday.sun": "domenica",
+  "class.selectOrDefineSubject": "Seleziona o definisci la materia",
+  "class.subjectPickerHint":
+    "Scegli un codice predefinito dall’elenco (es. efl) oppure digita un nuovo nome di materia; i nuovi nomi resteranno disponibili per questa scuola.",
+  "class.invalidSubject": "Inserisci una materia valida (codice predefinito o fino a 120 caratteri).",
+  "pdf.timetableTitle": "Orario settimanale",
+  "pdf.timetableMyTitle": "Il mio orario",
+  "pdf.timetableLunch": "Pausa pranzo",
+  "pdf.timetablePeriodAm": "AM {n}",
+  "pdf.timetablePeriodPm": "PM {n}",
+  "pdf.timetableRoomN": "Aula {n}",
+  "pdf.timetablePageRoom": "Aula {n}",
 };
 
 /** Portuguese UI strings (European Portuguese; merged over EN in uiStrings). */
@@ -629,6 +640,17 @@ export const PT_LABELS: Record<string, string> = {
   "weekday.fri": "sexta-feira",
   "weekday.sat": "sábado",
   "weekday.sun": "domingo",
+  "class.selectOrDefineSubject": "Selecionar ou definir disciplina",
+  "class.subjectPickerHint":
+    "Escolha um código predefinido na lista (p.ex. efl) ou escreva um nome novo de disciplina; nomes novos ficam disponíveis para esta escola.",
+  "class.invalidSubject": "Indique uma disciplina válida (código predefinido ou até 120 caracteres).",
+  "pdf.timetableTitle": "Horário semanal",
+  "pdf.timetableMyTitle": "O meu horário",
+  "pdf.timetableLunch": "Almoço",
+  "pdf.timetablePeriodAm": "AM {n}",
+  "pdf.timetablePeriodPm": "PM {n}",
+  "pdf.timetableRoomN": "Sala {n}",
+  "pdf.timetablePageRoom": "Sala {n}",
   ...OWNER_WORKSPACE_PT,
   ...GETTING_STARTED_PT,
 };
@@ -948,6 +970,17 @@ export const DE_LABELS: Record<string, string> = {
   "weekday.fri": "Freitag",
   "weekday.sat": "Samstag",
   "weekday.sun": "Sonntag",
+  "class.selectOrDefineSubject": "Fach wählen oder eingeben",
+  "class.subjectPickerHint":
+    "Wählen Sie einen Preset-Code aus der Liste (z. B. efl) oder geben Sie einen neuen Fachnamen ein; neue Namen erscheinen künftig für diese Schule in der Liste.",
+  "class.invalidSubject": "Bitte geben Sie ein gültiges Fach ein (Preset-Code oder bis zu 120 Zeichen).",
+  "pdf.timetableTitle": "Wochenstundenplan",
+  "pdf.timetableMyTitle": "Mein Stundenplan",
+  "pdf.timetableLunch": "Mittagessen",
+  "pdf.timetablePeriodAm": "AM {n}",
+  "pdf.timetablePeriodPm": "PM {n}",
+  "pdf.timetableRoomN": "Raum {n}",
+  "pdf.timetablePageRoom": "Raum {n}",
   ...OWNER_WORKSPACE_DE,
   ...GETTING_STARTED_DE,
 };

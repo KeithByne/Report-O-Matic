@@ -9,6 +9,7 @@ import {
 } from "@/lib/i18n/reportLanguages";
 import { AR_PATCH, NL_PATCH, PL_PATCH, RO_PATCH, RU_PATCH, UK_PATCH } from "@/lib/i18n/localePatches6";
 import type { SubjectCode } from "@/lib/subjects";
+import { isSubjectCode } from "@/lib/subjects";
 import { EL_BODY } from "@/lib/i18n/localeElBody";
 import { DE_LABELS, IT_LABELS, PT_LABELS } from "@/lib/i18n/localeExtra";
 import { IT_COMPLETION } from "@/lib/i18n/localeItCompletion";
@@ -1105,6 +1106,10 @@ const EN: UiMessages = {
     "You can still set the output language on each pupil’s report when needed.",
   "class.cefr": "Class level (CEFR)",
   "class.defaultSubject": "Default subject",
+  "class.selectOrDefineSubject": "Select or define subject",
+  "class.subjectPickerHint":
+    "Pick a preset code from the list (e.g. efl) or type a new subject name; new names are saved to this school’s subject list for next time.",
+  "class.invalidSubject": "Enter a valid subject (a preset code or up to 120 characters).",
   "class.defaultOutputLang": "Default output language",
   "class.roomNumber": "Timetable room",
   "class.roomNumberOption": "Room {n}",
@@ -1815,6 +1820,10 @@ const FR: UiMessages = {
     "Vous pouvez toujours définir la langue de sortie sur le rapport de chaque élève si besoin.",
   "class.cefr": "Niveau classe (CECR)",
   "class.defaultSubject": "Matière par défaut",
+  "class.selectOrDefineSubject": "Sélectionner ou définir la matière",
+  "class.subjectPickerHint":
+    "Choisissez un code préréglé dans la liste (p. ex. efl) ou saisissez un nouveau nom de matière ; les nouveaux noms sont enregistrés pour cette école.",
+  "class.invalidSubject": "Saisissez une matière valide (code préréglé ou jusqu’à 120 caractères).",
   "class.defaultOutputLang": "Langue de sortie par défaut",
   "class.roomNumber": "Salle de l'emploi du temps",
   "class.roomNumberOption": "Salle {n}",
@@ -2376,6 +2385,10 @@ const ES: UiMessages = {
     "Aún puede fijar el idioma de salida en el informe de cada alumno si lo necesita.",
   "class.cefr": "Nivel de la clase (MCER)",
   "class.defaultSubject": "Materia por defecto",
+  "class.selectOrDefineSubject": "Seleccionar o definir asignatura",
+  "class.subjectPickerHint":
+    "Elija un código predefinido de la lista (p. ej. efl) o escriba un nombre nuevo de asignatura; los nombres nuevos quedan guardados para esta escuela.",
+  "class.invalidSubject": "Introduzca una asignatura válida (código predefinido o hasta 120 caracteres).",
   "class.defaultOutputLang": "Idioma de salida por defecto",
   "class.roomNumber": "Aula del horario",
   "class.roomNumberOption": "Aula {n}",
@@ -2497,4 +2510,12 @@ export function metricDivisionLabel(lang: UiLang, key: MetricDivisionKey): strin
 
 export function subjectLabelLocalized(lang: UiLang, code: SubjectCode): string {
   return REPORT_SUBJECT_I18N[code][lang] ?? REPORT_SUBJECT_I18N[code].en;
+}
+
+/** Class default subject: localized built-in label, or the custom string as entered. */
+export function defaultSubjectDisplayLocalized(lang: UiLang, stored: string): string {
+  const s = stored.trim();
+  if (!s) return subjectLabelLocalized(lang, "efl");
+  if (isSubjectCode(s)) return subjectLabelLocalized(lang, s);
+  return s;
 }
