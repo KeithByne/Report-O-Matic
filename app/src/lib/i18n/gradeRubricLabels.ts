@@ -1,6 +1,7 @@
 /**
  * Metric + division labels for general-education rubrics (primary / secondary).
- * Non-English UI locales fall back to English until full translations are added.
+ * Primary: English-only map below. Secondary UI strings live in {@link secondaryRubricMetricI18n}
+ * so they are never mixed with language-school {@link REPORT_METRIC_I18N}.
  */
 
 import type { UiLang } from "@/lib/i18n/uiStrings";
@@ -8,6 +9,7 @@ import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import type { Dataset4MetricKey, MetricDivisionKey } from "@/lib/reportInputs";
 import { DATASET4_METRICS, METRIC_DIVISION_LABEL_EN } from "@/lib/reportInputs";
 import { metricDivisionLabel, metricLabel } from "@/lib/i18n/uiStrings";
+import { secondaryMetricEnglishForAi, secondaryMetricUiLabel } from "@/lib/i18n/secondaryRubricMetricI18n";
 
 /** Primary-style general education metric titles (English; all locales use same for v1). */
 const PRIMARY_METRIC_EN: Record<Dataset4MetricKey, string> = {
@@ -29,25 +31,6 @@ const PRIMARY_METRIC_EN: Record<Dataset4MetricKey, string> = {
   reading_comprehension: "Application, reasoning and problem-solving",
 };
 
-const SECONDARY_METRIC_EN: Record<Dataset4MetricKey, string> = {
-  attendance: "Attendance",
-  punctuality: "Punctuality",
-  completes_homework: "Completes assigned work",
-  submits_homework_on_time: "Meets deadlines",
-  pays_attention_to_teacher: "Focus and sustained engagement",
-  avoids_distraction: "Self-management and study habits",
-  takes_part_in_activities: "Participation and contribution in class",
-  interacts_with_peers: "Collaboration and respectful interaction",
-  reading: "Interprets complex information and sources",
-  writing: "Written communication and academic writing",
-  listening: "Follows technical explanations and instructions",
-  speaking: "Structured oral communication and argument",
-  pronunciation: "Accuracy of conventions, notation, and terminology",
-  handwriting: "Organisation, structure, and quality of presentation",
-  audio_comprehension: "Conceptual understanding",
-  reading_comprehension: "Analysis, reasoning, and problem-solving",
-};
-
 const PRIMARY_DIV_EN: Record<MetricDivisionKey, string> = {
   classroom_behaviour: "Learning habits",
   direct_skills: "Subject skills",
@@ -61,9 +44,18 @@ const SECONDARY_DIV_EN: Record<MetricDivisionKey, string> = {
 };
 
 export function metricLabelForRubric(lang: UiLang, key: Dataset4MetricKey, rubric: GradeRubricProfile): string {
-  if (rubric === "language") return metricLabel(lang, key);
-  const en = rubric === "primary" ? PRIMARY_METRIC_EN[key] : SECONDARY_METRIC_EN[key];
-  return en;
+  switch (rubric) {
+    case "language":
+      return metricLabel(lang, key);
+    case "primary":
+      return PRIMARY_METRIC_EN[key];
+    case "secondary":
+      return secondaryMetricUiLabel(lang, key);
+    default: {
+      const _exhaustive: never = rubric;
+      return _exhaustive;
+    }
+  }
 }
 
 export function metricDivisionLabelForRubric(lang: UiLang, key: MetricDivisionKey, rubric: GradeRubricProfile): string {
@@ -79,9 +71,18 @@ export function metricDivisionHeadingEnForRubric(key: MetricDivisionKey, rubric:
 }
 
 export function metricLineEnForRubric(key: Dataset4MetricKey, rubric: GradeRubricProfile): string {
-  if (rubric === "language") {
-    const m = DATASET4_METRICS.find((x) => x.key === key);
-    return m?.label ?? key;
+  switch (rubric) {
+    case "language": {
+      const m = DATASET4_METRICS.find((x) => x.key === key);
+      return m?.label ?? key;
+    }
+    case "primary":
+      return PRIMARY_METRIC_EN[key];
+    case "secondary":
+      return secondaryMetricEnglishForAi(key);
+    default: {
+      const _exhaustive: never = rubric;
+      return String(_exhaustive);
+    }
   }
-  return rubric === "primary" ? PRIMARY_METRIC_EN[key] : SECONDARY_METRIC_EN[key];
 }

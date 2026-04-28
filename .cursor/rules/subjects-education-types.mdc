@@ -1,6 +1,6 @@
 ---
 description: Subjects, presets, and education types (grade rubric profiles)
-globs: app/src/**/*subject*,app/src/**/*Subject*,app/src/lib/subject*,app/src/lib/subjectOptionsByEducationType.ts,app/src/lib/gradeRubricProfile.ts,app/src/app/api/**/subject-options/**
+globs: app/src/**/*subject*,app/src/**/*Subject*,app/src/lib/subject*,app/src/lib/subjectOptionsByEducationType.ts,app/src/lib/gradeRubricProfile.ts,app/src/lib/i18n/gradeRubricLabels.ts,app/src/lib/i18n/secondaryRubricMetricI18n.ts,app/src/app/api/**/subject-options/**
 ---
 
 # Subjects and education types
@@ -13,6 +13,7 @@ globs: app/src/**/*subject*,app/src/**/*Subject*,app/src/lib/subject*,app/src/li
 - **POST `/api/tenants/[tenantId]/classes`**: new rows always use `tenants.default_grade_rubric_profile` for `classes.grade_rubric_profile` (ignore client `grade_rubric_profile` so stale UI cannot create a primary tenant with a language class).
 - **GET `/api/tenants/[tenantId]/classes/[classId]`** calls `alignClassGradeRubricWithTenantIfNeeded`: if the class row’s `grade_rubric_profile` differs from `tenants.default_grade_rubric_profile`, the row is updated (invalid `cefr_level` cleared). Self-heals legacy rows and drift; requires migration **0032** so `classes.grade_rubric_profile` exists (insert throws with a clear error if the column is missing).
 - **Subject suggestions** are built per `GradeRubricProfile` in `@/lib/subjectOptionsByEducationType.ts` (`subjectSuggestionLabelsForRubric`). **ClassWorkspace** reads the class row’s `grade_rubric_profile` (kept in sync with the tenant default as above). The class card shows **only** that profile’s suggestions (single datalist) and **only** that profile’s custom subjects in the manage dropdown (no other programme’s content).
+- **Secondary metric row titles (UI + AI English)** live only in `@/lib/i18n/secondaryRubricMetricI18n.ts` (`SECONDARY_METRIC_EN_BY_KEY`, `secondaryMetricUiLabel`, `secondaryMetricEnglishForAi`). Do **not** reuse `REPORT_METRIC_I18N` (language school) or `PRIMARY_METRIC_EN` for secondary. Add non-English copy via `SECONDARY_METRIC_UI_OVERRIDES` in that file—never merge secondary strings into primary/language tables.
 - **AI report drafts** (`reportCommentPrompts.ts`, `shortCourseReportCommentPrompt.ts`): `ReportDraftPromptContext.gradeRubricProfile` must match the dataset rubric. CEFR-only homework restrictions apply **only** when `gradeRubricProfile === "language"`. Primary vs secondary **grading context** (one class teacher vs multiple subject strands) is injected via `schoolGradingContextRulesForRubric`.
 - **Report subject override** (`ReportEditor`): render preset language `<option>`s only when `parseGradeRubricProfile(klass.grade_rubric_profile, "language") === "language"`; strip `inputs.subject_code` on load when the class is not language acquisition.
 - **Custom subject rows** in tenant JSON include `name` and `rubric_profile`. Custom names are **scoped per education type**; the API persists them that way. Built-in languages are not stored as custom rows.

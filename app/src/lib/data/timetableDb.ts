@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeActiveWeekdays, type WeekdayKey } from "@/lib/activeWeekdays";
 import { schoolWeekdaysToSortedDayIndexes, timetableSchoolWeekdaysFromDb } from "@/lib/timetable/timetableSchoolWeekdays";
 import { getServiceSupabase } from "@/lib/supabase/service";
@@ -7,12 +8,50 @@ function formatErr(e: { message: string; details?: string | null; hint?: string 
   return parts.join(" — ") || "Database error.";
 }
 
+function supabaseErrText(e: unknown): string {
+  if (e == null) return "";
+  if (typeof e === "string") return e;
+  if (typeof e === "object") {
+    const o = e as Record<string, unknown>;
+    const bits = [o.message, o.details, o.hint, o.code].filter((x) => typeof x === "string" && String(x).trim());
+    if (bits.length) return bits.join(" ");
+    try {
+      return JSON.stringify(e);
+    } catch {
+      return String(e);
+    }
+  }
+  return String(e);
+}
+
+const POSTGREST_SCHEMA_RELOAD_DELAY_MS = 450;
+
+async function tryRequestPostgrestSchemaReload(supabase: SupabaseClient): Promise<void> {
+  const { error } = await supabase.rpc("rom_request_postgrest_schema_reload");
+  void error;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const LEGACY_WEEKDAYS: WeekdayKey[] = ["mon", "tue", "wed", "thu", "fri"];
 
-function isMissingSchoolWeekdaysColumnError(e: { message?: string | null; details?: string | null; hint?: string | null }): boolean {
-  const msg = [e.message, e.details, e.hint].filter(Boolean).join(" ").toLowerCase();
-  return msg.includes("timetable_school_weekdays") && msg.includes("does not exist");
+/** PostgREST: column missing in DB, or migration applied but schema cache not reloaded. */
+function tenantTimetableSchoolWeekdaysUnavailableError(e: unknown): boolean {
+  const msg = supabaseErrText(e).toLowerCase();
+  if (!msg.includes("timetable_school_weekdays")) return false;
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    msg.includes("could not find") ||
+    msg.includes("pgrst") ||
+    (msg.includes("unknown") && msg.includes("column"))
+  );
 }
+
+const TIMETABLE_SCHOOL_WEEKDAYS_MIGRATION_HINT =
+  "Could not save school days on the timetable. Apply migration `0034_tenant_timetable_school_weekdays.sql` on this Supabase project (adds `tenants.timetable_school_weekdays`), apply `0038_rom_request_postgrest_schema_reload.sql` so the app can refresh PostgREST, then run `NOTIFY pgrst, 'reload schema';` in the SQL editor or restart the project.";
 
 export type TimetableSettings = {
   room_count: number;
@@ -39,13 +78,20 @@ const tenantTimetableSelect = "timetable_room_count, timetable_periods_am, timet
 export async function getTimetableSettings(tenantId: string): Promise<TimetableSettings | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("tenants")
     .select(tenantTimetableSelect)
     .eq("id", tenantId)
     .maybeSingle();
-  if (error && !isMissingSchoolWeekdaysColumnError(error)) throw new Error(formatErr(error));
-  if (error && isMissingSchoolWeekdaysColumnError(error)) {
+  if (error && tenantTimetableSchoolWeekdaysUnavailableError(error)) {
+    await tryRequestPostgrestSchemaReload(supabase);
+    await delay(POSTGREST_SCHEMA_RELOAD_DELAY_MS);
+    const retry = await supabase.from("tenants").select(tenantTimetableSelect).eq("id", tenantId).maybeSingle();
+    data = retry.data;
+    error = retry.error;
+  }
+  if (error && !tenantTimetableSchoolWeekdaysUnavailableError(error)) throw new Error(formatErr(error));
+  if (error && tenantTimetableSchoolWeekdaysUnavailableError(error)) {
     const { data: legacyData, error: legacyError } = await supabase
       .from("tenants")
       .select("timetable_room_count, timetable_periods_am, timetable_periods_pm")
@@ -104,27 +150,28 @@ export async function updateTimetableSettings(
   const periodTotal = periods_am + periods_pm;
   const allowedSet = new Set(schoolWeekdaysToSortedDayIndexes(school_weekdays));
 
-  const { error: upErr } = await supabase
-    .from("tenants")
-    .update({
-      timetable_room_count: room_count,
-      timetable_periods_am: periods_am,
-      timetable_periods_pm: periods_pm,
-      timetable_school_weekdays: school_weekdays,
-    })
-    .eq("id", tenantId);
-  if (upErr && !isMissingSchoolWeekdaysColumnError(upErr)) throw new Error(formatErr(upErr));
-  if (upErr && isMissingSchoolWeekdaysColumnError(upErr)) {
-    const { error: legacyUpErr } = await supabase
+  const timetableUpdate = () =>
+    supabase
       .from("tenants")
       .update({
         timetable_room_count: room_count,
         timetable_periods_am: periods_am,
         timetable_periods_pm: periods_pm,
+        timetable_school_weekdays: school_weekdays,
       })
       .eq("id", tenantId);
-    if (legacyUpErr) throw new Error(formatErr(legacyUpErr));
+
+  let { error: upErr } = await timetableUpdate();
+  if (upErr && tenantTimetableSchoolWeekdaysUnavailableError(upErr)) {
+    await tryRequestPostgrestSchemaReload(supabase);
+    await delay(POSTGREST_SCHEMA_RELOAD_DELAY_MS);
+    const second = await timetableUpdate();
+    upErr = second.error;
   }
+  if (upErr && tenantTimetableSchoolWeekdaysUnavailableError(upErr)) {
+    throw new Error(TIMETABLE_SCHOOL_WEEKDAYS_MIGRATION_HINT);
+  }
+  if (upErr) throw new Error(formatErr(upErr));
 
   const { error: d1 } = await supabase
     .from("timetable_slots")

@@ -33,7 +33,7 @@ export function buildShortCourseReportDraftPrompts(ctx: ReportDraftPromptContext
     ctx.gradeRubricProfile === "language"
       ? "You write school report comments for parents (English as a foreign language / similar language-acquisition contexts)."
       : ctx.gradeRubricProfile === "primary"
-        ? "You write primary-style short-course report comments for parents."
+        ? "You write primary-style short-course report comments for parents about **young learners**; tone and priorities follow the primary school context block below."
         : "You write secondary-style short-course report comments for parents.";
   const system = `${opening}
 The student has attended a stand-alone course of short duration. 

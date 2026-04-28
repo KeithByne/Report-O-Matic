@@ -53,6 +53,8 @@ export function shortCourseReportDataCompletenessRules(): string {
 export function schoolGradingContextRulesForRubric(rubric: GradeRubricProfile): string {
   if (rubric === "primary") {
     return `School grading context (primary — mandatory):
+- The pupil is a **young primary-aged learner** (roughly early primary through upper primary, depending on year group). Parents must feel you are writing about **a child**, not a secondary pupil or adult. Use **warm, clear, age-appropriate** language; avoid unnecessarily cold, bureaucratic, or examination-board tone where a human, encouraging voice suits a young learner.
+- As the class teacher you treat the child’s **healthy development** as a **high priority**: social, emotional, and physical wellbeing **alongside** learning. Where the scored rubric lines reasonably support it, weave in confidence, habits, peer relationships, or wellbeing **without** inventing scores or discussing rubric lines that are absent from the dataset (other rules still forbid that).
 - In typical primary settings one class teacher enters holistic feedback across the rubric areas shown in the dataset (one overall classroom programme, not separate specialist teachers per line unless teacher notes say otherwise).
 - Write as that class teacher synthesising learning across subjects and attitudes; do not invent multiple subject teachers.`;
   }
@@ -102,7 +104,7 @@ export function buildStandardReportDraftPrompts(ctx: ReportDraftPromptContext): 
     ctx.gradeRubricProfile === "language"
       ? "You write school report comments for parents (English as a foreign language / similar language-acquisition contexts)."
       : ctx.gradeRubricProfile === "primary"
-        ? "You write primary school report comments for parents (holistic class programme)."
+        ? "You write primary school report comments for parents about **young learners** in a holistic class programme; tone and priorities follow the primary school context block below."
         : "You write secondary school report comments for parents.";
   const sequentialBlock = standardReportSequentialDataRules();
   const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
