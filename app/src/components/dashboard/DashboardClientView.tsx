@@ -821,19 +821,6 @@ export function DashboardClientView({
                   <LayoutList className={ICON_INLINE} aria-hidden />
                   {t("dash.panelOverview")}
                 </button>
-                <button
-                  type="button"
-                  aria-pressed={workspaceDashPanel === "schoolType"}
-                  onClick={() => setWorkspaceDashPanel("schoolType")}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "schoolType"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <BookOpen className={ICON_INLINE} aria-hidden />
-                  {t("tenant.schoolTypeTitle")}
-                </button>
                 {showWorkspacePdfTab ? (
                   <button
                     type="button"
