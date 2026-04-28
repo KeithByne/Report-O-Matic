@@ -162,7 +162,6 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
           ]
         : [
             { id: "welcome", label: t("dash.panelOverview"), Icon: PANEL_ICON.welcome },
-            { id: "language", label: t("tenant.panelLanguage"), Icon: PANEL_ICON.language },
             { id: "classes", label: t("tenant.panelClasses"), Icon: PANEL_ICON.classes },
             { id: "timetable", label: t("tenant.panelTimetable"), Icon: PANEL_ICON.timetable },
           ];
