@@ -4,8 +4,7 @@ import type { WeekdayKey } from "@/lib/activeWeekdays";
 import { normalizeActiveWeekdays, parseActiveWeekdaysFromDb } from "@/lib/activeWeekdays";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { RomRole } from "@/lib/data/memberships";
-import type { SubjectCode } from "@/lib/subjects";
-import { isSubjectCode } from "@/lib/subjects";
+import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { syncTimetableSlotsTeacherForClass } from "@/lib/data/timetableDb";
 
@@ -22,7 +21,7 @@ export type ClassRow = {
   name: string;
   scholastic_year: string | null;
   cefr_level: CefrLevel | null;
-  default_subject: SubjectCode;
+  default_subject: string;
   default_output_language: ReportLanguageCode;
   default_new_report_kind: ReportKind;
   /** Default `report_period` for new standard reports created for pupils in this class. */
@@ -72,7 +71,10 @@ function mapClassRow(raw: Record<string, unknown>): ClassRow {
     name: raw.name as string,
     scholastic_year: (raw.scholastic_year as string | null) ?? null,
     cefr_level: (raw.cefr_level as CefrLevel | null) ?? null,
-    default_subject: raw.default_subject as SubjectCode,
+    default_subject:
+      typeof raw.default_subject === "string" && raw.default_subject.trim()
+        ? raw.default_subject.trim()
+        : "efl",
     default_output_language: raw.default_output_language as ReportLanguageCode,
     default_new_report_kind: parseReportKind(raw.default_new_report_kind),
     default_new_report_period: parseDefaultNewReportPeriod(raw.default_new_report_period),
@@ -103,7 +105,7 @@ export async function insertClass(opts: {
   name: string;
   scholasticYear?: string | null;
   cefrLevel?: CefrLevel | null;
-  defaultSubject?: SubjectCode;
+  defaultSubject?: string;
   defaultOutputLanguage?: ReportLanguageCode;
   assignedTeacherEmail?: string | null;
 }): Promise<ClassRow> {
@@ -116,7 +118,10 @@ export async function insertClass(opts: {
     name,
     scholastic_year: opts.scholasticYear?.trim() || null,
     cefr_level: opts.cefrLevel ?? null,
-    default_subject: opts.defaultSubject && isSubjectCode(opts.defaultSubject) ? opts.defaultSubject : "efl",
+    default_subject:
+      opts.defaultSubject !== undefined
+        ? normalizeDefaultSubjectForStorage(opts.defaultSubject) ?? "efl"
+        : "efl",
     default_output_language: opts.defaultOutputLanguage ?? "en",
     default_new_report_kind: "standard",
     assigned_teacher_email: opts.assignedTeacherEmail?.trim().toLowerCase() ?? null,
@@ -147,7 +152,7 @@ export async function updateClass(
     name?: string;
     scholastic_year?: string | null;
     cefr_level?: CefrLevel | null;
-    default_subject?: SubjectCode;
+    default_subject?: string;
     default_output_language?: ReportLanguageCode;
     default_new_report_kind?: ReportKind;
     default_new_report_period?: ReportPeriod;
