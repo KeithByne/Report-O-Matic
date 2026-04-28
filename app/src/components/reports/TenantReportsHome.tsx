@@ -257,15 +257,6 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
               {t("dash.panelInviteTeam")}
             </Link>
           ) : null}
-          {viewerRole === "owner" ? (
-            <button
-              type="button"
-              onClick={() => setOpenOwnerEducationCard((v) => !v)}
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
-            >
-              {t("tenant.schoolTypeTitle")}
-            </button>
-          ) : null}
         </nav>
       </section>
 
