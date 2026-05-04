@@ -877,6 +877,18 @@ export function DashboardClientView({
                   <CalendarDays className={ICON_INLINE} aria-hidden />
                   {t("tenant.panelTimetable")}
                 </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    openPdfForPrint(
+                      `/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                    )
+                  }
+                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                >
+                  <Printer className={ICON_INLINE} aria-hidden />
+                  {t("dash.ownerAllRegisterLists")}
+                </button>
                 {workspaceDashPanel ? (
                   <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
                     <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
