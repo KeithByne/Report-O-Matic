@@ -2,6 +2,10 @@
  * Lists EN UI keys that have no entry in each locale's overlay / partial bundle
  * (so they still fall back to English at runtime).
  *
+ * Note: `translate()` in `uiStrings.ts` also tries French/Spanish full bundles for some
+ * locales when a string still matches English (it / pt / nl / pl / ro / de / el), and
+ * dedicated ru/uk/ar overlays cover auth + paused billing — this script does not model that.
+ *
  * Usage:
  *   node scripts/i18n-audit.mjs              # all locales, summary + key lists
  *   node scripts/i18n-audit.mjs nl           # only locale `nl`

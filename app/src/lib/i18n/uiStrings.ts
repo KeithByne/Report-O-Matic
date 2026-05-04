@@ -1863,6 +1863,11 @@ const FR: UiMessages = {
   "billing.currentBalanceLabel": "Solde actuel (ce compte) :",
   "billing.reportsRemaining": "{n} rapports restants",
   "billing.ownerOnly": "Seuls les propriétaires peuvent acheter des crédits. Demandez à votre propriétaire d’acheter un pack.",
+  "billing.paymentsPausedTitle": "Paiement par carte temporairement suspendu.",
+  "billing.paymentsPausedBody":
+    "L’exploitant de la plateforme a désactivé les paiements par carte en ligne. Les packs et tarifs peuvent encore s’afficher à titre indicatif.",
+  "billing.paymentsPausedTestExhausted":
+    "Les crédits d’essai gratuits de cette école sont épuisés. Les achats par carte seront possibles lorsque l’exploitant réactivera le paiement — contactez-le si vous avez besoin d’un accès plus rapide.",
   "billing.continuePayment": "Continuer vers le paiement",
   "billing.packLine": "{credits} rapports • Total : {price} {currency}",
   "billing.packTaxIncluded": "Ce prix inclut déjà {taxDetail}.",
@@ -2483,6 +2488,11 @@ const ES: UiMessages = {
   "billing.currentBalanceLabel": "Saldo actual (esta cuenta):",
   "billing.reportsRemaining": "{n} informes restantes",
   "billing.ownerOnly": "Solo los propietarios pueden comprar créditos. Pida al propietario que compre un pack.",
+  "billing.paymentsPausedTitle": "Pago con tarjeta en pausa.",
+  "billing.paymentsPausedBody":
+    "El operador de la plataforma ha desactivado temporalmente los pagos con tarjeta en línea. Los packs y precios pueden seguir mostrándose solo como referencia.",
+  "billing.paymentsPausedTestExhausted":
+    "Se han agotado los créditos de prueba gratuitos de este centro. La compra con tarjeta volverá a estar disponible cuando el operador reactive el pago; póngase en contacto con él si necesita acceso antes.",
   "billing.continuePayment": "Continuar al pago",
   "billing.packLine": "{credits} informes • Total: {price} {currency}",
   "billing.packTaxIncluded": "Este precio ya incluye {taxDetail}.",
@@ -2704,8 +2714,39 @@ export const UI_STRINGS: Record<UiLang, UiMessages> = {
   ar: AR,
 };
 
+/**
+ * Locales that merge English + partial patches: when a string still matches English,
+ * try French and/or Spanish full bundles so UI is not left in English where those locales define a translation.
+ * (ru / uk / ar use dedicated overlays instead — see `localeRuUkArAuthBilling.ts`.)
+ */
+const SECONDARY_FALLBACK_LANGS: Partial<Record<UiLang, readonly UiLang[]>> = {
+  it: ["es", "fr"],
+  pt: ["es", "fr"],
+  nl: ["fr", "es"],
+  pl: ["fr", "es"],
+  ro: ["fr", "es"],
+  de: ["fr", "es"],
+  el: ["fr", "es"],
+};
+
+function secondaryLookup(lang: UiLang, key: string, enVal: string): string | undefined {
+  const chain = SECONDARY_FALLBACK_LANGS[lang];
+  if (!chain) return undefined;
+  for (const l of chain) {
+    const t = UI_STRINGS[l][key];
+    if (t !== undefined && t !== enVal) return t;
+  }
+  return undefined;
+}
+
 export function translate(lang: UiLang, key: string, vars?: Record<string, string | number>): string {
-  let s = UI_STRINGS[lang][key] ?? UI_STRINGS.en[key] ?? key;
+  const enVal = UI_STRINGS.en[key] ?? key;
+  let s = UI_STRINGS[lang][key];
+  if (s === undefined) s = enVal;
+  else if (lang !== "en" && lang !== "fr" && lang !== "es" && s === enVal) {
+    const alt = secondaryLookup(lang, key, enVal);
+    if (alt !== undefined) s = alt;
+  }
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       s = s.replaceAll(`{${k}}`, String(v));

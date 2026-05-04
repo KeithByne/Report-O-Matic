@@ -18,6 +18,11 @@ import {
   OWNER_WORKSPACE_RU,
   OWNER_WORKSPACE_UK,
 } from "@/lib/i18n/localeOwnerWorkspaceMenu";
+import {
+  AR_AUTH_BILLING_OVERLAY,
+  RU_AUTH_BILLING_OVERLAY,
+  UK_AUTH_BILLING_OVERLAY,
+} from "@/lib/i18n/localeRuUkArAuthBilling";
 
 function patch(base: Record<string, string>): Record<string, string> {
   return base;
@@ -367,6 +372,7 @@ export const RU_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_RU,
   ...GETTING_STARTED_RU,
   ...RU_EXTRA,
+  ...RU_AUTH_BILLING_OVERLAY,
   ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.ru,
 });
 
@@ -454,6 +460,7 @@ export const UK_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_UK,
   ...GETTING_STARTED_UK,
   ...UK_EXTRA,
+  ...UK_AUTH_BILLING_OVERLAY,
   ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.uk,
 });
 
@@ -540,5 +547,6 @@ export const AR_PATCH: Record<string, string> = patch({
   ...OWNER_WORKSPACE_AR,
   ...GETTING_STARTED_AR,
   ...AR_EXTRA,
+  ...AR_AUTH_BILLING_OVERLAY,
   ...EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT.ar,
 });
