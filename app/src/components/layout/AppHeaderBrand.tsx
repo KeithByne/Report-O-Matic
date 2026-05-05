@@ -29,8 +29,8 @@ export function AppHeaderLogo({ size = "md" }: { size?: "sm" | "md" }) {
   }, [displayTheme]);
 
   return (
-    // ~2× prior sizes (sm was 2.75rem, md was 3rem) so the mark reads clearly in all app headers.
-    <div className={size === "sm" ? "h-[5.5rem] w-[5.5rem] shrink-0" : "h-24 w-24 shrink-0"}>
+    // sm/md box sizes (+15% vs 5.5rem / 6rem) so day and night marks read clearly in headers.
+    <div className={size === "sm" ? "h-[6.325rem] w-[6.325rem] shrink-0" : "h-[6.9rem] w-[6.9rem] shrink-0"}>
       {logoIx < candidates.length ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
