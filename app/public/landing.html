@@ -3,23 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="dark" />
     <title>Report-O-Matic — Sign in</title>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
       :root {
-        /* ~15% darker than previous sign-in wash */
-        --bg: color-mix(in srgb, #0a1812 85%, black);
-        --card: rgba(255, 255, 255, 0.06);
-        --card2: rgba(255, 255, 255, 0.08);
-        --text: rgba(255, 255, 255, 0.92);
-        --muted: rgba(255, 255, 255, 0.72);
-        --muted2: rgba(255, 255, 255, 0.60);
-        --danger: #ef4444;
-        --ok: #4ade80;
-        --accent: #6ee7b7;
-        --border: rgba(255, 255, 255, 0.14);
-        --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        /* Aligned with app Night View (globals.css html[data-rom-theme="night"]) */
+        --bg: #20446d;
+        --bg-deep: #0d1d33;
+        --bg-mid: #162b49;
+        --bg-accent: #213a5f;
+        --card: rgba(13, 29, 51, 0.88);
+        --card2: rgba(22, 43, 73, 0.92);
+        --text: #e6efff;
+        --muted: #d4e2f8;
+        --muted2: rgba(230, 239, 255, 0.62);
+        --danger: #f87171;
+        --ok: #6ee7b7;
+        --accent: #93c5fd;
+        --accent-strong: #bfdbfe;
+        --border: #3d5a84;
+        --shadow: 0 20px 60px rgba(0, 8, 24, 0.55);
         --radius: 16px;
         --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
           "Segoe UI Emoji";
@@ -32,10 +36,10 @@
         font-family: var(--font);
         color: var(--text);
         background:
-          radial-gradient(1200px 600px at 25% 15%, rgba(52, 211, 153, 0.22), transparent 58%),
-          radial-gradient(900px 500px at 80% 20%, rgba(16, 185, 129, 0.16), transparent 55%),
-          radial-gradient(900px 700px at 60% 90%, rgba(20, 83, 45, 0.28), transparent 55%),
-          var(--bg);
+          radial-gradient(1100px 520px at 18% 12%, rgba(147, 197, 253, 0.14), transparent 55%),
+          radial-gradient(880px 480px at 82% 18%, rgba(61, 90, 132, 0.45), transparent 58%),
+          radial-gradient(900px 640px at 55% 92%, rgba(12, 31, 55, 0.65), transparent 55%),
+          linear-gradient(165deg, #1a3a5c 0%, var(--bg) 42%, #183250 100%);
       }
 
       a { color: var(--accent); text-decoration: none; }
@@ -63,7 +67,7 @@
 
       .hero, .card {
         border: 1px solid var(--border);
-        background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.03));
+        background: linear-gradient(180deg, var(--card), rgba(10, 26, 47, 0.92));
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         overflow: hidden;
@@ -84,12 +88,13 @@
         width: 88px;
         height: 88px;
         border-radius: 12px;
-        background: linear-gradient(135deg, rgba(52, 211, 153, 0.95), rgba(5, 150, 105, 0.9));
+        background: linear-gradient(135deg, var(--bg-mid) 0%, var(--bg-deep) 100%);
+        border: 1px solid rgba(61, 90, 132, 0.75);
         display: grid;
         place-items: center;
         font-weight: 800;
         letter-spacing: 0.5px;
-        color: rgba(0,0,0,0.75);
+        color: var(--accent-strong);
         overflow: hidden;
       }
 
@@ -105,6 +110,7 @@
         font-weight: 800;
         margin: 0;
         line-height: 1.1;
+        color: #eef5ff;
       }
 
       .subtitle {
@@ -134,9 +140,9 @@
       }
       .pill {
         font-size: 12px;
-        color: rgba(255,255,255,0.82);
-        background: rgba(255,255,255,0.07);
-        border: 1px solid rgba(255,255,255,0.12);
+        color: #eaf3ff;
+        background: rgba(22, 43, 73, 0.65);
+        border: 1px solid rgba(61, 90, 132, 0.85);
         padding: 7px 10px;
         border-radius: 999px;
       }
@@ -148,8 +154,8 @@
       .tabs {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(13, 29, 51, 0.75);
+        border: 1px solid var(--border);
         border-radius: 12px;
         overflow: hidden;
         margin-bottom: 14px;
@@ -157,14 +163,14 @@
       .tabBtn {
         border: 0;
         background: transparent;
-        color: rgba(255,255,255,0.78);
+        color: var(--muted);
         padding: 10px 12px;
         font-weight: 700;
         cursor: pointer;
       }
       .tabBtn[aria-selected="true"] {
-        background: rgba(255,255,255,0.10);
-        color: rgba(255,255,255,0.95);
+        background: rgba(33, 58, 95, 0.85);
+        color: #f4f8ff;
       }
 
       .row { display: grid; gap: 10px; }
@@ -185,19 +191,19 @@
         text-underline-offset: 2px;
         white-space: nowrap;
       }
-      .linkForgot:hover { color: #a7f3d0; }
+      .linkForgot:hover { color: var(--accent-strong); }
       label { font-size: 12px; color: var(--muted); }
       input {
         width: 100%;
         padding: 11px 12px;
         border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.14);
-        background: rgba(0,0,0,0.25);
-        color: rgba(255,255,255,0.92);
+        border: 1px solid var(--border);
+        background: rgba(12, 31, 55, 0.72);
+        color: var(--text);
         outline: none;
       }
-      input::placeholder { color: rgba(255,255,255,0.40); }
-      input:focus { border-color: rgba(110, 231, 183, 0.55); box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); }
+      input::placeholder { color: rgba(212, 226, 248, 0.45); }
+      input:focus { border-color: rgba(147, 197, 253, 0.65); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18); }
 
       .btn {
         display: inline-flex;
@@ -210,9 +216,16 @@
         font-weight: 800;
         cursor: pointer;
       }
-      .btnPrimary { background: linear-gradient(180deg, rgba(110, 231, 183, 0.98), rgba(52, 211, 153, 0.95)); color: rgba(6, 40, 28, 0.88); }
+      .btnPrimary {
+        background: linear-gradient(180deg, #bfdbfe 0%, #93c5fd 45%, #60a5fa 100%);
+        color: #0f172a;
+      }
       .btnPrimary:disabled { opacity: 0.55; cursor: not-allowed; }
-      .btnGhost { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.88); border: 1px solid rgba(255,255,255,0.12); }
+      .btnGhost {
+        background: rgba(22, 43, 73, 0.55);
+        color: #eaf3ff;
+        border: 1px solid var(--border);
+      }
 
       .small {
         font-size: 12px;
@@ -223,14 +236,14 @@
       .msg {
         border-radius: 12px;
         padding: 10px 12px;
-        border: 1px solid rgba(255,255,255,0.12);
-        background: rgba(255,255,255,0.06);
-        color: rgba(255,255,255,0.88);
+        border: 1px solid var(--border);
+        background: rgba(13, 29, 51, 0.75);
+        color: #f2f7ff;
         font-size: 13px;
         line-height: 1.45;
       }
-      .msg.ok { border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.10); }
-      .msg.err { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.10); }
+      .msg.ok { border-color: rgba(52, 211, 153, 0.45); background: rgba(22, 43, 73, 0.9); }
+      .msg.err { border-color: rgba(248, 113, 113, 0.45); background: rgba(55, 20, 28, 0.35); }
 
       .split {
         display: flex;
@@ -244,7 +257,7 @@
       .meta {
         margin-top: 12px;
         padding-top: 12px;
-        border-top: 1px solid rgba(255,255,255,0.10);
+        border-top: 1px solid rgba(61, 90, 132, 0.55);
         display: flex;
         justify-content: space-between;
         gap: 10px;
@@ -269,7 +282,12 @@
         <section class="hero">
           <div class="brand">
             <div class="logo" aria-label="Report-O-Matic">
-              <img class="logoImg" src="/rom-logo.webp" alt="Report-O-Matic logo" onerror="this.remove(); this.parentElement.textContent='R'; this.parentElement.setAttribute('aria-hidden','true');" />
+              <img
+                class="logoImg"
+                src="/Report-O-Matic%20NightView.png"
+                alt="Report-O-Matic logo"
+                onerror="(function(img){var s=['/rom-logo.webp','/rom-logo.png'];var i=Number(img.dataset.logoIx||0);if(i<s.length){img.dataset.logoIx=String(i+1);img.src=s[i];}else{var p=img.parentElement;img.remove();if(p){p.textContent='R';p.setAttribute('aria-hidden','true');}}})(this);"
+              />
             </div>
             <div>
               <p class="title">Report-O-Matic</p>
