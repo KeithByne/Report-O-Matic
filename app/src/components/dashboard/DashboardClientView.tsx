@@ -676,7 +676,7 @@ export function DashboardClientView({
                           className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                         >
                           <Printer className={ICON_INLINE} aria-hidden />
-                          {t("common.printPdf")}
+                          {t("dash.ownerAllRegisterLists")}
                         </button>
                       </>
                     ) : null}
