@@ -65,6 +65,18 @@ export function resendTransactionalFields(mailKind: string): {
   };
 }
 
+/** True when the recipient’s domain equals `ROM_FROM_EMAIL`’s domain (same-domain inbox issues are common). */
+export function otpRecipientSameDomainAsRomFrom(recipientEmail: string): boolean {
+  const from = getRomFromPlainEmail();
+  if (!from) return false;
+  const atR = recipientEmail.lastIndexOf("@");
+  const atF = from.lastIndexOf("@");
+  if (atR < 1 || atF < 1) return false;
+  const rDom = recipientEmail.slice(atR + 1).trim().toLowerCase();
+  const fDom = from.slice(atF + 1).trim().toLowerCase();
+  return rDom.length > 0 && fDom.length > 0 && rDom === fDom;
+}
+
 function stripUnsafeDisplayChars(s: string): string {
   return s.replace(/[\r\n<>]/g, "").trim();
 }

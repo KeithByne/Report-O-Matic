@@ -1020,6 +1020,8 @@ const EN: UiMessages = {
   "auth.verifyReturnLanding": "Return to the landing page and request a new code.",
   "auth.emailDelayHint":
     "The email can take up to a minute to arrive. If you don’t see it, check your spam or junk folder.",
+  "auth.sameDomainDeliveryHint":
+    "Your sign-in address uses the same domain as our sender. Some mail servers quarantine or silently drop that path (other providers like Outlook may still work). Check spam and your host’s quarantine. In Resend, confirm SPF and DKIM are verified for your domain—or send from a subdomain (e.g. mail.yourdomain.com). You can use another provider as backup email below.",
   "auth.securityCode": "Security code",
   "auth.codePlaceholder": "123456",
   "auth.verify": "Verify",
@@ -1808,6 +1810,8 @@ const FR: UiMessages = {
   "auth.verifyReturnLanding": "Retournez à la page d’accueil et demandez un nouveau code.",
   "auth.emailDelayHint":
     "L’e-mail peut mettre jusqu’à une minute. Vérifiez aussi les courrier indésirable ou spam.",
+  "auth.sameDomainDeliveryHint":
+    "Votre adresse de connexion utilise le même domaine que l’expéditeur. Certains serveurs mettent ce courrier en quarantaine ou le rejettent (d’autres fournisseurs peuvent fonctionner). Vérifiez spam et quarantaine. Dans Resend, confirmez SPF et DKIM, ou envoyez depuis un sous-domaine (ex. mail.votredomaine.com). Utilisez un autre fournisseur comme e-mail de secours ci-dessous.",
   "auth.securityCode": "Code de sécurité",
   "auth.codePlaceholder": "123456",
   "auth.verify": "Vérifier",
@@ -2431,6 +2435,8 @@ const ES: UiMessages = {
   "auth.verifyReturnLanding": "Vuelva a la página principal y solicite un código nuevo.",
   "auth.emailDelayHint":
     "El correo puede tardar hasta un minuto. Revise también spam o correo no deseado.",
+  "auth.sameDomainDeliveryHint":
+    "Su correo de acceso usa el mismo dominio que el remitente. Algunos servidores ponen ese correo en cuarentena o lo descartan (otros proveedores pueden funcionar). Revise spam y cuarentena. En Resend, confirme SPF y DKIM, o envíe desde un subdominio (p. ej. mail.sudominio.com). Puede usar otro proveedor como correo de respaldo abajo.",
   "auth.securityCode": "Código de seguridad",
   "auth.codePlaceholder": "123456",
   "auth.verify": "Verificar",

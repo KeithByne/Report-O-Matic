@@ -8,7 +8,11 @@ import { getPasswordHashForEmail, setPasswordHashIfMissing } from "@/lib/auth/pa
 import { corsHeadersForRequest } from "@/lib/http/cors";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { sendRomOtpEmail } from "@/lib/email/sendRomOtpEmail";
-import { hasResendEmailConfig, resendMisconfigurationPayload } from "@/lib/email/resendShared";
+import {
+  hasResendEmailConfig,
+  otpRecipientSameDomainAsRomFrom,
+  resendMisconfigurationPayload,
+} from "@/lib/email/resendShared";
 import { verifyTurnstileToken } from "@/lib/security/verifyTurnstile";
 import { getOtpTtlMs } from "@/lib/auth/otpTtl";
 import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
@@ -266,11 +270,15 @@ export async function POST(req: Request) {
     }
   }
 
+  const sameDomainHint =
+    hasEmailConfig && otpRecipientSameDomainAsRomFrom(email) ? ("same_domain_as_sender" as const) : null;
+
   return NextResponse.json(
     {
       ok: true,
       challenge_id: challengeId,
       expires_in_seconds: expiresInSeconds,
+      ...(sameDomainHint ? { delivery_hint: sameDomainHint } : {}),
     },
     { headers: cors.headers },
   );

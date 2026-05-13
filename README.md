@@ -62,7 +62,9 @@ ROM_SESSION_SECRET=dev-change-me-too
 4. Restart the dev server (`npm run dev`).
 5. Request a code again — it should arrive by email.
 
-**Live site / no code in inbox:** (1) In Vercel → **Settings → Environment Variables** (Production), confirm `RESEND_API_KEY` and a resolvable **`ROM_FROM_EMAIL`** (plain `security@your-domain`, plus optional `ROM_FROM_DISPLAY_NAME` — avoid a single value with `<…>` if the host mangles it). (2) In [Resend → Domains](https://resend.com/domains), that domain must be **verified**. (3) Avoid `no-reply@…`. (4) Check spam/quarantine. (5) **Vercel → Logs** for `POST /api/auth/send-code` — look for `[ROM sendRomOtpEmail] calling Resend API` and `Resend accepted email id=…`, or `email env missing` / `Email send failed:` lines.
+**Live site / no code in inbox:** (1) In Vercel → **Settings → Environment Variables** (Production), confirm `RESEND_API_KEY` and a resolvable **`ROM_FROM_EMAIL`** (plain `security@your-domain`, plus optional `ROM_FROM_DISPLAY_NAME` — avoid a single value with `<…>` if the host mangles it). (2) In [Resend → Domains](https://resend.com/domains), that domain must be **verified**. (3) Avoid `no-reply@…`. (4) Check spam/quarantine. (5) **Vercel → Logs** for `POST /api/auth/send-code` — look for `[ROM send-code] OTP email recipient:` and `Resend accepted email id=…`, or `email env missing` / `Email send failed:` lines. (6) **Same domain:** if you sign in with `you@example.com` and mail is sent from `security@example.com`, some hosts drop that path while Hotmail/Gmail still work—use Resend’s **subdomain** sending or fix receiving-server / **DMARC** alignment; the verify page will show a warning when the app detects same-domain.
+
+**OTP email format:** sign-in codes are sent as **plain text** (no HTML body) to reduce spam-folder scoring on strict mail servers.
 
 ### Step 2 — Supabase project + database tables
 1. In [Supabase](https://supabase.com), create a new project for Report-O-Matic.

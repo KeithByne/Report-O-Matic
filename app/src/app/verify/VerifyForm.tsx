@@ -26,6 +26,7 @@ export function VerifyForm() {
 
   const email = useMemo(() => (sp.get("email") || "").trim(), [sp]);
   const challenge = useMemo(() => (sp.get("challenge") || "").trim(), [sp]);
+  const deliveryHint = useMemo(() => (sp.get("delivery_hint") || "").trim(), [sp]);
 
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -239,6 +240,14 @@ export function VerifyForm() {
           </p>
           {email ? (
             <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{t("auth.emailDelayHint")}</p>
+          ) : null}
+          {deliveryHint === "same_domain_as_sender" ? (
+            <p
+              className="text-xs text-amber-950 mt-3 leading-relaxed rounded-xl border border-amber-200 bg-amber-50 px-3 py-2"
+              role="status"
+            >
+              {t("auth.sameDomainDeliveryHint")}
+            </p>
           ) : null}
         </div>
 

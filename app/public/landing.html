@@ -681,6 +681,10 @@
             var qp = new URLSearchParams();
             if (challengeId) qp.set("challenge", challengeId);
             qp.set("email", email);
+            try {
+              var dh = data && data.delivery_hint ? String(data.delivery_hint).trim() : "";
+              if (dh) qp.set("delivery_hint", dh);
+            } catch (ignore) {}
             window.location.href = base + "/verify?" + qp.toString();
           } catch (e) {
             resetTurnstileWidget();
