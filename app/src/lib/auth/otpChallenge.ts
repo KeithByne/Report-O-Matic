@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { normalizeOtpCodeInput } from "@/lib/auth/otpCodeNormalize";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { getDevStore, safeEqualHex, sha256Hex } from "@/lib/auth/devStore";
 
@@ -95,6 +96,7 @@ export async function verifyOtpChallenge(opts: {
   pepper: string;
   nowMs: number;
 }): Promise<VerifyOtpResult> {
+  const code = normalizeOtpCodeInput(opts.code);
   const supabase = getServiceSupabase();
 
   if (supabase) {
@@ -124,8 +126,9 @@ export async function verifyOtpChallenge(opts: {
       return { ok: false, status: 429, message: "Too many incorrect attempts. Please request a new code." };
     }
 
-    const expectedHash = otpCodeHash(opts.challengeId, opts.code, opts.pepper);
-    const match = safeEqualHex(expectedHash, row.code_hash as string);
+    const storedHash = String(row.code_hash ?? "").trim();
+    const expectedHash = otpCodeHash(opts.challengeId, code, opts.pepper);
+    const match = safeEqualHex(expectedHash, storedHash);
 
     if (!match) {
       await supabase.from("otp_challenges").update({ attempts: nextAttempts }).eq("id", opts.challengeId);
@@ -166,8 +169,8 @@ export async function verifyOtpChallenge(opts: {
     return { ok: false, status: 429, message: "Too many incorrect attempts. Please request a new code." };
   }
 
-  const expectedHash = otpCodeHash(opts.challengeId, opts.code, opts.pepper);
-  const match = safeEqualHex(expectedHash, rec.codeHash);
+  const expectedHash = otpCodeHash(opts.challengeId, code, opts.pepper);
+  const match = safeEqualHex(expectedHash, String(rec.codeHash ?? "").trim());
   if (!match) {
     store.otps.set(opts.challengeId, rec);
     return { ok: false, status: 400, message: "Incorrect code." };

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { verifyOtpChallenge } from "@/lib/auth/otpChallenge";
+import { normalizeOtpCodeInput } from "@/lib/auth/otpCodeNormalize";
 import { signSession } from "@/lib/auth/session";
 import { ensureOwnerTenantForSignup } from "@/lib/data/memberships";
 import { getServiceSupabase } from "@/lib/supabase/service";
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
 
   const emailRaw = typeof body.email === "string" ? body.email : "";
   const challengeId = typeof body.challenge_id === "string" ? body.challenge_id : "";
-  const code = typeof body.code === "string" ? body.code.trim() : "";
+  const code = normalizeOtpCodeInput(typeof body.code === "string" ? body.code : "");
 
   const email = normalizeEmail(emailRaw);
   if (!email || !challengeId || !code) {

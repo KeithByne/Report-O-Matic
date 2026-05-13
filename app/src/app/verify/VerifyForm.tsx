@@ -6,6 +6,7 @@ import Script from "next/script";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { postSignInRedirectPath } from "@/lib/auth/saasOwnerShared";
+import { normalizeOtpCodeInput } from "@/lib/auth/otpCodeNormalize";
 
 type Status = "idle" | "submitting" | "ok" | "err";
 
@@ -24,7 +25,7 @@ export function VerifyForm() {
   const sp = useSearchParams();
   const router = useRouter();
 
-  const email = useMemo(() => (sp.get("email") || "").trim(), [sp]);
+  const email = useMemo(() => (sp.get("email") || "").trim().toLowerCase(), [sp]);
   const challenge = useMemo(() => (sp.get("challenge") || "").trim(), [sp]);
   const deliveryHint = useMemo(() => (sp.get("delivery_hint") || "").trim(), [sp]);
 
@@ -122,7 +123,7 @@ export function VerifyForm() {
     e.preventDefault();
     setMsg("");
 
-    const c = code.trim();
+    const c = normalizeOtpCodeInput(code);
     if (!email || !challenge) {
       setStatus("err");
       setMsg(t("auth.errMissingVerifyParams"));
