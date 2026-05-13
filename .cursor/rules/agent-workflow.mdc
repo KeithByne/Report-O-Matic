@@ -1,11 +1,26 @@
 ---
-description: Fast autonomous work; ask only before git commits
+description: Autonomous execution; end with y/n commit and push
 alwaysApply: true
 ---
 
 # Agent workflow (Report-O-Matic)
 
-- **Execute, don’t delegate.** Run shells, read logs, grep the repo, fix lints, and verify behavior yourself. Avoid long “now you should manually…” checklists unless the step truly requires human credentials or a decision only the user can make (e.g. Cloudflare clicks, production secrets).
-- **Be brief** when reporting back: what changed, outcome, any single blocker—no engagement padding.
-- **Git commits:** If there are **meaningful** uncommitted changes worth recording, **ask once** before `git commit` (e.g. suggest the message and wait for approval, or for the user to say “commit and push”). Do **not** commit silently without that go-ahead. If the tree is **clean** and already matches `origin/main`, say so in one line—no commit needed.
-- **After approved commit:** run `git push origin main` (or the active branch) without extra prompts unless push is blocked.
+## Do the work yourself
+
+- **Automate what you can.** Run commands, read files, grep the codebase, fix lints, run builds/tests when reasonable, and use MCP or other tools instead of handing the user a to-do list. Only stop for steps that need human-only access (e.g. browser logins you cannot perform, secret values not in env).
+- **Be brief** when summarizing: what changed, result, one blocker if any—no filler closings.
+
+## Git: one y/n at the end
+
+When the task is **done** (or you hit a real stop you cannot fix):
+
+1. If **`git status` shows no meaningful changes** (clean or only noise the user did not ask to keep): say in one line that there is nothing to commit—**do not** ask about git.
+2. If there are **meaningful uncommitted changes** from this session:
+   - End with **exactly one** question, on its own line, so the user can reply with a single letter:
+   - **`Commit and push to origin? (y/n)`**
+   - Optionally add one line with the **proposed commit message** (imperative, short).
+3. **If the user replies `y` or `yes`:** run `git add` for the relevant paths, `git commit -m "…"`, then `git push` to the current branch’s upstream (e.g. `git push origin HEAD`). Do not ask again for push after `y`.
+4. **If the user replies `n` or `no`:** leave the tree as-is; do not commit or push.
+5. **Do not** commit or push without that **`y`** (no silent commits).
+
+If push fails (auth, network), report the error and stop—do not loop endlessly.
