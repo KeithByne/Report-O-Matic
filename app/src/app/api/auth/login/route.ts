@@ -11,20 +11,6 @@ import { getServiceSupabase } from "@/lib/supabase/service";
 import { signSession } from "@/lib/auth/session";
 import { postSignInRedirectPath } from "@/lib/auth/saasOwnerShared";
 import { claimTestAccessIfNeeded } from "@/lib/auth/claimTestAccess";
-import {
-  getSigninOtpTtlMs,
-  randomSixDigitCode,
-  saveSigninOtpChallenge,
-  signinOtpCodeHash,
-} from "@/lib/auth/signinOtp";
-import { normalizeOtpChallengeId } from "@/lib/auth/otpCodeNormalize";
-import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
-import {
-  hasResendEmailConfig,
-  otpRecipientSameDomainAsRomFrom,
-  resendMisconfigurationPayload,
-} from "@/lib/email/resendShared";
-import { sendSigninVerificationEmail } from "@/lib/email/sendSigninVerificationEmail";
 
 type LoginBody = {
   email?: unknown;
@@ -40,6 +26,31 @@ type LoginBody = {
 
 function jsonError(status: number, message: string, headers: Record<string, string>) {
   return NextResponse.json({ error: message }, { status, headers });
+}
+
+function issueSessionResponse(email: string, nowMs: number, cors: { headers: Record<string, string> }): NextResponse {
+  const sessionExpMs = nowMs + 8 * 60 * 60 * 1000;
+  const sessionId = crypto.randomUUID();
+  const token = signSession({ sid: sessionId, email, exp: sessionExpMs });
+  if (!token) {
+    return NextResponse.json(
+      {
+        error:
+          "ROM_SESSION_SECRET must be set to a strong secret (at least 24 characters) in production before sign-in can complete.",
+      },
+      { status: 503, headers: cors.headers },
+    );
+  }
+  const redirect = postSignInRedirectPath(email);
+  const res = NextResponse.json({ ok: true, redirect }, { headers: cors.headers });
+  res.cookies.set("rom_session", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 8 * 60 * 60,
+  });
+  return res;
 }
 
 function getClientIp(req: Request): string {
@@ -167,80 +178,24 @@ export async function POST(req: Request) {
       return jsonError(401, "Incorrect password.", cors.headers);
     }
 
-    const pepperRes = tryRequireRuntimeSecret("ROM_OTP_PEPPER", {
-      devFallback: "dev-change-me",
-      minLength: 24,
-    });
-    if (!pepperRes.ok) return jsonError(503, pepperRes.error, cors.headers);
-
-    const hasDb = Boolean(getServiceSupabase());
-    if (process.env.NODE_ENV === "production" && !hasDb) {
-      return jsonError(503, "Database not configured.", cors.headers);
+    if (getServiceSupabase()) {
+      try {
+        const claimed = await claimTestAccessIfNeeded({ email, testAccessToken, nowMs });
+        if (!claimed.ok) return jsonError(claimed.status, claimed.message, cors.headers);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Could not finish sign-in.";
+        console.error("[ROM login] post-auth signin:", msg);
+        return jsonError(500, msg, cors.headers);
+      }
     }
 
     try {
       await purgeOtpChallengesForEmail(email, nowMs);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Could not prepare sign-in verification.";
-      console.error("[ROM login] purge before sign-in OTP:", msg);
-      return jsonError(500, msg, cors.headers);
+      console.warn("[ROM login] purge otp_challenges:", e instanceof Error ? e.message : e);
     }
 
-    const challengeId = normalizeOtpChallengeId(crypto.randomUUID());
-    const code = randomSixDigitCode();
-    const ttlMs = getSigninOtpTtlMs();
-    const expiresAtMs = nowMs + ttlMs;
-    const codeHash = signinOtpCodeHash(challengeId, code, pepperRes.value);
-
-    try {
-      await saveSigninOtpChallenge({
-        challengeId,
-        email,
-        codeHash,
-        expiresAtMs,
-        testAccessToken,
-      });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Could not create sign-in verification.";
-      console.error("[ROM login] saveSigninOtpChallenge:", msg);
-      return jsonError(500, msg, cors.headers);
-    }
-
-    const expiresInSeconds = Math.floor(ttlMs / 1000);
-    const hasEmailConfig = hasResendEmailConfig();
-    if (hasEmailConfig) {
-      try {
-        await sendSigninVerificationEmail({ to: email, code, expiresInSeconds });
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : "Could not send email.";
-        console.error("[ROM login] sign-in verification email:", msg);
-        if (process.env.NODE_ENV === "production") return jsonError(500, msg, cors.headers);
-        console.warn("[ROM login] Email send failed in dev:", msg);
-      }
-    } else {
-      if (process.env.NODE_ENV === "production") {
-        const { error, code: errCode } = resendMisconfigurationPayload();
-        console.warn("[ROM login] Resend env unusable:", errCode);
-        return NextResponse.json({ error, code: errCode }, { status: 503, headers: cors.headers });
-      }
-      console.log(
-        `[ROM DEV sign-in OTP] email=${email} code=${code} expires_in_s=${expiresInSeconds} challenge=${challengeId}`,
-      );
-    }
-
-    const sameDomainHint =
-      hasEmailConfig && otpRecipientSameDomainAsRomFrom(email) ? ("same_domain_as_sender" as const) : null;
-
-    return NextResponse.json(
-      {
-        ok: true,
-        step: "verify_email",
-        challenge_id: challengeId,
-        expires_in_seconds: expiresInSeconds,
-        ...(sameDomainHint ? { delivery_hint: sameDomainHint } : {}),
-      },
-      { headers: cors.headers },
-    );
+    return issueSessionResponse(email, nowMs, cors);
   }
 
   // --- Sign up: complete account and session immediately ---
@@ -281,27 +236,5 @@ export async function POST(req: Request) {
     console.warn("[ROM login] purge otp_challenges:", e instanceof Error ? e.message : e);
   }
 
-  const sessionExpMs = nowMs + 8 * 60 * 60 * 1000;
-  const sessionId = crypto.randomUUID();
-  const token = signSession({ sid: sessionId, email, exp: sessionExpMs });
-  if (!token) {
-    return NextResponse.json(
-      {
-        error:
-          "ROM_SESSION_SECRET must be set to a strong secret (at least 24 characters) in production before sign-in can complete.",
-      },
-      { status: 503, headers: cors.headers },
-    );
-  }
-
-  const redirect = postSignInRedirectPath(email);
-  const res = NextResponse.json({ ok: true, redirect }, { headers: cors.headers });
-  res.cookies.set("rom_session", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 8 * 60 * 60,
-  });
-  return res;
+  return issueSessionResponse(email, nowMs, cors);
 }

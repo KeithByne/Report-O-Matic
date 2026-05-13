@@ -565,7 +565,7 @@ const EN: UiMessages = {
   "dash.guide.stepInviteTitle": "Invite team",
   "dash.guide.invite1": "Open Invite team in the menu.",
   "dash.guide.invite2": "Enter colleague emails and pick department head or teacher.",
-  "dash.guide.invite3": "They sign in with the same email (code or password).",
+  "dash.guide.invite3": "They sign in with the same email and password.",
   "dash.guide.stepClassesTitle": "Classes & pupils",
   "dash.guide.classDh1": "Open Classes & reports in the menu.",
   "dash.guide.classDh2": "Create a class, then add pupils (names and details).",
@@ -624,7 +624,7 @@ const EN: UiMessages = {
   "profile.emailLockedUntilPassword": "Set a password using “Forgot password” on the sign-in page before you can change this email.",
   "profile.passwordSection": "Password",
   "profile.passwordMissingHint":
-    "You sign in with a one-time code only. To set a password, use “Forgot password” on the sign-in page, then return here.",
+    "No password is stored for this account yet. Use “Forgot password” on the sign-in page to set one, then return here.",
   "profile.currentPassword": "Current password",
   "profile.newPassword": "New password",
   "profile.newPasswordHint": "Leave blank to keep your current password.",
@@ -634,7 +634,7 @@ const EN: UiMessages = {
   "profile.loading": "Loading…",
   "profile.backToDashboard": "Back to dashboard",
   "profile.emailChangeWarning":
-    "After you save, you will be signed out. Sign in again using this new email address (and your password or a new code).",
+    "After you save, you will be signed out. Sign in again using this new email address and your password.",
   "profile.noPasswordEmailChange": "Add a password before changing your sign-in email.",
   "profile.noPasswordSetPassword": "Add a password before changing it here. Use “Forgot password” on the sign-in page.",
   "profile.sectionPrivacy": "Data & privacy",
@@ -668,7 +668,7 @@ const EN: UiMessages = {
   "dash.teamRoster": "Team roster",
   "dash.inviteTeam": "Invite team",
   "dash.inviteTeamHint":
-    "Department heads can add teachers. Everyone signs in with the invited email and one-time code.",
+    "Department heads can add teachers. Everyone signs in with the invited email and password.",
   "dash.agentSectionTitle": "Owner / Agent",
   "dash.agentSectionLead":
     "Your referral link for signups and agent earnings. When card payments are enabled on the platform, you can save a payout account id for commissions.",
@@ -1100,7 +1100,7 @@ const EN: UiMessages = {
   "invite.headingOwner": "Invite to {school}",
   "invite.headingDh": "Invite teachers — {school}",
   "invite.descriptionOwner":
-    "Add department heads or teachers by email. They sign in with the same address (one-time code).",
+    "Add department heads or teachers by email. They sign in with the same address and password.",
   "invite.descriptionDh": "Department heads can add teachers only. Same sign-in flow.",
   "invite.email": "Email",
   "invite.emailPlaceholder": "colleague@school.com",
@@ -1115,7 +1115,7 @@ const EN: UiMessages = {
   "invite.okEmailPart":
     " They should receive an invite email at that address with the sign-in link.",
   "invite.okSignInPart":
-    " They must sign in using their own email (not yours) to receive the one-time code.",
+    " They must sign in using their own email (not yours) so the invite matches their account.",
   "invite.firstName": "Teacher first name(s)",
   "invite.lastName": "Teacher surname(s)",
   "invite.firstNamePlaceholder": "e.g. Alex",
@@ -1530,7 +1530,7 @@ const FR: UiMessages = {
   "dash.teamRoster": "Équipe",
   "dash.inviteTeam": "Inviter l’équipe",
   "dash.inviteTeamHint":
-    "Les chefs de département ajoutent des enseignants. Connexion avec l’e-mail invité et un code à usage unique.",
+    "Les chefs de département ajoutent des enseignants. Connexion avec l’e-mail invité et le mot de passe.",
   "dash.addSchoolTitle": "Ajouter une école",
   "dash.addSchoolHint": "Créer une organisation supplémentaire dont vous serez propriétaire.",
   "dash.addSchoolPlaceholder": "Nom de l'école",
@@ -1893,7 +1893,7 @@ const FR: UiMessages = {
   "invite.headingOwner": "Invitation — {school}",
   "invite.headingDh": "Inviter des enseignants — {school}",
   "invite.descriptionOwner":
-    "Ajoutez des chefs ou enseignants par e-mail. Ils se connectent avec la même adresse (code à usage unique).",
+    "Ajoutez des chefs ou enseignants par e-mail. Ils se connectent avec la même adresse et leur mot de passe.",
   "invite.descriptionDh": "Les chefs de département n’ajoutent que des enseignants. Même flux de connexion.",
   "invite.email": "E-mail",
   "invite.emailPlaceholder": "collegue@ecole.fr",
@@ -1907,7 +1907,7 @@ const FR: UiMessages = {
   "invite.okBase": "Accès ajouté.",
   "invite.okEmailPart": " Un e-mail d’invitation devrait arriver à cette adresse avec le lien de connexion.",
   "invite.okSignInPart":
-    " La personne doit se connecter avec son propre e-mail (pas le vôtre) pour recevoir le code.",
+    " La personne doit se connecter avec son propre e-mail (pas le vôtre) pour que l’invitation corresponde au compte.",
   "deleteSchool.prompt":
     "Supprimer l’école « {name} » et TOUTES les classes, élèves et rapports ? Tapez DELETE pour confirmer.",
   "deleteSchool.confirmToken": "DELETE",
@@ -2158,7 +2158,7 @@ const ES: UiMessages = {
   "dash.teamRoster": "Equipo",
   "dash.inviteTeam": "Invitar al equipo",
   "dash.inviteTeamHint":
-    "Los jefes de departamento añaden profesores. Acceso con el correo invitado y código de un solo uso.",
+    "Los jefes de departamento añaden profesores. Acceso con el correo invitado y la contraseña.",
   "dash.addSchoolTitle": "Añadir otro centro",
   "dash.addSchoolHint": "Cree otra organización de la que será propietario.",
   "dash.addSchoolPlaceholder": "Nombre del centro",
@@ -2520,7 +2520,7 @@ const ES: UiMessages = {
   "invite.headingOwner": "Invitar a {school}",
   "invite.headingDh": "Invitar profesores — {school}",
   "invite.descriptionOwner":
-    "Añada jefes o profesores por correo. Inician sesión con la misma dirección (código de un solo uso).",
+    "Añada jefes o profesores por correo. Inician sesión con la misma dirección y su contraseña.",
   "invite.descriptionDh": "Los jefes de departamento solo añaden profesores. Mismo flujo de acceso.",
   "invite.email": "Correo",
   "invite.emailPlaceholder": "colega@escuela.edu",
@@ -2534,7 +2534,7 @@ const ES: UiMessages = {
   "invite.okBase": "Acceso añadido.",
   "invite.okEmailPart": " Deberían recibir un correo de invitación con el enlace de acceso.",
   "invite.okSignInPart":
-    " Deben iniciar sesión con su propio correo (no el suyo) para recibir el código.",
+    " Deben iniciar sesión con su propio correo (no el suyo) para que la invitación coincida con su cuenta.",
   "deleteSchool.prompt":
     "¿Eliminar el centro «{name}» y TODAS las clases, alumnos e informes? Escriba DELETE para confirmar.",
   "deleteSchool.confirmToken": "DELETE",

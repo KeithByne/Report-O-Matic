@@ -1,6 +1,6 @@
 /**
  * Shown in OTP-related emails so users know delays / spam folders are normal
- * (matches messaging on landing, /verify, and /reset).
+ * (matches messaging on landing and /reset).
  */
 
 export const CODE_DELIVERY_NOTE_TEXT_LINE =

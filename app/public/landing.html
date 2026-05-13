@@ -375,7 +375,7 @@
               </button>
 
               <p class="small" style="margin-top: 8px">
-                After your password is accepted, we email a <strong>6-digit code</strong> to finish signing in. Human verification (Turnstile) reduces automated abuse.
+                Sign in with your email and password. Human verification (Turnstile) reduces automated abuse.
               </p>
             </form>
           </section>
@@ -624,17 +624,6 @@
             if (testAccessToken) payload.test_access_token = testAccessToken;
             var base = apiBase();
             var data = await postJson(base + "/api/auth/login", payload);
-            if (data && data.ok && data.step === "verify_email" && data.challenge_id) {
-              setMsg("ok", "Security code sent. Redirecting…");
-              var qp = new URLSearchParams();
-              qp.set("flow", "signin");
-              qp.set("challenge", String(data.challenge_id));
-              qp.set("email", email);
-              var dh = data && data.delivery_hint ? String(data.delivery_hint).trim() : "";
-              if (dh) qp.set("delivery_hint", dh);
-              window.location.href = base + "/verify?" + qp.toString();
-              return;
-            }
             setMsg("ok", "Signed in. Redirecting…");
             var path = data && data.redirect ? String(data.redirect).trim() : "/dashboard";
             if (!path.startsWith("/")) path = "/dashboard";

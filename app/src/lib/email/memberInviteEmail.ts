@@ -14,7 +14,7 @@ export type MemberInviteEmailResult =
   | { sent: false; error: string };
 
 /**
- * Not the OTP — tells the invitee which email to use on Sign in.
+ * Tells the invitee which email to use on Sign in (password-based).
  * Returns whether Resend accepted the send; never throws (caller always gets a result).
  */
 export async function sendMemberAddedEmail(opts: {
@@ -41,7 +41,7 @@ export async function sendMemberAddedEmail(opts: {
     `Open the app and choose Sign in (not someone else’s saved email in the browser):`,
     opts.signInUrl,
     ``,
-    `You’ll then get a one-time security code sent to the address above.`,
+    `Sign in with that email and the password you set (or use “Forgot password” if you need to reset it).`,
     CODE_DELIVERY_NOTE_TEXT_LINE,
   ].join("\n");
 
@@ -52,7 +52,7 @@ export async function sendMemberAddedEmail(opts: {
       <span style="font-family:ui-monospace,monospace;">${escapeHtml(opts.to)}</span></p>
       <p>Open the sign-in page (avoid a shared browser’s autofill for someone else’s address):<br/>
       <a href="${escapeAttr(opts.signInUrl)}">${escapeHtml(opts.signInUrl)}</a></p>
-      <p style="font-size:13px;color:#64748b;">Choose <strong>Sign in</strong>, enter the email above, then enter the one-time code from your email.</p>
+      <p style="font-size:13px;color:#64748b;">Choose <strong>Sign in</strong>, enter the email above, then your password.</p>
       ${codeDeliveryNoteHtml()}
     </div>
   `.trim();

@@ -32,7 +32,7 @@ export const GETTING_STARTED_DE: Record<string, string> = {
   "dash.guide.invite1": "Öffnen Sie „Team einladen“ im Menü.",
   "dash.guide.invite2":
     "Geben Sie die E-Mail-Adressen von Kolleginnen und Kollegen ein und wählen Sie Abteilungsleitung oder Lehrkraft.",
-  "dash.guide.invite3": "Sie melden sich mit derselben E-Mail an (Code oder Passwort).",
+  "dash.guide.invite3": "Sie melden sich mit derselben E-Mail und ihrem Passwort an.",
   "dash.guide.stepClassesTitle": "Klassen & Schüler",
   "dash.guide.classDh1": "Öffnen Sie „Klassen und Berichte“ im Menü.",
   "dash.guide.classDh2": "Legen Sie eine Klasse an und fügen Sie Schüler hinzu (Namen und Angaben).",
@@ -78,7 +78,7 @@ export const GETTING_STARTED_PT: Record<string, string> = {
   "dash.guide.invite1": "Abra Convidar equipa no menu.",
   "dash.guide.invite2":
     "Introduza os e-mails dos colegas e escolha chefe de departamento ou professor.",
-  "dash.guide.invite3": "Iniciam sessão com o mesmo e-mail (código ou palavra-passe).",
+  "dash.guide.invite3": "Iniciam sessão com o mesmo e-mail e palavra-passe.",
   "dash.guide.stepClassesTitle": "Turmas e alunos",
   "dash.guide.classDh1": "Abra Turmas e relatórios no menu.",
   "dash.guide.classDh2": "Crie uma turma e adicione alunos (nomes e dados).",
@@ -124,7 +124,7 @@ export const GETTING_STARTED_NL: Record<string, string> = {
   "dash.guide.invite1": "Open Team uitnodigen in het menu.",
   "dash.guide.invite2":
     "Voer e-mailadressen van collega’s in en kies afdelingshoofd of docent.",
-  "dash.guide.invite3": "Zij loggen in met hetzelfde e-mailadres (code of wachtwoord).",
+  "dash.guide.invite3": "Zij loggen in met hetzelfde e-mailadres en wachtwoord.",
   "dash.guide.stepClassesTitle": "Klassen & leerlingen",
   "dash.guide.classDh1": "Open Klassen en rapporten in het menu.",
   "dash.guide.classDh2": "Maak een klas en voeg leerlingen toe (namen en gegevens).",
@@ -170,7 +170,7 @@ export const GETTING_STARTED_PL: Record<string, string> = {
   "dash.guide.invite1": "Otwórz Zaproś zespół w menu.",
   "dash.guide.invite2":
     "Wpisz e-maile kolegów i wybierz kierownika lub nauczyciela.",
-  "dash.guide.invite3": "Logują się tym samym e-mailem (kod lub hasło).",
+  "dash.guide.invite3": "Logują się tym samym e-mailem i hasłem.",
   "dash.guide.stepClassesTitle": "Klasy i uczniowie",
   "dash.guide.classDh1": "Otwórz Klasy i sprawozdania w menu.",
   "dash.guide.classDh2": "Utwórz klasę, potem dodaj uczniów (imiona i dane).",
@@ -216,7 +216,7 @@ export const GETTING_STARTED_RO: Record<string, string> = {
   "dash.guide.invite1": "Deschideți Invitați echipa din meniu.",
   "dash.guide.invite2":
     "Introduceți e-mailurile colegilor și alegeți șef de departament sau profesor.",
-  "dash.guide.invite3": "Se autentifică cu același e-mail (cod sau parolă).",
+  "dash.guide.invite3": "Se autentifică cu același e-mail și parolă.",
   "dash.guide.stepClassesTitle": "Clase și elevi",
   "dash.guide.classDh1": "Deschideți Clase și rapoarte din meniu.",
   "dash.guide.classDh2": "Creați o clasă, apoi adăugați elevi (nume și detalii).",
@@ -262,7 +262,7 @@ export const GETTING_STARTED_RU: Record<string, string> = {
   "dash.guide.invite1": "Откройте «Пригласить команду» в меню.",
   "dash.guide.invite2":
     "Введите адреса коллег и выберите заведующего отделением или учителя.",
-  "dash.guide.invite3": "Они входят с тем же адресом электронной почты (код или пароль).",
+  "dash.guide.invite3": "Они входят с тем же адресом электронной почты и паролем.",
   "dash.guide.stepClassesTitle": "Классы и ученики",
   "dash.guide.classDh1": "Откройте «Классы и отчёты» в меню.",
   "dash.guide.classDh2": "Создайте класс, затем добавьте учеников (имена и данные).",
@@ -308,7 +308,7 @@ export const GETTING_STARTED_UK: Record<string, string> = {
   "dash.guide.invite1": "Відкрийте «Запросити команду» в меню.",
   "dash.guide.invite2":
     "Введіть е-пошти колег і оберіть завідувача відділенням або вчителя.",
-  "dash.guide.invite3": "Вони входять тією ж е-поштою (код або пароль).",
+  "dash.guide.invite3": "Вони входять тією ж е-поштою й паролем.",
   "dash.guide.stepClassesTitle": "Класи й учні",
   "dash.guide.classDh1": "Відкрийте «Класи й звіти» в меню.",
   "dash.guide.classDh2": "Створіть клас, потім додайте учнів (імена та дані).",
@@ -354,7 +354,7 @@ export const GETTING_STARTED_AR: Record<string, string> = {
   "dash.guide.invite1": "افتح «دعوة الفريق» من القائمة.",
   "dash.guide.invite2":
     "أدخل بريد الزملاء واختر رئيس قسم أو معلماً.",
-  "dash.guide.invite3": "يسجّلون الدخول بنفس البريد (رمز أو كلمة مرور).",
+  "dash.guide.invite3": "يسجّلون الدخول بنفس البريد وكلمة المرور.",
   "dash.guide.stepClassesTitle": "الفصول والتلاميذ",
   "dash.guide.classDh1": "افتح «الفصول والتقارير» من القائمة.",
   "dash.guide.classDh2": "أنشئ فصلاً ثم أضف التلاميذ (الأسماء والبيانات).",
@@ -400,7 +400,7 @@ export const GETTING_STARTED_EL: Record<string, string> = {
   "dash.guide.invite1": "Ανοίξτε «Πρόσκληση ομάδας» από το μενού.",
   "dash.guide.invite2":
     "Εισάγετε email συναδέλφων και επιλέξτε υπεύθυνο τμήματος ή εκπαιδευτικό.",
-  "dash.guide.invite3": "Συνδέονται με το ίδιο email (κωδικός ή κωδικός πρόσβασης).",
+  "dash.guide.invite3": "Συνδέονται με το ίδιο email και τον κωδικό πρόσβασης.",
   "dash.guide.stepClassesTitle": "Τάξεις & μαθητές",
   "dash.guide.classDh1": "Ανοίξτε «Τάξεις και αναφορές» από το μενού.",
   "dash.guide.classDh2": "Δημιουργήστε τάξη, μετά προσθέστε μαθητές (ονόματα και στοιχεία).",

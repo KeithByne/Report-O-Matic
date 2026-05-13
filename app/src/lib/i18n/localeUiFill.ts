@@ -261,7 +261,7 @@ export const UI_FILL_ES: Record<string, string> = {
   "dash.guide.stepInviteTitle": "Invitar al equipo",
   "dash.guide.invite1": "Abra Invitar al equipo en el menú.",
   "dash.guide.invite2": "Introduzca los correos de sus colegas y elija jefe de departamento o profesor.",
-  "dash.guide.invite3": "Inician sesión con el mismo correo (código o contraseña).",
+  "dash.guide.invite3": "Inician sesión con el mismo correo y contraseña.",
   "dash.guide.stepClassesTitle": "Clases y alumnos",
   "dash.guide.classDh1": "Abra Clases e informes en el menú.",
   "dash.guide.classDh2": "Cree una clase y añada alumnos (nombres y datos).",
@@ -286,7 +286,7 @@ export const UI_FILL_ES: Record<string, string> = {
   "profile.surname": "Apellidos",
   "profile.email": "Correo (acceso)",
   "profile.emailChangeWarning":
-    "Tras guardar, se cerrará la sesión. Vuelva a entrar con esta nueva dirección (y su contraseña o un nuevo código).",
+    "Tras guardar, se cerrará la sesión. Vuelva a entrar con esta nueva dirección y su contraseña.",
   "profile.emailLockedUntilPassword":
     "Establezca una contraseña con «He olvidado la contraseña» en la página de acceso antes de poder cambiar este correo.",
   "profile.passwordSection": "Contraseña",
@@ -297,7 +297,7 @@ export const UI_FILL_ES: Record<string, string> = {
     "Añada una contraseña antes de cambiarla aquí. Use «He olvidado la contraseña» en la página de acceso.",
   "profile.noPasswordEmailChange": "Añada una contraseña antes de cambiar el correo de acceso.",
   "profile.passwordMissingHint":
-    "Accede solo con un código de un solo uso. Para establecer contraseña, use «He olvidado la contraseña» en la página de acceso y vuelva aquí.",
+    "Aún no hay contraseña guardada para esta cuenta. Use «He olvidado la contraseña» en la página de acceso para crear una y vuelva aquí.",
   "profile.save": "Guardar cambios",
   "profile.saving": "Guardando…",
   "profile.success": "Guardado.",
@@ -582,7 +582,7 @@ export const UI_FILL_FR: Record<string, string> = {
   "dash.guide.stepInviteTitle": "Inviter l’équipe",
   "dash.guide.invite1": "Ouvrez Inviter l’équipe dans le menu.",
   "dash.guide.invite2": "Saisissez les e-mails des collègues et choisissez chef de département ou enseignant.",
-  "dash.guide.invite3": "Ils se connectent avec le même e-mail (code ou mot de passe).",
+  "dash.guide.invite3": "Ils se connectent avec le même e-mail et mot de passe.",
   "dash.guide.stepClassesTitle": "Classes et élèves",
   "dash.guide.classDh1": "Ouvrez Classes et rapports dans le menu.",
   "dash.guide.classDh2": "Créez une classe, puis ajoutez des élèves (noms et informations).",
@@ -607,7 +607,7 @@ export const UI_FILL_FR: Record<string, string> = {
   "profile.surname": "Nom",
   "profile.email": "E-mail (connexion)",
   "profile.emailChangeWarning":
-    "Après enregistrement, vous serez déconnecté. Reconnectez-vous avec cette nouvelle adresse (et votre mot de passe ou un nouveau code).",
+    "Après enregistrement, vous serez déconnecté. Reconnectez-vous avec cette nouvelle adresse et votre mot de passe.",
   "profile.emailLockedUntilPassword":
     "Définissez un mot de passe via « Mot de passe oublié » sur la page de connexion avant de pouvoir modifier cet e-mail.",
   "profile.passwordSection": "Mot de passe",
@@ -618,7 +618,7 @@ export const UI_FILL_FR: Record<string, string> = {
     "Ajoutez un mot de passe avant de le modifier ici. Utilisez « Mot de passe oublié » sur la page de connexion.",
   "profile.noPasswordEmailChange": "Ajoutez un mot de passe avant de modifier l’e-mail de connexion.",
   "profile.passwordMissingHint":
-    "Vous vous connectez uniquement avec un code à usage unique. Pour définir un mot de passe, utilisez « Mot de passe oublié » sur la page de connexion, puis revenez ici.",
+    "Aucun mot de passe n’est encore enregistré pour ce compte. Utilisez « Mot de passe oublié » sur la page de connexion pour en définir un, puis revenez ici.",
   "profile.save": "Enregistrer les modifications",
   "profile.saving": "Enregistrement…",
   "profile.success": "Enregistré.",
