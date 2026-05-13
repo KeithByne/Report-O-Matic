@@ -47,18 +47,22 @@ You should see the app at `http://localhost:3000`.
 Right now in local dev, codes can appear in the server log. To send real emails:
 
 1. Create a free Resend account (or use your existing one).
-2. Verify your domain `report-o-matic.online` in Resend (recommended), then create a sender like `no-reply@report-o-matic.online`.
+2. Verify your domain `report-o-matic.online` in Resend (recommended). Use a **plain email address** on that domain (avoid `no-reply@`). On Vercel, **avoid one variable that contains `<` and `>`** — some UIs strip those characters and break the address. Prefer **`ROM_FROM_EMAIL`** = `security@report-o-matic.online` and optional **`ROM_FROM_DISPLAY_NAME`** = `Report-O-Matic` (the app builds `Report-O-Matic <security@…>` for Resend).
 3. In `app/`, create a file named `.env.local` (do not commit it), with:
 
 ```env
 RESEND_API_KEY=re_...
-ROM_FROM_EMAIL=no-reply@report-o-matic.online
+ROM_FROM_EMAIL=security@report-o-matic.online
+ROM_FROM_DISPLAY_NAME=Report-O-Matic
 ROM_OTP_PEPPER=dev-change-me
 ROM_SESSION_SECRET=dev-change-me-too
 ```
 
+(`ROM_FROM_DISPLAY_NAME` is optional; omit it to send from the bare address only.)
 4. Restart the dev server (`npm run dev`).
 5. Request a code again — it should arrive by email.
+
+**Live site / no code in inbox:** (1) In Vercel → **Settings → Environment Variables** (Production), confirm `RESEND_API_KEY` and a resolvable **`ROM_FROM_EMAIL`** (plain `security@your-domain`, plus optional `ROM_FROM_DISPLAY_NAME` — avoid a single value with `<…>` if the host mangles it). (2) In [Resend → Domains](https://resend.com/domains), that domain must be **verified**. (3) Avoid `no-reply@…`. (4) Check spam/quarantine. (5) **Vercel → Logs** for `POST /api/auth/send-code` — look for `[ROM sendRomOtpEmail] calling Resend API` and `Resend accepted email id=…`, or `email env missing` / `Email send failed:` lines.
 
 ### Step 2 — Supabase project + database tables
 1. In [Supabase](https://supabase.com), create a new project for Report-O-Matic.
@@ -132,7 +136,12 @@ If your Git repo is only the inner `app` folder, you can push that alone; if the
    | `ROM_OTP_PEPPER` | Long random string; **do not reuse** your local dev value in production. |
    | `ROM_SESSION_SECRET` | Long random secret; **new value** for production. |
    | `RESEND_API_KEY` | From Resend dashboard. |
-   | `ROM_FROM_EMAIL` | Verified sender, e.g. `no-reply@report-o-matic.online`. |
+   | `ROM_FROM_EMAIL` | **Plain** address on your verified domain, e.g. `security@report-o-matic.online` (not `no-reply@`). |
+   | `ROM_FROM_DISPLAY_NAME` | Optional. Inbox “from” name, e.g. `Report-O-Matic` — avoids putting `<` / `>` in `ROM_FROM_EMAIL` on hosts that corrupt them. |
+   | `NEXT_PUBLIC_TURNSTILE_SITE` | Cloudflare Turnstile **site** key (public). **Use this name** in Vercel to avoid warnings about `KEY` inside `NEXT_PUBLIC_*`. Same value Cloudflare labels “site key”. |
+   | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Legacy alias for the same site key (still supported). |
+   | `TURNSTILE_SITE_KEY` | Optional legacy alias when `NEXT_PUBLIC_*` is unset. |
+   | `TURNSTILE_SECRET_KEY` | Turnstile **secret** (server-only); must pair with the same widget as the site key. |
    | `SUPABASE_URL` | Supabase → Settings → API → Project URL. |
    | `SUPABASE_SERVICE_ROLE_KEY` | **service_role** secret (server-only). |
 

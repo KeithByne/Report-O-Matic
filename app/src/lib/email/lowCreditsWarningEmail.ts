@@ -1,11 +1,6 @@
 import { Resend } from "resend";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-
-function getFromEmail(): string | null {
-  const v = process.env.ROM_FROM_EMAIL;
-  if (!v) return null;
-  return v.trim();
-}
+import { appendResendDomainHint, logResendAccepted, trimResendEnv } from "@/lib/email/resendShared";
 
 type Copy = {
   subject: string;
@@ -82,9 +77,8 @@ export async function sendLowCreditsWarningEmail(opts: {
   remainingCredits: number;
   billingUrl?: string;
 }): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = getFromEmail();
-  if (!apiKey?.trim() || !from) return;
+  const { apiKey, from } = trimResendEnv();
+  if (!apiKey || !from) return;
 
   const resend = new Resend(apiKey);
   const lang: ReportLanguageCode = isReportLanguageCode(opts.language) ? opts.language : "en";
@@ -145,6 +139,7 @@ export async function sendLowCreditsWarningEmail(opts: {
     html,
   });
   if ("error" in result && result.error) {
-    throw new Error(result.error.message || "Resend rejected low-credit warning.");
+    throw new Error(appendResendDomainHint(result.error.message || "Resend rejected low-credit warning."));
   }
+  logResendAccepted("[ROM low-credits]", result);
 }

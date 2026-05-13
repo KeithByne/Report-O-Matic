@@ -6,6 +6,12 @@ import { newResetChallengeId, savePasswordResetChallenge } from "@/lib/auth/pass
 import { sha256Hex } from "@/lib/auth/devStore";
 import { Resend } from "resend";
 import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
+import {
+  appendResendDomainHint,
+  logResendAccepted,
+  resendMisconfigurationPayload,
+  trimResendEnv,
+} from "@/lib/email/resendShared";
 import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
 
 type Body = { email?: unknown; turnstile_token?: unknown };
@@ -39,16 +45,9 @@ function randomDigits(length: number): string {
   return out;
 }
 
-function getFromEmail(): string | null {
-  const v = process.env.ROM_FROM_EMAIL;
-  return v ? v.trim() : null;
-}
-
 async function sendResetEmail(opts: { to: string; code: string; expiresInSeconds: number }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = getFromEmail();
-  if (!apiKey) throw new Error("Missing RESEND_API_KEY.");
-  if (!from) throw new Error("Missing ROM_FROM_EMAIL.");
+  const { apiKey, from } = trimResendEnv();
+  if (!apiKey || !from) throw new Error(resendMisconfigurationPayload().error);
   const resend = new Resend(apiKey);
   const subject = `Report-O-Matic password reset code: ${opts.code}`;
   const text = [
@@ -79,7 +78,11 @@ async function sendResetEmail(opts: { to: string; code: string; expiresInSeconds
     </div>
   `.trim();
   const result = await resend.emails.send({ from, to: opts.to, subject, text, html });
-  if ("error" in result && result.error) throw new Error(`Email send failed: ${result.error.message || "unknown error"}`);
+  if ("error" in result && result.error) {
+    const raw = result.error.message || "unknown error";
+    throw new Error(`Email send failed: ${appendResendDomainHint(raw)}`);
+  }
+  logResendAccepted("[ROM password-reset]", result);
 }
 
 export async function OPTIONS(req: Request) {
@@ -160,6 +163,7 @@ export async function POST(req: Request) {
     await sendResetEmail({ to: email, code, expiresInSeconds });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Could not send email.";
+    console.error("[ROM password-reset] email send failed:", msg);
     if (process.env.NODE_ENV === "production") return NextResponse.json({ error: msg }, { status: 500, headers: cors.headers });
   }
 

@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireSaasOwner } from "@/lib/auth/saasOwner";
 import { getRuntimeSecretHealth } from "@/lib/security/envSecrets";
+import { isRomFromEmailFormatValid } from "@/lib/email/resendShared";
 
 type Check = {
   name: string;
   requiredInProduction: boolean;
   minLength?: number;
+  hint?: string;
 };
 
 const SECRET_CHECKS: Check[] = [
@@ -26,6 +28,25 @@ export async function GET() {
 
   const isProd = process.env.NODE_ENV === "production";
   const checks = SECRET_CHECKS.map((cfg) => {
+    if (cfg.name === "ROM_FROM_EMAIL") {
+      const health = getRuntimeSecretHealth(cfg.name, cfg.minLength ?? 24);
+      const required = cfg.requiredInProduction && isProd;
+      const formatOk = isRomFromEmailFormatValid();
+      const hint =
+        required && health.configured && !formatOk
+          ? "Must be one plain email only (e.g. security@domain.com). Use ROM_FROM_DISPLAY_NAME for the inbox label."
+          : undefined;
+      const ok = !required || (health.configured && formatOk);
+      return {
+        name: cfg.name,
+        required,
+        configured: health.configured,
+        strongEnough: !health.configured || formatOk,
+        minLength: health.minLength,
+        ok,
+        hint,
+      };
+    }
     const health = getRuntimeSecretHealth(cfg.name, cfg.minLength ?? 24);
     const required = cfg.requiredInProduction && isProd;
     const ok = required ? health.configured && health.strongEnough : true;

@@ -8,6 +8,7 @@ import { getPasswordHashForEmail, setPasswordHashIfMissing } from "@/lib/auth/pa
 import { corsHeadersForRequest } from "@/lib/http/cors";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { sendRomOtpEmail } from "@/lib/email/sendRomOtpEmail";
+import { hasResendEmailConfig, resendMisconfigurationPayload } from "@/lib/email/resendShared";
 import { verifyTurnstileToken } from "@/lib/security/verifyTurnstile";
 import { getOtpTtlMs } from "@/lib/auth/otpTtl";
 import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
@@ -218,7 +219,7 @@ export async function POST(req: Request) {
 
   // If Resend is configured, send a real email (works in dev and prod).
   // In production, fail closed when email is not configured.
-  const hasEmailConfig = Boolean(process.env.RESEND_API_KEY && process.env.ROM_FROM_EMAIL);
+  const hasEmailConfig = hasResendEmailConfig();
   if (hasEmailConfig) {
     try {
       console.log("[ROM send-code] OTP email recipient:", email);
@@ -236,6 +237,7 @@ export async function POST(req: Request) {
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not send email.";
+      console.error("[ROM send-code] email delivery failed:", msg);
       // In production, fail closed (don’t claim “sent” if we didn’t send).
       if (process.env.NODE_ENV === "production") return jsonError(500, msg, cors.headers);
       console.warn("[ROM] Email send failed in dev:", msg);
@@ -247,11 +249,15 @@ export async function POST(req: Request) {
     }
   } else {
     if (process.env.NODE_ENV === "production") {
-      return jsonError(503, "Email delivery is not configured.", cors.headers);
+      const { error, code } = resendMisconfigurationPayload();
+      console.warn("[ROM send-code] Resend env unusable:", code);
+      return NextResponse.json({ error, code }, { status: 503, headers: cors.headers });
     }
     const missing: string[] = [];
-    if (!process.env.RESEND_API_KEY?.trim()) missing.push("RESEND_API_KEY");
-    if (!process.env.ROM_FROM_EMAIL?.trim()) missing.push("ROM_FROM_EMAIL");
+    if (!(process.env.RESEND_API_KEY ?? "").trim()) missing.push("RESEND_API_KEY");
+    if (!hasResendEmailConfig()) {
+      missing.push(resendMisconfigurationPayload().error);
+    }
     console.warn(
       `[ROM send-code] No email sent (dev): set ${missing.join(" and ")} in the Next app folder's .env.local (lines must not start with #).`,
     );

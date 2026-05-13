@@ -7,6 +7,7 @@ import { verifyPassword } from "@/lib/auth/passwordHash";
 import { getPasswordHashForEmail } from "@/lib/auth/passwordStore";
 import { corsHeadersForRequest } from "@/lib/http/cors";
 import { sendRomOtpEmail } from "@/lib/email/sendRomOtpEmail";
+import { hasResendEmailConfig, resendMisconfigurationPayload } from "@/lib/email/resendShared";
 import { verifyTurnstileToken } from "@/lib/security/verifyTurnstile";
 import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
 
@@ -131,7 +132,7 @@ export async function POST(req: Request) {
   if (!rotated.ok) return jsonError(rotated.status, rotated.message, cors.headers);
 
   const expiresInSeconds = Math.floor(ttlMs / 1000);
-  const hasEmailConfig = Boolean(process.env.RESEND_API_KEY && process.env.ROM_FROM_EMAIL);
+  const hasEmailConfig = hasResendEmailConfig();
 
   if (hasEmailConfig) {
     try {
@@ -146,6 +147,7 @@ export async function POST(req: Request) {
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not send email.";
+      console.error("[ROM resend-otp-backup] email delivery failed:", msg);
       if (process.env.NODE_ENV === "production") return jsonError(500, msg, cors.headers);
       console.warn("[ROM resend-otp-backup] Email send failed in dev:", msg);
       if (!isSupabaseOtpEnabled()) {
@@ -156,7 +158,9 @@ export async function POST(req: Request) {
     }
   } else {
     if (process.env.NODE_ENV === "production") {
-      return jsonError(500, "Email delivery is not configured.", cors.headers);
+      const { error, code } = resendMisconfigurationPayload();
+      console.warn("[ROM resend-otp-backup] Resend env unusable:", code);
+      return NextResponse.json({ error, code }, { status: 503, headers: cors.headers });
     }
     if (!isSupabaseOtpEnabled()) {
       console.log(

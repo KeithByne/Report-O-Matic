@@ -609,6 +609,22 @@
             });
           } catch (err) {
             var detail = err && err.message ? String(err.message) : "network error";
+            var baseOrigin = "";
+            try {
+              baseOrigin = apiBase();
+            } catch (e2) {}
+            var isHttpsDeployed =
+              typeof window !== "undefined" &&
+              window.location.protocol === "https:" &&
+              baseOrigin &&
+              String(window.location.origin) === String(baseOrigin);
+            if (isHttpsDeployed) {
+              throw new Error(
+                "Could not complete sign-in request (" +
+                  detail +
+                  "). Open DevTools (F12) → Network → find `send-code` → check Status and Response. If you see CORS errors, redeploy the latest app.",
+              );
+            }
             throw new Error(
               "Could not reach the app server (" +
                 detail +
@@ -625,8 +641,9 @@
           } catch (ignore) {}
           if (!res.ok) {
             var fromJson = data && (data.error || data.message);
+            var code = data && data.code ? String(data.code) : "";
             var snippet = text.replace(/\s+/g, " ").trim().slice(0, 280);
-            var msg = fromJson || snippet || ("Request failed (" + res.status + ")");
+            var msg = (code ? "[" + code + "] " : "") + (fromJson || snippet || "Request failed (" + res.status + ")");
             throw new Error(msg);
           }
           return data;
@@ -771,7 +788,7 @@
               if (!siteKey) {
                 setMsg(
                   "err",
-                  "Human verification is not configured on the server. Set NEXT_PUBLIC_TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY for the same Turnstile widget in Vercel, then redeploy.",
+                  "Human verification is not configured on the server. In Vercel set NEXT_PUBLIC_TURNSTILE_SITE (recommended) or NEXT_PUBLIC_TURNSTILE_SITE_KEY / TURNSTILE_SITE_KEY, plus TURNSTILE_SECRET_KEY, for the same Turnstile widget, then redeploy.",
                 );
                 return;
               }

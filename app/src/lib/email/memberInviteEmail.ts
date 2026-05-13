@@ -1,11 +1,12 @@
 import { Resend } from "resend";
 import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
-
-function getFromEmail(): string | null {
-  const v = process.env.ROM_FROM_EMAIL;
-  if (!v) return null;
-  return v.trim();
-}
+import {
+  appendResendDomainHint,
+  hasResendEmailConfig,
+  logResendAccepted,
+  resendMisconfigurationPayload,
+  trimResendEnv,
+} from "@/lib/email/resendShared";
 
 export type MemberInviteEmailResult =
   | { sent: true }
@@ -21,24 +22,14 @@ export async function sendMemberAddedEmail(opts: {
   roleLabel: string;
   signInUrl: string;
 }): Promise<MemberInviteEmailResult> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = getFromEmail();
-  if (!apiKey?.trim()) {
+  const { apiKey, from } = trimResendEnv();
+  if (!hasResendEmailConfig()) {
     return {
       sent: false,
-      error:
-        "Invite email was not sent: RESEND_API_KEY is missing in the server environment (check Vercel → Environment Variables).",
+      error: `Invite email was not sent. ${resendMisconfigurationPayload().error}`,
     };
   }
-  if (!from) {
-    return {
-      sent: false,
-      error:
-        "Invite email was not sent: ROM_FROM_EMAIL is missing (set it in Vercel to a verified sender, e.g. no-reply@report-o-matic.online).",
-    };
-  }
-
-  const resend = new Resend(apiKey);
+  const resend = new Resend(apiKey!);
   const subject = `You're invited to ${opts.schoolName} — Report-O-Matic`;
   const text = [
     `You've been added to “${opts.schoolName}” as ${opts.roleLabel}.`,
@@ -66,7 +57,7 @@ export async function sendMemberAddedEmail(opts: {
   `.trim();
 
   const result = await resend.emails.send({
-    from,
+    from: from!,
     to: opts.to,
     subject,
     text,
@@ -74,7 +65,7 @@ export async function sendMemberAddedEmail(opts: {
   });
 
   if ("error" in result && result.error) {
-    const msg = result.error.message || "Resend rejected the send.";
+    const msg = appendResendDomainHint(result.error.message || "Resend rejected the send.");
     console.error("[ROM] sendMemberAddedEmail Resend error:", msg);
     return {
       sent: false,
@@ -82,6 +73,7 @@ export async function sendMemberAddedEmail(opts: {
     };
   }
 
+  logResendAccepted("[ROM member-invite]", result);
   return { sent: true };
 }
 

@@ -19,11 +19,6 @@ declare global {
   }
 }
 
-const TURNSTILE_SITE_KEY =
-  typeof process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY === "string" && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY.trim()
-    ? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY.trim()
-    : "";
-
 export function VerifyForm() {
   const { t } = useUiLanguage();
   const sp = useSearchParams();
@@ -42,8 +37,27 @@ export function VerifyForm() {
   const [backupMsg, setBackupMsg] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileScriptReady, setTurnstileScriptReady] = useState(false);
+  /** Same source as `landing.html`: `/api/config/turnstile-site-key` (server reads `NEXT_PUBLIC_TURNSTILE_SITE` or legacy env names). */
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState("");
   const turnstileHostRef = useRef<HTMLDivElement | null>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/config/turnstile-site-key", { cache: "no-store" });
+        const data = (await res.json()) as { site_key?: string };
+        const k = typeof data.site_key === "string" ? data.site_key.trim() : "";
+        if (!cancelled) setTurnstileSiteKey(k);
+      } catch {
+        if (!cancelled) setTurnstileSiteKey("");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     setMsg("");
@@ -72,14 +86,14 @@ export function VerifyForm() {
       const host = turnstileHostRef.current;
       const api = window.turnstile;
       if (!host || !api) return;
-      if (!TURNSTILE_SITE_KEY) {
+      if (!turnstileSiteKey) {
         setBackupMsg(t("auth.backupResendTurnstileErr"));
         setBackupStatus("err");
         return;
       }
       try {
         const id = api.render(host, {
-          sitekey: TURNSTILE_SITE_KEY,
+          sitekey: turnstileSiteKey,
           callback: (token: string) => setTurnstileToken(token),
         });
         turnstileWidgetIdRef.current = id;
@@ -101,7 +115,7 @@ export function VerifyForm() {
       turnstileWidgetIdRef.current = null;
       setTurnstileToken(null);
     };
-  }, [backupOpen, turnstileScriptReady, t]);
+  }, [backupOpen, turnstileScriptReady, turnstileSiteKey, t]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

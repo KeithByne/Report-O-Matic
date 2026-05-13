@@ -19,6 +19,8 @@ function parseAllowlist(raw: string | undefined): string[] {
  *
  * - If no `Origin` header is present (server-to-server or same-origin navigation), no CORS headers are needed.
  * - If `ROM_CORS_ALLOW_ORIGINS` includes "*", we allow any Origin (not recommended for prod).
+ * - If `ROM_CORS_ALLOW_ORIGINS` is **unset or empty**, same-origin browser calls (e.g. `/landing.html` → `/api/...`)
+ *   are allowed automatically so production sign-in works without extra env.
  * - To allow `file://` during local dev, the browser sends `Origin: null`; you may add `null` to the allowlist.
  */
 export function corsHeadersForRequest(req: Request): CorsDecision {
@@ -43,6 +45,27 @@ export function corsHeadersForRequest(req: Request): CorsDecision {
         vary: "Origin",
       },
     };
+  }
+
+  // Empty allowlist: allow the browser's origin when it matches this request's origin (same host + scheme).
+  // Without this, `landing.html` POSTs to `/api/*` fail CORS in production unless ROM_CORS_ALLOW_ORIGINS is set.
+  if (allow.length === 0) {
+    try {
+      const self = new URL(req.url);
+      const incoming = new URL(origin);
+      if (incoming.origin === self.origin) {
+        return {
+          ok: true,
+          headers: {
+            ...base,
+            "access-control-allow-origin": origin,
+            vary: "Origin",
+          },
+        };
+      }
+    } catch {
+      /* ignore */
+    }
   }
 
   return { ok: false, headers: { ...base, vary: "Origin" } };

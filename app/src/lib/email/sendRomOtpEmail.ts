@@ -1,11 +1,11 @@
 import { Resend } from "resend";
 import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
-
-function getFromEmail(): string | null {
-  const v = process.env.ROM_FROM_EMAIL;
-  if (!v) return null;
-  return v.trim();
-}
+import {
+  appendResendDomainHint,
+  logResendAccepted,
+  resendMisconfigurationPayload,
+  trimResendEnv,
+} from "@/lib/email/resendShared";
 
 export type RomOtpEmailKind = "primary" | "backup_copy" | "backup_resend";
 
@@ -23,10 +23,9 @@ export async function sendRomOtpEmail(opts: {
   /** Account email when kind is backup_copy or backup_resend */
   accountEmail?: string;
 }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = getFromEmail();
+  const { apiKey, from } = trimResendEnv();
   if (!apiKey) throw new Error("Missing RESEND_API_KEY.");
-  if (!from) throw new Error("Missing ROM_FROM_EMAIL.");
+  if (!from) throw new Error(resendMisconfigurationPayload().error);
 
   const resend = new Resend(apiKey);
   const actionLabel = opts.mode === "signup" ? "create your account" : "sign in";
@@ -89,6 +88,8 @@ export async function sendRomOtpEmail(opts: {
   });
 
   if ("error" in result && result.error) {
-    throw new Error(`Email send failed: ${result.error.message || "unknown error"}`);
+    const raw = result.error.message || "unknown error";
+    throw new Error(`Email send failed: ${appendResendDomainHint(raw)}`);
   }
+  logResendAccepted("[ROM sendRomOtpEmail]", result);
 }
