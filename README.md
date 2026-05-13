@@ -11,8 +11,8 @@ This folder is your **repo** (repository): the project folder that contains all 
 
 ### Folder map (what goes where)
 - `app/`: the Next.js SaaS (UI + server routes like Stripe webhook, OpenAI calls, PDF generation)
+- `app/public/`: static files served from the site root (including `landing.html` → `/landing.html` on the live domain)
 - `supabase/`: SQL migrations (tables + RLS policies)
-- `public-pages/`: standalone `.html` pages (single-file HTML + JS), if you need them
 
 ### Step 0 — prerequisites (install once)
 1. Install **Node.js LTS** (for running the app locally).
