@@ -18,7 +18,7 @@ export const RU_AUTH_BILLING_OVERLAY: Record<string, string> = {
   "auth.verifyOk": "Подтверждено. Перенаправление…",
   "auth.errMissingVerifyParams":
     "Не хватает адреса электронной почты или challenge. Вернитесь на главную страницу и запросите новый код.",
-  "auth.errCodeDigits": "Введите 6–7-значный код из письма.",
+  "auth.errCodeDigits": "Введите 6-значный код из письма.",
   "auth.errVerificationFailed": "Проверка не удалась.",
   "auth.challengeDebug": "Challenge",
   "auth.challengeMissing": "(нет)",
@@ -78,7 +78,7 @@ export const UK_AUTH_BILLING_OVERLAY: Record<string, string> = {
   "auth.verifyOk": "Підтверджено. Перенаправлення…",
   "auth.errMissingVerifyParams":
     "Не вистає електронної пошти або challenge. Поверніться на головну й запросіть новий код.",
-  "auth.errCodeDigits": "Введіть 6–7-значний код з листа.",
+  "auth.errCodeDigits": "Введіть 6-значний код з листа.",
   "auth.errVerificationFailed": "Перевірку не вдалося виконати.",
   "auth.challengeDebug": "Challenge",
   "auth.challengeMissing": "(немає)",
@@ -138,7 +138,7 @@ export const AR_AUTH_BILLING_OVERLAY: Record<string, string> = {
   "auth.verifyOk": "تم التحقق. جارٍ إعادة التوجيه…",
   "auth.errMissingVerifyParams":
     "البريد أو التحدي مفقود. ارجع إلى الصفحة الرئيسية واطلب رمزًا جديدًا.",
-  "auth.errCodeDigits": "يُرجى إدخال الرمز المكوّن من 6 أو 7 أرقام من بريدك.",
+  "auth.errCodeDigits": "يُرجى إدخال الرمز المكوّن من 6 أرقام من بريدك.",
   "auth.errVerificationFailed": "فشل التحقق.",
   "auth.challengeDebug": "التحدي",
   "auth.challengeMissing": "(مفقود)",

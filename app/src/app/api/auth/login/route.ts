@@ -10,6 +10,21 @@ import { ensureOwnerTenantForSignup, hasAnyMembership } from "@/lib/data/members
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { signSession } from "@/lib/auth/session";
 import { postSignInRedirectPath } from "@/lib/auth/saasOwnerShared";
+import { claimTestAccessIfNeeded } from "@/lib/auth/claimTestAccess";
+import {
+  getSigninOtpTtlMs,
+  randomSixDigitCode,
+  saveSigninOtpChallenge,
+  signinOtpCodeHash,
+} from "@/lib/auth/signinOtp";
+import { normalizeOtpChallengeId } from "@/lib/auth/otpCodeNormalize";
+import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
+import {
+  hasResendEmailConfig,
+  otpRecipientSameDomainAsRomFrom,
+  resendMisconfigurationPayload,
+} from "@/lib/email/resendShared";
+import { sendSigninVerificationEmail } from "@/lib/email/sendSigninVerificationEmail";
 
 type LoginBody = {
   email?: unknown;
@@ -37,69 +52,6 @@ function getClientIp(req: Request): string {
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-async function claimTestAccessIfNeeded(opts: {
-  email: string;
-  testAccessToken: string | null;
-  nowMs: number;
-}): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
-  const { email, testAccessToken, nowMs } = opts;
-  if (!testAccessToken) return { ok: true };
-  const supabase = getServiceSupabase();
-  if (!supabase) return { ok: false, status: 503, message: "Database not configured." };
-
-  const { data: link, error: lErr } = await supabase
-    .from("test_access_links")
-    .select("token, tenant_id, active")
-    .eq("token", testAccessToken)
-    .maybeSingle();
-  if (lErr) return { ok: false, status: 500, message: lErr.message || "Could not claim test access." };
-  if (!link || !(link as { active?: boolean }).active) {
-    return { ok: false, status: 400, message: "Test access link is invalid or has already been used." };
-  }
-
-  const tenantId = String((link as { tenant_id?: string }).tenant_id || "").trim();
-  if (!tenantId) return { ok: false, status: 400, message: "Invalid test tenant." };
-
-  const { error: mErr } = await supabase.from("memberships").insert({
-    tenant_id: tenantId,
-    user_email: email,
-    role: "owner",
-  });
-  if (mErr) {
-    if (mErr.code === "23505") {
-      return {
-        ok: false,
-        status: 409,
-        message: "This test link was already used with a different step. Request a new link.",
-      };
-    }
-    return { ok: false, status: 500, message: mErr.message || "Could not grant test access." };
-  }
-
-  const { error: cErr } = await supabase.from("owner_credit_ledger").insert({
-    owner_email: email,
-    delta_credits: 50,
-    reason: "manual_adjust",
-    tenant_id: tenantId,
-    report_id: null,
-    stripe_event_id: null,
-  });
-  if (cErr) {
-    await supabase.from("memberships").delete().eq("tenant_id", tenantId).eq("user_email", email).eq("role", "owner");
-    return { ok: false, status: 500, message: cErr.message || "Could not grant test credits." };
-  }
-
-  const { error: claimErr } = await supabase
-    .from("test_access_links")
-    .update({ active: false, claimed_by_email: email, claimed_at: new Date(nowMs).toISOString() })
-    .eq("token", testAccessToken)
-    .eq("active", true);
-  if (claimErr) {
-    return { ok: false, status: 500, message: claimErr.message || "Could not finalize test access." };
-  }
-  return { ok: true };
 }
 
 export async function OPTIONS(req: Request) {
@@ -214,24 +166,99 @@ export async function POST(req: Request) {
     if (!latestHash || !verifyPassword(pw, latestHash)) {
       return jsonError(401, "Incorrect password.", cors.headers);
     }
-  } else {
-    // signup
-    if (!passwordHash) {
-      const created = await setPasswordHashIfMissing(email, hashPassword(pw));
-      if (!created) {
-        const again = await getPasswordHashForEmail(email);
-        if (!again || !verifyPassword(pw, again)) {
-          return jsonError(401, "Incorrect password.", cors.headers);
-        }
-      }
-    } else if (!verifyPassword(pw, passwordHash)) {
-      return jsonError(401, "Incorrect password.", cors.headers);
+
+    const pepperRes = tryRequireRuntimeSecret("ROM_OTP_PEPPER", {
+      devFallback: "dev-change-me",
+      minLength: 24,
+    });
+    if (!pepperRes.ok) return jsonError(503, pepperRes.error, cors.headers);
+
+    const hasDb = Boolean(getServiceSupabase());
+    if (process.env.NODE_ENV === "production" && !hasDb) {
+      return jsonError(503, "Database not configured.", cors.headers);
     }
+
+    try {
+      await purgeOtpChallengesForEmail(email, nowMs);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Could not prepare sign-in verification.";
+      console.error("[ROM login] purge before sign-in OTP:", msg);
+      return jsonError(500, msg, cors.headers);
+    }
+
+    const challengeId = normalizeOtpChallengeId(crypto.randomUUID());
+    const code = randomSixDigitCode();
+    const ttlMs = getSigninOtpTtlMs();
+    const expiresAtMs = nowMs + ttlMs;
+    const codeHash = signinOtpCodeHash(challengeId, code, pepperRes.value);
+
+    try {
+      await saveSigninOtpChallenge({
+        challengeId,
+        email,
+        codeHash,
+        expiresAtMs,
+        testAccessToken,
+      });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Could not create sign-in verification.";
+      console.error("[ROM login] saveSigninOtpChallenge:", msg);
+      return jsonError(500, msg, cors.headers);
+    }
+
+    const expiresInSeconds = Math.floor(ttlMs / 1000);
+    const hasEmailConfig = hasResendEmailConfig();
+    if (hasEmailConfig) {
+      try {
+        await sendSigninVerificationEmail({ to: email, code, expiresInSeconds });
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Could not send email.";
+        console.error("[ROM login] sign-in verification email:", msg);
+        if (process.env.NODE_ENV === "production") return jsonError(500, msg, cors.headers);
+        console.warn("[ROM login] Email send failed in dev:", msg);
+      }
+    } else {
+      if (process.env.NODE_ENV === "production") {
+        const { error, code: errCode } = resendMisconfigurationPayload();
+        console.warn("[ROM login] Resend env unusable:", errCode);
+        return NextResponse.json({ error, code: errCode }, { status: 503, headers: cors.headers });
+      }
+      console.log(
+        `[ROM DEV sign-in OTP] email=${email} code=${code} expires_in_s=${expiresInSeconds} challenge=${challengeId}`,
+      );
+    }
+
+    const sameDomainHint =
+      hasEmailConfig && otpRecipientSameDomainAsRomFrom(email) ? ("same_domain_as_sender" as const) : null;
+
+    return NextResponse.json(
+      {
+        ok: true,
+        step: "verify_email",
+        challenge_id: challengeId,
+        expires_in_seconds: expiresInSeconds,
+        ...(sameDomainHint ? { delivery_hint: sameDomainHint } : {}),
+      },
+      { headers: cors.headers },
+    );
+  }
+
+  // --- Sign up: complete account and session immediately ---
+  if (!passwordHash) {
+    const created = await setPasswordHashIfMissing(email, hashPassword(pw));
+    if (!created) {
+      const again = await getPasswordHashForEmail(email);
+      if (!again || !verifyPassword(pw, again)) {
+        return jsonError(401, "Incorrect password.", cors.headers);
+      }
+    }
+  } else if (!verifyPassword(pw, passwordHash)) {
+    return jsonError(401, "Incorrect password.", cors.headers);
   }
 
   if (getServiceSupabase()) {
     try {
-      if (mode === "signup" && schoolName) {
+      if (schoolName) {
         await ensureOwnerTenantForSignup({
           email,
           schoolName,
@@ -251,7 +278,7 @@ export async function POST(req: Request) {
   try {
     await purgeOtpChallengesForEmail(email, nowMs);
   } catch (e: unknown) {
-    console.warn("[ROM login] purge legacy otp_challenges:", e instanceof Error ? e.message : e);
+    console.warn("[ROM login] purge otp_challenges:", e instanceof Error ? e.message : e);
   }
 
   const sessionExpMs = nowMs + 8 * 60 * 60 * 1000;

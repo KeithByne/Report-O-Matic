@@ -22,7 +22,7 @@
   "auth.confirmPasswordPlaceholder": "Repeat your new password",
   "auth.emailDelayHint": "The email can take up to a minute to arrive. If you don’t see it, check your spam or junk folder.",
   "auth.sameDomainDeliveryHint": "Your sign-in address uses the same domain as our sender. Some mail servers quarantine or silently drop that path (other providers like Outlook may still work). Check spam and your host’s quarantine. In Resend, confirm SPF and DKIM are verified for your domain—or send from a subdomain (e.g. mail.yourdomain.com). You can use another provider as backup email below.",
-  "auth.errCodeDigits": "Please enter the 6–7 digit code from your email.",
+  "auth.errCodeDigits": "Please enter the 6-digit code from your email.",
   "auth.errMissingEmail": "Missing email. Please return to the landing page and start a reset again.",
   "auth.errMissingResetChallenge": "Missing reset challenge. Please return to the landing page and start a reset again.",
   "auth.errMissingVerifyParams": "Missing email or challenge. Please return to the landing page and request a new code.",

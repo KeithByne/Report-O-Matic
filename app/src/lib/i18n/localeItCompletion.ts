@@ -29,7 +29,7 @@ export const IT_COMPLETION: Record<string, string> = {
   "auth.emailDelayHint": "L'invio dell'e-mail può richiedere fino a un minuto. Se non lo vedi, controlla la cartella dello spam o della posta indesiderata.",
   "auth.sameDomainDeliveryHint":
     "L'indirizzo di accesso usa lo stesso dominio del mittente. Alcuni server mettono in quarantena o scartano questa posta (altri provider possono funzionare). Controlla spam e quarantena. In Resend verifica SPF e DKIM, oppure invia da un sottodominio (es. mail.tuodominio.it). Puoi usare un altro provider come email di backup qui sotto.",
-  "auth.errCodeDigits": "Inserisci il codice di 6–7 cifre dalla tua e-mail.",
+  "auth.errCodeDigits": "Inserisci il codice di 6 cifre dalla tua e-mail.",
   "auth.errMissingEmail": "Email mancante. Torna alla pagina di destinazione e avvia nuovamente un ripristino.",
   "auth.errMissingResetChallenge": "Sfida di ripristino mancante. Torna alla pagina di destinazione e avvia nuovamente un ripristino.",
   "auth.errMissingVerifyParams": "E-mail o sfida mancante. Torna alla pagina di destinazione e richiedi un nuovo codice.",

@@ -1028,7 +1028,7 @@ const EN: UiMessages = {
   "auth.verifying": "Verifying…",
   "auth.verifyOk": "Verified. Redirecting…",
   "auth.errMissingVerifyParams": "Missing email or challenge. Please return to the landing page and request a new code.",
-  "auth.errCodeDigits": "Please enter the 6–7 digit code from your email.",
+  "auth.errCodeDigits": "Please enter the 6-digit code from your email.",
   "auth.errVerificationFailed": "Verification failed.",
   "auth.challengeDebug": "Challenge",
   "auth.challengeMissing": "(missing)",
@@ -1819,7 +1819,7 @@ const FR: UiMessages = {
   "auth.verifyOk": "Vérifié. Redirection…",
   "auth.errMissingVerifyParams":
     "E-mail ou défi manquant. Retournez à la page d’accueil et demandez un nouveau code.",
-  "auth.errCodeDigits": "Saisissez le code à 6 ou 7 chiffres reçu par e-mail.",
+  "auth.errCodeDigits": "Saisissez le code à 6 chiffres reçu par e-mail.",
   "auth.errVerificationFailed": "Échec de la vérification.",
   "auth.challengeDebug": "Défi",
   "auth.challengeMissing": "(manquant)",
@@ -2444,7 +2444,7 @@ const ES: UiMessages = {
   "auth.verifyOk": "Verificado. Redirigiendo…",
   "auth.errMissingVerifyParams":
     "Falta el correo o el reto. Vuelva a la página principal y solicite un código nuevo.",
-  "auth.errCodeDigits": "Introduzca el código de 6 u 7 dígitos del correo.",
+  "auth.errCodeDigits": "Introduzca el código de 6 dígitos del correo.",
   "auth.errVerificationFailed": "Error de verificación.",
   "auth.challengeDebug": "Reto",
   "auth.challengeMissing": "(falta)",
