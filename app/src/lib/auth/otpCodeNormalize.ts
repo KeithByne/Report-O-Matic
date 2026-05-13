@@ -9,12 +9,20 @@ export function normalizeOtpCodeInput(raw: string): string {
 }
 
 /**
- * `crypto.randomUUID()` is lowercase; URLs/clients may send uppercase. Hashing is case-sensitive,
- * so we must match the canonical form used when the challenge was created.
+ * `crypto.randomUUID()` is lowercase hyphenated; URLs/clients may send uppercase, unicode dashes,
+ * braces, or (via some DB clients) compact 32-hex without hyphens. OTP hashes are case- and
+ * punctuation-sensitive, so we must match the canonical hyphenated lowercase UUID used at insert.
  */
 export function normalizeOtpChallengeId(raw: string): string {
-  return raw
+  let s = raw
     .trim()
+    .replace(/^\{/, "")
+    .replace(/\}$/, "")
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, "-")
     .toLowerCase();
+  const hex = s.replace(/-/g, "");
+  if (/^[0-9a-f]{32}$/.test(hex)) {
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+  }
+  return s;
 }

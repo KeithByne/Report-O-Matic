@@ -54,8 +54,15 @@ export async function POST(req: Request) {
   }
 
   const emailRaw = typeof body.email === "string" ? body.email : "";
-  const challengeId = normalizeOtpChallengeId(typeof body.challenge_id === "string" ? body.challenge_id : "");
-  const code = normalizeOtpCodeInput(typeof body.code === "string" ? body.code : "");
+  const challengeRaw = typeof body.challenge_id === "string" ? body.challenge_id : "";
+  const codeRaw =
+    typeof body.code === "string"
+      ? body.code
+      : typeof body.code === "number" && Number.isFinite(body.code)
+        ? String(Math.trunc(body.code))
+        : "";
+  const challengeId = normalizeOtpChallengeId(challengeRaw);
+  const code = normalizeOtpCodeInput(codeRaw);
 
   const email = normalizeEmail(emailRaw);
   if (!email || !challengeId || !code) {

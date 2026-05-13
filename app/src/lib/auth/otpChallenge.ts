@@ -48,7 +48,7 @@ export async function saveOtpChallenge(opts: {
     const expiresAt = new Date(opts.expiresAtMs).toISOString();
     const { error } = await supabase.from("otp_challenges").insert({
       id: challengeKey,
-      email: opts.email,
+      email: String(opts.email || "").trim().toLowerCase(),
       code_hash: opts.codeHash,
       expires_at: expiresAt,
       mode: opts.mode,
@@ -66,7 +66,7 @@ export async function saveOtpChallenge(opts: {
   const nowMs = Date.now();
   store.otps.set(challengeKey, {
     challengeId: challengeKey,
-    email: opts.email,
+    email: String(opts.email || "").trim().toLowerCase(),
     codeHash: opts.codeHash,
     expiresAtMs: opts.expiresAtMs,
     createdAtMs: nowMs,
