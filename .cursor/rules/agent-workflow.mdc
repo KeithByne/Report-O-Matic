@@ -1,0 +1,11 @@
+---
+description: Fast autonomous work; ask only before git commits
+alwaysApply: true
+---
+
+# Agent workflow (Report-O-Matic)
+
+- **Execute, don’t delegate.** Run shells, read logs, grep the repo, fix lints, and verify behavior yourself. Avoid long “now you should manually…” checklists unless the step truly requires human credentials or a decision only the user can make (e.g. Cloudflare clicks, production secrets).
+- **Be brief** when reporting back: what changed, outcome, any single blocker—no engagement padding.
+- **Git commits:** If there are **meaningful** uncommitted changes worth recording, **ask once** before `git commit` (e.g. suggest the message and wait for approval, or for the user to say “commit and push”). Do **not** commit silently without that go-ahead. If the tree is **clean** and already matches `origin/main`, say so in one line—no commit needed.
+- **After approved commit:** run `git push origin main` (or the active branch) without extra prompts unless push is blocked.
