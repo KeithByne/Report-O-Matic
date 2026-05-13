@@ -10,6 +10,7 @@ import {
   appendResendDomainHint,
   logResendAccepted,
   resendMisconfigurationPayload,
+  resendTransactionalFields,
   trimResendEnv,
 } from "@/lib/email/resendShared";
 import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
@@ -49,7 +50,7 @@ async function sendResetEmail(opts: { to: string; code: string; expiresInSeconds
   const { apiKey, from } = trimResendEnv();
   if (!apiKey || !from) throw new Error(resendMisconfigurationPayload().error);
   const resend = new Resend(apiKey);
-  const subject = `Report-O-Matic password reset code: ${opts.code}`;
+  const subject = "[Report-O-Matic] Password reset verification code";
   const text = [
     `Use this code to reset your Report-O-Matic password: ${opts.code}`,
     ``,
@@ -77,7 +78,15 @@ async function sendResetEmail(opts: { to: string; code: string; expiresInSeconds
       </p>
     </div>
   `.trim();
-  const result = await resend.emails.send({ from, to: opts.to, subject, text, html });
+  const xf = resendTransactionalFields("password-reset");
+  const result = await resend.emails.send({
+    from,
+    to: opts.to,
+    subject,
+    text,
+    html,
+    ...(xf ? { replyTo: xf.replyTo, headers: xf.headers, tags: xf.tags } : {}),
+  });
   if ("error" in result && result.error) {
     const raw = result.error.message || "unknown error";
     throw new Error(`Email send failed: ${appendResendDomainHint(raw)}`);

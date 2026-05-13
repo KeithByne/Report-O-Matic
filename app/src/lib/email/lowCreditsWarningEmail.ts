@@ -1,6 +1,11 @@
 import { Resend } from "resend";
 import { isReportLanguageCode, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { appendResendDomainHint, logResendAccepted, trimResendEnv } from "@/lib/email/resendShared";
+import {
+  appendResendDomainHint,
+  logResendAccepted,
+  resendTransactionalFields,
+  trimResendEnv,
+} from "@/lib/email/resendShared";
 
 type Copy = {
   subject: string;
@@ -131,12 +136,14 @@ export async function sendLowCreditsWarningEmail(opts: {
 
   const text = `${localizedText}\n\n---\nEnglish\n\n${englishText}`;
 
+  const xf = resendTransactionalFields("low-credits");
   const result = await resend.emails.send({
     from,
     to: opts.to,
     subject,
     text,
     html,
+    ...(xf ? { replyTo: xf.replyTo, headers: xf.headers, tags: xf.tags } : {}),
   });
   if ("error" in result && result.error) {
     throw new Error(appendResendDomainHint(result.error.message || "Resend rejected low-credit warning."));

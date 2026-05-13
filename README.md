@@ -138,6 +138,7 @@ If your Git repo is only the inner `app` folder, you can push that alone; if the
    | `RESEND_API_KEY` | From Resend dashboard. |
    | `ROM_FROM_EMAIL` | **Plain** address on your verified domain, e.g. `security@report-o-matic.online` (not `no-reply@`). |
    | `ROM_FROM_DISPLAY_NAME` | Optional. Inbox “from” name, e.g. `Report-O-Matic` — avoids putting `<` / `>` in `ROM_FROM_EMAIL` on hosts that corrupt them. |
+   | `ROM_REPLY_TO_EMAIL` | Optional. Plain address for **Reply-To** (same format as `ROM_FROM_EMAIL`). If unset, Reply-To matches `ROM_FROM_EMAIL`. Use a monitored inbox on your verified domain if `from` is a routing-only address. |
    | `NEXT_PUBLIC_TURNSTILE_SITE` | Cloudflare Turnstile **site** key (public). **Use this name** in Vercel to avoid warnings about `KEY` inside `NEXT_PUBLIC_*`. Same value Cloudflare labels “site key”. |
    | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Legacy alias for the same site key (still supported). |
    | `TURNSTILE_SITE_KEY` | Optional legacy alias when `NEXT_PUBLIC_*` is unset. |

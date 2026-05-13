@@ -4,6 +4,7 @@ import {
   appendResendDomainHint,
   logResendAccepted,
   resendMisconfigurationPayload,
+  resendTransactionalFields,
   trimResendEnv,
 } from "@/lib/email/resendShared";
 
@@ -32,8 +33,8 @@ export async function sendRomOtpEmail(opts: {
   const kind = opts.kind ?? "primary";
   const subject =
     kind === "backup_resend"
-      ? "Report-O-Matic sign-in code (backup delivery)"
-      : "Report-O-Matic sign-in code";
+      ? "[Report-O-Matic] Verification code (backup inbox)"
+      : "[Report-O-Matic] Your verification code";
 
   const accountLine =
     kind !== "primary" && opts.accountEmail
@@ -79,12 +80,19 @@ export async function sendRomOtpEmail(opts: {
     </div>
   `.trim();
 
+  const mailKind =
+    kind === "backup_resend" ? "otp-backup-resend" : kind === "backup_copy" ? "otp-backup-copy" : "otp";
+  const xf = resendTransactionalFields(mailKind);
+
   const result = await resend.emails.send({
     from,
     to: opts.to,
     subject,
     text,
     html,
+    ...(xf
+      ? { replyTo: xf.replyTo, headers: xf.headers, tags: xf.tags }
+      : {}),
   });
 
   if ("error" in result && result.error) {

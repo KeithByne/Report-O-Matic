@@ -5,6 +5,9 @@
  * - `ROM_FROM_EMAIL` — **exactly one plain RFC-style address**, full string match only
  *   (e.g. `security@report-o-matic.online`). No display names, no `<` / `>`, no spaces.
  * - `ROM_FROM_DISPLAY_NAME` — optional; if set, Resend `from` becomes `Name <email>`.
+ * - `ROM_REPLY_TO_EMAIL` — optional plain address (same format as `ROM_FROM_EMAIL`). When set and
+ *   valid, Resend `reply_to` uses it; otherwise `reply_to` matches `ROM_FROM_EMAIL` (helps filters
+ *   see a reachable mailbox on your domain).
  *
  * If anything is wrong, callers must fail **before** claiming a code was sent.
  */
@@ -17,6 +20,49 @@ export function isRomFromEmailFormatValid(): boolean {
   const raw = (process.env.ROM_FROM_EMAIL ?? "").trim();
   if (!raw) return false;
   return PLAIN_SENDER_EMAIL.test(raw);
+}
+
+/** Plain `ROM_FROM_EMAIL` when valid; otherwise `null`. */
+export function getRomFromPlainEmail(): string | null {
+  const raw = (process.env.ROM_FROM_EMAIL ?? "").trim();
+  if (!raw || !PLAIN_SENDER_EMAIL.test(raw)) return null;
+  return raw;
+}
+
+/**
+ * Reply-To for transactional mail: optional `ROM_REPLY_TO_EMAIL` (must match the same plain-address
+ * pattern), else the verified `ROM_FROM_EMAIL`.
+ */
+export function getResendReplyTo(): string | null {
+  const override = (process.env.ROM_REPLY_TO_EMAIL ?? "").trim();
+  if (override && PLAIN_SENDER_EMAIL.test(override)) return override;
+  return getRomFromPlainEmail();
+}
+
+const RESEND_TAG_NAME = "rom-mail-kind";
+
+function sanitizeResendTagValue(raw: string): string {
+  const v = raw.replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  const s = v.slice(0, 256);
+  return s.length > 0 ? s : "transactional";
+}
+
+/**
+ * Headers and metadata so mailbox providers treat messages as automated transactional mail (RFC 3834)
+ * rather than unsolicited bulk. Does not replace SPF/DKIM/DMARC on your Resend domain.
+ */
+export function resendTransactionalFields(mailKind: string): {
+  replyTo: string;
+  headers: Record<string, string>;
+  tags: { name: string; value: string }[];
+} | null {
+  const replyTo = getResendReplyTo();
+  if (!replyTo) return null;
+  return {
+    replyTo,
+    headers: { "Auto-Submitted": "auto-generated" },
+    tags: [{ name: RESEND_TAG_NAME, value: sanitizeResendTagValue(mailKind) }],
+  };
 }
 
 function stripUnsafeDisplayChars(s: string): string {

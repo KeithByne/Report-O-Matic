@@ -5,6 +5,7 @@ import {
   hasResendEmailConfig,
   logResendAccepted,
   resendMisconfigurationPayload,
+  resendTransactionalFields,
   trimResendEnv,
 } from "@/lib/email/resendShared";
 
@@ -56,12 +57,14 @@ export async function sendMemberAddedEmail(opts: {
     </div>
   `.trim();
 
+  const xf = resendTransactionalFields("member-invite");
   const result = await resend.emails.send({
     from: from!,
     to: opts.to,
     subject,
     text,
     html,
+    ...(xf ? { replyTo: xf.replyTo, headers: xf.headers, tags: xf.tags } : {}),
   });
 
   if ("error" in result && result.error) {
