@@ -336,6 +336,10 @@
 
           <div id="message" class="msg hide" role="status" aria-live="polite"></div>
 
+          <div class="field" style="margin-top: 4px">
+            <div id="turnstileWidget"></div>
+          </div>
+
           <!-- SIGN IN -->
           <section id="panelSignIn" role="tabpanel" aria-labelledby="tabSignIn">
             <form id="signInForm" class="row">
@@ -366,33 +370,12 @@
                   required
                 />
               </div>
-              <div class="field">
-                <label for="signInOtpBackupEmail">Backup email (optional)</label>
-                <input
-                  id="signInOtpBackupEmail"
-                  name="signin_otp_backup_email"
-                  type="email"
-                  autocomplete="email"
-                  autocapitalize="none"
-                  spellcheck="false"
-                  placeholder="e.g. your.personal@gmail.com"
-                />
-              </div>
-              <p class="small" style="margin-top: -6px; color: rgba(255,255,255,0.65);">
-                If your main inbox blocks mail (some Outlook tenants), add another address you use — we send the same code there too.
-              </p>
-
               <button id="signInBtn" class="btn btnPrimary" type="submit">
-                Send security code
+                Sign in
               </button>
 
-              <div class="field" style="margin-top: 4px;">
-                <div id="turnstileWidget"></div>
-              </div>
-
               <p class="small" style="margin-top: 8px">
-                You’ll receive a 6–7 digit security code by email. It may take up to a minute to arrive. If you don’t see it, check your
-                <strong>spam</strong> or <strong>junk</strong> folder.
+                Human verification (Turnstile) helps protect your school account from automated abuse.
               </p>
             </form>
           </section>
@@ -432,26 +415,8 @@
                   required
                 />
               </div>
-              <div class="field">
-                <label for="signUpOtpBackupEmail">Backup email (optional)</label>
-                <input
-                  id="signUpOtpBackupEmail"
-                  name="signup_otp_backup_email"
-                  type="email"
-                  autocomplete="email"
-                  autocapitalize="none"
-                  spellcheck="false"
-                  placeholder="e.g. your.personal@gmail.com"
-                />
-              </div>
-
-              <p class="small" style="margin: -4px 0 0">
-                We’ll email a 6–7 digit security code. It may take up to a minute to arrive. If you don’t see it, check your <strong>spam</strong> or
-                <strong>junk</strong> folder.
-              </p>
-
               <button id="signUpBtn" class="btn btnPrimary" type="submit">
-                Create account & send code
+                Create account
               </button>
 
               <p class="small">
@@ -553,7 +518,7 @@
           // do not reset turnstileToken here to avoid unnecessary re-validation
         }
 
-        // Turnstile tokens are single-use. send-code verifies Turnstile before password check,
+        // Turnstile tokens are single-use. login verifies Turnstile before password check,
         // so a wrong password still consumes the token — reset the widget for a fresh challenge.
         function resetTurnstileWidget() {
           turnstileToken = null;
@@ -622,7 +587,7 @@
               throw new Error(
                 "Could not complete sign-in request (" +
                   detail +
-                  "). Open DevTools (F12) → Network → find `send-code` → check Status and Response. If you see CORS errors, redeploy the latest app.",
+                  "). Open DevTools (F12) → Network → find `login` → check Status and Response. If you see CORS errors, redeploy the latest app.",
               );
             }
             throw new Error(
@@ -649,15 +614,7 @@
           return data;
         }
 
-        async function handleSendCode(email, mode, extra) {
-          // mode: "signin" | "signup"
-          // This endpoint will be implemented in Next.js:
-          // POST /api/auth/send-code
-          // It should:
-          // - rate limit
-          // - create OTP (6-7 digits) with 180s expiry
-          // - email it
-          // - return a short-lived "challenge_id"
+        async function handleLogin(email, mode, extra) {
           els.signInBtn.disabled = true;
           els.signUpBtn.disabled = true;
           try {
@@ -665,30 +622,15 @@
             var lang = detectBrowserLanguage();
             var payload = Object.assign({ email: email, mode: mode, browser_language: lang.normalized }, extra || {});
             if (testAccessToken) payload.test_access_token = testAccessToken;
-            try {
-              var backupEl =
-                mode === "signup"
-                  ? document.getElementById("signUpOtpBackupEmail")
-                  : document.getElementById("signInOtpBackupEmail");
-              var backupVal = backupEl && backupEl.value ? String(backupEl.value).trim() : "";
-              if (backupVal) payload.otp_backup_email = backupVal;
-            } catch (ignore) {}
             var base = apiBase();
-            var data = await postJson(base + "/api/auth/send-code", payload);
-            setMsg("ok", "Security code sent. Redirecting…");
-            // Redirect to your Next.js verify page with the challenge id
-            var challengeId = data && data.challenge_id ? String(data.challenge_id) : "";
-            var qp = new URLSearchParams();
-            if (challengeId) qp.set("challenge", challengeId);
-            qp.set("email", email);
-            try {
-              var dh = data && data.delivery_hint ? String(data.delivery_hint).trim() : "";
-              if (dh) qp.set("delivery_hint", dh);
-            } catch (ignore) {}
-            window.location.href = base + "/verify?" + qp.toString();
+            var data = await postJson(base + "/api/auth/login", payload);
+            setMsg("ok", "Signed in. Redirecting…");
+            var path = data && data.redirect ? String(data.redirect).trim() : "/dashboard";
+            if (!path.startsWith("/")) path = "/dashboard";
+            window.location.href = base + path;
           } catch (e) {
             resetTurnstileWidget();
-            setMsg("err", e && e.message ? e.message : "Could not send code.");
+            setMsg("err", e && e.message ? e.message : "Could not sign in.");
           } finally {
             els.signInBtn.disabled = false;
             els.signUpBtn.disabled = false;
@@ -705,7 +647,7 @@
           if (!email) return setMsg("err", "Please enter your email.");
           if (!password || String(password).trim().length < 8) return setMsg("err", "Please enter your password (min 8 chars).");
           if (!turnstileToken) return setMsg("err", "Please complete the human verification.");
-          handleSendCode(email, "signin", { password: password, turnstile_token: turnstileToken });
+          handleLogin(email, "signin", { password: password, turnstile_token: turnstileToken });
         });
 
         els.signUpForm.addEventListener("submit", function (ev) {
@@ -717,7 +659,7 @@
           if (!ownerName || !schoolName || !email) return setMsg("err", "Please complete all fields.");
           if (!password || String(password).trim().length < 8) return setMsg("err", "Please choose a password (min 8 chars).");
           if (!turnstileToken) return setMsg("err", "Please complete the human verification.");
-          handleSendCode(email, "signup", {
+          handleLogin(email, "signup", {
             owner_name: ownerName,
             school_name: schoolName,
             referral_code: (function () {

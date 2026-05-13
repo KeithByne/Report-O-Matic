@@ -24,8 +24,7 @@ type SessionRecord = {
 /**
  * DEV-ONLY in-memory store.
  *
- * This makes the landing.html → send-code → verify flow work locally.
- * For production, we'll replace this with a Supabase-backed store.
+ * Dev-only helpers: legacy OTP map cleanup, password dev map, and crypto helpers used by password reset.
  */
 class DevStore {
   otps = new Map<string, OtpRecord>();

@@ -25,7 +25,7 @@ export function isSaasOwnerEmail(email: string): boolean {
   return list.includes(n);
 }
 
-/** After OTP verify (and similar), SaaS owners skip the school dashboard. */
+/** After sign-in, SaaS owners skip the school dashboard. */
 export function postSignInRedirectPath(email: string): string {
   return isSaasOwnerEmail(email) ? SAAS_OWNER_DASHBOARD_PATH : "/dashboard";
 }
