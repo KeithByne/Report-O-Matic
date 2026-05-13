@@ -42,11 +42,12 @@ export async function saveOtpChallenge(opts: {
   referralCode?: string | null;
   testAccessToken?: string | null;
 }): Promise<void> {
+  const challengeKey = normalizeOtpChallengeId(opts.challengeId);
   const supabase = getServiceSupabase();
   if (supabase) {
     const expiresAt = new Date(opts.expiresAtMs).toISOString();
     const { error } = await supabase.from("otp_challenges").insert({
-      id: opts.challengeId,
+      id: challengeKey,
       email: opts.email,
       code_hash: opts.codeHash,
       expires_at: expiresAt,
@@ -63,8 +64,8 @@ export async function saveOtpChallenge(opts: {
 
   const store = getDevStore();
   const nowMs = Date.now();
-  store.otps.set(opts.challengeId, {
-    challengeId: opts.challengeId,
+  store.otps.set(challengeKey, {
+    challengeId: challengeKey,
     email: opts.email,
     codeHash: opts.codeHash,
     expiresAtMs: opts.expiresAtMs,
@@ -76,6 +77,22 @@ export async function saveOtpChallenge(opts: {
     testAccessToken: opts.testAccessToken ?? null,
     attempts: 0,
   });
+}
+
+/** Remove any in-flight OTP rows for this account so a new code is the only valid one. */
+export async function purgePriorOtpChallengesForEmail(email: string, nowMs: number): Promise<void> {
+  const emailNorm = String(email || "").trim().toLowerCase();
+  const supabase = getServiceSupabase();
+  if (supabase) {
+    const { error } = await supabase.from("otp_challenges").delete().eq("email", emailNorm);
+    if (error) throw new Error(formatPostgrestError(error));
+    return;
+  }
+  const store = getDevStore();
+  store.cleanup(nowMs);
+  for (const [k, v] of store.otps.entries()) {
+    if (String(v.email || "").trim().toLowerCase() === emailNorm) store.otps.delete(k);
+  }
 }
 
 export type VerifyOtpResult =
@@ -102,6 +119,71 @@ export async function verifyOtpChallenge(opts: {
   const supabase = getServiceSupabase();
 
   if (supabase) {
+    const isoNow = new Date(opts.nowMs).toISOString();
+
+    const clearOtpForEmail = async () => {
+      await supabase.from("otp_challenges").delete().eq("email", emailNorm);
+    };
+
+    const rowMatchesCode = (r: {
+      id: unknown;
+      code_hash: unknown;
+    }): boolean => {
+      const idCanon = normalizeOtpChallengeId(String(r.id));
+      const stored = String(r.code_hash ?? "").trim();
+      return safeEqualHex(otpCodeHash(idCanon, code, opts.pepper), stored);
+    };
+
+    const mapSuccess = (row: {
+      mode: unknown;
+      owner_name?: unknown;
+      school_name?: unknown;
+      referral_code?: unknown;
+      test_access_token?: unknown;
+    }): Extract<VerifyOtpResult, { ok: true }> => {
+      const mode = row.mode === "signup" ? "signup" : "signin";
+      const ownerName =
+        typeof row.owner_name === "string" && row.owner_name.trim() ? row.owner_name.trim() : null;
+      const schoolName =
+        typeof row.school_name === "string" && row.school_name.trim() ? row.school_name.trim() : null;
+      const referralCode =
+        typeof row.referral_code === "string" && row.referral_code.trim() ? row.referral_code.trim() : null;
+      const testAccessToken =
+        typeof (row as any).test_access_token === "string" && String((row as any).test_access_token).trim()
+          ? String((row as any).test_access_token).trim()
+          : null;
+      return { ok: true, mode, ownerName, schoolName, referralCode, testAccessToken };
+    };
+
+    const loadActiveForEmail = async (): Promise<
+      | { ok: false; message: string }
+      | {
+          ok: true;
+          rows: Array<{
+            id: string;
+            email: string;
+            code_hash: string;
+            expires_at: string;
+            attempts: number;
+            mode: string;
+            owner_name: string | null;
+            school_name: string | null;
+            referral_code: string | null;
+            test_access_token: string | null;
+          }>;
+        }
+    > => {
+      const { data, error } = await supabase
+        .from("otp_challenges")
+        .select(
+          "id, email, code_hash, expires_at, attempts, mode, owner_name, school_name, referral_code, test_access_token",
+        )
+        .eq("email", emailNorm)
+        .gt("expires_at", isoNow);
+      if (error) return { ok: false, message: formatPostgrestError(error) };
+      return { ok: true, rows: (data ?? []) as any[] };
+    };
+
     const { data: row, error: fetchError } = await supabase
       .from("otp_challenges")
       .select("id, email, code_hash, expires_at, attempts, mode, owner_name, school_name, referral_code, test_access_token")
@@ -109,48 +191,62 @@ export async function verifyOtpChallenge(opts: {
       .maybeSingle();
 
     if (fetchError) return { ok: false, status: 500, message: formatPostgrestError(fetchError) };
-    if (!row) return { ok: false, status: 400, message: "Code challenge not found or expired." };
 
-    if (String(row.email || "").trim().toLowerCase() !== emailNorm) {
-      return { ok: false, status: 400, message: "Email does not match this challenge." };
-    }
+    const tryUniqueEmailFallback = async (): Promise<VerifyOtpResult | null> => {
+      const loaded = await loadActiveForEmail();
+      if (!loaded.ok) return { ok: false, status: 500, message: loaded.message };
+      const hits = loaded.rows.filter((r) => rowMatchesCode(r));
+      if (hits.length === 1) {
+        const ok = mapSuccess(hits[0]!);
+        await clearOtpForEmail();
+        return ok;
+      }
+      if (hits.length > 1) {
+        return {
+          ok: false,
+          status: 400,
+          message:
+            "Multiple active sign-in codes for this email. Request a new code and open the latest link from your inbox.",
+        };
+      }
+      return null;
+    };
 
-    const expiresAt = new Date(row.expires_at as string).getTime();
-    if (expiresAt <= opts.nowMs) {
-      await supabase.from("otp_challenges").delete().eq("id", challengeId);
-      return { ok: false, status: 400, message: "Code expired. Please request a new code." };
-    }
+    if (row) {
+      if (String(row.email || "").trim().toLowerCase() !== emailNorm) {
+        return { ok: false, status: 400, message: "Email does not match this challenge." };
+      }
 
-    const attempts = Number(row.attempts) || 0;
-    const nextAttempts = attempts + 1;
-    if (nextAttempts > 8) {
-      await supabase.from("otp_challenges").delete().eq("id", challengeId);
-      return { ok: false, status: 429, message: "Too many incorrect attempts. Please request a new code." };
-    }
+      const expiresAt = new Date(row.expires_at as string).getTime();
+      if (expiresAt <= opts.nowMs) {
+        await supabase.from("otp_challenges").delete().eq("id", row.id);
+        return { ok: false, status: 400, message: "Code expired. Please request a new code." };
+      }
 
-    const storedHash = String(row.code_hash ?? "").trim();
-    const expectedHash = otpCodeHash(challengeId, code, opts.pepper);
-    const match = safeEqualHex(expectedHash, storedHash);
+      if (rowMatchesCode(row)) {
+        const ok = mapSuccess(row);
+        await clearOtpForEmail();
+        return ok;
+      }
 
-    if (!match) {
-      await supabase.from("otp_challenges").update({ attempts: nextAttempts }).eq("id", challengeId);
+      const attempts = Number(row.attempts) || 0;
+      const nextAttempts = attempts + 1;
+      if (nextAttempts > 8) {
+        await clearOtpForEmail();
+        return { ok: false, status: 429, message: "Too many incorrect attempts. Please request a new code." };
+      }
+
+      const fb = await tryUniqueEmailFallback();
+      if (fb !== null) return fb;
+
+      await supabase.from("otp_challenges").update({ attempts: nextAttempts }).eq("id", row.id);
       return { ok: false, status: 400, message: "Incorrect code." };
     }
 
-    const mode = row.mode === "signup" ? "signup" : "signin";
-    const ownerName =
-      typeof row.owner_name === "string" && row.owner_name.trim() ? row.owner_name.trim() : null;
-    const schoolName =
-      typeof row.school_name === "string" && row.school_name.trim() ? row.school_name.trim() : null;
-    const referralCode =
-      typeof row.referral_code === "string" && row.referral_code.trim() ? row.referral_code.trim() : null;
-    const testAccessToken =
-      typeof (row as any).test_access_token === "string" && String((row as any).test_access_token).trim()
-        ? String((row as any).test_access_token).trim()
-        : null;
+    const fb = await tryUniqueEmailFallback();
+    if (fb !== null) return fb;
 
-    await supabase.from("otp_challenges").delete().eq("id", challengeId);
-    return { ok: true, mode, ownerName, schoolName, referralCode, testAccessToken };
+    return { ok: false, status: 400, message: "Code challenge not found or expired." };
   }
 
   const store = getDevStore();

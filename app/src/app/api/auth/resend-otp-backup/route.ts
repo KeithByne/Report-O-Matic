@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/security/rateLimit";
-import { sha256Hex } from "@/lib/auth/devStore";
 import { normalizeOtpChallengeId } from "@/lib/auth/otpCodeNormalize";
-import { isSupabaseOtpEnabled, readActiveOtpChallengeForResend, rotateOtpChallengeCode } from "@/lib/auth/otpChallenge";
+import { isSupabaseOtpEnabled, otpCodeHash, readActiveOtpChallengeForResend, rotateOtpChallengeCode } from "@/lib/auth/otpChallenge";
 import { getOtpTtlMs } from "@/lib/auth/otpTtl";
 import { verifyPassword } from "@/lib/auth/passwordHash";
 import { getPasswordHashForEmail } from "@/lib/auth/passwordStore";
@@ -122,7 +121,7 @@ export async function POST(req: Request) {
     minLength: 24,
   });
   if (!pepperRes.ok) return jsonError(503, pepperRes.error, cors.headers);
-  const codeHash = sha256Hex(`${pepperRes.value}:${challengeId}:${code}`);
+  const codeHash = otpCodeHash(challengeId, code, pepperRes.value);
   const rotated = await rotateOtpChallengeCode({
     challengeId,
     email,

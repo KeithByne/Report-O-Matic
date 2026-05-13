@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/security/rateLimit";
-import { sha256Hex } from "@/lib/auth/devStore";
-import { isSupabaseOtpEnabled, newChallengeId, saveOtpChallenge } from "@/lib/auth/otpChallenge";
+import { normalizeOtpChallengeId } from "@/lib/auth/otpCodeNormalize";
+import { isSupabaseOtpEnabled, newChallengeId, otpCodeHash, purgePriorOtpChallengesForEmail, saveOtpChallenge } from "@/lib/auth/otpChallenge";
 import { hasAnyMembership } from "@/lib/data/memberships";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwordHash";
 import { getPasswordHashForEmail, setPasswordHashIfMissing } from "@/lib/auth/passwordStore";
@@ -190,7 +190,7 @@ export async function POST(req: Request) {
     return jsonError(500, msg, cors.headers);
   }
 
-  const challengeId = newChallengeId();
+  const challengeId = normalizeOtpChallengeId(newChallengeId());
   const code = randomDigits(6);
   const ttlMs = getOtpTtlMs();
   const expiresAtMs = nowMs + ttlMs;
@@ -199,9 +199,10 @@ export async function POST(req: Request) {
     minLength: 24,
   });
   if (!pepperRes.ok) return jsonError(503, pepperRes.error, cors.headers);
-  const codeHash = sha256Hex(`${pepperRes.value}:${challengeId}:${code}`);
+  const codeHash = otpCodeHash(challengeId, code, pepperRes.value);
 
   try {
+    await purgePriorOtpChallengesForEmail(email, nowMs);
     await saveOtpChallenge({
       challengeId,
       email,
