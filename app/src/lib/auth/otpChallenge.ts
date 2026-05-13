@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { normalizeOtpCodeInput } from "@/lib/auth/otpCodeNormalize";
+import { normalizeOtpChallengeId, normalizeOtpCodeInput } from "@/lib/auth/otpCodeNormalize";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { getDevStore, safeEqualHex, sha256Hex } from "@/lib/auth/devStore";
 
@@ -96,42 +96,44 @@ export async function verifyOtpChallenge(opts: {
   pepper: string;
   nowMs: number;
 }): Promise<VerifyOtpResult> {
+  const challengeId = normalizeOtpChallengeId(opts.challengeId);
   const code = normalizeOtpCodeInput(opts.code);
+  const emailNorm = String(opts.email || "").trim().toLowerCase();
   const supabase = getServiceSupabase();
 
   if (supabase) {
     const { data: row, error: fetchError } = await supabase
       .from("otp_challenges")
       .select("id, email, code_hash, expires_at, attempts, mode, owner_name, school_name, referral_code, test_access_token")
-      .eq("id", opts.challengeId)
+      .eq("id", challengeId)
       .maybeSingle();
 
     if (fetchError) return { ok: false, status: 500, message: formatPostgrestError(fetchError) };
     if (!row) return { ok: false, status: 400, message: "Code challenge not found or expired." };
 
-    if (row.email !== opts.email) {
+    if (String(row.email || "").trim().toLowerCase() !== emailNorm) {
       return { ok: false, status: 400, message: "Email does not match this challenge." };
     }
 
     const expiresAt = new Date(row.expires_at as string).getTime();
     if (expiresAt <= opts.nowMs) {
-      await supabase.from("otp_challenges").delete().eq("id", opts.challengeId);
+      await supabase.from("otp_challenges").delete().eq("id", challengeId);
       return { ok: false, status: 400, message: "Code expired. Please request a new code." };
     }
 
     const attempts = Number(row.attempts) || 0;
     const nextAttempts = attempts + 1;
     if (nextAttempts > 8) {
-      await supabase.from("otp_challenges").delete().eq("id", opts.challengeId);
+      await supabase.from("otp_challenges").delete().eq("id", challengeId);
       return { ok: false, status: 429, message: "Too many incorrect attempts. Please request a new code." };
     }
 
     const storedHash = String(row.code_hash ?? "").trim();
-    const expectedHash = otpCodeHash(opts.challengeId, code, opts.pepper);
+    const expectedHash = otpCodeHash(challengeId, code, opts.pepper);
     const match = safeEqualHex(expectedHash, storedHash);
 
     if (!match) {
-      await supabase.from("otp_challenges").update({ attempts: nextAttempts }).eq("id", opts.challengeId);
+      await supabase.from("otp_challenges").update({ attempts: nextAttempts }).eq("id", challengeId);
       return { ok: false, status: 400, message: "Incorrect code." };
     }
 
@@ -147,32 +149,32 @@ export async function verifyOtpChallenge(opts: {
         ? String((row as any).test_access_token).trim()
         : null;
 
-    await supabase.from("otp_challenges").delete().eq("id", opts.challengeId);
+    await supabase.from("otp_challenges").delete().eq("id", challengeId);
     return { ok: true, mode, ownerName, schoolName, referralCode, testAccessToken };
   }
 
   const store = getDevStore();
   store.cleanup(opts.nowMs);
-  const rec = store.otps.get(opts.challengeId);
+  const rec = store.otps.get(challengeId);
   if (!rec) return { ok: false, status: 400, message: "Code challenge not found or expired." };
-  if (rec.email !== opts.email) {
+  if (String(rec.email || "").trim().toLowerCase() !== emailNorm) {
     return { ok: false, status: 400, message: "Email does not match this challenge." };
   }
   if (rec.expiresAtMs <= opts.nowMs) {
-    store.otps.delete(opts.challengeId);
+    store.otps.delete(challengeId);
     return { ok: false, status: 400, message: "Code expired. Please request a new code." };
   }
 
   rec.attempts += 1;
   if (rec.attempts > 8) {
-    store.otps.delete(opts.challengeId);
+    store.otps.delete(challengeId);
     return { ok: false, status: 429, message: "Too many incorrect attempts. Please request a new code." };
   }
 
-  const expectedHash = otpCodeHash(opts.challengeId, code, opts.pepper);
+  const expectedHash = otpCodeHash(challengeId, code, opts.pepper);
   const match = safeEqualHex(expectedHash, String(rec.codeHash ?? "").trim());
   if (!match) {
-    store.otps.set(opts.challengeId, rec);
+    store.otps.set(challengeId, rec);
     return { ok: false, status: 400, message: "Incorrect code." };
   }
 
@@ -181,7 +183,7 @@ export async function verifyOtpChallenge(opts: {
   const schoolName = rec.schoolName;
   const referralCode = rec.referralCode ?? null;
   const testAccessToken = rec.testAccessToken ?? null;
-  store.otps.delete(opts.challengeId);
+  store.otps.delete(challengeId);
   return { ok: true, mode, ownerName, schoolName, referralCode, testAccessToken };
 }
 
@@ -193,18 +195,19 @@ export async function readActiveOtpChallengeForResend(opts: {
   | { ok: true; email: string; mode: "signin" | "signup" }
   | { ok: false; status: number; message: string }
 > {
+  const challengeId = normalizeOtpChallengeId(opts.challengeId);
   const supabase = getServiceSupabase();
   if (supabase) {
     const { data: row, error: fetchError } = await supabase
       .from("otp_challenges")
       .select("id, email, expires_at, mode")
-      .eq("id", opts.challengeId)
+      .eq("id", challengeId)
       .maybeSingle();
     if (fetchError) return { ok: false, status: 500, message: formatPostgrestError(fetchError) };
     if (!row) return { ok: false, status: 400, message: "Code challenge not found or expired." };
     const expiresAt = new Date(row.expires_at as string).getTime();
     if (expiresAt <= opts.nowMs) {
-      await supabase.from("otp_challenges").delete().eq("id", opts.challengeId);
+      await supabase.from("otp_challenges").delete().eq("id", challengeId);
       return { ok: false, status: 400, message: "Code expired. Please request a new code." };
     }
     const email = String(row.email || "").trim().toLowerCase();
@@ -214,10 +217,10 @@ export async function readActiveOtpChallengeForResend(opts: {
 
   const store = getDevStore();
   store.cleanup(opts.nowMs);
-  const rec = store.otps.get(opts.challengeId);
+  const rec = store.otps.get(challengeId);
   if (!rec) return { ok: false, status: 400, message: "Code challenge not found or expired." };
   if (rec.expiresAtMs <= opts.nowMs) {
-    store.otps.delete(opts.challengeId);
+    store.otps.delete(challengeId);
     return { ok: false, status: 400, message: "Code expired. Please request a new code." };
   }
   return { ok: true, email: rec.email.trim().toLowerCase(), mode: rec.mode };
@@ -231,22 +234,24 @@ export async function rotateOtpChallengeCode(opts: {
   expiresAtMs: number;
   nowMs: number;
 }): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
+  const challengeId = normalizeOtpChallengeId(opts.challengeId);
+  const emailNorm = String(opts.email || "").trim().toLowerCase();
   const supabase = getServiceSupabase();
   if (supabase) {
     const { data: row, error: fetchError } = await supabase
       .from("otp_challenges")
       .select("id, email, expires_at")
-      .eq("id", opts.challengeId)
+      .eq("id", challengeId)
       .maybeSingle();
     if (fetchError) return { ok: false, status: 500, message: formatPostgrestError(fetchError) };
     if (!row) return { ok: false, status: 400, message: "Code challenge not found or expired." };
     const rowEmail = String(row.email || "").trim().toLowerCase();
-    if (rowEmail !== opts.email) {
+    if (rowEmail !== emailNorm) {
       return { ok: false, status: 400, message: "Email does not match this challenge." };
     }
     const expiresAt = new Date(row.expires_at as string).getTime();
     if (expiresAt <= opts.nowMs) {
-      await supabase.from("otp_challenges").delete().eq("id", opts.challengeId);
+      await supabase.from("otp_challenges").delete().eq("id", challengeId);
       return { ok: false, status: 400, message: "Code expired. Please request a new code." };
     }
     const { data: updated, error: upErr } = await supabase
@@ -256,8 +261,8 @@ export async function rotateOtpChallengeCode(opts: {
         expires_at: new Date(opts.expiresAtMs).toISOString(),
         attempts: 0,
       })
-      .eq("id", opts.challengeId)
-      .eq("email", opts.email)
+      .eq("id", challengeId)
+      .eq("email", emailNorm)
       .select("id")
       .maybeSingle();
     if (upErr) return { ok: false, status: 500, message: formatPostgrestError(upErr) };
@@ -267,18 +272,18 @@ export async function rotateOtpChallengeCode(opts: {
 
   const store = getDevStore();
   store.cleanup(opts.nowMs);
-  const rec = store.otps.get(opts.challengeId);
+  const rec = store.otps.get(challengeId);
   if (!rec) return { ok: false, status: 400, message: "Code challenge not found or expired." };
-  if (rec.email.trim().toLowerCase() !== opts.email) {
+  if (rec.email.trim().toLowerCase() !== emailNorm) {
     return { ok: false, status: 400, message: "Email does not match this challenge." };
   }
   if (rec.expiresAtMs <= opts.nowMs) {
-    store.otps.delete(opts.challengeId);
+    store.otps.delete(challengeId);
     return { ok: false, status: 400, message: "Code expired. Please request a new code." };
   }
   rec.codeHash = opts.codeHash;
   rec.expiresAtMs = opts.expiresAtMs;
   rec.attempts = 0;
-  store.otps.set(opts.challengeId, rec);
+  store.otps.set(challengeId, rec);
   return { ok: true };
 }

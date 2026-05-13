@@ -6,7 +6,7 @@ import Script from "next/script";
 import { AppHeaderLogo, AppHeaderWordmark } from "@/components/layout/AppHeaderBrand";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { postSignInRedirectPath } from "@/lib/auth/saasOwnerShared";
-import { normalizeOtpCodeInput } from "@/lib/auth/otpCodeNormalize";
+import { normalizeOtpChallengeId, normalizeOtpCodeInput } from "@/lib/auth/otpCodeNormalize";
 
 type Status = "idle" | "submitting" | "ok" | "err";
 
@@ -26,7 +26,7 @@ export function VerifyForm() {
   const router = useRouter();
 
   const email = useMemo(() => (sp.get("email") || "").trim().toLowerCase(), [sp]);
-  const challenge = useMemo(() => (sp.get("challenge") || "").trim(), [sp]);
+  const challenge = useMemo(() => normalizeOtpChallengeId(sp.get("challenge") || ""), [sp]);
   const deliveryHint = useMemo(() => (sp.get("delivery_hint") || "").trim(), [sp]);
 
   const [code, setCode] = useState("");

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 import { sha256Hex } from "@/lib/auth/devStore";
+import { normalizeOtpChallengeId } from "@/lib/auth/otpCodeNormalize";
 import { isSupabaseOtpEnabled, readActiveOtpChallengeForResend, rotateOtpChallengeCode } from "@/lib/auth/otpChallenge";
 import { getOtpTtlMs } from "@/lib/auth/otpTtl";
 import { verifyPassword } from "@/lib/auth/passwordHash";
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
   }
 
   const emailRaw = typeof body.email === "string" ? body.email : "";
-  const challengeId = typeof body.challenge_id === "string" ? body.challenge_id.trim() : "";
+  const challengeId = normalizeOtpChallengeId(typeof body.challenge_id === "string" ? body.challenge_id : "");
   const password = typeof body.password === "string" ? body.password : "";
   const backupRaw = typeof body.backup_email === "string" ? body.backup_email : "";
   const tsTokenRaw = body.turnstile_token;
