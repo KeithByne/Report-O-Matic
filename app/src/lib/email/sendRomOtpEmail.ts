@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { CODE_DELIVERY_NOTE_TEXT_LINE } from "@/lib/email/codeDeliveryNote";
+import { CODE_DELIVERY_NOTE_TEXT_LINE, codeDeliveryNoteHtml } from "@/lib/email/codeDeliveryNote";
 import {
   appendResendDomainHint,
   logResendAccepted,
@@ -53,16 +53,44 @@ export async function sendRomOtpEmail(opts: {
     CODE_DELIVERY_NOTE_TEXT_LINE,
   ].join("\n");
 
+  const accountHtml =
+    kind !== "primary" && opts.accountEmail
+      ? `<p style="margin:0 0 12px; font-size:13px; color:#334155; line-height:1.6;">
+           This code is for the Report-O-Matic account <strong>${escapeHtml(opts.accountEmail)}</strong>.
+         </p>`
+      : "";
+
+  const html = `
+    <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:#0b1220;">
+      <h2 style="margin:0 0 12px;">Report-O-Matic security code</h2>
+      ${accountHtml}
+      <p style="margin:0 0 14px; font-size:14px; line-height:1.6;">
+        Your security code is:
+      </p>
+      <div style="display:inline-block; padding:12px 14px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; font-size:22px; letter-spacing:4px; font-weight:700;">
+        ${escapeHtml(opts.code)}
+      </div>
+      <p style="margin:14px 0 0; font-size:13px; color:#334155; line-height:1.6;">
+        Expires in ${opts.expiresInSeconds} seconds.
+      </p>
+      ${codeDeliveryNoteHtml()}
+      <p style="margin:10px 0 0; font-size:12px; color:#64748b; line-height:1.6;">
+        If you didn’t request this, you can ignore this email.
+      </p>
+    </div>
+  `.trim();
+
   const mailKind =
     kind === "backup_resend" ? "otp-backup-resend" : kind === "backup_copy" ? "otp-backup-copy" : "otp";
   const xf = resendTransactionalFields(mailKind);
 
-  // Plain text only: many strict MX (same-domain inboxes, cPanel, etc.) score styled HTML OTP mail worse.
+  // Multipart text + HTML: plain part for strict filters; HTML for normal clients (Resend Preview tab).
   const result = await resend.emails.send({
     from,
     to: opts.to,
     subject,
     text,
+    html,
     ...(xf ? { replyTo: xf.replyTo, headers: xf.headers, tags: xf.tags } : {}),
   });
 
@@ -71,4 +99,12 @@ export async function sendRomOtpEmail(opts: {
     throw new Error(`Email send failed: ${appendResendDomainHint(raw)}`);
   }
   logResendAccepted("[ROM sendRomOtpEmail]", result);
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
