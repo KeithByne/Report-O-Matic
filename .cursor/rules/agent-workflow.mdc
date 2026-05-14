@@ -12,10 +12,12 @@ alwaysApply: true
 
 ## Git: one y/n at the end
 
+**Never** ask **`Commit and push to origin? (y/n)`** when there is **nothing meaningful to commit** and **nothing unpushed** that still needs publishing (e.g. clean tree and branch already matches `origin`, or you made no repo edits). In those cases a single short line is enough (e.g. “Nothing to commit; already in sync with origin.”)—**no git question.**
+
 When the task is **done** (or you hit a real stop you cannot fix):
 
-1. If **`git status` shows no meaningful changes** (clean or only noise the user did not ask to keep): say in one line that there is nothing to commit—**do not** ask about git.
-2. If there are **meaningful uncommitted changes** from this session:
+1. If **`git status`** shows **no meaningful changes** to commit and you are **not** leaving behind local commits that still need `git push`: stop—**do not** ask about commit/push at all.
+2. If there are **meaningful uncommitted changes** (or local commits from this session that are not yet on `origin`):
    - End with **exactly one** question, on its own line, so the user can reply with a single letter:
    - **`Commit and push to origin? (y/n)`**
    - Optionally add one line with the **proposed commit message** (imperative, short).
