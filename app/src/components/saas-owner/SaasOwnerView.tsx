@@ -403,116 +403,6 @@ export function SaasOwnerView({
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
-        <section className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="text-sm font-semibold text-zinc-900">{t("saas.cancelledUsersTitle")}</div>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("saas.cancelledUsersLead")}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void refreshCancelledUsers()}
-              className="shrink-0 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
-            >
-              {cancelledBusy ? t("dash.agentRefreshing") : t("saas.refreshCancelledList")}
-            </button>
-          </div>
-          {cancelledErr ? <div className="mt-3 text-sm text-red-700">{cancelledErr}</div> : null}
-          {pendingReaccessRows.length > 0 ? (
-            <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950">
-              {t("saas.reaccessPendingBanner", {
-                emails: pendingReaccessRows.map((r) => r.email).join(", "),
-              })}
-            </div>
-          ) : null}
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-200 text-xs text-zinc-500">
-                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledEmail")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledAt")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledBy")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("saas.thClosureSource")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("saas.thClosureSnapshot")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("saas.thReaccessBlocked")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("saas.thReaccessAttempts")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("saas.thLastReaccessAttempt")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("roster.thActions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cancelledRows.map((r) => {
-                    const snap = r.snapshot;
-                    const snapLabel =
-                      snap == null
-                        ? "—"
-                        : t("saas.snapshotBrief", {
-                            m: String(snap.memberships),
-                            pw: snap.had_password ? "yes" : "no",
-                          });
-                    const allowBusy = allowBusyEmail === r.email;
-                    return (
-                      <tr key={r.email} className="border-b border-zinc-100">
-                        <td className="py-2 pr-3 text-xs font-medium text-zinc-900">{r.email}</td>
-                        <td className="py-2 pr-3 text-xs text-zinc-700">
-                          {r.cancelled_at ? new Date(r.cancelled_at).toLocaleString() : "—"}
-                        </td>
-                        <td className="py-2 pr-3 text-xs text-zinc-700">{r.cancelled_by_email ?? "—"}</td>
-                        <td className="py-2 pr-3 text-xs text-zinc-700">{r.source}</td>
-                        <td className="py-2 pr-3 text-xs text-zinc-600">{snapLabel}</td>
-                        <td className="py-2 pr-3 text-xs">{r.reaccess_blocked ? "yes" : "no"}</td>
-                        <td className="py-2 pr-3 text-xs tabular-nums">{r.reaccess_attempt_count}</td>
-                        <td className="py-2 pr-3 text-xs text-zinc-700">
-                          {r.last_reaccess_attempt_at ? new Date(r.last_reaccess_attempt_at).toLocaleString() : "—"}
-                        </td>
-                        <td className="py-2 pr-3 text-xs">
-                          {r.reaccess_blocked ? (
-                            <button
-                              type="button"
-                              disabled={allowBusy}
-                              onClick={() =>
-                                void (async () => {
-                                  if (!window.confirm(t("saas.allowReaccessConfirm", { email: r.email }))) return;
-                                  setAllowBusyEmail(r.email);
-                                  try {
-                                    const res = await fetch("/api/saas-owner/cancelled-users/allow", {
-                                      method: "POST",
-                                      headers: { "content-type": "application/json" },
-                                      body: JSON.stringify({ email: r.email }),
-                                    });
-                                    const data = await res.json().catch(() => ({}));
-                                    if (!res.ok) throw new Error(data.error || t("common.failed"));
-                                    await refreshCancelledUsers();
-                                  } catch (e: unknown) {
-                                    alert(e instanceof Error ? e.message : t("common.failed"));
-                                  } finally {
-                                    setAllowBusyEmail(null);
-                                  }
-                                })()
-                              }
-                              className="font-semibold text-emerald-700 hover:underline disabled:opacity-50"
-                            >
-                              {allowBusy ? t("saas.allowingReaccess") : t("saas.allowReaccess")}
-                            </button>
-                          ) : (
-                            <span className="text-zinc-400">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {cancelledRows.length === 0 ? (
-                    <tr>
-                      <td colSpan={9} className="py-4 text-sm text-zinc-500">
-                        {cancelledBusy ? t("dash.agentLoading") : t("saas.noCancelledUsersYet")}
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-            </div>
-        </section>
-
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -1487,6 +1377,116 @@ export function SaasOwnerView({
             >
               {closeBusy ? t("saas.closeUserBusy") : t("saas.closeUserSubmit")}
             </button>
+          </div>
+
+          <div className="mt-8 border-t border-red-200/80 pt-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="text-sm font-semibold text-zinc-900">{t("saas.cancelledUsersTitle")}</div>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("saas.cancelledUsersLead")}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void refreshCancelledUsers()}
+                className="shrink-0 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+              >
+                {cancelledBusy ? t("dash.agentRefreshing") : t("saas.refreshCancelledList")}
+              </button>
+            </div>
+            {cancelledErr ? <div className="mt-3 text-sm text-red-700">{cancelledErr}</div> : null}
+            {pendingReaccessRows.length > 0 ? (
+              <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950">
+                {t("saas.reaccessPendingBanner", {
+                  emails: pendingReaccessRows.map((r) => r.email).join(", "),
+                })}
+              </div>
+            ) : null}
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[900px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200 text-xs text-zinc-500">
+                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledEmail")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledAt")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledBy")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thClosureSource")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thClosureSnapshot")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thReaccessBlocked")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thReaccessAttempts")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thLastReaccessAttempt")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("roster.thActions")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cancelledRows.map((r) => {
+                    const snap = r.snapshot;
+                    const snapLabel =
+                      snap == null
+                        ? "—"
+                        : t("saas.snapshotBrief", {
+                            m: String(snap.memberships),
+                            pw: snap.had_password ? "yes" : "no",
+                          });
+                    const allowBusy = allowBusyEmail === r.email;
+                    return (
+                      <tr key={r.email} className="border-b border-zinc-100">
+                        <td className="py-2 pr-3 text-xs font-medium text-zinc-900">{r.email}</td>
+                        <td className="py-2 pr-3 text-xs text-zinc-700">
+                          {r.cancelled_at ? new Date(r.cancelled_at).toLocaleString() : "—"}
+                        </td>
+                        <td className="py-2 pr-3 text-xs text-zinc-700">{r.cancelled_by_email ?? "—"}</td>
+                        <td className="py-2 pr-3 text-xs text-zinc-700">{r.source}</td>
+                        <td className="py-2 pr-3 text-xs text-zinc-600">{snapLabel}</td>
+                        <td className="py-2 pr-3 text-xs">{r.reaccess_blocked ? "yes" : "no"}</td>
+                        <td className="py-2 pr-3 text-xs tabular-nums">{r.reaccess_attempt_count}</td>
+                        <td className="py-2 pr-3 text-xs text-zinc-700">
+                          {r.last_reaccess_attempt_at ? new Date(r.last_reaccess_attempt_at).toLocaleString() : "—"}
+                        </td>
+                        <td className="py-2 pr-3 text-xs">
+                          {r.reaccess_blocked ? (
+                            <button
+                              type="button"
+                              disabled={allowBusy}
+                              onClick={() =>
+                                void (async () => {
+                                  if (!window.confirm(t("saas.allowReaccessConfirm", { email: r.email }))) return;
+                                  setAllowBusyEmail(r.email);
+                                  try {
+                                    const res = await fetch("/api/saas-owner/cancelled-users/allow", {
+                                      method: "POST",
+                                      headers: { "content-type": "application/json" },
+                                      body: JSON.stringify({ email: r.email }),
+                                    });
+                                    const data = await res.json().catch(() => ({}));
+                                    if (!res.ok) throw new Error(data.error || t("common.failed"));
+                                    await refreshCancelledUsers();
+                                  } catch (e: unknown) {
+                                    alert(e instanceof Error ? e.message : t("common.failed"));
+                                  } finally {
+                                    setAllowBusyEmail(null);
+                                  }
+                                })()
+                              }
+                              className="font-semibold text-emerald-700 hover:underline disabled:opacity-50"
+                            >
+                              {allowBusy ? t("saas.allowingReaccess") : t("saas.allowReaccess")}
+                            </button>
+                          ) : (
+                            <span className="text-zinc-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {cancelledRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-4 text-sm text-zinc-500">
+                        {cancelledBusy ? t("dash.agentLoading") : t("saas.noCancelledUsersYet")}
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       </main>
