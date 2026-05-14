@@ -403,119 +403,30 @@ export function SaasOwnerView({
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
-        <section id="saas-close-user-account" className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
-          <div className="text-sm font-semibold text-zinc-900">{t("saas.closeUserTitle")}</div>
-          <p className="mt-2 text-xs leading-relaxed text-zinc-600">{t("saas.closeUserLead")}</p>
-          {closeErr ? <div className="mt-3 text-sm text-red-700">{closeErr}</div> : null}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="block min-w-0 text-sm">
-              <span className="mb-1 block text-zinc-700">{t("saas.closeUserTargetLabel")}</span>
-              <input
-                type="email"
-                value={closeEmail}
-                onChange={(e) => setCloseEmail(e.target.value)}
-                autoComplete="off"
-                className="mt-1 block w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
-                placeholder={t("saas.placeholderAgentEmail")}
-              />
-            </label>
-            <label className="block min-w-0 text-sm">
-              <span className="mb-1 block text-zinc-700">{t("saas.closeUserConfirmLabel")}</span>
-              <span className="mb-1 block text-[11px] text-zinc-500">{t("saas.closeUserConfirmHint")}</span>
-              <input
-                type="email"
-                value={closeConfirm}
-                onChange={(e) => setCloseConfirm(e.target.value)}
-                autoComplete="off"
-                className="mt-1 block w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
-                placeholder={t("saas.placeholderAgentEmail")}
-              />
-            </label>
-          </div>
-          <div className="mt-4">
+        <section className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-zinc-900">{t("saas.cancelledUsersTitle")}</div>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("saas.cancelledUsersLead")}</p>
+            </div>
             <button
               type="button"
-              disabled={closeBusy}
-              onClick={() =>
-                void (async () => {
-                  setCloseErr(null);
-                  const target = closeEmail.trim().toLowerCase();
-                  const confirm = closeConfirm.trim().toLowerCase();
-                  if (!target || !target.includes("@")) {
-                    setCloseErr(t("saas.closeUserInvalidEmail"));
-                    return;
-                  }
-                  if (target !== confirm) {
-                    setCloseErr(t("saas.closeUserConfirmHint"));
-                    return;
-                  }
-                  if (target === operatorEmail.trim().toLowerCase()) {
-                    setCloseErr(t("saas.closeUserSelfError"));
-                    return;
-                  }
-                  if (!window.confirm(t("saas.closeUserConfirmDialog", { email: target }))) return;
-                  setCloseBusy(true);
-                  try {
-                    const res = await fetch("/api/saas-owner/accounts/close", {
-                      method: "POST",
-                      headers: { "content-type": "application/json" },
-                      body: JSON.stringify({ target_email: target, confirm_email: confirm }),
-                    });
-                    const data = (await res.json().catch(() => ({}))) as {
-                      error?: string;
-                      memberships_removed?: number;
-                      had_password?: boolean;
-                    };
-                    if (!res.ok) throw new Error(data.error || t("common.failed"));
-                    const n = Number(data.memberships_removed ?? 0);
-                    const hadPw = data.had_password === true ? "yes" : "no";
-                    alert(
-                      t("saas.closeUserSuccess", {
-                        email: target,
-                        memberships: String(n),
-                        hadPassword: hadPw,
-                      }),
-                    );
-                    setCloseEmail("");
-                    setCloseConfirm("");
-                    void refreshCancelledUsers();
-                  } catch (e: unknown) {
-                    setCloseErr(e instanceof Error ? e.message : t("common.failed"));
-                  } finally {
-                    setCloseBusy(false);
-                  }
-                })()
-              }
-              className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50"
+              onClick={() => void refreshCancelledUsers()}
+              className="shrink-0 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
             >
-              {closeBusy ? t("saas.closeUserBusy") : t("saas.closeUserSubmit")}
+              {cancelledBusy ? t("dash.agentRefreshing") : t("saas.refreshCancelledList")}
             </button>
           </div>
-
-          <div className="mt-8 border-t border-red-200/80 pt-6">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <div className="text-sm font-semibold text-zinc-900">{t("saas.cancelledUsersTitle")}</div>
-                <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("saas.cancelledUsersLead")}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void refreshCancelledUsers()}
-                className="shrink-0 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
-              >
-                {cancelledBusy ? t("dash.agentRefreshing") : t("saas.refreshCancelledList")}
-              </button>
+          {cancelledErr ? <div className="mt-3 text-sm text-red-700">{cancelledErr}</div> : null}
+          {pendingReaccessRows.length > 0 ? (
+            <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950">
+              {t("saas.reaccessPendingBanner", {
+                emails: pendingReaccessRows.map((r) => r.email).join(", "),
+              })}
             </div>
-            {cancelledErr ? <div className="mt-3 text-sm text-red-700">{cancelledErr}</div> : null}
-            {pendingReaccessRows.length > 0 ? (
-              <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950">
-                {t("saas.reaccessPendingBanner", {
-                  emails: pendingReaccessRows.map((r) => r.email).join(", "),
-                })}
-              </div>
-            ) : null}
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[900px] text-left text-sm">
+          ) : null}
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-zinc-200 text-xs text-zinc-500">
                     <th className="py-2 pr-3 font-medium">{t("saas.thCancelledEmail")}</th>
@@ -600,7 +511,6 @@ export function SaasOwnerView({
                 </tbody>
               </table>
             </div>
-          </div>
         </section>
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
@@ -1487,6 +1397,96 @@ export function SaasOwnerView({
                 ) : null}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <section id="saas-close-user-account" className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
+          <div className="text-sm font-semibold text-zinc-900">{t("saas.closeUserTitle")}</div>
+          <p className="mt-2 text-xs leading-relaxed text-zinc-600">{t("saas.closeUserLead")}</p>
+          {closeErr ? <div className="mt-3 text-sm text-red-700">{closeErr}</div> : null}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-700">{t("saas.closeUserTargetLabel")}</span>
+              <input
+                type="email"
+                value={closeEmail}
+                onChange={(e) => setCloseEmail(e.target.value)}
+                autoComplete="off"
+                className="mt-1 block w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                placeholder={t("saas.placeholderAgentEmail")}
+              />
+            </label>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-700">{t("saas.closeUserConfirmLabel")}</span>
+              <span className="mb-1 block text-[11px] text-zinc-500">{t("saas.closeUserConfirmHint")}</span>
+              <input
+                type="email"
+                value={closeConfirm}
+                onChange={(e) => setCloseConfirm(e.target.value)}
+                autoComplete="off"
+                className="mt-1 block w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                placeholder={t("saas.placeholderAgentEmail")}
+              />
+            </label>
+          </div>
+          <div className="mt-4">
+            <button
+              type="button"
+              disabled={closeBusy}
+              onClick={() =>
+                void (async () => {
+                  setCloseErr(null);
+                  const target = closeEmail.trim().toLowerCase();
+                  const confirm = closeConfirm.trim().toLowerCase();
+                  if (!target || !target.includes("@")) {
+                    setCloseErr(t("saas.closeUserInvalidEmail"));
+                    return;
+                  }
+                  if (target !== confirm) {
+                    setCloseErr(t("saas.closeUserConfirmHint"));
+                    return;
+                  }
+                  if (target === operatorEmail.trim().toLowerCase()) {
+                    setCloseErr(t("saas.closeUserSelfError"));
+                    return;
+                  }
+                  if (!window.confirm(t("saas.closeUserConfirmDialog", { email: target }))) return;
+                  setCloseBusy(true);
+                  try {
+                    const res = await fetch("/api/saas-owner/accounts/close", {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ target_email: target, confirm_email: confirm }),
+                    });
+                    const data = (await res.json().catch(() => ({}))) as {
+                      error?: string;
+                      memberships_removed?: number;
+                      had_password?: boolean;
+                    };
+                    if (!res.ok) throw new Error(data.error || t("common.failed"));
+                    const n = Number(data.memberships_removed ?? 0);
+                    const hadPw = data.had_password === true ? "yes" : "no";
+                    alert(
+                      t("saas.closeUserSuccess", {
+                        email: target,
+                        memberships: String(n),
+                        hadPassword: hadPw,
+                      }),
+                    );
+                    setCloseEmail("");
+                    setCloseConfirm("");
+                    void refreshCancelledUsers();
+                  } catch (e: unknown) {
+                    setCloseErr(e instanceof Error ? e.message : t("common.failed"));
+                  } finally {
+                    setCloseBusy(false);
+                  }
+                })()
+              }
+              className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50"
+            >
+              {closeBusy ? t("saas.closeUserBusy") : t("saas.closeUserSubmit")}
+            </button>
           </div>
         </section>
       </main>
