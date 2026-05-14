@@ -20,7 +20,11 @@ export default async function SaasOwnerSecretPage() {
   }
 
   return (
-    <SaasOwnerView userDisplayName={userDisplayName} stripePaymentsEnabled={isStripePaymentsEnabled()} />
+    <SaasOwnerView
+      userDisplayName={userDisplayName}
+      operatorEmail={session.email}
+      stripePaymentsEnabled={isStripePaymentsEnabled()}
+    />
   );
 }
 

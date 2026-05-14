@@ -14,6 +14,8 @@ import {
   trimResendEnv,
 } from "@/lib/email/resendShared";
 import { tryRequireRuntimeSecret } from "@/lib/security/envSecrets";
+import { getServiceSupabase } from "@/lib/supabase/service";
+import { REACCESS_PENDING_USER_MESSAGE, touchIfReaccessBlocked } from "@/lib/data/cancelledUsers";
 
 type Body = { email?: unknown; turnstile_token?: unknown };
 
@@ -139,6 +141,21 @@ export async function POST(req: Request) {
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Could not verify human check.";
     return NextResponse.json({ error: msg }, { status: 500, headers: cors.headers });
+  }
+
+  if (getServiceSupabase()) {
+    try {
+      if (await touchIfReaccessBlocked(email)) {
+        return NextResponse.json(
+          { error: REACCESS_PENDING_USER_MESSAGE, code: "reaccess_pending" },
+          { status: 403, headers: cors.headers },
+        );
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Could not verify account status.";
+      console.error("[ROM password-reset] cancelled_users check:", msg);
+      return NextResponse.json({ error: msg }, { status: 500, headers: cors.headers });
+    }
   }
 
   // Avoid leaking whether an email exists: always respond ok.

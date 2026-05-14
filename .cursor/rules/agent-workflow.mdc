@@ -10,6 +10,15 @@ alwaysApply: true
 - **Automate what you can.** Run commands, read files, grep the codebase, fix lints, run builds/tests when reasonable, and use MCP or other tools instead of handing the user a to-do list. Only stop for steps that need human-only access (e.g. browser logins you cannot perform, secret values not in env).
 - **Be brief** when summarizing: what changed, result, one blocker if any—no filler closings.
 
+## Copy-paste blocks: full context
+
+When the user may **copy and paste** something (terminal commands, PowerShell one-liners, `curl`, SQL snippets, paths, small scripts): give **complete, runnable context** in each block—**not** fragments that assume they already know the working directory or shell.
+
+- Prefer a **single paste**: e.g. start with `cd` to the repo (full UNC or path they use), then the command(s), in one fenced block when practical.
+- Include **establishment of the enquiry** (how to open the right place): full `cd`, full repo path, or explicit “run from project root” plus the full command line.
+- **URLs and file paths**: full strings, no elision.
+- If multiple steps are needed, either one block with `&&` / `;` (where shell-appropriate) or clearly ordered blocks, each self-contained or explicitly stating “after the previous step”.
+
 ## Git: one y/n at the end
 
 **Never** ask **`Commit and push to origin? (y/n)`** when there is **nothing meaningful to commit** and **nothing unpushed** that still needs publishing (e.g. clean tree and branch already matches `origin`, or you made no repo edits). In those cases a single short line is enough (e.g. “Nothing to commit; already in sync with origin.”)—**no git question.**

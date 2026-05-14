@@ -11,6 +11,8 @@ import { getServiceSupabase } from "@/lib/supabase/service";
 import { signSession } from "@/lib/auth/session";
 import { postSignInRedirectPath } from "@/lib/auth/saasOwnerShared";
 import { claimTestAccessIfNeeded } from "@/lib/auth/claimTestAccess";
+import { isPublicSchoolSignupDisabled } from "@/lib/auth/publicSignupPolicy";
+import { REACCESS_PENDING_USER_MESSAGE, touchIfReaccessBlocked } from "@/lib/data/cancelledUsers";
 
 type LoginBody = {
   email?: unknown;
@@ -24,8 +26,13 @@ type LoginBody = {
   browser_language?: unknown;
 };
 
-function jsonError(status: number, message: string, headers: Record<string, string>) {
-  return NextResponse.json({ error: message }, { status, headers });
+function jsonError(
+  status: number,
+  message: string,
+  headers: Record<string, string>,
+  extra?: Record<string, unknown>,
+) {
+  return NextResponse.json({ error: message, ...extra }, { status, headers });
 }
 
 function issueSessionResponse(email: string, nowMs: number, cors: { headers: Record<string, string> }): NextResponse {
@@ -94,6 +101,18 @@ export async function POST(req: Request) {
   const ts = await verifyTurnstileToken({ token: turnstileToken, remoteIp: ipForTs });
   if (!ts.ok) return jsonError(ts.status, ts.message, cors.headers);
 
+  if (getServiceSupabase()) {
+    try {
+      if (await touchIfReaccessBlocked(email)) {
+        return jsonError(403, REACCESS_PENDING_USER_MESSAGE, cors.headers, { code: "reaccess_pending" });
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Could not verify account status.";
+      console.error("[ROM login] cancelled_users check:", msg);
+      return jsonError(500, msg, cors.headers);
+    }
+  }
+
   const password = typeof body.password === "string" ? body.password : "";
   const pw = password.trim();
   if (!pw) {
@@ -136,6 +155,14 @@ export async function POST(req: Request) {
       console.error("[ROM login] hasAnyMembership:", msg);
       return jsonError(500, msg, cors.headers);
     }
+  }
+
+  if (mode === "signup" && !alreadyMember && isPublicSchoolSignupDisabled()) {
+    return jsonError(
+      403,
+      "New school registration from this page is closed. Sign in if you already have an account, use the access link you were sent (open the link and use Sign in), or ask your organisation to add your email first if you were invited.",
+      cors.headers,
+    );
   }
 
   let schoolName: string | null = null;

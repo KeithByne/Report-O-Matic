@@ -49,6 +49,17 @@ type ReferralEarning = {
   created_at: string;
 };
 
+type CancelledUserRow = {
+  email: string;
+  cancelled_at: string;
+  cancelled_by_email: string | null;
+  source: string;
+  snapshot: { memberships: number; had_password: boolean } | null;
+  reaccess_blocked: boolean;
+  reaccess_attempt_count: number;
+  last_reaccess_attempt_at: string | null;
+};
+
 type VatEstimatePayload = {
   rate_percent: number;
   basis: "inclusive" | "exclusive";
@@ -124,9 +135,11 @@ function fmtMoney(cents: number, currency = "USD"): string {
 
 export function SaasOwnerView({
   userDisplayName,
+  operatorEmail,
   stripePaymentsEnabled,
 }: {
   userDisplayName: string;
+  operatorEmail: string;
   stripePaymentsEnabled: boolean;
 }) {
   const { t } = useUiLanguage();
@@ -136,6 +149,7 @@ export function SaasOwnerView({
   const [hits, setHits] = useState<TenantHit[]>([]);
   const [giftCreditsByTenant, setGiftCreditsByTenant] = useState<Record<string, string>>({});
   const [giftBusyByTenant, setGiftBusyByTenant] = useState<Record<string, boolean>>({});
+  const [deleteSchoolBusyByTenant, setDeleteSchoolBusyByTenant] = useState<Record<string, boolean>>({});
 
   const [range, setRange] = useState<"day" | "week" | "month" | "year" | "ytd" | "all">("month");
   const [agentFilter, setAgentFilter] = useState("");
@@ -175,8 +189,26 @@ export function SaasOwnerView({
   const [testLinkErr, setTestLinkErr] = useState<string | null>(null);
   const [testLinkUrl, setTestLinkUrl] = useState<string | null>(null);
 
+  const [closeEmail, setCloseEmail] = useState("");
+  const [closeConfirm, setCloseConfirm] = useState("");
+  const [closeBusy, setCloseBusy] = useState(false);
+  const [closeErr, setCloseErr] = useState<string | null>(null);
+
+  const [cancelledRows, setCancelledRows] = useState<CancelledUserRow[]>([]);
+  const [cancelledBusy, setCancelledBusy] = useState(false);
+  const [cancelledErr, setCancelledErr] = useState<string | null>(null);
+  const [allowBusyEmail, setAllowBusyEmail] = useState<string | null>(null);
+
   const query = useMemo(() => q.trim(), [q]);
   const agent = useMemo(() => agentFilter.trim(), [agentFilter]);
+
+  const pendingReaccessRows = useMemo(
+    () =>
+      cancelledRows.filter(
+        (r) => r.reaccess_blocked && (r.reaccess_attempt_count > 0 || Boolean(r.last_reaccess_attempt_at)),
+      ),
+    [cancelledRows],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -248,6 +280,21 @@ export function SaasOwnerView({
     };
   }, [spendRange, spendTick, t]);
 
+  async function refreshCancelledUsers() {
+    setCancelledBusy(true);
+    setCancelledErr(null);
+    try {
+      const res = await fetch("/api/saas-owner/cancelled-users", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
+      setCancelledRows((data.cancelled_users ?? []) as CancelledUserRow[]);
+    } catch (e: unknown) {
+      setCancelledErr(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setCancelledBusy(false);
+    }
+  }
+
   async function refreshPacks() {
     setPacksBusy(true);
     setPacksErr(null);
@@ -316,6 +363,7 @@ export function SaasOwnerView({
     void refreshPacks();
     void refreshAgents();
     void refreshEarnings();
+    void refreshCancelledUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -355,6 +403,206 @@ export function SaasOwnerView({
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
+        <section id="saas-close-user-account" className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
+          <div className="text-sm font-semibold text-zinc-900">{t("saas.closeUserTitle")}</div>
+          <p className="mt-2 text-xs leading-relaxed text-zinc-600">{t("saas.closeUserLead")}</p>
+          {closeErr ? <div className="mt-3 text-sm text-red-700">{closeErr}</div> : null}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-700">{t("saas.closeUserTargetLabel")}</span>
+              <input
+                type="email"
+                value={closeEmail}
+                onChange={(e) => setCloseEmail(e.target.value)}
+                autoComplete="off"
+                className="mt-1 block w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                placeholder={t("saas.placeholderAgentEmail")}
+              />
+            </label>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-700">{t("saas.closeUserConfirmLabel")}</span>
+              <span className="mb-1 block text-[11px] text-zinc-500">{t("saas.closeUserConfirmHint")}</span>
+              <input
+                type="email"
+                value={closeConfirm}
+                onChange={(e) => setCloseConfirm(e.target.value)}
+                autoComplete="off"
+                className="mt-1 block w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
+                placeholder={t("saas.placeholderAgentEmail")}
+              />
+            </label>
+          </div>
+          <div className="mt-4">
+            <button
+              type="button"
+              disabled={closeBusy}
+              onClick={() =>
+                void (async () => {
+                  setCloseErr(null);
+                  const target = closeEmail.trim().toLowerCase();
+                  const confirm = closeConfirm.trim().toLowerCase();
+                  if (!target || !target.includes("@")) {
+                    setCloseErr(t("saas.closeUserInvalidEmail"));
+                    return;
+                  }
+                  if (target !== confirm) {
+                    setCloseErr(t("saas.closeUserConfirmHint"));
+                    return;
+                  }
+                  if (target === operatorEmail.trim().toLowerCase()) {
+                    setCloseErr(t("saas.closeUserSelfError"));
+                    return;
+                  }
+                  if (!window.confirm(t("saas.closeUserConfirmDialog", { email: target }))) return;
+                  setCloseBusy(true);
+                  try {
+                    const res = await fetch("/api/saas-owner/accounts/close", {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ target_email: target, confirm_email: confirm }),
+                    });
+                    const data = (await res.json().catch(() => ({}))) as {
+                      error?: string;
+                      memberships_removed?: number;
+                      had_password?: boolean;
+                    };
+                    if (!res.ok) throw new Error(data.error || t("common.failed"));
+                    const n = Number(data.memberships_removed ?? 0);
+                    const hadPw = data.had_password === true ? "yes" : "no";
+                    alert(
+                      t("saas.closeUserSuccess", {
+                        email: target,
+                        memberships: String(n),
+                        hadPassword: hadPw,
+                      }),
+                    );
+                    setCloseEmail("");
+                    setCloseConfirm("");
+                    void refreshCancelledUsers();
+                  } catch (e: unknown) {
+                    setCloseErr(e instanceof Error ? e.message : t("common.failed"));
+                  } finally {
+                    setCloseBusy(false);
+                  }
+                })()
+              }
+              className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50"
+            >
+              {closeBusy ? t("saas.closeUserBusy") : t("saas.closeUserSubmit")}
+            </button>
+          </div>
+
+          <div className="mt-8 border-t border-red-200/80 pt-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="text-sm font-semibold text-zinc-900">{t("saas.cancelledUsersTitle")}</div>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-600">{t("saas.cancelledUsersLead")}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void refreshCancelledUsers()}
+                className="shrink-0 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+              >
+                {cancelledBusy ? t("dash.agentRefreshing") : t("saas.refreshCancelledList")}
+              </button>
+            </div>
+            {cancelledErr ? <div className="mt-3 text-sm text-red-700">{cancelledErr}</div> : null}
+            {pendingReaccessRows.length > 0 ? (
+              <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950">
+                {t("saas.reaccessPendingBanner", {
+                  emails: pendingReaccessRows.map((r) => r.email).join(", "),
+                })}
+              </div>
+            ) : null}
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[900px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200 text-xs text-zinc-500">
+                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledEmail")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledAt")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thCancelledBy")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thClosureSource")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thClosureSnapshot")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thReaccessBlocked")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thReaccessAttempts")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("saas.thLastReaccessAttempt")}</th>
+                    <th className="py-2 pr-3 font-medium">{t("roster.thActions")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cancelledRows.map((r) => {
+                    const snap = r.snapshot;
+                    const snapLabel =
+                      snap == null
+                        ? "—"
+                        : t("saas.snapshotBrief", {
+                            m: String(snap.memberships),
+                            pw: snap.had_password ? "yes" : "no",
+                          });
+                    const allowBusy = allowBusyEmail === r.email;
+                    return (
+                      <tr key={r.email} className="border-b border-zinc-100">
+                        <td className="py-2 pr-3 text-xs font-medium text-zinc-900">{r.email}</td>
+                        <td className="py-2 pr-3 text-xs text-zinc-700">
+                          {r.cancelled_at ? new Date(r.cancelled_at).toLocaleString() : "—"}
+                        </td>
+                        <td className="py-2 pr-3 text-xs text-zinc-700">{r.cancelled_by_email ?? "—"}</td>
+                        <td className="py-2 pr-3 text-xs text-zinc-700">{r.source}</td>
+                        <td className="py-2 pr-3 text-xs text-zinc-600">{snapLabel}</td>
+                        <td className="py-2 pr-3 text-xs">{r.reaccess_blocked ? "yes" : "no"}</td>
+                        <td className="py-2 pr-3 text-xs tabular-nums">{r.reaccess_attempt_count}</td>
+                        <td className="py-2 pr-3 text-xs text-zinc-700">
+                          {r.last_reaccess_attempt_at ? new Date(r.last_reaccess_attempt_at).toLocaleString() : "—"}
+                        </td>
+                        <td className="py-2 pr-3 text-xs">
+                          {r.reaccess_blocked ? (
+                            <button
+                              type="button"
+                              disabled={allowBusy}
+                              onClick={() =>
+                                void (async () => {
+                                  if (!window.confirm(t("saas.allowReaccessConfirm", { email: r.email }))) return;
+                                  setAllowBusyEmail(r.email);
+                                  try {
+                                    const res = await fetch("/api/saas-owner/cancelled-users/allow", {
+                                      method: "POST",
+                                      headers: { "content-type": "application/json" },
+                                      body: JSON.stringify({ email: r.email }),
+                                    });
+                                    const data = await res.json().catch(() => ({}));
+                                    if (!res.ok) throw new Error(data.error || t("common.failed"));
+                                    await refreshCancelledUsers();
+                                  } catch (e: unknown) {
+                                    alert(e instanceof Error ? e.message : t("common.failed"));
+                                  } finally {
+                                    setAllowBusyEmail(null);
+                                  }
+                                })()
+                              }
+                              className="font-semibold text-emerald-700 hover:underline disabled:opacity-50"
+                            >
+                              {allowBusy ? t("saas.allowingReaccess") : t("saas.allowReaccess")}
+                            </button>
+                          ) : (
+                            <span className="text-zinc-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {cancelledRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-4 text-sm text-zinc-500">
+                        {cancelledBusy ? t("dash.agentLoading") : t("saas.noCancelledUsersYet")}
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -1113,7 +1361,7 @@ export function SaasOwnerView({
                         {Number(row.report_credits_remaining || 0).toLocaleString()}
                       </td>
                       <td className="py-2 pr-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <input
                             value={giftValue}
                             onChange={(e) =>
@@ -1125,7 +1373,7 @@ export function SaasOwnerView({
                           />
                           <button
                             type="button"
-                            disabled={gifting}
+                            disabled={gifting || !!deleteSchoolBusyByTenant[row.tenant_id]}
                             onClick={() =>
                               void (async () => {
                                 const n = Math.trunc(Number(giftValue));
@@ -1158,6 +1406,57 @@ export function SaasOwnerView({
                             className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                           >
                             {gifting ? t("saas.giftingCredits") : t("saas.giftCreditsAction")}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!!deleteSchoolBusyByTenant[row.tenant_id] || gifting}
+                            onClick={() =>
+                              void (async () => {
+                                if (
+                                  !window.confirm(
+                                    `Permanently delete the school "${row.tenant_name}" and all related data (classes, students, reports, billing rows tied to this tenant)? This cannot be undone.`,
+                                  )
+                                ) {
+                                  return;
+                                }
+                                const typed = window.prompt(
+                                  `Delete the school "${row.tenant_name}" and ALL classes, students, and reports? Type DELETE to confirm.`,
+                                );
+                                if (typed !== "DELETE") return;
+                                setDeleteSchoolBusyByTenant((m) => ({ ...m, [row.tenant_id]: true }));
+                                try {
+                                  const res = await fetch(
+                                    `/api/saas-owner/tenants/${encodeURIComponent(row.tenant_id)}`,
+                                    { method: "DELETE" },
+                                  );
+                                  const data = await res.json().catch(() => ({}));
+                                  if (!res.ok) throw new Error(data.error || t("common.failed"));
+                                  setHits((prev) => prev.filter((h) => h.tenant_id !== row.tenant_id));
+                                  setGiftCreditsByTenant((m) => {
+                                    const next = { ...m };
+                                    delete next[row.tenant_id];
+                                    return next;
+                                  });
+                                  setGiftBusyByTenant((m) => {
+                                    const next = { ...m };
+                                    delete next[row.tenant_id];
+                                    return next;
+                                  });
+                                  setDeleteSchoolBusyByTenant((m) => {
+                                    const next = { ...m };
+                                    delete next[row.tenant_id];
+                                    return next;
+                                  });
+                                } catch (e: unknown) {
+                                  alert(e instanceof Error ? e.message : t("common.failed"));
+                                } finally {
+                                  setDeleteSchoolBusyByTenant((m) => ({ ...m, [row.tenant_id]: false }));
+                                }
+                              })()
+                            }
+                            className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-900 hover:bg-red-100 disabled:opacity-50"
+                          >
+                            {deleteSchoolBusyByTenant[row.tenant_id] ? "Deleting…" : "Delete"}
                           </button>
                         </div>
                       </td>

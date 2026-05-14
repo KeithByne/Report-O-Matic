@@ -101,14 +101,17 @@ export function SaasOwnerTenantView({ tenantId, userDisplayName }: { tenantId: s
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-5 py-6">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Link
-            href="/saas-owner/Jane2788Eyre"
-            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
-          >
-            <ArrowLeft className={ICON_INLINE} aria-hidden />
-            {t("saas.backToOwner")}
-          </Link>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <Link
+              href="/saas-owner/Jane2788Eyre"
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+            >
+              <ArrowLeft className={ICON_INLINE} aria-hidden />
+              {t("saas.backToOwner")}
+            </Link>
+            <p className="mt-2 max-w-xl text-xs text-zinc-600">{t("saas.backToOwnerCloseAccountHint")}</p>
+          </div>
           <div className="text-xs text-zinc-600 font-mono">{tenantId}</div>
         </div>
 

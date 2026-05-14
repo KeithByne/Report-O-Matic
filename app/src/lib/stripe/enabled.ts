@@ -7,6 +7,9 @@
  * 2. In Stripe Dashboard → Webhooks, send events to https://<your-host>/api/stripe/webhook
  *    (e.g. payment_intent.succeeded, transfer.created as your integration expects).
  * 3. Set ROM_STRIPE_ENABLED=true and redeploy.
+ *
+ * While Stripe is off in production, self-serve “new school” signup on the landing page is
+ * also disabled by default (see `ROM_PUBLIC_SCHOOL_SIGNUP` in `lib/auth/publicSignupPolicy.ts`).
  */
 export function isStripePaymentsEnabled(): boolean {
   return process.env.ROM_STRIPE_ENABLED?.trim() === "true";

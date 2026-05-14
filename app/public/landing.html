@@ -465,6 +465,7 @@
 
         var turnstileToken = null;
         var turnstileWidgetId = null;
+        var fileProtocolWarn = window.location.protocol === "file:";
 
         var els = {
           tabSignIn: document.getElementById("tabSignIn"),
@@ -503,6 +504,25 @@
             "Test access link detected. Sign in to claim a sandbox school as account owner, with 50 free report credits. This link works once — after the trial you can buy credits to keep the school. Sign-up tab is hidden on purpose.",
           );
         }
+
+        fetch(apiBase() + "/api/config/access-policy", { cache: "no-store" })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            if (!(data && data.public_school_signup_disabled)) return;
+            if (testAccessToken) return;
+            els.tabSignUp.classList.add("hide");
+            els.panelSignUp.classList.add("hide");
+            els.tabSignIn.setAttribute("aria-selected", "true");
+            els.panelSignIn.classList.remove("hide");
+            if (fileProtocolWarn) return;
+            setMsg(
+              "ok",
+              "This site is invitation-only: use Sign in with an existing account, an access link you were sent (open the link and use Sign in), or ask your school to add your email to the team first. Self-serve new school sign-up is disabled until billing is enabled.",
+            );
+          })
+          .catch(function () {});
 
         function setMsg(type, text) {
           els.msg.classList.remove("hide", "ok", "err");
@@ -708,7 +728,7 @@
           }
         });
 
-        if (window.location.protocol === "file:") {
+        if (fileProtocolWarn) {
           setMsg(
             "err",
             "Opened from disk (file://). Start the app (npm run dev in report-o-matic-saas/app), then open http://localhost:3000/landing.html — or stay on this file and add ?api=http://localhost:3000 (change port if needed).",

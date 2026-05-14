@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { userUiLanguagePrefKey } from "@/lib/data/userUiLanguage";
+import { getSignInSnapshotForEmail, recordCancelledUser } from "@/lib/data/cancelledUsers";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
@@ -58,11 +59,10 @@ function anonymizedEmail(): string {
 
 /**
  * Erases or anonymises personal data held for this sign-in identity while preserving school records where the law
- * allows (e.g. reports stay as school documents with author redacted).
+ * allows (e.g. reports stay as school documents with author redacted). Does not enforce the sole-owner rule — use
+ * {@link closePersonalAccount} for self-service, or this function from SaaS-owner tooling only.
  */
-export async function closePersonalAccount(email: string): Promise<void> {
-  await assertAccountClosureAllowed(email);
-
+export async function eraseSignInIdentityData(email: string): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database is not configured.");
   const e = normalizeEmail(email);
@@ -136,6 +136,22 @@ export async function closePersonalAccount(email: string): Promise<void> {
   await run("memberships", supabase.from("memberships").delete().eq("user_email", e));
   await run("auth_passwords", supabase.from("auth_passwords").delete().eq("email", e));
   await run("auth_passwords_ui_lang", supabase.from("auth_passwords").delete().eq("email", userUiLanguagePrefKey(e)));
+}
+
+export async function closePersonalAccount(email: string): Promise<void> {
+  await assertAccountClosureAllowed(email);
+  const snapshot = await getSignInSnapshotForEmail(email);
+  await eraseSignInIdentityData(email);
+  try {
+    await recordCancelledUser({
+      email,
+      source: "self",
+      cancelledByEmail: null,
+      snapshot,
+    });
+  } catch (e: unknown) {
+    console.error("[ROM] recordCancelledUser failed after self-erase:", e instanceof Error ? e.message : e);
+  }
 }
 
 export async function buildPersonalDataExport(email: string): Promise<Record<string, unknown>> {
