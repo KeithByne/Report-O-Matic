@@ -66,7 +66,7 @@ export function TenantBillingView({
 
   return (
     <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
-      <header className="border-b border-emerald-200/80 bg-white">
+      <header className="rom-app-shell-header">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
           <AppHeaderLeftCluster
             roleLabel={billingRoleLabel(role, t)}

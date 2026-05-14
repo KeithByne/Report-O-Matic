@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
-      <header className="border-b border-zinc-200 bg-white">
+      <header className="rom-app-shell-header">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <Link
             href="/landing.html"

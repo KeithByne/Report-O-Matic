@@ -23,11 +23,28 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/**
+ * App shell headers (dashboard, reports, billing, SaaS owner, legal top bars).
+ * Day: solid white to match typical logo mat / no visible seam behind marks.
+ * Night: same wash as `html[data-rom-theme="night"]` body so the bar is not stuck in “paper white”.
+ */
+.rom-app-shell-header {
+  background-color: #ffffff !important;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #d1fae5;
+}
+
 html[data-rom-theme="night"] {
   --background: #20446d;
-  --foreground: #e6efff;
+  --foreground: #f2f7ff;
   --color-emerald-50: #162b49;
   --color-emerald-100: #213a5f;
+}
+
+html[data-rom-theme="night"] .rom-app-shell-header {
+  background-color: var(--background) !important;
+  border-bottom-color: #3d5a84 !important;
 }
 
 html[data-rom-theme="night"] body {
@@ -39,6 +56,11 @@ html[data-rom-theme="night"] .bg-white {
   background-color: #0d1d33 !important;
 }
 
+/* Tailwind opacity modifiers on white (e.g. bg-white/90) do not use the `.bg-white` selector above. */
+html[data-rom-theme="night"] [class*="bg-white/"] {
+  background-color: #0d1d33 !important;
+}
+
 html[data-rom-theme="night"] .text-zinc-900,
 html[data-rom-theme="night"] .text-zinc-800,
 html[data-rom-theme="night"] .text-zinc-700,
@@ -47,7 +69,27 @@ html[data-rom-theme="night"] .text-zinc-600 {
 }
 
 html[data-rom-theme="night"] .text-zinc-500 {
-  color: #d4e2f8 !important;
+  color: #dbe8fb !important;
+}
+
+html[data-rom-theme="night"] .text-zinc-400 {
+  color: #e4eefc !important;
+}
+
+html[data-rom-theme="night"] .text-zinc-300 {
+  color: #ecf2fd !important;
+}
+
+html[data-rom-theme="night"] .text-zinc-200 {
+  color: #f2f6fe !important;
+}
+
+html[data-rom-theme="night"] .text-zinc-100 {
+  color: #f7f9ff !important;
+}
+
+html[data-rom-theme="night"] .text-zinc-950 {
+  color: #f7faff !important;
 }
 
 html[data-rom-theme="night"] .text-emerald-950,
@@ -56,9 +98,43 @@ html[data-rom-theme="night"] .text-emerald-800 {
   color: #eaf3ff !important;
 }
 
+html[data-rom-theme="night"] .text-emerald-700,
+html[data-rom-theme="night"] .text-emerald-600 {
+  color: #b9f6cf !important;
+}
+
+html[data-rom-theme="night"] .text-red-900,
+html[data-rom-theme="night"] .text-red-800,
+html[data-rom-theme="night"] .text-red-700,
+html[data-rom-theme="night"] .text-red-600 {
+  color: #fecdd3 !important;
+}
+
+html[data-rom-theme="night"] .text-amber-950,
+html[data-rom-theme="night"] .text-amber-900,
+html[data-rom-theme="night"] .text-amber-800,
+html[data-rom-theme="night"] .text-amber-700 {
+  color: #fde68a !important;
+}
+
+html[data-rom-theme="night"] .text-blue-900,
+html[data-rom-theme="night"] .text-blue-800,
+html[data-rom-theme="night"] .text-blue-700 {
+  color: #dbeafe !important;
+}
+
+html[data-rom-theme="night"] ::placeholder {
+  color: #b4c8ea !important;
+  opacity: 1;
+}
+
 html[data-rom-theme="night"] .border-emerald-200,
 html[data-rom-theme="night"] .border-zinc-200,
 html[data-rom-theme="night"] .border-zinc-300 {
+  border-color: #3d5a84 !important;
+}
+
+html[data-rom-theme="night"] [class*="border-emerald-200/"] {
   border-color: #3d5a84 !important;
 }
 

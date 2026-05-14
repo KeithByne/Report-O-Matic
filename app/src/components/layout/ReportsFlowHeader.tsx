@@ -82,7 +82,7 @@ export function ReportsFlowHeader({
   }
 
   return (
-    <header className="border-b border-emerald-200/80 bg-white">
+    <header className="rom-app-shell-header">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
         <AppHeaderLeftCluster roleLabel={roleLine} userDisplayName={userDisplayName} pageTitle={title} />
         <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
