@@ -131,15 +131,15 @@ export function SaasOwnerTenantView({ tenantId, userDisplayName }: { tenantId: s
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                  <div className="rom-saas-tenant-inset rounded-xl border border-zinc-200 bg-zinc-50 p-3">
                     <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{t("roster.thClasses")}</div>
                     <div className="mt-1 text-sm font-semibold text-zinc-900">{data.counts.classes}</div>
                   </div>
-                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                  <div className="rom-saas-tenant-inset rounded-xl border border-zinc-200 bg-zinc-50 p-3">
                     <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{t("roster.thStudents")}</div>
                     <div className="mt-1 text-sm font-semibold text-zinc-900">{data.counts.students}</div>
                   </div>
-                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                  <div className="rom-saas-tenant-inset rounded-xl border border-zinc-200 bg-zinc-50 p-3">
                     <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{t("saas.thReports")}</div>
                     <div className="mt-1 text-sm font-semibold text-zinc-900">{data.counts.reports}</div>
                   </div>
@@ -159,7 +159,7 @@ export function SaasOwnerTenantView({ tenantId, userDisplayName }: { tenantId: s
               <div className="text-sm font-semibold text-zinc-900">{t("saas.membersTitle")}</div>
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 {["owner", "department_head", "teacher"].map((role) => (
-                  <div key={role} className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                  <div key={role} className="rom-saas-tenant-inset rounded-xl border border-zinc-200 bg-zinc-50 p-4">
                     <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{memberRoleHeading(role, t)}</div>
                     <div className="mt-2 space-y-1 text-xs text-zinc-800">
                       {(byRole[role] ?? []).length ? (

@@ -47,6 +47,14 @@ html[data-rom-theme="night"] .rom-app-shell-header {
   border-bottom-color: #3d5a84 !important;
 }
 
+/* SaaS owner → school detail: inner stat tiles and member-role columns use `bg-zinc-50`.
+   Night mode lightens body text but did not darken zinc-50, so labels/values vanished.
+   Match the same wash as `.rom-app-shell-header` / page background. */
+html[data-rom-theme="night"] .rom-saas-tenant-inset {
+  background-color: var(--background) !important;
+  border-color: #3d5a84 !important;
+}
+
 html[data-rom-theme="night"] body {
   background: var(--background);
   color: var(--foreground);

@@ -1,5 +1,5 @@
 ---
-description: Autonomous execution; end with y/n commit and push
+description: Autonomous execution; auto commit and push when repo changes
 alwaysApply: true
 ---
 
@@ -19,19 +19,25 @@ When the user may **copy and paste** something (terminal commands, PowerShell on
 - **URLs and file paths**: full strings, no elision.
 - If multiple steps are needed, either one block with `&&` / `;` (where shell-appropriate) or clearly ordered blocks, each self-contained or explicitly stating “after the previous step”.
 
-## Git: one y/n at the end
+## Git: auto commit and push (no y/n)
 
-**Never** ask **`Commit and push to origin? (y/n)`** when there is **nothing meaningful to commit** and **nothing unpushed** that still needs publishing (e.g. clean tree and branch already matches `origin`, or you made no repo edits). In those cases a single short line is enough (e.g. “Nothing to commit; already in sync with origin.”)—**no git question.**
+The maintainer does **not** want to run **PowerShell** or answer **`y/n`** to publish work. After you finish a task that **changes tracked files**, **commit and push yourself**—do not end by asking them to commit.
 
-When the task is **done** (or you hit a real stop you cannot fix):
+1. **When to run Git**  
+   After edits are complete and lints/tests you ran are clean (or you have reported real failures): from the repo root, run `git status`. If there is **anything to commit** (modified or new tracked files), continue below. If the tree is **clean** and **not ahead of `origin`**, say so briefly and **stop** (no Git commands).
 
-1. If **`git status`** shows **no meaningful changes** to commit and you are **not** leaving behind local commits that still need `git push`: stop—**do not** ask about commit/push at all.
-2. If there are **meaningful uncommitted changes** (or local commits from this session that are not yet on `origin`):
-   - End with **exactly one** question, on its own line, so the user can reply with a single letter:
-   - **`Commit and push to origin? (y/n)`**
-   - Optionally add one line with the **proposed commit message** (imperative, short).
-3. **If the user replies `y` or `yes`:** run `git add` for the relevant paths, `git commit -m "…"`, then `git push` to the current branch’s upstream (e.g. `git push origin HEAD`). Do not ask again for push after `y`.
-4. **If the user replies `n` or `no`:** leave the tree as-is; do not commit or push.
-5. **Do not** commit or push without that **`y`** (no silent commits).
+2. **What to run** (adapt if the shell is PowerShell: use `;` between commands, not `&&`)  
+   - `git add -A` **or** `git add` only the paths you touched (prefer scoped add when unrelated local changes might exist—but if unsure, `git add -A` is acceptable for a solo maintainer repo).  
+   - `git commit -m "…"` with an **imperative, short** message describing the user-facing outcome (not “update files”).  
+   - `git push origin HEAD` (or `git push` if upstream is already set).
 
-If push fails (auth, network), report the error and stop—do not loop endlessly.
+3. **Do not** ask **`Commit and push to origin? (y/n)`** unless the user has **explicitly** asked for a review-first workflow in that thread (e.g. “don’t push yet”).
+
+4. **After push**  
+   State the **commit hash** (short) and **message** in one line. If the agent environment cannot see `git` output, say that and tell them to check **`git log -1`** locally—still **attempt** the commands every time.
+
+5. **Failures**  
+   If commit or push fails (hooks, auth, network), paste the error and stop—do not loop blindly.
+
+6. **User opt-out**  
+   If the user says **not** to commit or **not** to push in the same request, respect that for that task only.
