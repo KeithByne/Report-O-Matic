@@ -55,6 +55,34 @@ html[data-rom-theme="night"] .rom-saas-tenant-inset {
   border-color: #3d5a84 !important;
 }
 
+/* Night: zinc-50/100 panels (SaaS finance “Paid to…”, etc.) — same failure mode as tenant stat tiles. */
+html[data-rom-theme="night"] .bg-zinc-50 {
+  background-color: #1a3558 !important;
+}
+
+html[data-rom-theme="night"] .bg-zinc-100 {
+  background-color: #244766 !important;
+}
+
+/* Night: pale amber surfaces (VAT block, Stripe-off banner) + lightened amber text = unreadable. */
+html[data-rom-theme="night"] [class*="bg-amber-"] {
+  background-color: #1a3558 !important;
+}
+
+html[data-rom-theme="night"] [class*="border-amber-"] {
+  border-color: #5a7199 !important;
+}
+
+/* Night: red alert strips (keep light body text from global red-* rules). */
+html[data-rom-theme="night"] [class*="bg-red-50"] {
+  background-color: #3a1b22 !important;
+}
+
+html[data-rom-theme="night"] [class*="border-red-200"],
+html[data-rom-theme="night"] [class*="border-red-300"] {
+  border-color: #b4535c !important;
+}
+
 html[data-rom-theme="night"] body {
   background: var(--background);
   color: var(--foreground);
@@ -118,11 +146,9 @@ html[data-rom-theme="night"] .text-red-600 {
   color: #fecdd3 !important;
 }
 
-html[data-rom-theme="night"] .text-amber-950,
-html[data-rom-theme="night"] .text-amber-900,
-html[data-rom-theme="night"] .text-amber-800,
-html[data-rom-theme="night"] .text-amber-700 {
-  color: #fde68a !important;
+/* Amber text utilities including opacity forms (text-amber-950/85); pair with darkened amber panels below. */
+html[data-rom-theme="night"] [class*="text-amber-"] {
+  color: #fefce8 !important;
 }
 
 html[data-rom-theme="night"] .text-blue-900,
