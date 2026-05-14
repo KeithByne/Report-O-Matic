@@ -516,11 +516,6 @@
             els.panelSignUp.classList.add("hide");
             els.tabSignIn.setAttribute("aria-selected", "true");
             els.panelSignIn.classList.remove("hide");
-            if (fileProtocolWarn) return;
-            setMsg(
-              "ok",
-              "This site is invitation-only: use Sign in with an existing account, an access link you were sent (open the link and use Sign in), or ask your school to add your email to the team first. Self-serve new school sign-up is disabled until billing is enabled.",
-            );
           })
           .catch(function () {});
 
