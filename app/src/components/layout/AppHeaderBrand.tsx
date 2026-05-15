@@ -6,8 +6,12 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 /** Match static landing brand assets (`public/landing.html`). Day view: transparent PNG in `public`. */
 const LOGO_ORIGINAL = ["/LogoReport-O-Matic.png"] as const;
 
-/** Night View: `public/rom-logo-blue.png` */
-const NIGHT_LOGO_PATH = "/rom-logo-blue.png";
+/** Night View PNGs tried in order until one loads (`onError` advances). Last resort is still day logo. */
+const LOGO_NIGHT = [
+  "/rom-logo-blue.png",
+  "/rom-logo-blue-trans.png",
+  `/${encodeURIComponent("Report-O-Matic NightView.png")}`,
+] as const;
 
 /**
  * Header brand building blocks:
@@ -18,8 +22,7 @@ const NIGHT_LOGO_PATH = "/rom-logo-blue.png";
 export function AppHeaderLogo({ size = "md" }: { size?: "sm" | "md" }) {
   const { displayTheme } = useUiLanguage();
   const candidates = useMemo(
-    () =>
-      displayTheme === "night" ? ([NIGHT_LOGO_PATH, ...LOGO_ORIGINAL] as const) : LOGO_ORIGINAL,
+    () => (displayTheme === "night" ? ([...LOGO_NIGHT, ...LOGO_ORIGINAL] as const) : LOGO_ORIGINAL),
     [displayTheme],
   );
   const [logoIx, setLogoIx] = useState(0);

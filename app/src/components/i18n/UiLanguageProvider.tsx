@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import {
   type UiLang,
   isUiLang,
@@ -34,7 +34,7 @@ export function UiLanguageProvider({ children }: { children: ReactNode }) {
   const [displayText, setDisplayTextState] = useState<DisplayText>("normal");
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw && isUiLang(raw)) setLangState(raw);
