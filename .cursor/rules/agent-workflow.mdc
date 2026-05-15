@@ -17,7 +17,7 @@ When the user may **copy and paste** something (terminal commands, PowerShell on
 - Prefer a **single paste**: e.g. start with `cd` to the repo (full UNC or path they use), then the command(s), in one fenced block when practical.
 - Include **establishment of the enquiry** (how to open the right place): full `cd`, full repo path, or explicit “run from project root” plus the full command line.
 - **URLs and file paths**: full strings, **no elision** — never shorten with `...`, hide the middle of a UNC path, or write `something/…/file`; always give the **complete** path or URL from the drive / protocol / hostname through to the leaf.
-- **Code / doc references**: when citing repo locations in prose, prefer the **full path from repo root** (e.g. `app/public/rom-logo.webp`) or the **full UNC** the maintainer uses; do not abbreviate roots like `\\\\UNITOMNAS\...\Report-O-Matic` down to fragments.
+- **Code / doc references**: when citing repo locations in prose, prefer the **full path from repo root** (e.g. `app/public/LogoReport-O-Matic.png`) or the **full UNC** the maintainer uses; do not abbreviate roots like `\\\\UNITOMNAS\...\Report-O-Matic` down to fragments.
 - If multiple steps are needed, either one block with `&&` / `;` (where shell-appropriate) or clearly ordered blocks, each self-contained or explicitly stating “after the previous step”.
 
 ## Git: auto commit and push (no y/n)

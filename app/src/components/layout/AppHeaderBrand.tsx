@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 
-/** Match static landing brand assets (`public/landing.html`). */
-const LOGO_ORIGINAL = ["/rom-logo.webp", "/rom-logo.png"] as const;
+/** Match static landing brand assets (`public/landing.html`). Day view: transparent PNG in `public`. */
+const LOGO_ORIGINAL = ["/LogoReport-O-Matic.png"] as const;
 
 /** Night View: add `public/Report-O-Matic NightView.png` (spaces OK; URL-encoded below). */
 const NIGHT_LOGO_PATH = `/${encodeURIComponent("Report-O-Matic NightView.png")}`;
