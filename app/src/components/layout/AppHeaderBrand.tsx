@@ -6,8 +6,8 @@ import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 /** Match static landing brand assets (`public/landing.html`). Day view: transparent PNG in `public`. */
 const LOGO_ORIGINAL = ["/LogoReport-O-Matic.png"] as const;
 
-/** Night View: add `public/Report-O-Matic NightView.png` (spaces OK; URL-encoded below). */
-const NIGHT_LOGO_PATH = `/${encodeURIComponent("Report-O-Matic NightView.png")}`;
+/** Night View: `public/rom-logo-blue-trans.png` */
+const NIGHT_LOGO_PATH = "/rom-logo-blue-trans.png";
 
 /**
  * Header brand building blocks:
