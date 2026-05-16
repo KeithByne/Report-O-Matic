@@ -154,49 +154,54 @@ export function DashboardStagedGuide({
 }) {
   const { t } = useUiLanguage();
   const stages = useMemo<StageDef[]>(() => dashboardGuideStagesForMode(mode), [mode]);
-  const [internalActiveStageKey, setInternalActiveStageKey] = useState(stages[0]?.key ?? "");
+  const [internalActiveStageKey, setInternalActiveStageKey] = useState("");
   useEffect(() => {
-    if (!showTabs && selectedStageKey) {
-      setInternalActiveStageKey(selectedStageKey);
-      return;
-    }
-    setInternalActiveStageKey(stages[0]?.key ?? "");
-  }, [selectedStageKey, showTabs, stages]);
-  const activeStage = stages.find((s) => s.key === internalActiveStageKey) ?? stages[0];
+    if (showTabs) return;
+    setInternalActiveStageKey(selectedStageKey ?? "");
+  }, [selectedStageKey, showTabs]);
+  const activeStageKey = showTabs ? internalActiveStageKey : selectedStageKey;
+  const activeStage = stages.find((s) => s.key === activeStageKey);
+  const showTipList = Boolean(activeStage);
 
   return (
-    <div className="mt-4 border-t border-emerald-100 pt-4 text-left">
+    <div
+      className="mt-4 border-t border-emerald-100 pt-4 text-left"
+      onMouseLeave={showTabs ? () => setInternalActiveStageKey("") : undefined}
+    >
       <h3 className="text-xs font-semibold uppercase tracking-wide text-emerald-800/90">{t("dash.guide.title")}</h3>
-      <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
-        {showTabs ? (
-          <div className="flex flex-wrap gap-2">
-            {stages.map((s) => {
-              const active = s.key === activeStage?.key;
-              return (
-                <button
-                  key={s.key}
-                  type="button"
-                  onClick={() => setInternalActiveStageKey(s.key)}
-                  className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    active
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-white text-zinc-700 hover:bg-emerald-100/70"
-                  }`}
-                >
-                  {s.n}. {t(s.titleKey)}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
-        {activeStage ? (
-          <ol className="mt-3 ml-5 list-decimal space-y-1.5 text-left text-xs leading-relaxed text-zinc-600">
-            {activeStage.linesKeys.map((key) => (
-              <li key={key}>{t(key)}</li>
-            ))}
-          </ol>
-        ) : null}
-      </div>
+      {showTipList ? (
+        <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
+          {showTabs ? (
+            <div className="flex flex-wrap gap-2">
+              {stages.map((s) => {
+                const active = s.key === activeStage?.key;
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onMouseEnter={() => setInternalActiveStageKey(s.key)}
+                    onFocus={() => setInternalActiveStageKey(s.key)}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      active
+                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                        : "border-emerald-200 bg-white text-zinc-700 hover:bg-emerald-100/70"
+                    }`}
+                  >
+                    {s.n}. {t(s.titleKey)}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+          {activeStage ? (
+            <ol className={`ml-5 list-decimal space-y-1.5 text-left text-xs leading-relaxed text-zinc-600 ${showTabs ? "mt-3" : ""}`}>
+              {activeStage.linesKeys.map((key) => (
+                <li key={key}>{t(key)}</li>
+              ))}
+            </ol>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

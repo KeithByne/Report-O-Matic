@@ -221,13 +221,23 @@ export function DashboardClientView({
 
   const [workspaceDashPanel, setWorkspaceDashPanel] = useState<WorkspaceDashPanel | null>(null);
   const [teacherWorkspacePanel, setTeacherWorkspacePanel] = useState<TeacherWorkspacePanel | null>(null);
-  const [teacherGuideStageKey, setTeacherGuideStageKey] = useState("teacher_profile");
+  const [workspaceGuideHoverKey, setWorkspaceGuideHoverKey] = useState<string | null>(null);
+  const [teacherGuideHoverKey, setTeacherGuideHoverKey] = useState<string | null>(null);
+
+  const toggleWorkspacePanel = useCallback((panel: WorkspaceDashPanel) => {
+    setWorkspaceDashPanel((cur) => (cur === panel ? null : panel));
+  }, []);
+
+  const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
+    setTeacherWorkspacePanel((cur) => (cur === panel ? null : panel));
+  }, []);
   const [schoolGradeRubricByTenant, setSchoolGradeRubricByTenant] = useState<Record<string, GradeRubricProfile>>({});
   const [schoolTypeSaving, setSchoolTypeSaving] = useState(false);
 
   useEffect(() => {
     if (!usesSchoolWorkspaceMenu) {
       setWorkspaceDashPanel(null);
+      setWorkspaceGuideHoverKey(null);
     }
   }, [usesSchoolWorkspaceMenu]);
 
@@ -276,33 +286,6 @@ export function DashboardClientView({
   const showWorkspaceDownloadsTab = visibleMemberships.some(
     (m) => m.role === "owner" || m.role === "department_head",
   );
-  const ownerGuideStageKey =
-    workspaceDashPanel === "schoolType"
-      ? "owner_school_type"
-      : workspaceDashPanel === "pdf"
-        ? "owner_pdf"
-        : workspaceDashPanel === "invites"
-          ? "owner_invite"
-          : workspaceDashPanel === "subjects"
-            ? "owner_subjects"
-            : workspaceDashPanel === "classes"
-              ? "owner_classes"
-              : workspaceDashPanel === "timetable"
-                ? "owner_timetable"
-                : "owner_overview";
-  const deptHeadGuideStageKey =
-    workspaceDashPanel === "invites"
-      ? "dh_invite"
-      : workspaceDashPanel === "subjects"
-        ? "dh_subjects"
-        : workspaceDashPanel === "classes"
-          ? "dh_classes"
-          : workspaceDashPanel === "timetable"
-          ? "dh_timetable"
-          : workspaceDashPanel === "pdf"
-            ? "dh_pdf"
-            : "dh_overview";
-
   const menuOverviewSummary = useMemo(() => {
     if (!primaryMembership) return undefined;
     if (primaryMembership.role !== "owner" && primaryMembership.role !== "department_head") return undefined;
@@ -560,6 +543,7 @@ export function DashboardClientView({
                               userClearedSchoolFocus.current = true;
                               setOwnerFocusTenantId(null);
                               setWorkspaceDashPanel(null);
+                              setWorkspaceGuideHoverKey(null);
                             }
                           }}
                         >
@@ -572,6 +556,7 @@ export function DashboardClientView({
                               userClearedSchoolFocus.current = false;
                               setOwnerFocusTenantId(tenantId);
                               setWorkspaceDashPanel(null);
+                              setWorkspaceGuideHoverKey(null);
                             }}
                           />
                           <span className="min-w-0 flex-1 font-medium text-zinc-900">{tenantName}</span>
@@ -596,8 +581,10 @@ export function DashboardClientView({
           ) : null}
 
           {usesSchoolWorkspaceMenu && memberships.length > 0 && primaryMembership && !hasOwner ? (
-            <div className="mt-5 border-t border-emerald-100 pt-5">
-              <>
+            <div
+              className="mt-5 border-t border-emerald-100 pt-5"
+              onMouseLeave={() => setWorkspaceGuideHoverKey(null)}
+            >
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
                     <FolderKanban className={ICON_INLINE} aria-hidden />
                     {t("dash.teacherShowSelectionTitle")}
@@ -617,7 +604,9 @@ export function DashboardClientView({
                     <button
                       type="button"
                       aria-pressed={workspaceDashPanel === "overview"}
-                      onClick={() => setWorkspaceDashPanel("overview")}
+                      onMouseEnter={() => setWorkspaceGuideHoverKey("dh_overview")}
+                      onFocus={() => setWorkspaceGuideHoverKey("dh_overview")}
+                      onClick={() => toggleWorkspacePanel("overview")}
                       className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                         workspaceDashPanel === "overview"
                           ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -631,7 +620,9 @@ export function DashboardClientView({
                       <button
                         type="button"
                         aria-pressed={workspaceDashPanel === "invites"}
-                        onClick={() => setWorkspaceDashPanel("invites")}
+                        onMouseEnter={() => setWorkspaceGuideHoverKey("dh_invite")}
+                        onFocus={() => setWorkspaceGuideHoverKey("dh_invite")}
+                        onClick={() => toggleWorkspacePanel("invites")}
                         className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                           workspaceDashPanel === "invites"
                             ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -647,7 +638,9 @@ export function DashboardClientView({
                         <button
                           type="button"
                           aria-pressed={workspaceDashPanel === "subjects"}
-                          onClick={() => setWorkspaceDashPanel("subjects")}
+                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_subjects")}
+                          onFocus={() => setWorkspaceGuideHoverKey("dh_subjects")}
+                          onClick={() => toggleWorkspacePanel("subjects")}
                           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                             workspaceDashPanel === "subjects"
                               ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -660,7 +653,9 @@ export function DashboardClientView({
                         <button
                           type="button"
                           aria-pressed={workspaceDashPanel === "classes"}
-                          onClick={() => setWorkspaceDashPanel("classes")}
+                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_classes")}
+                          onFocus={() => setWorkspaceGuideHoverKey("dh_classes")}
+                          onClick={() => toggleWorkspacePanel("classes")}
                           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                             workspaceDashPanel === "classes"
                               ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -673,7 +668,9 @@ export function DashboardClientView({
                         <button
                           type="button"
                           aria-pressed={workspaceDashPanel === "timetable"}
-                          onClick={() => setWorkspaceDashPanel("timetable")}
+                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_timetable")}
+                          onFocus={() => setWorkspaceGuideHoverKey("dh_timetable")}
+                          onClick={() => toggleWorkspacePanel("timetable")}
                           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                             workspaceDashPanel === "timetable"
                               ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -701,7 +698,9 @@ export function DashboardClientView({
                       <button
                         type="button"
                         aria-pressed={workspaceDashPanel === "pdf"}
-                        onClick={() => setWorkspaceDashPanel("pdf")}
+                        onMouseEnter={() => setWorkspaceGuideHoverKey("dh_pdf")}
+                        onFocus={() => setWorkspaceGuideHoverKey("dh_pdf")}
+                        onClick={() => toggleWorkspacePanel("pdf")}
                         className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                           workspaceDashPanel === "pdf"
                             ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -727,14 +726,20 @@ export function DashboardClientView({
                       </span>
                     ) : null}
                   </nav>
-                  <DashboardStagedGuide mode="department_head" activeStageKey={deptHeadGuideStageKey} showTabs={false} />
-              </>
+                  <DashboardStagedGuide
+                    mode="department_head"
+                    activeStageKey={workspaceGuideHoverKey ?? undefined}
+                    showTabs={false}
+                  />
             </div>
           ) : null}
 
           {usesTeacherWorkspaceMenu && primaryMembership ? (
             <div className="mt-5 border-t border-emerald-100 pt-5">
-              <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50/90 via-white to-white p-4 shadow-sm ring-1 ring-emerald-100/90 sm:p-5">
+              <div
+                className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50/90 via-white to-white p-4 shadow-sm ring-1 ring-emerald-100/90 sm:p-5"
+                onMouseLeave={() => setTeacherGuideHoverKey(null)}
+              >
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
                   <FolderKanban className={ICON_INLINE} aria-hidden />
                   {t("dash.teacherShowSelectionTitle")}
@@ -746,7 +751,8 @@ export function DashboardClientView({
                 >
                   <Link
                     href="/dashboard/profile"
-                    onClick={() => setTeacherGuideStageKey("teacher_profile")}
+                    onMouseEnter={() => setTeacherGuideHoverKey("teacher_profile")}
+                    onFocus={() => setTeacherGuideHoverKey("teacher_profile")}
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                   >
                     <UserRound className={ICON_INLINE} aria-hidden />
@@ -754,7 +760,8 @@ export function DashboardClientView({
                   </Link>
                   <Link
                     href={reportsClassesHref(primaryMembership.tenantId, primaryMembership.role)}
-                    onClick={() => setTeacherGuideStageKey("teacher_classes_reports")}
+                    onMouseEnter={() => setTeacherGuideHoverKey("teacher_classes_reports")}
+                    onFocus={() => setTeacherGuideHoverKey("teacher_classes_reports")}
                     className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                   >
                     <Library className={ICON_INLINE} aria-hidden />
@@ -763,10 +770,9 @@ export function DashboardClientView({
                   <button
                     type="button"
                     aria-pressed={teacherWorkspacePanel === "downloads"}
-                    onClick={() => {
-                      setTeacherGuideStageKey("teacher_downloads");
-                      setTeacherWorkspacePanel("downloads");
-                    }}
+                    onMouseEnter={() => setTeacherGuideHoverKey("teacher_downloads")}
+                    onFocus={() => setTeacherGuideHoverKey("teacher_downloads")}
+                    onClick={() => toggleTeacherWorkspacePanel("downloads")}
                     className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                       teacherWorkspacePanel === "downloads"
                         ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -782,7 +788,11 @@ export function DashboardClientView({
                     </span>
                   ) : null}
                 </nav>
-                <DashboardStagedGuide mode="teacher" activeStageKey={teacherGuideStageKey} showTabs={false} />
+                <DashboardStagedGuide
+                  mode="teacher"
+                  activeStageKey={teacherGuideHoverKey ?? undefined}
+                  showTabs={false}
+                />
                 {teacherWorkspacePanel ? (
                   <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-xs font-medium text-emerald-950" role="status" aria-live="polite">
                     <span className="text-zinc-600">{t("dash.teacherSelectionShowing")}</span>{" "}
@@ -809,6 +819,7 @@ export function DashboardClientView({
                   userClearedSchoolFocus.current = true;
                   setOwnerFocusTenantId(null);
                   setWorkspaceDashPanel(null);
+                  setWorkspaceGuideHoverKey(null);
                 }}
                 className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
               >
@@ -816,7 +827,10 @@ export function DashboardClientView({
                 {t("dash.ownerBackToSchools")}
               </button>
             </div>
-            <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+            <section
+              className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+              onMouseLeave={() => setWorkspaceGuideHoverKey(null)}
+            >
             <h2 className="sr-only">{t("dash.schoolWorkspaceMenuTitle")}</h2>
             <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-emerald-950">
               {t("dash.ownerViewingSchool", { name: primaryMembership.tenantName })}
@@ -828,7 +842,9 @@ export function DashboardClientView({
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "overview"}
-                  onClick={() => setWorkspaceDashPanel("overview")}
+                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_overview")}
+                  onFocus={() => setWorkspaceGuideHoverKey("owner_overview")}
+                  onClick={() => toggleWorkspacePanel("overview")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     workspaceDashPanel === "overview"
                       ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -842,7 +858,9 @@ export function DashboardClientView({
                   <button
                     type="button"
                     aria-pressed={workspaceDashPanel === "pdf"}
-                    onClick={() => setWorkspaceDashPanel("pdf")}
+                    onMouseEnter={() => setWorkspaceGuideHoverKey("owner_pdf")}
+                    onFocus={() => setWorkspaceGuideHoverKey("owner_pdf")}
+                    onClick={() => toggleWorkspacePanel("pdf")}
                     className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                       workspaceDashPanel === "pdf"
                         ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -857,7 +875,9 @@ export function DashboardClientView({
                   <button
                     type="button"
                     aria-pressed={workspaceDashPanel === "invites"}
-                    onClick={() => setWorkspaceDashPanel("invites")}
+                    onMouseEnter={() => setWorkspaceGuideHoverKey("owner_invite")}
+                    onFocus={() => setWorkspaceGuideHoverKey("owner_invite")}
+                    onClick={() => toggleWorkspacePanel("invites")}
                     className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                       workspaceDashPanel === "invites"
                         ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -871,7 +891,9 @@ export function DashboardClientView({
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "subjects"}
-                  onClick={() => setWorkspaceDashPanel("subjects")}
+                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_subjects")}
+                  onFocus={() => setWorkspaceGuideHoverKey("owner_subjects")}
+                  onClick={() => toggleWorkspacePanel("subjects")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     workspaceDashPanel === "subjects"
                       ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -884,7 +906,9 @@ export function DashboardClientView({
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "classes"}
-                  onClick={() => setWorkspaceDashPanel("classes")}
+                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_classes")}
+                  onFocus={() => setWorkspaceGuideHoverKey("owner_classes")}
+                  onClick={() => toggleWorkspacePanel("classes")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     workspaceDashPanel === "classes"
                       ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -897,7 +921,9 @@ export function DashboardClientView({
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "timetable"}
-                  onClick={() => setWorkspaceDashPanel("timetable")}
+                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_timetable")}
+                  onFocus={() => setWorkspaceGuideHoverKey("owner_timetable")}
+                  onClick={() => toggleWorkspacePanel("timetable")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     workspaceDashPanel === "timetable"
                       ? "border-emerald-600 bg-emerald-100 text-emerald-950"
@@ -925,7 +951,11 @@ export function DashboardClientView({
                   </span>
                 ) : null}
             </nav>
-            <DashboardStagedGuide mode="owner_workspace" activeStageKey={ownerGuideStageKey} showTabs={false} />
+            <DashboardStagedGuide
+              mode="owner_workspace"
+              activeStageKey={workspaceGuideHoverKey ?? undefined}
+              showTabs={false}
+            />
           </section>
           </>
         ) : null}
