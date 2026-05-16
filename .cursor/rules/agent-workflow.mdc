@@ -42,3 +42,7 @@ The maintainer does **not** want to run **PowerShell** or answer **`y/n`** to pu
 
 6. **User opt-out**  
    If the user says **not** to commit or **not** to push in the same request, respect that for that task only.
+
+## Night View UI
+
+When adding or changing UI surfaces, follow **`.cursor/rules/night-view-ui.mdc`** so controls stay readable in **Night View** (`data-rom-theme="night"`).

@@ -1,0 +1,31 @@
+---
+description: Night View (display theme) — UI colours must stay readable
+alwaysApply: true
+---
+
+# Night View UI (Report-O-Matic)
+
+Night mode is **`html[data-rom-theme="night"]`**, set by `DisplayModeSwitcher` / `UiLanguageProvider` — **not** Tailwind `dark:`.
+
+Global overrides live in **`app/src/app/globals.css`**. New UI must use class patterns that those rules already remap, or extend `globals.css` in the same file when introducing new surface utilities.
+
+## Prefer these patterns (day + night safe)
+
+| Use | Avoid (often invisible at night) |
+|-----|----------------------------------|
+| `bg-white`, `bg-emerald-50`, `bg-emerald-50/70` | `bg-zinc-50/40`, `bg-zinc-50/90`, opaque zinc panels |
+| `border-emerald-200` | `border-emerald-300/80` alone without a globals rule |
+| `text-zinc-900`, `text-zinc-700`, `text-zinc-500` | Hard-coded `#000`, inline `style={{ color }}` |
+| `bg-emerald-800` + `text-white` for primary buttons | `bg-zinc-900` on navy shell (prefer emerald CTA) |
+| `text-amber-800` on panels (globals darkens amber bg) | Pale amber bg + light amber text only |
+
+## Before merging UI work
+
+1. Mentally check the block against **`globals.css`** `html[data-rom-theme="night"]` selectors (`bg-white`, `bg-emerald-50`, `text-zinc-*`, `border-emerald-200`, etc.).
+2. If you need a new Tailwind combo (e.g. new opacity suffix or ring colour), add a matching **`[class*="…"]`** night rule in `globals.css` — do not rely on day-only colours.
+3. Smoke-test in the app: **Display → Night View** on dashboard Subjects/Classes and any new screen.
+
+## Reference
+
+- Theme state: `app/src/components/i18n/UiLanguageProvider.tsx` (`displayTheme`, `data-rom-theme`).
+- Subjects grade-title editor: `app/src/components/reports/TenantClassesPanel.tsx` (`view="subjects"`).

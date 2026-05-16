@@ -64,6 +64,48 @@ html[data-rom-theme="night"] .bg-zinc-100 {
   background-color: #244766 !important;
 }
 
+/* Night: zinc-50 opacity modifiers (e.g. bg-zinc-50/40) — not matched by `.bg-zinc-50` alone. */
+html[data-rom-theme="night"] [class*="bg-zinc-50/"] {
+  background-color: #1a3558 !important;
+}
+
+/* Night: section card borders using emerald-300 (Subjects/Classes panels). */
+html[data-rom-theme="night"] [class*="border-emerald-300"] {
+  border-color: #4a6c99 !important;
+}
+
+html[data-rom-theme="night"] [class*="border-emerald-100"] {
+  border-color: #3d5a84 !important;
+}
+
+/* Night: faint rings on emerald panels. */
+html[data-rom-theme="night"] [class*="ring-emerald-100"] {
+  --tw-ring-color: #4a6c99 !important;
+}
+
+/* Night: primary action buttons (save, invite, create class). */
+html[data-rom-theme="night"] .bg-emerald-800,
+html[data-rom-theme="night"] [class*="bg-emerald-700"],
+html[data-rom-theme="night"] [class*="bg-emerald-800"] {
+  background-color: #3d9a6a !important;
+}
+
+html[data-rom-theme="night"] .bg-emerald-800.text-white,
+html[data-rom-theme="night"] [class*="bg-emerald-800"][class*="text-white"],
+html[data-rom-theme="night"] [class*="bg-emerald-700"][class*="text-white"] {
+  color: #ffffff !important;
+}
+
+html[data-rom-theme="night"] .bg-zinc-900,
+html[data-rom-theme="night"] [class*="bg-zinc-900"] {
+  background-color: #4a6c99 !important;
+}
+
+html[data-rom-theme="night"] .bg-zinc-900.text-white,
+html[data-rom-theme="night"] [class*="bg-zinc-900"][class*="text-white"] {
+  color: #ffffff !important;
+}
+
 /* Night: pale amber surfaces (VAT block, Stripe-off banner) + lightened amber text = unreadable. */
 html[data-rom-theme="night"] [class*="bg-amber-"] {
   background-color: #1a3558 !important;
@@ -163,9 +205,14 @@ html[data-rom-theme="night"] ::placeholder {
 }
 
 html[data-rom-theme="night"] .border-emerald-200,
+html[data-rom-theme="night"] .border-emerald-600,
 html[data-rom-theme="night"] .border-zinc-200,
 html[data-rom-theme="night"] .border-zinc-300 {
   border-color: #3d5a84 !important;
+}
+
+html[data-rom-theme="night"] [class*="border-emerald-600"] {
+  border-color: #5a9a72 !important;
 }
 
 html[data-rom-theme="night"] [class*="border-emerald-200/"] {

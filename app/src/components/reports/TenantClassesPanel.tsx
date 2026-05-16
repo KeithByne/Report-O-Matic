@@ -404,7 +404,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
         {loadError ? (
           <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
         ) : null}
-        <section className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
             <Library className={ICON_SECTION} aria-hidden />
             {t("tenant.subjectsTitle")}
@@ -412,7 +412,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
         {isLead ? (
           <form
             onSubmit={addClass}
-            className="mt-4 space-y-4 rounded-xl border border-emerald-200 bg-zinc-50/40 p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5"
+            className="mt-4 space-y-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 shadow-sm sm:p-5"
           >
             <div>
               <label className="block min-w-0 text-sm">
@@ -435,7 +435,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
                     ))}
                   </datalist>
                 ))}
-                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3">
+                <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50/70 p-3">
                   <p className="text-xs font-semibold text-zinc-800">Delete Custom Subject</p>
                   {customsForCurrentRubric.length > 0 ? (
                     <>
@@ -521,7 +521,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
                 </div>
               </label>
             </div>
-            <div className="rounded-lg border border-emerald-200/90 bg-white/90 p-4">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4">
               <h3 className="text-sm font-semibold text-zinc-900">{t("tenant.subjectSkillMetricLabelsTitle")}</h3>
               <p className="mt-1 text-xs text-zinc-500">{t("tenant.subjectSkillMetricLabelsHint")}</p>
               {!newClassDefaultSubject.trim() ? (
@@ -583,7 +583,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
                 <button
                   type="submit"
                   disabled={busy !== null || !newClassName.trim() || !newClassDefaultSubject.trim()}
-                  className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <Plus className={ICON_INLINE} aria-hidden />
                   {t("tenant.createClass")}
@@ -605,7 +605,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
       {loadError ? (
         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
       ) : null}
-      <section className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
           <BookOpen className={ICON_SECTION} aria-hidden />
           {t("tenant.classesTitle")}
