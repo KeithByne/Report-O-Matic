@@ -571,6 +571,8 @@ const EN: UiMessages = {
   "dash.guide.ownerSubjects1": "Open Subjects in the school menu.",
   "dash.guide.ownerSubjects2": "Select or define a subject, then create a class with a class name.",
   "dash.guide.ownerSubjects3": "Manage custom subjects (rename or delete) in this section.",
+  "dash.guide.ownerSubjects4":
+    "Under Grade area titles for this subject, edit the eight skill row labels; they apply school-wide for that subject and are used in AI-generated comments.",
   "dash.guide.classDh1": "Open Classes in the school menu.",
   "dash.guide.classDh2": "Open each class to add pupils (names and details).",
   "dash.guide.classDh3": "Assign a teacher to the class if others will write reports.",
@@ -1221,6 +1223,8 @@ const EN: UiMessages = {
   "class.assignedTeacherHint":
     "Choose any school team member. Teachers only see classes assigned to them; owners and department heads can open every class in the school.",
   "class.assignmentLabel": "Class assignment:",
+  "class.deleteCustomSubjectSectionTitle": "Delete custom subject",
+  "class.reportsPerCourseLabel": "Reports per course",
   "tenant.subjectSkillMetricLabelsTitle": "Grade area titles for this subject",
   "tenant.subjectSkillMetricLabelsHint":
     "Edit the eight skill rows (Reading through Reading comprehension). These titles stick to this subject for all classes and reports until you change them here. The AI uses the same titles when generating comments.",
@@ -2043,6 +2047,14 @@ const FR: UiMessages = {
   "class.assignedTeacherHint":
     "Choisissez tout membre de l’équipe. Les enseignants ne voient que les classes assignées ; les propriétaires et chefs de département voient toutes les classes.",
   "class.assignmentLabel": "Assignation de la classe :",
+  "class.deleteCustomSubjectSectionTitle": "Supprimer une matière personnalisée",
+  "class.reportsPerCourseLabel": "Rapports par cours",
+  "tenant.subjectSkillMetricLabelsTitle": "Titres des zones de notes pour cette matière",
+  "tenant.subjectSkillMetricLabelsHint":
+    "Modifiez les huit lignes de compétences (lecture à compréhension écrite). Ces titres restent liés à cette matière pour toutes les classes et tous les rapports jusqu’à modification ici. L’IA utilise les mêmes titres pour les commentaires.",
+  "tenant.saveSubjectSkillMetricLabels": "Enregistrer les titres de notes pour cette matière",
+  "tenant.subjectSkillMetricLabelsReset": "Rétablir les valeurs par défaut de l’école",
+  "tenant.subjectSkillMetricLabelsNeedSubject": "Choisissez ou définissez d’abord une matière ci-dessus.",
   "class.saveSettings": "Enregistrer les paramètres",
   "class.deleteClass": "Supprimer la classe",
   "class.studentsTitle": "Élèves de cette classe",
@@ -2674,6 +2686,14 @@ const ES: UiMessages = {
   "class.assignedTeacherHint":
     "Cualquier miembro del equipo puede elegirse. Los profesores solo ven las clases asignadas; titulares y jefes de departamento ven todas.",
   "class.assignmentLabel": "Asignación de la clase:",
+  "class.deleteCustomSubjectSectionTitle": "Eliminar asignatura personalizada",
+  "class.reportsPerCourseLabel": "Informes por curso",
+  "tenant.subjectSkillMetricLabelsTitle": "Títulos de las áreas de calificación para esta asignatura",
+  "tenant.subjectSkillMetricLabelsHint":
+    "Edite las ocho filas de destrezas (lectura hasta comprensión lectora). Estos títulos permanecen vinculados a esta asignatura en todas las clases e informes hasta que los cambie aquí. La IA usa los mismos títulos al generar comentarios.",
+  "tenant.saveSubjectSkillMetricLabels": "Guardar títulos de notas para esta asignatura",
+  "tenant.subjectSkillMetricLabelsReset": "Restablecer valores predeterminados del centro",
+  "tenant.subjectSkillMetricLabelsNeedSubject": "Elija o defina primero una asignatura arriba.",
   "class.saveSettings": "Guardar ajustes",
   "class.deleteClass": "Eliminar clase",
   "class.studentsTitle": "Alumnos en esta clase",

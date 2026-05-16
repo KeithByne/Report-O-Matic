@@ -1214,7 +1214,7 @@ export function ClassWorkspace({
             )}
           </label>
           <label className="block min-w-0 text-sm sm:col-span-2">
-            <span className="mb-1 block text-zinc-600">Reports per Course</span>
+            <span className="mb-1 block text-zinc-600">{t("class.reportsPerCourseLabel")}</span>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <>
                 <select

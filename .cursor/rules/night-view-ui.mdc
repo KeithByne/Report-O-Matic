@@ -29,3 +29,9 @@ Global overrides live in **`app/src/app/globals.css`**. New UI must use class pa
 
 - Theme state: `app/src/components/i18n/UiLanguageProvider.tsx` (`displayTheme`, `data-rom-theme`).
 - Subjects grade-title editor: `app/src/components/reports/TenantClassesPanel.tsx` (`view="subjects"`).
+
+## UI strings (i18n)
+
+- Use `t("…")` only — no hardcoded user-facing English in components.
+- New keys: add to **EN**, **FR**, and **ES** in `app/src/lib/i18n/uiStrings.ts`; mirror in `localeUiFill.ts` (`UI_FILL_FR` / `UI_FILL_ES`) when the key lives only in the EN block; add **de / it / pt** in `localeExtra.ts` for full secondary-locale coverage.
+- Run `node app/scripts/check-ui-i18n-keys.mjs` after adding keys.

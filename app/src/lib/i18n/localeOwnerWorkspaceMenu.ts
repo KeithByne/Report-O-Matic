@@ -17,6 +17,7 @@ export const OWNER_WORKSPACE_DE: Record<string, string> = {
   "tenant.panelLanguage": "Berichtssprache",
   "tenant.panelDownloads": "Downloads",
   "tenant.panelClasses": "Klassen",
+  "tenant.panelSubjects": "Fächer",
   "tenant.sectionMenuTitle": "Abschnitte anzeigen",
   "tenant.sectionMenuHint":
     "Unten erscheint nichts, bis Sie einen Abschnitt aktivieren. Klicken Sie auf eine Schaltfläche zum Anzeigen; erneut klicken zum Ausblenden.",
@@ -37,6 +38,7 @@ export const OWNER_WORKSPACE_PT: Record<string, string> = {
   "tenant.panelLanguage": "Idioma dos relatórios",
   "tenant.panelDownloads": "Transferências",
   "tenant.panelClasses": "Turmas",
+  "tenant.panelSubjects": "Disciplinas",
   "tenant.sectionMenuTitle": "Mostrar secções",
   "tenant.sectionMenuHint":
     "Nada aparece abaixo até ativar uma secção. Clique num botão para mostrar; clique novamente para ocultar.",
@@ -57,6 +59,7 @@ export const OWNER_WORKSPACE_NL: Record<string, string> = {
   "tenant.panelLanguage": "Rapporttaal",
   "tenant.panelDownloads": "Downloads",
   "tenant.panelClasses": "Klassen",
+  "tenant.panelSubjects": "Vakken",
   "tenant.sectionMenuTitle": "Secties tonen",
   "tenant.sectionMenuHint":
     "Er verschijnt hieronder niets tot u een sectie inschakelt. Klik op een knop om te tonen; nogmaals klikken om te verbergen.",
@@ -77,6 +80,7 @@ export const OWNER_WORKSPACE_PL: Record<string, string> = {
   "tenant.panelLanguage": "Język sprawozdań",
   "tenant.panelDownloads": "Pobrania",
   "tenant.panelClasses": "Klasy",
+  "tenant.panelSubjects": "Przedmioty",
   "tenant.sectionMenuTitle": "Pokaż sekcje",
   "tenant.sectionMenuHint":
     "Nic poniżej się nie pojawi, dopóki nie włączysz sekcji. Kliknij przycisk, aby pokazać; kliknij ponownie, aby ukryć.",
@@ -97,6 +101,7 @@ export const OWNER_WORKSPACE_RO: Record<string, string> = {
   "tenant.panelLanguage": "Limba rapoartelor",
   "tenant.panelDownloads": "Descărcări",
   "tenant.panelClasses": "Clase",
+  "tenant.panelSubjects": "Materii",
   "tenant.sectionMenuTitle": "Afișează secțiunile",
   "tenant.sectionMenuHint":
     "Nu apare nimic dedesubt până activați o secțiune. Faceți clic pe un buton pentru a afișa; faceți clic din nou pentru a ascunde.",
@@ -117,6 +122,7 @@ export const OWNER_WORKSPACE_RU: Record<string, string> = {
   "tenant.panelLanguage": "Язык отчётов",
   "tenant.panelDownloads": "Загрузки",
   "tenant.panelClasses": "Классы",
+  "tenant.panelSubjects": "Предметы",
   "tenant.sectionMenuTitle": "Показать разделы",
   "tenant.sectionMenuHint":
     "Ниже ничего не отображается, пока вы не включите раздел. Нажмите кнопку, чтобы показать; нажмите снова, чтобы скрыть.",
@@ -137,6 +143,7 @@ export const OWNER_WORKSPACE_UK: Record<string, string> = {
   "tenant.panelLanguage": "Мова звітів",
   "tenant.panelDownloads": "Завантаження",
   "tenant.panelClasses": "Класи",
+  "tenant.panelSubjects": "Предмети",
   "tenant.sectionMenuTitle": "Показати розділи",
   "tenant.sectionMenuHint":
     "Нижче нічого не з’являється, доки ви не ввімкнете розділ. Натисніть кнопку, щоб показати; натисніть знову, щоб сховати.",
@@ -157,6 +164,7 @@ export const OWNER_WORKSPACE_AR: Record<string, string> = {
   "tenant.panelLanguage": "لغة التقارير",
   "tenant.panelDownloads": "التنزيلات",
   "tenant.panelClasses": "الفصول",
+  "tenant.panelSubjects": "المواد",
   "tenant.sectionMenuTitle": "عرض الأقسام",
   "tenant.sectionMenuHint":
     "لا يظهر شيء أدناه حتى تشغّل قسمًا. انقر على زر للعرض؛ انقر مرة أخرى للإخفاء.",

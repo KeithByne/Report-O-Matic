@@ -436,7 +436,7 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
                   </datalist>
                 ))}
                 <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50/70 p-3">
-                  <p className="text-xs font-semibold text-zinc-800">Delete Custom Subject</p>
+                  <p className="text-xs font-semibold text-zinc-800">{t("class.deleteCustomSubjectSectionTitle")}</p>
                   {customsForCurrentRubric.length > 0 ? (
                     <>
                       <div className="mt-3 flex flex-wrap items-end gap-2">
