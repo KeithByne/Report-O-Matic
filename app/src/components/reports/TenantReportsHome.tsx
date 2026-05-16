@@ -211,7 +211,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
         ) : null}
         <div id="tenant-panel-classes">
-          <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active />
+          <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active view="classes" />
         </div>
       </div>
     );
@@ -402,7 +402,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
 
       {openPanels.has("classes") ? (
         <div id="tenant-panel-classes">
-          <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active />
+          <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active view="classes" />
         </div>
       ) : null}
     </div>

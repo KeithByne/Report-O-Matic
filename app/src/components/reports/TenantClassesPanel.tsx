@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, DoorOpen, Plus, Trash2, Users } from "lucide-react";
+import { BookOpen, DoorOpen, Library, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -31,6 +31,8 @@ export type TenantClassesPanelProps = {
   viewerRole: RomRole;
   /** When true (panel visible), class list and term readiness are loaded; refetch each time this becomes true. */
   active: boolean;
+  /** `subjects`: define subjects + create class; `classes`: class list only. */
+  view: "subjects" | "classes";
 };
 
 function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
@@ -51,7 +53,7 @@ function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
  * Single school “Classes” card: list, term readiness, add/delete (leads), open class + students links.
  * Shown on the dashboard workspace for leads; teachers open the same component via `/reports/[tenant]?panel=classes`.
  */
-export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClassesPanelProps) {
+export function TenantClassesPanel({ tenantId, viewerRole, active, view }: TenantClassesPanelProps) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -301,22 +303,23 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
 
   if (!active) return null;
 
-  return (
-    <>
-      {loadError ? (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
-      ) : null}
-      <section className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-          <BookOpen className={ICON_SECTION} aria-hidden />
-          {t("tenant.classesTitle")}
-        </h2>
+  if (view === "subjects") {
+    return (
+      <>
+        {loadError ? (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
+        ) : null}
+        <section className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+            <Library className={ICON_SECTION} aria-hidden />
+            {t("tenant.subjectsTitle")}
+          </h2>
         {isLead ? (
           <form
             onSubmit={addClass}
             className="mt-4 space-y-4 rounded-xl border border-emerald-200 bg-zinc-50/40 p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5"
           >
-            <div className="border-t border-emerald-200/80 pt-4">
+            <div>
               <label className="block min-w-0 text-sm">
                 <span className="mb-1 block font-semibold text-zinc-900">{t("tenant.addClassStep2Subject")}</span>
                 <input
@@ -451,6 +454,21 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
           <p className="mt-2 text-sm text-zinc-500">{t("tenant.onlyLeadsCreate")}</p>
         )}
 
+        </section>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {loadError ? (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
+      ) : null}
+      <section className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+          <BookOpen className={ICON_SECTION} aria-hidden />
+          {t("tenant.classesTitle")}
+        </h2>
         <ul className="mt-4 divide-y divide-emerald-100">
           {classes.map((c) => {
             const classOverviewHref = `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=overview`;
@@ -512,4 +530,3 @@ export function TenantClassesPanel({ tenantId, viewerRole, active }: TenantClass
       </section>
     </>
   );
-}

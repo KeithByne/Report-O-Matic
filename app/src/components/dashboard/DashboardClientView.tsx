@@ -69,7 +69,7 @@ type MyAgentLink = {
   payout_stripe_account_id?: string | null;
 };
 
-type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "classes" | "timetable" | "schoolType";
+type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "subjects" | "classes" | "timetable" | "schoolType";
 
 type TeacherWorkspacePanel = "downloads";
 
@@ -283,17 +283,21 @@ export function DashboardClientView({
         ? "owner_pdf"
         : workspaceDashPanel === "invites"
           ? "owner_invite"
-          : workspaceDashPanel === "classes"
-            ? "owner_classes"
-            : workspaceDashPanel === "timetable"
-              ? "owner_timetable"
-              : "owner_overview";
+          : workspaceDashPanel === "subjects"
+            ? "owner_subjects"
+            : workspaceDashPanel === "classes"
+              ? "owner_classes"
+              : workspaceDashPanel === "timetable"
+                ? "owner_timetable"
+                : "owner_overview";
   const deptHeadGuideStageKey =
     workspaceDashPanel === "invites"
       ? "dh_invite"
-      : workspaceDashPanel === "classes"
-        ? "dh_classes"
-        : workspaceDashPanel === "timetable"
+      : workspaceDashPanel === "subjects"
+        ? "dh_subjects"
+        : workspaceDashPanel === "classes"
+          ? "dh_classes"
+          : workspaceDashPanel === "timetable"
           ? "dh_timetable"
           : workspaceDashPanel === "pdf"
             ? "dh_pdf"
@@ -642,6 +646,19 @@ export function DashboardClientView({
                       <>
                         <button
                           type="button"
+                          aria-pressed={workspaceDashPanel === "subjects"}
+                          onClick={() => setWorkspaceDashPanel("subjects")}
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                            workspaceDashPanel === "subjects"
+                              ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                          }`}
+                        >
+                          <Library className={ICON_INLINE} aria-hidden />
+                          {t("tenant.panelSubjects")}
+                        </button>
+                        <button
+                          type="button"
                           aria-pressed={workspaceDashPanel === "classes"}
                           onClick={() => setWorkspaceDashPanel("classes")}
                           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
@@ -851,6 +868,19 @@ export function DashboardClientView({
                     {t("dash.panelInviteTeam")}
                   </button>
                 ) : null}
+                <button
+                  type="button"
+                  aria-pressed={workspaceDashPanel === "subjects"}
+                  onClick={() => setWorkspaceDashPanel("subjects")}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    workspaceDashPanel === "subjects"
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                  }`}
+                >
+                  <Library className={ICON_INLINE} aria-hidden />
+                  {t("tenant.panelSubjects")}
+                </button>
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "classes"}
@@ -1271,14 +1301,29 @@ export function DashboardClientView({
                 ) : null}
 
                 {primaryMembership &&
+                workspaceDashPanel === "subjects" &&
+                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
+                  <div id="dash-workspace-panel-subjects">
+                    <TenantClassesPanel
+                      key={`${primaryMembership.tenantId}-subjects`}
+                      tenantId={primaryMembership.tenantId}
+                      viewerRole={primaryMembership.role}
+                      active={workspaceDashPanel === "subjects"}
+                      view="subjects"
+                    />
+                  </div>
+                ) : null}
+
+                {primaryMembership &&
                 workspaceDashPanel === "classes" &&
                 (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
                   <div id="dash-workspace-panel-classes">
                     <TenantClassesPanel
-                      key={primaryMembership.tenantId}
+                      key={`${primaryMembership.tenantId}-classes`}
                       tenantId={primaryMembership.tenantId}
                       viewerRole={primaryMembership.role}
                       active={workspaceDashPanel === "classes"}
+                      view="classes"
                     />
                   </div>
                 ) : null}
