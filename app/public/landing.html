@@ -263,15 +263,6 @@
       }
 
       .hide { display: none !important; }
-      .meta {
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(61, 90, 132, 0.55);
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
       .siteFoot {
@@ -321,16 +312,6 @@
             <span class="pill">Credit billing</span>
           </div>
 
-          <div class="meta">
-            <div class="small">
-              <div><b>Language</b>: <span id="langLabel" class="mono">en</span></div>
-              <div><b>Suggested input language</b>: <span id="inputLangLabel" class="mono">English</span></div>
-            </div>
-            <div class="small">
-              <div><b>Domain</b>: <span class="mono">report-o-matic.online</span></div>
-              <div><b>Mode</b>: <span class="mono">Public Landing</span></div>
-            </div>
-          </div>
         </section>
 
         <main class="card">
@@ -488,8 +469,6 @@
           signInBtn: document.getElementById("signInBtn"),
           signUpBtn: document.getElementById("signUpBtn"),
           forgotPasswordLink: document.getElementById("forgotPasswordLink"),
-          langLabel: document.getElementById("langLabel"),
-          inputLangLabel: document.getElementById("inputLangLabel"),
         };
 
         // Optional: SaaS-owner generated test access link (one-time).
@@ -585,8 +564,6 @@
             "pt-br": "Português (Brasil)",
           };
           var label = map[norm] || map[norm.split("-")[0]] || "English";
-          els.langLabel.textContent = norm;
-          els.inputLangLabel.textContent = label;
           return { raw: raw, normalized: norm, label: label };
         }
 
