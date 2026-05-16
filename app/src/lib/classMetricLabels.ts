@@ -10,6 +10,7 @@ import { isUiLang } from "@/lib/i18n/uiStrings";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { DATASET4_METRICS, type Dataset4MetricKey } from "@/lib/dataset4Metrics";
+import { isSubjectCode } from "@/lib/subjects";
 
 export const METRIC_LABEL_MAX_LEN = 80;
 
