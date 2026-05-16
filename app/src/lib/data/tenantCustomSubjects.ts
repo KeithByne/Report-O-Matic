@@ -1,6 +1,5 @@
 import { rewriteDefaultSubjectForTenantClasses } from "@/lib/data/classesDb";
 import { removeSubjectMetricLabelsKey, renameSubjectMetricLabelsKey } from "@/lib/data/tenantSubjectMetricLabels";
-import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { isGradeRubricProfile, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { getServiceSupabase } from "@/lib/supabase/service";
