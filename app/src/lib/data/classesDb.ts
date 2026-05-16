@@ -5,6 +5,8 @@ import { normalizeActiveWeekdays, parseActiveWeekdaysFromDb } from "@/lib/active
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { RomRole } from "@/lib/data/memberships";
 import { coerceStoredDefaultSubject } from "@/lib/subjects";
+import type { ClassMetricLabelOverrides } from "@/lib/classMetricLabels";
+import { parseClassMetricLabelOverrides } from "@/lib/classMetricLabels";
 import type { ReportKind, ReportPeriod } from "@/lib/reportInputs";
 import { syncTimetableSlotsTeacherForClass } from "@/lib/data/timetableDb";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
@@ -66,6 +68,8 @@ export type ClassRow = {
   /** Timetable teaching-period index (AM then PM); matches owner timetable period counts. */
   preferred_lesson_period_index: number | null;
   active_weekdays: WeekdayKey[];
+  /** Per-class titles for the 16 grade areas (form + AI). Empty = rubric defaults. */
+  custom_metric_labels: ClassMetricLabelOverrides;
   created_at: string;
 };
 
@@ -132,6 +136,7 @@ function mapClassRow(raw: Record<string, unknown>): ClassRow {
     preferred_room_index: parsePreferredRoomIndex(raw.preferred_room_index),
     preferred_lesson_period_index: parsePreferredLessonPeriodIndex(raw.preferred_lesson_period_index),
     active_weekdays: parseActiveWeekdaysFromDb(raw.active_weekdays),
+    custom_metric_labels: parseClassMetricLabelOverrides(raw.custom_metric_labels),
     created_at: raw.created_at as string,
   };
 }
@@ -220,6 +225,7 @@ export async function updateClass(
     preferred_room_index?: number | null;
     preferred_lesson_period_index?: number | null;
     active_weekdays?: WeekdayKey[];
+    custom_metric_labels?: ClassMetricLabelOverrides;
   },
 ): Promise<ClassRow> {
   const supabase = getServiceSupabase();
@@ -258,6 +264,9 @@ export async function updateClass(
   }
   if (patch.active_weekdays !== undefined) {
     row.active_weekdays = normalizeActiveWeekdays(patch.active_weekdays);
+  }
+  if (patch.custom_metric_labels !== undefined) {
+    row.custom_metric_labels = patch.custom_metric_labels;
   }
   let attemptRow: Record<string, unknown> = { ...row };
   let data: Record<string, unknown> | null = null;

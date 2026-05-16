@@ -6,8 +6,8 @@
 
 import type { UiLang } from "@/lib/i18n/uiStrings";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
-import type { Dataset4MetricKey, MetricDivisionKey } from "@/lib/reportInputs";
-import { DATASET4_METRICS, METRIC_DIVISION_LABEL_EN } from "@/lib/reportInputs";
+import type { Dataset4MetricKey, MetricDivisionKey } from "@/lib/dataset4Metrics";
+import { DATASET4_METRICS, METRIC_DIVISION_LABEL_EN } from "@/lib/dataset4Metrics";
 import { metricDivisionLabel, metricLabel } from "@/lib/i18n/uiStrings";
 import { secondaryMetricEnglishForAi, secondaryMetricUiLabel } from "@/lib/i18n/secondaryRubricMetricI18n";
 
@@ -26,8 +26,8 @@ const PRIMARY_METRIC_EN: Record<Dataset4MetricKey, string> = {
   listening: "Follows explanations and instructions",
   speaking: "Oral communication and discussion",
   pronunciation: "Overall Progress",
-  handwriting: "Organisation and presentation of work",
-  audio_comprehension: "Understanding of key concepts",
+  grammar: "Organisation and presentation of work",
+  vocabulary: "Understanding of key concepts",
   reading_comprehension: "Application, reasoning and problem-solving",
 };
 

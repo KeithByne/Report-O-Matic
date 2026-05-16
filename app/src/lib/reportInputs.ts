@@ -4,43 +4,28 @@
  * Row titles in English in this table are for storage/AI plaintext; the report PDF uses i18n from the output language.
  */
 
+import type { MetricLabelsContext } from "@/lib/classMetricLabels";
+import { resolveMetricLabel } from "@/lib/classMetricLabels";
+import {
+  DATASET4_METRICS,
+  LEGACY_METRIC_KEY_BY_CANONICAL,
+  type Dataset4MetricKey,
+  type MetricDivisionKey,
+} from "@/lib/dataset4Metrics";
 import { gradeRubricForClassDefaultSubject } from "@/lib/gradeRubricProfile";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
-import { metricDivisionHeadingEnForRubric, metricLineEnForRubric } from "@/lib/i18n/gradeRubricLabels";
+import { metricDivisionHeadingEnForRubric } from "@/lib/i18n/gradeRubricLabels";
 import { isSubjectCode, subjectLabel } from "@/lib/subjects";
 import type { SubjectCode } from "@/lib/subjects";
 
-export const METRIC_DIVISION_KEYS = ["classroom_behaviour", "direct_skills", "indirect_skills"] as const;
-export type MetricDivisionKey = (typeof METRIC_DIVISION_KEYS)[number];
-
-/** English division lines for AI / plaintext dumps (not for parent PDF). */
-export const METRIC_DIVISION_LABEL_EN: Record<MetricDivisionKey, string> = {
-  classroom_behaviour: "Classroom behaviour",
-  direct_skills: "Direct skills",
-  indirect_skills: "Indirect skills",
-};
-
-export const DATASET4_METRICS = [
-  { key: "attendance", label: "Attendance", divisionKey: "classroom_behaviour" },
-  { key: "punctuality", label: "Punctuality", divisionKey: "classroom_behaviour" },
-  { key: "completes_homework", label: "Completes homework", divisionKey: "classroom_behaviour" },
-  { key: "submits_homework_on_time", label: "Submits homework on time", divisionKey: "classroom_behaviour" },
-  { key: "pays_attention_to_teacher", label: "Pays attention to the teacher", divisionKey: "classroom_behaviour" },
-  { key: "avoids_distraction", label: "Avoids distraction from classmates", divisionKey: "classroom_behaviour" },
-  { key: "takes_part_in_activities", label: "Takes part in classroom activities", divisionKey: "classroom_behaviour" },
-  { key: "interacts_with_peers", label: "Interacts well with the other students", divisionKey: "classroom_behaviour" },
-  { key: "reading", label: "Reading", divisionKey: "direct_skills" },
-  { key: "writing", label: "Writing", divisionKey: "direct_skills" },
-  { key: "listening", label: "Listening", divisionKey: "direct_skills" },
-  { key: "speaking", label: "Speaking", divisionKey: "direct_skills" },
-  { key: "pronunciation", label: "Pronunciation", divisionKey: "indirect_skills" },
-  { key: "handwriting", label: "Grammar", divisionKey: "indirect_skills" },
-  { key: "audio_comprehension", label: "Vocabulary", divisionKey: "indirect_skills" },
-  { key: "reading_comprehension", label: "Reading Comprehension", divisionKey: "indirect_skills" },
-] as const;
-
-export type Dataset4MetricKey = (typeof DATASET4_METRICS)[number]["key"];
+export {
+  DATASET4_METRICS,
+  LEGACY_METRIC_KEY_BY_CANONICAL,
+  METRIC_DIVISION_KEYS,
+  METRIC_DIVISION_LABEL_EN,
+} from "@/lib/dataset4Metrics";
+export type { Dataset4MetricKey, MetricDivisionKey } from "@/lib/dataset4Metrics";
 
 export type TermGrades = Record<Dataset4MetricKey, number | null>;
 
@@ -129,7 +114,10 @@ export function parseReportInputs(raw: unknown): ReportInputs {
       if (!block || typeof block !== "object") continue;
       const b = block as Record<string, unknown>;
       for (const k of KEYS) {
-        const v = b[k];
+        let v = b[k];
+        if ((v === null || v === undefined) && LEGACY_METRIC_KEY_BY_CANONICAL[k]) {
+          v = b[LEGACY_METRIC_KEY_BY_CANONICAL[k]!];
+        }
         if (v === null || v === undefined) parsed[t][k] = null;
         else if (typeof v === "number" && v >= 0 && v <= 10 && Number.isInteger(v)) parsed[t][k] = v;
         else if (typeof v === "string" && /^\d+$/.test(v)) {
@@ -349,7 +337,7 @@ function appendScoredMetricsForTerm(
   lines: string[],
   inputs: ReportInputs,
   termIdx: 0 | 1 | 2,
-  rubric: GradeRubricProfile,
+  labels: MetricLabelsContext,
 ): boolean {
   let currentDiv: MetricDivisionKey | "" = "";
   let any = false;
@@ -359,9 +347,9 @@ function appendScoredMetricsForTerm(
     any = true;
     if (m.divisionKey !== currentDiv) {
       currentDiv = m.divisionKey;
-      lines.push(`[${metricDivisionHeadingEnForRubric(m.divisionKey, rubric)}]`);
+      lines.push(`[${metricDivisionHeadingEnForRubric(m.divisionKey, labels.rubric)}]`);
     }
-    lines.push(`- ${metricLineEnForRubric(m.key, rubric)}: ${String(v)} (0–10)`);
+    lines.push(`- ${resolveMetricLabel(labels, m.key)}: ${String(v)} (0–10)`);
   }
   return any;
 }
@@ -370,14 +358,14 @@ function appendScoredMetricsForTerm(
 export function reportInputsToTeacherNotes(
   inputs: ReportInputs,
   subjectResolved: string,
-  gradeRubricProfile: GradeRubricProfile,
+  labels: MetricLabelsContext,
 ): string {
   const lines: string[] = [];
   lines.push(`Subject: ${subjectResolved}`);
   if (isShortCourseReport(inputs)) {
     lines.push(`Short course — numeric scores below are the only rubric areas in scope for this comment.`);
     const t = 0 as const;
-    const any = appendScoredMetricsForTerm(lines, inputs, t, gradeRubricProfile);
+    const any = appendScoredMetricsForTerm(lines, inputs, t, labels);
     if (!any) lines.push("(No 0–10 scores recorded for this course.)");
     const pct = termAveragePercent(inputs.terms[t]);
     if (pct !== null) lines.push(`Course aggregate: ${formatPercentSigFigs(pct, 2)}`);
@@ -387,7 +375,7 @@ export function reportInputsToTeacherNotes(
   const termLabel = ["Term 1", "Term 2", "Term 3"];
   for (let t = 0; t < 3; t++) {
     lines.push(`--- ${termLabel[t]} ---`);
-    const any = appendScoredMetricsForTerm(lines, inputs, t as 0 | 1 | 2, gradeRubricProfile);
+    const any = appendScoredMetricsForTerm(lines, inputs, t as 0 | 1 | 2, labels);
     if (!any) lines.push("(No numeric scores recorded for this term.)");
     const pct = termAveragePercent(inputs.terms[t]);
     if (pct !== null) lines.push(`Term ${t + 1} aggregate: ${formatPercentSigFigs(pct, 2)}`);

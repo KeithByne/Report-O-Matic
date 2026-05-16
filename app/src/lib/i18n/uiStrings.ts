@@ -281,7 +281,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Вимова",
     "النطق",
   ),
-  handwriting: uiLangRow(
+  grammar: uiLangRow(
     "Grammar",
     "Grammaire",
     "Gramática",
@@ -296,7 +296,7 @@ export const REPORT_METRIC_I18N: Record<Dataset4MetricKey, Record<UiLang, string
     "Граматика",
     "القواعد",
   ),
-  audio_comprehension: uiLangRow(
+  vocabulary: uiLangRow(
     "Vocabulary",
     "Vocabulaire",
     "Vocabulario",
@@ -1221,6 +1221,10 @@ const EN: UiMessages = {
   "class.assignedTeacherHint":
     "Choose any school team member. Teachers only see classes assigned to them; owners and department heads can open every class in the school.",
   "class.assignmentLabel": "Class assignment:",
+  "class.metricLabelsTitle": "Grade area titles",
+  "class.metricLabelsHint":
+    "These titles appear on every report for this class and are sent to the AI when generating comments. Edit only the areas you need; unchanged rows keep the school default.",
+  "class.metricLabelsReset": "Reset all to school defaults",
   "class.saveSettings": "Save class settings",
   "class.deleteClass": "Delete class",
   "class.studentsTitle": "Students in this class",

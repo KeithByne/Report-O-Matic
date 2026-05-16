@@ -9,7 +9,7 @@
  * `SECONDARY_METRIC_UI_OVERRIDES` when translations are ready.
  */
 
-import type { Dataset4MetricKey } from "@/lib/reportInputs";
+import type { Dataset4MetricKey } from "@/lib/dataset4Metrics";
 import { UI_LOCALE_CODES } from "@/lib/i18n/reportLanguages";
 import type { UiLang } from "@/lib/i18n/uiStrings";
 
@@ -28,8 +28,8 @@ export const SECONDARY_METRIC_EN_BY_KEY: Record<Dataset4MetricKey, string> = {
   listening: "Independence – ability to work without constant guidance",
   speaking: "Response to feedback – acting on corrections and advice",
   pronunciation: "Exam / test performance – results under assessment conditions",
-  handwriting: "Presentation – clarity and neatness of written or practical work",
-  audio_comprehension: "Critical thinking – ability to think deeply, question, and form reasoned ideas",
+  grammar: "Presentation – clarity and neatness of written or practical work",
+  vocabulary: "Critical thinking – ability to think deeply, question, and form reasoned ideas",
   reading_comprehension: "Overall Progress – the student's quantifiable progress during the course",
 };
 

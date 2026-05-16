@@ -41,6 +41,13 @@ import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
+import { DATASET4_METRICS, type Dataset4MetricKey } from "@/lib/dataset4Metrics";
+import {
+  defaultMetricLabelDrafts,
+  metricLabelDraftsForClass,
+  metricLabelOverridesFromDrafts,
+  type ClassMetricLabelOverrides,
+} from "@/lib/classMetricLabels";
 
 type ClassWorkspacePanelId =
   | "settings"
@@ -103,6 +110,7 @@ type ClassDetail = {
   /** Timetable room row (0-based), persisted on the class. */
   preferred_room_index?: number | null;
   active_weekdays: WeekdayKey[];
+  custom_metric_labels?: ClassMetricLabelOverrides;
 };
 
 type ClassListRow = { id: string; name: string };
@@ -163,6 +171,9 @@ export function ClassWorkspace({
   const [batchTermFilter, setBatchTermFilter] = useState<ReportPeriod>("first");
 
   const [detail, setDetail] = useState<ClassDetail | null>(null);
+  const [metricLabelDrafts, setMetricLabelDrafts] = useState<Record<Dataset4MetricKey, string>>(() =>
+    defaultMetricLabelDrafts("language", uiLang),
+  );
   /** From the class record only (chosen upstream on the classes card); not editable in this form. */
   const classGradeRubric = useMemo(
     () => parseGradeRubricProfile(detail?.grade_rubric_profile, "language"),
@@ -411,6 +422,9 @@ export function ClassWorkspace({
           : "first",
       );
       setAssignTeacher(c.assigned_teacher_email?.trim() ?? "");
+      setMetricLabelDrafts(
+        metricLabelDraftsForClass(parseGradeRubricProfile(c.grade_rubric_profile, "language"), uiLang, c.custom_metric_labels),
+      );
       const aw = Array.isArray(c.active_weekdays) ? c.active_weekdays : [];
       const keySet = new Set(
         aw.map((x) => (typeof x === "string" ? x.trim().toLowerCase() : "")).filter(isWeekdayKey),
@@ -657,6 +671,7 @@ export function ClassWorkspace({
                   const n = Number.parseInt(lessonPeriodSelect, 10);
                   return Number.isFinite(n) ? Math.max(0, n) : null;
                 })(),
+          custom_metric_labels: metricLabelOverridesFromDrafts(classGradeRubric, uiLang, metricLabelDrafts),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -1294,6 +1309,36 @@ export function ClassWorkspace({
             <div className="space-y-2 text-xs leading-snug text-zinc-500 sm:col-span-2">
               <p>{t("class.coreSettingsReadonlyHint")}</p>
               <p>{t("class.teacherPerReportOutputLangHint")}</p>
+            </div>
+          ) : null}
+          {canManageClassSettings ? (
+            <div className="sm:col-span-2 rounded-xl border border-emerald-100 bg-white/80 p-4">
+              <h4 className="text-sm font-semibold text-zinc-900">{t("class.metricLabelsTitle")}</h4>
+              <p className="mt-1 text-xs text-zinc-500">{t("class.metricLabelsHint")}</p>
+              <div className="mt-3 grid max-h-[28rem] gap-3 overflow-y-auto sm:grid-cols-2">
+                {DATASET4_METRICS.map((m) => (
+                  <label key={m.key} className="block min-w-0 text-xs font-medium text-zinc-700">
+                    <input
+                      value={metricLabelDrafts[m.key]}
+                      onChange={(e) =>
+                        setMetricLabelDrafts((prev) => ({ ...prev, [m.key]: e.target.value }))
+                      }
+                      disabled={busy !== null}
+                      className="block w-full rounded-lg border border-emerald-200 bg-white px-2 py-2 text-sm text-zinc-900 disabled:opacity-50"
+                      maxLength={80}
+                      autoComplete="off"
+                    />
+                  </label>
+                ))}
+              </div>
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => setMetricLabelDrafts(defaultMetricLabelDrafts(classGradeRubric, uiLang))}
+                className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs font-medium text-zinc-800 hover:bg-emerald-100 disabled:opacity-50"
+              >
+                {t("class.metricLabelsReset")}
+              </button>
             </div>
           ) : null}
           {viewerRole === "owner" || viewerRole === "department_head" ? (

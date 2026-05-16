@@ -170,6 +170,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       classCefrLevel:
         gradeRubricProfile === "language" ? cefrLevelForAiPrompts(klass?.cefr_level) : null,
       gradeRubricProfile,
+      customMetricLabels: klass?.custom_metric_labels,
     });
     if (usage.draft) {
       await logOpenAiUsageEvent({

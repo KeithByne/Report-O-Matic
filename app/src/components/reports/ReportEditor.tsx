@@ -21,7 +21,8 @@ import {
   termAveragePercent,
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { metricLabelForRubric } from "@/lib/i18n/gradeRubricLabels";
+import { buildMetricLabelsContext, resolveMetricLabel } from "@/lib/classMetricLabels";
+import type { ClassMetricLabelOverrides } from "@/lib/classMetricLabels";
 import {
   classDefaultSubjectUiLine,
   reportLanguageOptionLabel,
@@ -55,6 +56,7 @@ type ClassInfo = {
   default_subject: string;
   default_output_language: string;
   grade_rubric_profile?: GradeRubricProfile;
+  custom_metric_labels?: ClassMetricLabelOverrides;
 };
 
 type Report = {
@@ -198,6 +200,11 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
   const classUsesLanguageAcquisition = useMemo(
     () => (klass ? parseGradeRubricProfile(klass.grade_rubric_profile, "language") === "language" : false),
     [klass],
+  );
+
+  const metricLabelsCtx = useMemo(
+    () => buildMetricLabelsContext(gradeRubric, klass?.custom_metric_labels, lang),
+    [gradeRubric, klass?.custom_metric_labels, lang],
   );
 
   const load = useCallback(async () => {
@@ -716,7 +723,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
               <div key={m.key} className="flex min-w-0 flex-col">
                 <span className="mb-1 flex min-h-[3rem] items-end">
                   <span className="line-clamp-3 text-[11px] leading-tight text-zinc-700 sm:text-sm">
-                    {metricLabelForRubric(lang, m.key, gradeRubric)}
+                    {resolveMetricLabel(metricLabelsCtx, m.key)}
                   </span>
                 </span>
                 <GradeSelect

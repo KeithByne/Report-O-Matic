@@ -17,6 +17,7 @@ import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { mergeTenantCustomSubjectEntries } from "@/lib/data/tenantCustomSubjects";
 import { parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
+import { parseClassMetricLabelOverrides } from "@/lib/classMetricLabels";
 import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import { isSubjectCode } from "@/lib/subjects";
 import { isWeekdayKey, normalizeActiveWeekdays } from "@/lib/activeWeekdays";
@@ -96,7 +97,8 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       body.active_weekdays !== undefined ||
       body.preferred_room_index !== undefined ||
       body.preferred_lesson_period_index !== undefined ||
-      body.grade_rubric_profile !== undefined
+      body.grade_rubric_profile !== undefined ||
+      body.custom_metric_labels !== undefined
     ) {
       return NextResponse.json(
         {
@@ -199,6 +201,10 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     else if (typeof body.assigned_teacher_email === "string") {
       patch.assigned_teacher_email = body.assigned_teacher_email.trim().toLowerCase() || null;
     }
+  }
+
+  if (isLead && body.custom_metric_labels !== undefined) {
+    patch.custom_metric_labels = parseClassMetricLabelOverrides(body.custom_metric_labels);
   }
 
   if (isLead && body.active_weekdays !== undefined) {
