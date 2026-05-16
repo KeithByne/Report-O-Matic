@@ -1221,10 +1221,12 @@ const EN: UiMessages = {
   "class.assignedTeacherHint":
     "Choose any school team member. Teachers only see classes assigned to them; owners and department heads can open every class in the school.",
   "class.assignmentLabel": "Class assignment:",
-  "class.metricLabelsTitle": "Grade area titles",
-  "class.metricLabelsHint":
-    "These titles appear on every report for this class and are sent to the AI when generating comments. Edit only the areas you need; unchanged rows keep the school default.",
-  "class.metricLabelsReset": "Reset all to school defaults",
+  "tenant.subjectSkillMetricLabelsTitle": "Grade area titles for this subject",
+  "tenant.subjectSkillMetricLabelsHint":
+    "Edit the eight skill rows (Reading through Reading comprehension). These titles stick to this subject for all classes and reports until you change them here. The AI uses the same titles when generating comments.",
+  "tenant.saveSubjectSkillMetricLabels": "Save grade titles for this subject",
+  "tenant.subjectSkillMetricLabelsReset": "Reset to school defaults",
+  "tenant.subjectSkillMetricLabelsNeedSubject": "Choose or define a subject above first.",
   "class.saveSettings": "Save class settings",
   "class.deleteClass": "Delete class",
   "class.studentsTitle": "Students in this class",

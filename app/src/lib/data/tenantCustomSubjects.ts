@@ -1,4 +1,6 @@
 import { rewriteDefaultSubjectForTenantClasses } from "@/lib/data/classesDb";
+import { removeSubjectMetricLabelsKey, renameSubjectMetricLabelsKey } from "@/lib/data/tenantSubjectMetricLabels";
+import { normalizeDefaultSubjectForStorage } from "@/lib/subjects";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { isGradeRubricProfile, parseGradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { getServiceSupabase } from "@/lib/supabase/service";
@@ -132,6 +134,11 @@ export async function renameTenantCustomSubjectName(
   if (error) throw new Error(formatErr(error));
 
   await rewriteDefaultSubjectForTenantClasses(tenantId, from, normTo);
+  try {
+    await renameSubjectMetricLabelsKey(tenantId, from, normTo);
+  } catch {
+    /* non-fatal if column missing */
+  }
 }
 
 /** Removes a custom subject from the school list and marks matching class defaults for re-definition. */
@@ -150,4 +157,9 @@ export async function removeTenantCustomSubjectName(tenantId: string, name: stri
   if (error) throw new Error(formatErr(error));
 
   await rewriteDefaultSubjectForTenantClasses(tenantId, n, "Subject to be Defined");
+  try {
+    await removeSubjectMetricLabelsKey(tenantId, n);
+  } catch {
+    /* non-fatal */
+  }
 }

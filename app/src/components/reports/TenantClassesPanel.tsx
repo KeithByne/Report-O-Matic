@@ -18,9 +18,19 @@ import {
   GRADE_RUBRIC_PROFILES,
   parseGradeRubricProfile,
 } from "@/lib/gradeRubricProfile";
+import {
+  defaultSkillMetricLabelDrafts,
+  metricLabelOverridesFromSkillDrafts,
+  skillMetricLabelDraftsForSubject,
+  subjectMetricLabelsStorageKey,
+  SUBJECT_SKILL_METRIC_KEYS,
+  type ClassMetricLabelOverrides,
+  type SubjectSkillMetricKey,
+} from "@/lib/classMetricLabels";
+import type { TenantSubjectMetricLabelsMap } from "@/lib/data/tenantSubjectMetricLabels";
 import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducationType";
-import { REPORT_SUBJECTS } from "@/lib/subjects";
+import { isSubjectCode, REPORT_SUBJECTS } from "@/lib/subjects";
 
 type ClassRow = { id: string; name: string; student_count: number };
 
@@ -69,6 +79,10 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [bulkTerm, setBulkTerm] = useState<"first" | "second" | "third">("first");
+  const [subjectMetricLabelsMap, setSubjectMetricLabelsMap] = useState<TenantSubjectMetricLabelsMap>({});
+  const [skillMetricDrafts, setSkillMetricDrafts] = useState<Record<SubjectSkillMetricKey, string>>(() =>
+    defaultSkillMetricLabelDrafts("language", uiLang),
+  );
 
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const isLead = viewerRole === "owner" || viewerRole === "department_head";
@@ -103,6 +117,30 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
     if (!active) return;
     void refresh();
   }, [active, refresh]);
+
+  const loadSubjectMetricLabelsMap = useCallback(async () => {
+    if (!isLead) return;
+    try {
+      const res = await fetch(`${base}/subject-metric-labels`, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) setSubjectMetricLabelsMap((data.subject_metric_labels as TenantSubjectMetricLabelsMap) ?? {});
+    } catch {
+      setSubjectMetricLabelsMap({});
+    }
+  }, [base, isLead]);
+
+  const rubricForSubjectDraft = useMemo(() => {
+    const raw = newClassDefaultSubject.trim();
+    if (!raw) return newClassGradeRubric;
+    try {
+      const stored = resolveDefaultSubjectInputToStorage(raw, uiLang);
+      if (isSubjectCode(stored)) return "language";
+      const row = customSubjectRows.find((r) => r.name.toLowerCase() === stored.toLowerCase());
+      return row?.rubric_profile ?? newClassGradeRubric;
+    } catch {
+      return newClassGradeRubric;
+    }
+  }, [newClassDefaultSubject, newClassGradeRubric, customSubjectRows, uiLang]);
 
   const loadSubjectAccountOptions = useCallback(async () => {
     if (!isLead) return;
@@ -158,7 +196,33 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
   useEffect(() => {
     if (!active || !isLead) return;
     void loadSubjectAccountOptions();
-  }, [active, isLead, loadSubjectAccountOptions]);
+    void loadSubjectMetricLabelsMap();
+  }, [active, isLead, loadSubjectAccountOptions, loadSubjectMetricLabelsMap]);
+
+  useEffect(() => {
+    if (!active || view !== "subjects") return;
+    const raw = newClassDefaultSubject.trim();
+    if (!raw) {
+      setSkillMetricDrafts(defaultSkillMetricLabelDrafts(newClassGradeRubric, uiLang));
+      return;
+    }
+    try {
+      const stored = resolveDefaultSubjectInputToStorage(raw, uiLang);
+      const key = subjectMetricLabelsStorageKey(stored);
+      const overrides = subjectMetricLabelsMap[key];
+      setSkillMetricDrafts(skillMetricLabelDraftsForSubject(rubricForSubjectDraft, uiLang, overrides));
+    } catch {
+      setSkillMetricDrafts(defaultSkillMetricLabelDrafts(rubricForSubjectDraft, uiLang));
+    }
+  }, [
+    active,
+    view,
+    newClassDefaultSubject,
+    subjectMetricLabelsMap,
+    rubricForSubjectDraft,
+    uiLang,
+    newClassGradeRubric,
+  ]);
 
   useEffect(() => {
     setNewClassDefaultSubject((prev) => {
@@ -275,6 +339,37 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
       router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("class.subjectRenameFailed"));
+    } finally {
+      setSubjectListBusy(false);
+    }
+  }
+
+  async function saveSubjectSkillMetricLabels() {
+    const raw = newClassDefaultSubject.trim();
+    if (!raw) {
+      alert(t("tenant.subjectSkillMetricLabelsNeedSubject"));
+      return;
+    }
+    let storedSubject: string;
+    try {
+      storedSubject = resolveDefaultSubjectInputToStorage(raw, uiLang);
+    } catch {
+      alert(t("class.invalidSubject"));
+      return;
+    }
+    setSubjectListBusy(true);
+    try {
+      const metric_labels = metricLabelOverridesFromSkillDrafts(rubricForSubjectDraft, uiLang, skillMetricDrafts);
+      const res = await fetch(`${base}/subject-metric-labels`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ subject: storedSubject, metric_labels }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
+      setSubjectMetricLabelsMap((data.subject_metric_labels as TenantSubjectMetricLabelsMap) ?? {});
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
       setSubjectListBusy(false);
     }
@@ -425,6 +520,52 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
                   )}
                 </div>
               </label>
+            </div>
+            <div className="rounded-lg border border-emerald-200/90 bg-white/90 p-4">
+              <h3 className="text-sm font-semibold text-zinc-900">{t("tenant.subjectSkillMetricLabelsTitle")}</h3>
+              <p className="mt-1 text-xs text-zinc-500">{t("tenant.subjectSkillMetricLabelsHint")}</p>
+              {!newClassDefaultSubject.trim() ? (
+                <p className="mt-3 text-xs text-amber-800">{t("tenant.subjectSkillMetricLabelsNeedSubject")}</p>
+              ) : (
+                <>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {SUBJECT_SKILL_METRIC_KEYS.map((key) => (
+                      <label key={key} className="block min-w-0 text-xs font-medium text-zinc-700">
+                        <input
+                          value={skillMetricDrafts[key]}
+                          onChange={(e) =>
+                            setSkillMetricDrafts((prev) => ({ ...prev, [key]: e.target.value }))
+                          }
+                          disabled={subjectListBusy || busy !== null}
+                          className="block w-full rounded-lg border border-emerald-200 bg-white px-2 py-2 text-sm text-zinc-900 disabled:opacity-50"
+                          maxLength={80}
+                          autoComplete="off"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={subjectListBusy || busy !== null}
+                      onClick={() => void saveSubjectSkillMetricLabels()}
+                      className="rounded-lg bg-emerald-800 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      {t("tenant.saveSubjectSkillMetricLabels")}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={subjectListBusy || busy !== null}
+                      onClick={() =>
+                        setSkillMetricDrafts(defaultSkillMetricLabelDrafts(rubricForSubjectDraft, uiLang))
+                      }
+                      className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs font-medium text-zinc-800 disabled:opacity-50"
+                    >
+                      {t("tenant.subjectSkillMetricLabelsReset")}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
             <div className="border-t border-emerald-200/80 pt-4">
               <label className="block min-w-0 text-sm">

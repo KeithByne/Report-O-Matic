@@ -19,10 +19,16 @@ import {
   rubricCompleteForAi,
   formatPercentSigFigs,
   termAveragePercent,
+  storedSubjectForMetricLabels,
 } from "@/lib/reportInputs";
 import { isReportLanguageCode, REPORT_LANGUAGES, type ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { buildMetricLabelsContext, resolveMetricLabel } from "@/lib/classMetricLabels";
-import type { ClassMetricLabelOverrides } from "@/lib/classMetricLabels";
+import {
+  buildMetricLabelsContext,
+  pickSkillMetricOverrides,
+  resolveMetricLabel,
+  subjectMetricLabelsStorageKey,
+  type ClassMetricLabelOverrides,
+} from "@/lib/classMetricLabels";
 import {
   classDefaultSubjectUiLine,
   reportLanguageOptionLabel,
@@ -57,6 +63,10 @@ type ClassInfo = {
   default_output_language: string;
   grade_rubric_profile?: GradeRubricProfile;
   custom_metric_labels?: ClassMetricLabelOverrides;
+};
+
+type ReportLoadPayload = {
+  subject_skill_metric_labels?: ClassMetricLabelOverrides;
 };
 
 type Report = {
@@ -202,10 +212,43 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
     [klass],
   );
 
+  const [subjectSkillMetricLabels, setSubjectSkillMetricLabels] = useState<ClassMetricLabelOverrides>({});
+
   const metricLabelsCtx = useMemo(
-    () => buildMetricLabelsContext(gradeRubric, klass?.custom_metric_labels, lang),
-    [gradeRubric, klass?.custom_metric_labels, lang],
+    () => buildMetricLabelsContext(gradeRubric, subjectSkillMetricLabels, lang),
+    [gradeRubric, subjectSkillMetricLabels, lang],
   );
+
+  const metricLabelSubject = useMemo(
+    () => (klass ? storedSubjectForMetricLabels(inputs, klass.default_subject) : ""),
+    [inputs, klass],
+  );
+
+  useEffect(() => {
+    if (!metricLabelSubject) {
+      setSubjectSkillMetricLabels({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(
+          `/api/tenants/${encodeURIComponent(tenantId)}/subject-metric-labels`,
+          { cache: "no-store" },
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || cancelled) return;
+        const map = (data.subject_metric_labels ?? {}) as Record<string, ClassMetricLabelOverrides>;
+        const key = subjectMetricLabelsStorageKey(metricLabelSubject);
+        setSubjectSkillMetricLabels(pickSkillMetricOverrides(map[key] ?? {}));
+      } catch {
+        if (!cancelled) setSubjectSkillMetricLabels({});
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [metricLabelSubject, tenantId]);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -223,6 +266,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       setStudent(st);
       setReport(rep);
       setKlass(cl);
+      setSubjectSkillMetricLabels(
+        (data as ReportLoadPayload).subject_skill_metric_labels ?? cl?.custom_metric_labels ?? {},
+      );
       const tLang = data.tenant_default_report_language as string;
       setViewerEmail(typeof data.viewer_email === "string" ? data.viewer_email : "");
 

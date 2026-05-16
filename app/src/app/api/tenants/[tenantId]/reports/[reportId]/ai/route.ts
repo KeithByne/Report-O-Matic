@@ -4,6 +4,8 @@ import { estimateOpenAiCostUsd } from "@/lib/ai/openaiCost";
 import { canAccessClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
+import { getSubjectSkillMetricLabels } from "@/lib/data/tenantSubjectMetricLabels";
+import { storedSubjectForMetricLabels } from "@/lib/reportInputs";
 import { getTenantCreditBalance, consumeCreditForReport } from "@/lib/data/credits";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { logOpenAiUsageEvent } from "@/lib/data/openaiUsageEvents";
@@ -170,7 +172,12 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       classCefrLevel:
         gradeRubricProfile === "language" ? cefrLevelForAiPrompts(klass?.cefr_level) : null,
       gradeRubricProfile,
-      customMetricLabels: klass?.custom_metric_labels,
+      customMetricLabels: klass
+        ? await getSubjectSkillMetricLabels(
+            tenantId,
+            storedSubjectForMetricLabels(report.inputs, classDefaultSubject),
+          )
+        : {},
     });
     if (usage.draft) {
       await logOpenAiUsageEvent({

@@ -6,6 +6,8 @@ import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { ReportInputs } from "@/lib/reportInputs";
 import { parseReportInputs } from "@/lib/reportInputs";
 import { getClassInTenant } from "@/lib/data/classesDb";
+import { getSubjectSkillMetricLabels } from "@/lib/data/tenantSubjectMetricLabels";
+import { storedSubjectForMetricLabels } from "@/lib/reportInputs";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { getTenantDefaultReportLanguage } from "@/lib/data/tenantLanguage";
 import { getStudentInTenant } from "@/lib/data/students";
@@ -37,10 +39,17 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
       return NextResponse.json({ error: "You do not have access to this report." }, { status: 403 });
     }
     const tenant_default_report_language = await getTenantDefaultReportLanguage(tenantId);
+    const subject_skill_metric_labels = klass
+      ? await getSubjectSkillMetricLabels(
+          tenantId,
+          storedSubjectForMetricLabels(report.inputs, klass.default_subject),
+        )
+      : {};
     return NextResponse.json({
       report,
       student,
       class: klass,
+      subject_skill_metric_labels,
       tenant_default_report_language,
       viewer_email: gate.email,
     });

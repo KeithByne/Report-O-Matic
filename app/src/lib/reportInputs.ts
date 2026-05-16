@@ -5,7 +5,8 @@
  */
 
 import type { MetricLabelsContext } from "@/lib/classMetricLabels";
-import { resolveMetricLabel } from "@/lib/classMetricLabels";
+import { resolveMetricLabel, subjectMetricLabelsStorageKey } from "@/lib/classMetricLabels";
+import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import {
   DATASET4_METRICS,
   LEGACY_METRIC_KEY_BY_CANONICAL,
@@ -401,4 +402,16 @@ export function resolvedSubjectLineForAi(inputs: ReportInputs, classDefault: str
   const raw = classDefault.trim();
   if (raw && !isSubjectCode(raw.toLowerCase())) return raw;
   return subjectLabel(resolvedSubjectCodeForPrompts(inputs, classDefault));
+}
+
+/** Normalized key for `tenants.subject_metric_labels` (preset code or lowercase custom name). */
+export function storedSubjectForMetricLabels(inputs: ReportInputs, classDefaultSubject: string): string {
+  if (inputs.subject_code) return subjectMetricLabelsStorageKey(inputs.subject_code);
+  const raw = classDefaultSubject.trim();
+  if (!raw) return "efl";
+  try {
+    return subjectMetricLabelsStorageKey(resolveDefaultSubjectInputToStorage(raw));
+  } catch {
+    return subjectMetricLabelsStorageKey(raw);
+  }
 }

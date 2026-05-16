@@ -1,6 +1,6 @@
 /**
  * Single source for grade-area titles on the report form and in the AI dataset block.
- * Class-level overrides win; otherwise rubric + UI language defaults apply.
+ * Per-subject overrides (school-wide) win; otherwise rubric + UI language defaults apply.
  */
 
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
@@ -14,6 +14,37 @@ import { DATASET4_METRICS, type Dataset4MetricKey } from "@/lib/dataset4Metrics"
 export const METRIC_LABEL_MAX_LEN = 80;
 
 export type ClassMetricLabelOverrides = Partial<Record<Dataset4MetricKey, string>>;
+
+/** Last 8 grade rows (skills only) — editable per subject. */
+export const SUBJECT_SKILL_METRIC_KEYS = [
+  "reading",
+  "writing",
+  "listening",
+  "speaking",
+  "pronunciation",
+  "grammar",
+  "vocabulary",
+  "reading_comprehension",
+] as const satisfies readonly Dataset4MetricKey[];
+
+export type SubjectSkillMetricKey = (typeof SUBJECT_SKILL_METRIC_KEYS)[number];
+
+export function subjectMetricLabelsStorageKey(storedSubject: string): string {
+  const t = storedSubject.trim();
+  if (!t) return "";
+  const lower = t.toLowerCase();
+  if (isSubjectCode(lower)) return lower;
+  return lower.replace(/\s+/g, " ").trim();
+}
+
+export function pickSkillMetricOverrides(overrides: ClassMetricLabelOverrides): ClassMetricLabelOverrides {
+  const out: ClassMetricLabelOverrides = {};
+  for (const k of SUBJECT_SKILL_METRIC_KEYS) {
+    const v = overrides[k]?.trim();
+    if (v) out[k] = v;
+  }
+  return out;
+}
 
 export type MetricLabelsContext = {
   rubric: GradeRubricProfile;
@@ -37,7 +68,7 @@ export function parseClassMetricLabelOverrides(raw: unknown): ClassMetricLabelOv
     if (!t) continue;
     out[k] = t.slice(0, METRIC_LABEL_MAX_LEN);
   }
-  return out;
+  return pickSkillMetricOverrides(out);
 }
 
 export function metricDisplayLangFromReportLanguage(
@@ -67,39 +98,40 @@ export function resolveMetricLabel(ctx: MetricLabelsContext, key: Dataset4Metric
   return metricLabelForRubric(ctx.displayLang, key, ctx.rubric);
 }
 
-/** Build overrides JSON for PATCH: only keys that differ from defaults for this class. */
-export function metricLabelOverridesFromDrafts(
+/** Build overrides for save: only skill keys that differ from rubric defaults. */
+export function metricLabelOverridesFromSkillDrafts(
   rubric: GradeRubricProfile,
   displayLang: UiLang,
   drafts: Partial<Record<Dataset4MetricKey, string>>,
 ): ClassMetricLabelOverrides {
   const baseCtx = buildMetricLabelsContext(rubric, {}, displayLang);
   const out: ClassMetricLabelOverrides = {};
-  for (const m of DATASET4_METRICS) {
-    const draft = (drafts[m.key] ?? "").trim();
+  for (const k of SUBJECT_SKILL_METRIC_KEYS) {
+    const draft = (drafts[k] ?? "").trim();
     if (!draft) continue;
-    const def = resolveMetricLabel(baseCtx, m.key);
-    if (draft !== def) out[m.key] = draft.slice(0, METRIC_LABEL_MAX_LEN);
+    const def = resolveMetricLabel(baseCtx, k);
+    if (draft !== def) out[k] = draft.slice(0, METRIC_LABEL_MAX_LEN);
   }
   return out;
 }
 
-/** Default titles for class settings (no overrides). */
-export function defaultMetricLabelDrafts(rubric: GradeRubricProfile, displayLang: UiLang): Record<Dataset4MetricKey, string> {
+export function defaultSkillMetricLabelDrafts(
+  rubric: GradeRubricProfile,
+  displayLang: UiLang,
+): Record<SubjectSkillMetricKey, string> {
   const ctx = buildMetricLabelsContext(rubric, {}, displayLang);
-  const out = {} as Record<Dataset4MetricKey, string>;
-  for (const m of DATASET4_METRICS) out[m.key] = resolveMetricLabel(ctx, m.key);
+  const out = {} as Record<SubjectSkillMetricKey, string>;
+  for (const k of SUBJECT_SKILL_METRIC_KEYS) out[k] = resolveMetricLabel(ctx, k);
   return out;
 }
 
-/** Merge stored overrides onto defaults for editing. */
-export function metricLabelDraftsForClass(
+export function skillMetricLabelDraftsForSubject(
   rubric: GradeRubricProfile,
   displayLang: UiLang,
   overrides: ClassMetricLabelOverrides | null | undefined,
-): Record<Dataset4MetricKey, string> {
+): Record<SubjectSkillMetricKey, string> {
   const ctx = buildMetricLabelsContext(rubric, overrides, displayLang);
-  const out = {} as Record<Dataset4MetricKey, string>;
-  for (const m of DATASET4_METRICS) out[m.key] = resolveMetricLabel(ctx, m.key);
+  const out = {} as Record<SubjectSkillMetricKey, string>;
+  for (const k of SUBJECT_SKILL_METRIC_KEYS) out[k] = resolveMetricLabel(ctx, k);
   return out;
 }
