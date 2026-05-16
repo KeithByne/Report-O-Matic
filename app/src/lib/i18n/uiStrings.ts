@@ -595,7 +595,7 @@ const EN: UiMessages = {
   "dash.guide.ownerTimetableTitle": "Timetable",
   "dash.guide.ownerTimetable1": "Open Timetable to view the full weekly grid for this school.",
   "dash.guide.ownerTimetable2":
-    "As account owner you set how many rooms and morning/afternoon periods apply; department heads place classes, teachers, and rooms on the grid.",
+    "Set how many rooms and morning/afternoon periods apply; department heads place classes, teachers, and rooms on the grid.",
   "dash.guide.ownerTimetable3": "Use print when the timetable is ready for staff.",
   "dash.guide.dhOverview1": "Open Overview to check class, pupil, and report progress for this school.",
   "dash.guide.dhOverview2": "Use this first to see what needs attention before opening other sections.",
