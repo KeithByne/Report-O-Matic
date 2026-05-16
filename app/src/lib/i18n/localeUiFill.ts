@@ -1,3 +1,8 @@
+import {
+  OWNER_MENU_GUIDE_ES,
+  OWNER_MENU_GUIDE_FR,
+} from "@/lib/i18n/localeOwnerMenuGuide";
+
 export const UI_FILL_ES: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
   "brand.saasName": "Report-O-Matic",
@@ -332,6 +337,7 @@ export const UI_FILL_ES: Record<string, string> = {
   "profile.deletingAccount": "Cerrando cuenta…",
   "saas.financePaymentsPausedBanner":
     "El pago con tarjeta está desactivado (ROM_STRIPE_ENABLED no es true). No entrarán nuevos pagos hasta que lo reactive; las cifras siguientes pueden ser solo históricas.",
+  ...OWNER_MENU_GUIDE_ES,
 };
 
 export const UI_FILL_FR: Record<string, string> = {
@@ -667,6 +673,7 @@ export const UI_FILL_FR: Record<string, string> = {
   "profile.deletingAccount": "Fermeture du compte…",
   "saas.financePaymentsPausedBanner":
     "Le paiement par carte est désactivé (ROM_STRIPE_ENABLED n’est pas true). Aucun nouveau paiement ne sera enregistré tant que vous ne le réactivez pas ; les chiffres ci-dessous peuvent être uniquement historiques.",
+  ...OWNER_MENU_GUIDE_FR,
 };
 
 export const UI_FILL_EL: Record<string, string> = {

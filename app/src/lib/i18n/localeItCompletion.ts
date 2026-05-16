@@ -4,6 +4,8 @@
  * Regenerate: `node scripts/export-missing-it-en.mjs && node scripts/generate-it-completion-mt.mjs`
  */
 
+import { OWNER_MENU_GUIDE_IT } from "@/lib/i18n/localeOwnerMenuGuide";
+
 export const IT_COMPLETION: Record<string, string> = {
   "archive.gradesTitleShortCourse": "Voti (0–10) — corso breve",
   "archive.termFocusShortCourse": "Relazione breve del corso (periodo singolo)",
@@ -481,4 +483,5 @@ export const IT_COMPLETION: Record<string, string> = {
   "timetable.teacherFromClassHint": "L’insegnante proviene dalla pagina della classe (docente assegnato). Per cambiare chi insegna questa classe, aggiorna la scheda classe—non qui.",
   "timetable.teacherIntro": "Le tue lezioni compaiono nella griglia sottostante. I capi dipartimento e i proprietari costruiscono l’orario completo della scuola.",
   "timetable.title": "Orario",
+  ...OWNER_MENU_GUIDE_IT,
 };

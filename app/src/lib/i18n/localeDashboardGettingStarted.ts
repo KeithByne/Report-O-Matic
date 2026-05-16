@@ -3,6 +3,18 @@
  * that otherwise fall back to English (de, pt, nl, pl, ro, ru, uk, ar, el).
  */
 
+import {
+  OWNER_MENU_GUIDE_AR,
+  OWNER_MENU_GUIDE_DE,
+  OWNER_MENU_GUIDE_EL,
+  OWNER_MENU_GUIDE_NL,
+  OWNER_MENU_GUIDE_PL,
+  OWNER_MENU_GUIDE_PT,
+  OWNER_MENU_GUIDE_RO,
+  OWNER_MENU_GUIDE_RU,
+  OWNER_MENU_GUIDE_UK,
+} from "@/lib/i18n/localeOwnerMenuGuide";
+
 export const GETTING_STARTED_DE: Record<string, string> = {
   "dash.guide.title": "Erste Schritte",
   "dash.guide.stepPrivacyTitle": "Daten & Datenschutz",
@@ -47,6 +59,7 @@ export const GETTING_STARTED_DE: Record<string, string> = {
     "Tragen Sie die numerischen Noten ein.",
   "dash.guide.report3":
     "Klicken Sie auf die Schaltfläche „Do the Magic“, um die Kommentare zu erstellen. Danach wird der Bericht gespeichert und ist druckbereit.",
+  ...OWNER_MENU_GUIDE_DE,
 };
 
 export const GETTING_STARTED_PT: Record<string, string> = {
@@ -93,6 +106,7 @@ export const GETTING_STARTED_PT: Record<string, string> = {
     "Preencha as notas numéricas.",
   "dash.guide.report3":
     "Prima o botão \"Do the Magic\" para gerar os comentários. Depois, o relatório fica guardado e pronto para imprimir.",
+  ...OWNER_MENU_GUIDE_PT,
 };
 
 export const GETTING_STARTED_NL: Record<string, string> = {
@@ -139,6 +153,7 @@ export const GETTING_STARTED_NL: Record<string, string> = {
     "Vul de numerieke cijfers in.",
   "dash.guide.report3":
     "Druk op de knop 'Do the Magic' om de opmerkingen te genereren. Daarna wordt het rapport opgeslagen en is het klaar om af te drukken.",
+  ...OWNER_MENU_GUIDE_NL,
 };
 
 export const GETTING_STARTED_PL: Record<string, string> = {
@@ -185,6 +200,7 @@ export const GETTING_STARTED_PL: Record<string, string> = {
     "Wprowadź oceny liczbowe.",
   "dash.guide.report3":
     "Naciśnij przycisk „Do the Magic”, aby wygenerować komentarze. Następnie sprawozdanie zostanie zapisane i będzie gotowe do wydruku.",
+  ...OWNER_MENU_GUIDE_PL,
 };
 
 export const GETTING_STARTED_RO: Record<string, string> = {
@@ -231,6 +247,7 @@ export const GETTING_STARTED_RO: Record<string, string> = {
     "Completați notele numerice.",
   "dash.guide.report3":
     "Apăsați butonul „Do the Magic” pentru a genera comentariile. Apoi raportul este salvat și gata de tipărire.",
+  ...OWNER_MENU_GUIDE_RO,
 };
 
 export const GETTING_STARTED_RU: Record<string, string> = {
@@ -277,6 +294,7 @@ export const GETTING_STARTED_RU: Record<string, string> = {
     "Заполните числовые оценки.",
   "dash.guide.report3":
     "Нажмите кнопку «Do the Magic», чтобы сгенерировать комментарии. Затем отчёт сохраняется и готов к печати.",
+  ...OWNER_MENU_GUIDE_RU,
 };
 
 export const GETTING_STARTED_UK: Record<string, string> = {
@@ -323,6 +341,7 @@ export const GETTING_STARTED_UK: Record<string, string> = {
     "Заповніть числові оцінки.",
   "dash.guide.report3":
     "Натисніть кнопку «Do the Magic», щоб згенерувати коментарі. Після цього звіт зберігається і готовий до друку.",
+  ...OWNER_MENU_GUIDE_UK,
 };
 
 export const GETTING_STARTED_AR: Record<string, string> = {
@@ -369,6 +388,7 @@ export const GETTING_STARTED_AR: Record<string, string> = {
     "أدخل الدرجات الرقمية.",
   "dash.guide.report3":
     "اضغط زر 'Do the Magic' لتوليد التعليقات. بعد ذلك يُحفَظ التقرير ويصبح جاهزًا للطباعة.",
+  ...OWNER_MENU_GUIDE_AR,
 };
 
 export const GETTING_STARTED_EL: Record<string, string> = {
@@ -415,4 +435,5 @@ export const GETTING_STARTED_EL: Record<string, string> = {
     "Συμπληρώστε τους αριθμητικούς βαθμούς.",
   "dash.guide.report3":
     "Πατήστε το κουμπί 'Do the Magic' για να δημιουργηθούν τα σχόλια. Έπειτα η αναφορά αποθηκεύεται και είναι έτοιμη για εκτύπωση.",
+  ...OWNER_MENU_GUIDE_EL,
 };
