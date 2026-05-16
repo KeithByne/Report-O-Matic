@@ -530,3 +530,4 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
       </section>
     </>
   );
+}
