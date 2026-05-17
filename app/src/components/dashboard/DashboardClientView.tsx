@@ -236,16 +236,21 @@ export function DashboardClientView({
   const [workspaceGuideHoverKey, setWorkspaceGuideHoverKey] = useState<string | null>(null);
   const [teacherGuideHoverKey, setTeacherGuideHoverKey] = useState<string | null>(null);
 
+  /** Only one dashboard block (menu panel or PDF preview) open at a time. */
   const toggleWorkspacePanel = useCallback((panel: WorkspaceDashPanel) => {
+    setDashboardPdfPreview(null);
     setWorkspaceDashPanel((cur) => (cur === panel ? null : panel));
   }, []);
 
   const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
+    setDashboardPdfPreview(null);
     setTeacherWorkspacePanel((cur) => (cur === panel ? null : panel));
   }, []);
 
   const previewDashboardPdf = useCallback(
     (anchor: DashboardPdfPreviewAnchor, id: string, url: string, title: string) => {
+      setTeacherWorkspacePanel(null);
+      setWorkspaceDashPanel(null);
       setDashboardPdfPreview((cur) =>
         cur?.id === id ? null : { anchor, id, url, title, key: Date.now() },
       );
@@ -275,8 +280,17 @@ export function DashboardClientView({
     if (!usesSchoolWorkspaceMenu) {
       setWorkspaceDashPanel(null);
       setWorkspaceGuideHoverKey(null);
+      setDashboardPdfPreview((prev) => (prev?.anchor === "workspace" ? null : prev));
     }
   }, [usesSchoolWorkspaceMenu]);
+
+  useEffect(() => {
+    if (!usesTeacherWorkspaceMenu) {
+      setTeacherWorkspacePanel(null);
+      setTeacherGuideHoverKey(null);
+      setDashboardPdfPreview((prev) => (prev?.anchor === "teacher" ? null : prev));
+    }
+  }, [usesTeacherWorkspaceMenu]);
 
   useEffect(() => {
     if (classesBootApplied.current || !bootOpenClassesPanel) return;
@@ -602,6 +616,7 @@ export function DashboardClientView({
                               setOwnerFocusTenantId(null);
                               setWorkspaceDashPanel(null);
                               setWorkspaceGuideHoverKey(null);
+                              setDashboardPdfPreview(null);
                             }
                           }}
                         >
@@ -615,6 +630,7 @@ export function DashboardClientView({
                               setOwnerFocusTenantId(tenantId);
                               setWorkspaceDashPanel(null);
                               setWorkspaceGuideHoverKey(null);
+                              setDashboardPdfPreview(null);
                             }}
                           />
                           <span className="min-w-0 flex-1 font-medium text-zinc-900">{tenantName}</span>
@@ -941,6 +957,7 @@ export function DashboardClientView({
                   setOwnerFocusTenantId(null);
                   setWorkspaceDashPanel(null);
                   setWorkspaceGuideHoverKey(null);
+                  setDashboardPdfPreview(null);
                 }}
                 className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
               >
