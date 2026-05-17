@@ -210,6 +210,8 @@ export const IT_COMPLETION: Record<string, string> = {
   "dash.pdfLetterheadTitle": "Carta intestata PDF (proprietario)",
   "dash.pdfPreviewClose": "Chiudi",
   "dash.pdfPreviewTitle": "Anteprima PDF",
+  "dash.pdfPreviewOpenTab": "Apri in una nuova scheda",
+  "dash.pdfPreviewPrintHint": "Usa Stampa nella barra del visualizzatore qui sotto, oppure Ctrl/Cmd+P.",
   "dash.role.saas_platform": "PIATTAFORMA IN SaaS",
   "dash.schoolFocusHint": "Seleziona una scuola per aprire il suo spazio di lavoro qui sotto.",
   "dash.schoolFocusTitle": "Scegliere una scuola:",

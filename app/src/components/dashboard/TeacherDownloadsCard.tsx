@@ -5,8 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { ReportPeriod } from "@/lib/reportInputs";
-import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
-
 type ClassRow = {
   id: string;
   name: string;
@@ -19,12 +17,16 @@ type Props = {
   isTeacher?: boolean;
   /** Renders inside the teacher dashboard menu card (no outer card chrome). */
   embedded?: boolean;
+  onPreviewPdf?: (params: { id: string; url: string; title: string }) => void;
+  activePdfId?: string | null;
 };
 
 export function TeacherDownloadsCard({
   tenantId,
   isTeacher = false,
   embedded = false,
+  onPreviewPdf,
+  activePdfId = null,
 }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -128,10 +130,22 @@ export function TeacherDownloadsCard({
 
   const timetableHref = `${base}/timetable-pdf?lang=${encodeURIComponent(uiLang)}`;
 
-  const btnTimetableClass =
-    "inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100";
-  const btnReportsClass =
-    "inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-950 hover:bg-emerald-200/80";
+  const previewPdf = (id: string, url: string, title: string) => {
+    if (onPreviewPdf) onPreviewPdf({ id, url, title });
+  };
+
+  const btnTimetableClass = (active: boolean) =>
+    `inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+      active
+        ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
+        : "border-emerald-200 bg-emerald-50/70 text-zinc-800 hover:bg-emerald-100"
+    }`;
+  const btnReportsClass = (active: boolean) =>
+    `inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+      active
+        ? "border-emerald-700 bg-emerald-200 text-emerald-950 ring-2 ring-emerald-500/60"
+        : "border-emerald-600 bg-emerald-100 text-emerald-950 hover:bg-emerald-200/80"
+    }`;
   const btnDisabledClass =
     "inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400";
 
@@ -195,7 +209,14 @@ export function TeacherDownloadsCard({
         ) : null}
 
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => openPdfForPrint(timetableHref)} className={btnTimetableClass}>
+          <button
+            type="button"
+            aria-pressed={activePdfId === "teacher-timetable"}
+            onClick={() =>
+              previewPdf("teacher-timetable", timetableHref, t("dash.teacherDownloadsTimetable"))
+            }
+            className={btnTimetableClass(activePdfId === "teacher-timetable")}
+          >
             <CalendarDays className={ICON_INLINE} aria-hidden />
             {t("dash.teacherDownloadsTimetable")}
           </button>
@@ -204,8 +225,11 @@ export function TeacherDownloadsCard({
             bulkReportsReady === true ? (
               <button
                 type="button"
-                onClick={() => openPdfForPrint(teacherReportsHref)}
-                className={btnReportsClass}
+                aria-pressed={activePdfId === "teacher-all-reports"}
+                onClick={() =>
+                  previewPdf("teacher-all-reports", teacherReportsHref, t("dash.teacherDownloadsAllReports"))
+                }
+                className={btnReportsClass(activePdfId === "teacher-all-reports")}
               >
                 <FileText className={ICON_INLINE} aria-hidden />
                 {t("dash.teacherDownloadsAllReports")}

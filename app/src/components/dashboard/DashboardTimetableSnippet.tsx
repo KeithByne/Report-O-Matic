@@ -15,9 +15,17 @@ type Props = {
   role: RomRole;
   /** Dashboard school workspace: open Timetable panel under the menu instead of leaving the page. */
   onOpenTimetable?: () => void;
+  onPreviewPdf?: (params: { id: string; url: string; title: string }) => void;
+  activePdfId?: string | null;
 };
 
-export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: Props) {
+export function DashboardTimetableSnippet({
+  tenantId,
+  role,
+  onOpenTimetable,
+  onPreviewPdf,
+  activePdfId = null,
+}: Props) {
   const { t, lang } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const pdfHref = `${base}/timetable-pdf?lang=${encodeURIComponent(lang)}`;
@@ -186,8 +194,18 @@ export function DashboardTimetableSnippet({ tenantId, role, onOpenTimetable }: P
         )}
         <button
           type="button"
-          onClick={() => openPdfForPrint(pdfHref)}
-          className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-800 hover:bg-emerald-50/60"
+          aria-pressed={activePdfId === `snippet-timetable-${tenantId}`}
+          onClick={() => {
+            const title = role === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint");
+            const params = { id: `snippet-timetable-${tenantId}`, url: pdfHref, title };
+            if (onPreviewPdf) onPreviewPdf(params);
+            else openPdfForPrint(pdfHref);
+          }}
+          className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors ${
+            activePdfId === `snippet-timetable-${tenantId}`
+              ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
+              : "border-emerald-200 bg-white text-zinc-800 hover:bg-emerald-50/60"
+          }`}
         >
           <Printer className={`${ICON_INLINE} h-3.5 w-3.5 opacity-90`} aria-hidden />
           {role === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}

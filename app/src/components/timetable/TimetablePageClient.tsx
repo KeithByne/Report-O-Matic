@@ -54,6 +54,8 @@ type Props = {
   embedded?: boolean;
   /** Owner on dashboard: open Classes and Reports panel under the menu (same as menu button). */
   onOpenClassesAndReports?: () => void;
+  onPreviewPdf?: (params: { id: string; url: string; title: string }) => void;
+  activePdfId?: string | null;
 };
 
 const ROOM_ROW_HEIGHT_PX = 56;
@@ -64,6 +66,8 @@ export function TimetablePageClient({
   viewerRole,
   embedded = false,
   onOpenClassesAndReports,
+  onPreviewPdf,
+  activePdfId = null,
 }: Props) {
   const { t, lang } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
@@ -340,6 +344,18 @@ export function TimetablePageClient({
     return `${base}/timetable-pdf?${params.toString()}`;
   }, [base, effectiveViewMode, lang, selectedRoomIndex, viewerRole]);
 
+  const printTimetableTitle =
+    viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint");
+  const timetablePrintPdfId = `workspace-timetable-${tenantId}`;
+
+  const printTimetablePdf = useCallback(() => {
+    if (onPreviewPdf) {
+      onPreviewPdf({ id: timetablePrintPdfId, url: pdfHref, title: printTimetableTitle });
+    } else {
+      openPdfForPrint(pdfHref);
+    }
+  }, [onPreviewPdf, pdfHref, printTimetableTitle, timetablePrintPdfId]);
+
   useEffect(() => {
     if (viewerRole === "teacher") return;
     if (effectiveViewMode !== "by_teacher") return;
@@ -412,11 +428,16 @@ export function TimetablePageClient({
           </div>
           <button
             type="button"
-            onClick={() => openPdfForPrint(pdfHref)}
-            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
+            aria-pressed={activePdfId === timetablePrintPdfId}
+            onClick={printTimetablePdf}
+            className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+              activePdfId === timetablePrintPdfId
+                ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
+                : "border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
+            }`}
           >
             <Printer className={ICON_INLINE} aria-hidden />
-            {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
+            {printTimetableTitle}
           </button>
           {viewerRole === "owner" || viewerRole === "department_head" ? (
             <select
@@ -460,11 +481,16 @@ export function TimetablePageClient({
             )}
             <button
               type="button"
-              onClick={() => openPdfForPrint(pdfHref)}
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
+              aria-pressed={activePdfId === timetablePrintPdfId}
+              onClick={printTimetablePdf}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                activePdfId === timetablePrintPdfId
+                  ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
+              }`}
             >
               <Printer className={ICON_INLINE} aria-hidden />
-              {viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint")}
+              {printTimetableTitle}
             </button>
             {viewerRole === "owner" || viewerRole === "department_head" ? (
               <select

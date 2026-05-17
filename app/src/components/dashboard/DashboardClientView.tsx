@@ -42,7 +42,7 @@ import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTe
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { classesListHref } from "@/lib/app/classesNavigation";
-import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
+import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCard";
 import { ProfileEditor } from "@/components/dashboard/ProfileEditor";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
 import { DashboardStagedGuide } from "@/components/dashboard/DashboardStagedGuide";
@@ -73,6 +73,16 @@ type MyAgentLink = {
 type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "subjects" | "classes" | "timetable" | "schoolType";
 
 type TeacherWorkspacePanel = "profile" | "classes" | "downloads";
+
+type DashboardPdfPreviewAnchor = "teacher" | "workspace" | "account";
+
+type DashboardPdfPreview = {
+  anchor: DashboardPdfPreviewAnchor;
+  id: string;
+  url: string;
+  title: string;
+  key: number;
+};
 
 export type DashboardClientViewProps = {
   email: string;
@@ -222,6 +232,7 @@ export function DashboardClientView({
 
   const [workspaceDashPanel, setWorkspaceDashPanel] = useState<WorkspaceDashPanel | null>(null);
   const [teacherWorkspacePanel, setTeacherWorkspacePanel] = useState<TeacherWorkspacePanel | null>(null);
+  const [dashboardPdfPreview, setDashboardPdfPreview] = useState<DashboardPdfPreview | null>(null);
   const [workspaceGuideHoverKey, setWorkspaceGuideHoverKey] = useState<string | null>(null);
   const [teacherGuideHoverKey, setTeacherGuideHoverKey] = useState<string | null>(null);
 
@@ -232,6 +243,24 @@ export function DashboardClientView({
   const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
     setTeacherWorkspacePanel((cur) => (cur === panel ? null : panel));
   }, []);
+
+  const previewDashboardPdf = useCallback(
+    (anchor: DashboardPdfPreviewAnchor, id: string, url: string, title: string) => {
+      setDashboardPdfPreview((cur) =>
+        cur?.id === id ? null : { anchor, id, url, title, key: Date.now() },
+      );
+    },
+    [],
+  );
+
+  const closeDashboardPdfPreview = useCallback(() => setDashboardPdfPreview(null), []);
+
+  const teacherRegistersPdfId = (tenantId: string) => `teacher-registers-${tenantId}`;
+  const schoolRegistersPdfId = (tenantId: string) => `school-registers-${tenantId}`;
+  const teacherRegistersPdfUrl = (tenantId: string) =>
+    `/api/tenants/${encodeURIComponent(tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
+  const schoolRegistersPdfUrl = (tenantId: string) =>
+    `/api/tenants/${encodeURIComponent(tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
 
   const teacherMenuButtonClass = (panel: TeacherWorkspacePanel) =>
     `inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
@@ -281,6 +310,11 @@ export function DashboardClientView({
     const el = document.getElementById(`dash-teacher-panel-${teacherWorkspacePanel}`);
     scrollPanelContentTopIntoView(el);
   }, [teacherWorkspacePanel]);
+
+  useEffect(() => {
+    if (!dashboardPdfPreview) return;
+    scrollPanelContentTopIntoView(document.getElementById("dash-teacher-panel-pdf-preview"));
+  }, [dashboardPdfPreview]);
 
   useEffect(() => {
     if (!agentStartupOpen) return;
@@ -495,12 +529,20 @@ export function DashboardClientView({
                   <button
                     key={m.tenantId}
                     type="button"
+                    aria-pressed={dashboardPdfPreview?.id === teacherRegistersPdfId(m.tenantId)}
                     onClick={() =>
-                      openPdfForPrint(
-                        `/api/tenants/${encodeURIComponent(m.tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                      previewDashboardPdf(
+                        "account",
+                        teacherRegistersPdfId(m.tenantId),
+                        teacherRegistersPdfUrl(m.tenantId),
+                        t("dash.teacherDownloadsPrintMyRegisters"),
                       )
                     }
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 sm:min-w-[14rem]"
+                    className={`inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm sm:min-w-[14rem] ${
+                      dashboardPdfPreview?.id === teacherRegistersPdfId(m.tenantId)
+                        ? "bg-emerald-900 ring-2 ring-emerald-400/70"
+                        : "bg-emerald-700 hover:bg-emerald-800"
+                    }`}
                   >
                     <Printer className={ICON_INLINE} aria-hidden />
                     {teacherMemberships.length > 1 ? `${m.tenantName} — ` : null}
@@ -508,7 +550,15 @@ export function DashboardClientView({
                   </button>
                 ))}
               </div>
-              </div>
+              {dashboardPdfPreview?.anchor === "account" ? (
+                <InlinePdfPreviewCard
+                  title={dashboardPdfPreview.title}
+                  pdfUrl={dashboardPdfPreview.url}
+                  previewKey={dashboardPdfPreview.key}
+                  onClose={closeDashboardPdfPreview}
+                />
+              ) : null}
+            </div>
           ) : null}
 
           {hasOwner && memberships.length > 0 ? (
@@ -690,12 +740,22 @@ export function DashboardClientView({
                         </button>
                         <button
                           type="button"
+                          aria-pressed={
+                            dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
+                          }
                           onClick={() =>
-                            openPdfForPrint(
-                              `/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                            previewDashboardPdf(
+                              "workspace",
+                              schoolRegistersPdfId(primaryMembership.tenantId),
+                              schoolRegistersPdfUrl(primaryMembership.tenantId),
+                              t("dash.ownerAllRegisterLists"),
                             )
                           }
-                          className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                            dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
+                              ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
+                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                          }`}
                         >
                           <Printer className={ICON_INLINE} aria-hidden />
                           {t("dash.ownerAllRegisterLists")}
@@ -728,7 +788,7 @@ export function DashboardClientView({
                         {t("tenant.panelDownloads")}
                       </Link>
                     ) : null}
-                    {workspaceDashPanel ? (
+                    {workspaceDashPanel || dashboardPdfPreview?.anchor === "workspace" ? (
                       <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
                         <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
                       </span>
@@ -794,19 +854,27 @@ export function DashboardClientView({
                     <button
                       key={m.tenantId}
                       type="button"
+                      aria-pressed={dashboardPdfPreview?.id === teacherRegistersPdfId(m.tenantId)}
                       onClick={() =>
-                        openPdfForPrint(
-                          `/api/tenants/${encodeURIComponent(m.tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                        previewDashboardPdf(
+                          "teacher",
+                          teacherRegistersPdfId(m.tenantId),
+                          teacherRegistersPdfUrl(m.tenantId),
+                          t("dash.teacherDownloadsPrintMyRegisters"),
                         )
                       }
-                      className="inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800"
+                      className={`inline-flex items-center gap-2 rounded-lg border border-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm ${
+                        dashboardPdfPreview?.id === teacherRegistersPdfId(m.tenantId)
+                          ? "bg-emerald-900 ring-2 ring-emerald-400/70"
+                          : "bg-emerald-700 hover:bg-emerald-800"
+                      }`}
                     >
                       <NotebookText className={ICON_INLINE} aria-hidden />
                       {teacherMemberships.length > 1 ? `${m.tenantName} — ` : null}
                       {t("dash.teacherDownloadsPrintMyRegisters")}
                     </button>
                   ))}
-                  {teacherWorkspacePanel ? (
+                  {teacherWorkspacePanel || dashboardPdfPreview?.anchor === "teacher" ? (
                     <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
                       <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
                     </span>
@@ -842,6 +910,18 @@ export function DashboardClientView({
                     tenantId={primaryMembership.tenantId}
                     isTeacher={primaryMembership.role === "teacher"}
                     embedded
+                    onPreviewPdf={({ id, url, title }) => previewDashboardPdf("teacher", id, url, title)}
+                    activePdfId={
+                      dashboardPdfPreview?.anchor === "teacher" ? dashboardPdfPreview.id : null
+                    }
+                  />
+                ) : null}
+                {dashboardPdfPreview?.anchor === "teacher" ? (
+                  <InlinePdfPreviewCard
+                    title={dashboardPdfPreview.title}
+                    pdfUrl={dashboardPdfPreview.url}
+                    previewKey={dashboardPdfPreview.key}
+                    onClose={closeDashboardPdfPreview}
                   />
                 ) : null}
               </div>
@@ -976,17 +1056,27 @@ export function DashboardClientView({
                 </button>
                 <button
                   type="button"
+                  aria-pressed={
+                    dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
+                  }
                   onClick={() =>
-                    openPdfForPrint(
-                      `/api/tenants/${encodeURIComponent(primaryMembership.tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                    previewDashboardPdf(
+                      "workspace",
+                      schoolRegistersPdfId(primaryMembership.tenantId),
+                      schoolRegistersPdfUrl(primaryMembership.tenantId),
+                      t("dash.ownerAllRegisterLists"),
                     )
                   }
-                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
+                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                  }`}
                 >
                   <Printer className={ICON_INLINE} aria-hidden />
                   {t("dash.ownerAllRegisterLists")}
                 </button>
-                {workspaceDashPanel ? (
+                {workspaceDashPanel || dashboardPdfPreview?.anchor === "workspace" ? (
                   <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
                     <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
                   </span>
@@ -1265,6 +1355,10 @@ export function DashboardClientView({
                           onOpenTimetable={
                             primaryMembership.role === "department_head" ? () => setWorkspaceDashPanel("timetable") : undefined
                           }
+                          onPreviewPdf={({ id, url, title }) => previewDashboardPdf("workspace", id, url, title)}
+                          activePdfId={
+                            dashboardPdfPreview?.anchor === "workspace" ? dashboardPdfPreview.id : null
+                          }
                         />
                       </div>
                     ) : null}
@@ -1430,8 +1524,20 @@ export function DashboardClientView({
                       schoolName={primaryMembership.tenantName}
                       viewerRole={primaryMembership.role}
                       embedded
+                      onPreviewPdf={({ id, url, title }) => previewDashboardPdf("workspace", id, url, title)}
+                      activePdfId={
+                        dashboardPdfPreview?.anchor === "workspace" ? dashboardPdfPreview.id : null
+                      }
                     />
                   </div>
+                ) : null}
+                {dashboardPdfPreview?.anchor === "workspace" ? (
+                  <InlinePdfPreviewCard
+                    title={dashboardPdfPreview.title}
+                    pdfUrl={dashboardPdfPreview.url}
+                    previewKey={dashboardPdfPreview.key}
+                    onClose={closeDashboardPdfPreview}
+                  />
                 ) : null}
               </>
             ) : null}
