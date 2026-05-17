@@ -782,6 +782,22 @@ export function DashboardClientView({
                     <Download className={ICON_INLINE} aria-hidden />
                     {t("tenant.panelDownloads")}
                   </button>
+                  {teacherMemberships.map((m) => (
+                    <button
+                      key={m.tenantId}
+                      type="button"
+                      onClick={() =>
+                        openPdfForPrint(
+                          `/api/tenants/${encodeURIComponent(m.tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`,
+                        )
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800"
+                    >
+                      <NotebookText className={ICON_INLINE} aria-hidden />
+                      {teacherMemberships.length > 1 ? `${m.tenantName} — ` : null}
+                      {t("dash.teacherDownloadsPrintMyRegisters")}
+                    </button>
+                  ))}
                   {teacherWorkspacePanel ? (
                     <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
                       <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
@@ -799,14 +815,6 @@ export function DashboardClientView({
                     tenantId={primaryMembership.tenantId}
                     isTeacher={primaryMembership.role === "teacher"}
                     embedded
-                    registerSchools={
-                      teacherMemberships.length > 1
-                        ? teacherMemberships.map((m) => ({
-                            tenantId: m.tenantId,
-                            tenantName: m.tenantName,
-                          }))
-                        : undefined
-                    }
                   />
                 ) : null}
               </div>

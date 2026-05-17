@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, FileText, NotebookText, Printer } from "lucide-react";
+import { CalendarDays, FileText, Printer } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
@@ -14,22 +14,17 @@ type ClassRow = {
   default_new_report_kind?: "standard" | "short_course";
 };
 
-type RegisterSchool = { tenantId: string; tenantName: string };
-
 type Props = {
   tenantId: string;
   isTeacher?: boolean;
   /** Renders inside the teacher dashboard menu card (no outer card chrome). */
   embedded?: boolean;
-  /** When set, register PDF buttons are shown for each school (multi-school teachers). */
-  registerSchools?: RegisterSchool[];
 };
 
 export function TeacherDownloadsCard({
   tenantId,
   isTeacher = false,
   embedded = false,
-  registerSchools,
 }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -131,23 +126,14 @@ export function TeacherDownloadsCard({
     };
   }, [bulkReadyUrl]);
 
-  const registersHrefFor = (schoolTenantId: string) =>
-    `/api/tenants/${encodeURIComponent(schoolTenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
   const timetableHref = `${base}/timetable-pdf?lang=${encodeURIComponent(uiLang)}`;
 
   const btnTimetableClass =
     "inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100";
   const btnReportsClass =
     "inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-950 hover:bg-emerald-200/80";
-  const btnRegistersClass =
-    "inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800";
   const btnDisabledClass =
     "inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400";
-
-  const registerTargets = useMemo(() => {
-    if (registerSchools && registerSchools.length > 0) return registerSchools;
-    return [{ tenantId, tenantName: "" }];
-  }, [registerSchools, tenantId]);
 
   const shellClass = embedded
     ? "mt-4 border-t border-emerald-100 pt-4"
@@ -233,19 +219,6 @@ export function TeacherDownloadsCard({
           ) : (
             <span className="text-sm text-zinc-400">{t("dash.teacherDownloadsNoClass")}</span>
           )}
-
-          {registerTargets.map((school) => (
-            <button
-              key={school.tenantId}
-              type="button"
-              onClick={() => openPdfForPrint(registersHrefFor(school.tenantId))}
-              className={btnRegistersClass}
-            >
-              <NotebookText className={ICON_INLINE} aria-hidden />
-              {registerTargets.length > 1 && school.tenantName ? `${school.tenantName} — ` : null}
-              {t("dash.teacherDownloadsPrintMyRegisters")}
-            </button>
-          ))}
         </div>
 
         {bulkReportsReady === false && teacherReportsHref ? (
