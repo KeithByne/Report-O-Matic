@@ -1,9 +1,11 @@
 "use client";
 
-import { Building2, Eye, FileImage, Save, Trash2, Upload, X } from "lucide-react";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { Building2, ExternalLink, Eye, FileImage, Save, Trash2, Upload, X } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { PdfBlobIframeViewer } from "@/components/dashboard/PdfBlobIframeViewer";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 
 type Tenant = { tenantId: string; tenantName: string };
@@ -38,7 +40,6 @@ export function DashboardTenantPdfLetterhead({
   const [logoBusy, setLogoBusy] = useState<string | null>(null);
   const [logoKey, setLogoKey] = useState(0);
   const [previewTenantId, setPreviewTenantId] = useState<string | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const tenantsRef = useRef(tenants);
   tenantsRef.current = tenants;
 
@@ -171,6 +172,12 @@ export function DashboardTenantPdfLetterhead({
   function openPreview(tenantId: string) {
     setPreviewTenantId(tenantId);
   }
+
+  const previewPdfUrl = useMemo(() => {
+    if (!previewTenantId) return null;
+    const lang = reportLangByTenant[previewTenantId] ?? uiLang;
+    return `/api/tenants/${encodeURIComponent(previewTenantId)}/pdf-sample?lang=${encodeURIComponent(lang)}&k=${logoKey}`;
+  }, [previewTenantId, reportLangByTenant, uiLang, logoKey]);
 
   if (tenants.length === 0) return null;
 
@@ -324,24 +331,36 @@ export function DashboardTenantPdfLetterhead({
                 <FileImage className={ICON_INLINE} aria-hidden />
                 {t("dash.pdfPreviewTitle")}
               </h2>
-              <button
-                type="button"
-                onClick={() => setPreviewTenantId(null)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
-              >
-                <X className={ICON_INLINE} aria-hidden />
-                {t("dash.pdfPreviewClose")}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                {previewPdfUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => openPdfForPrint(previewPdfUrl)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
+                  >
+                    <ExternalLink className={ICON_INLINE} aria-hidden />
+                    {t("dash.pdfPreviewOpenTab")}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setPreviewTenantId(null)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
+                >
+                  <X className={ICON_INLINE} aria-hidden />
+                  {t("dash.pdfPreviewClose")}
+                </button>
+              </div>
             </div>
-            <iframe
-              ref={iframeRef}
-              title={t("dash.pdfPreviewTitle")}
-              className="min-h-0 w-full flex-1 bg-zinc-100"
-              key={`pdf-preview-${previewTenantId}-${reportLangByTenant[previewTenantId] ?? uiLang}-${logoKey}`}
-              src={`/api/tenants/${encodeURIComponent(previewTenantId)}/pdf-sample?inline=1&lang=${encodeURIComponent(
-                reportLangByTenant[previewTenantId] ?? uiLang,
-              )}&t=${Date.now()}&k=${logoKey}`}
-            />
+            {previewPdfUrl ? (
+              <PdfBlobIframeViewer
+                key={previewPdfUrl}
+                pdfUrl={previewPdfUrl}
+                previewKey={logoKey}
+                title={t("dash.pdfPreviewTitle")}
+                className="min-h-0 w-full flex-1 bg-zinc-100"
+              />
+            ) : null}
           </div>
         </div>
       ) : null}

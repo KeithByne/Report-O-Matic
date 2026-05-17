@@ -1,10 +1,10 @@
 "use client";
 
 import { ExternalLink, Printer, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { PdfBlobIframeViewer } from "@/components/dashboard/PdfBlobIframeViewer";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
-import { openPdfForPrint, pdfInlineSrc } from "@/lib/app/openPdfForPrint";
+import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 
 type Props = {
   title: string;
@@ -16,48 +16,6 @@ type Props = {
 
 export function InlinePdfPreviewCard({ title, pdfUrl, onClose, previewKey = 0 }: Props) {
   const { t } = useUiLanguage();
-  const fetchUrl = useMemo(() => pdfInlineSrc(pdfUrl, previewKey), [pdfUrl, previewKey]);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    let objectUrl: string | null = null;
-    setLoading(true);
-    setLoadError(null);
-    setBlobUrl(null);
-
-    void (async () => {
-      try {
-        const res = await fetch(fetchUrl, { credentials: "include" });
-        const contentType = (res.headers.get("content-type") || "").toLowerCase();
-        if (!res.ok) {
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
-          const msg = typeof data.error === "string" ? data.error.trim() : "";
-          throw new Error(msg || t("dash.pdfPreviewLoadFailed"));
-        }
-        if (!contentType.includes("application/pdf")) {
-          throw new Error(t("dash.pdfPreviewLoadFailed"));
-        }
-        const blob = await res.blob();
-        if (cancelled) return;
-        objectUrl = URL.createObjectURL(blob);
-        setBlobUrl(objectUrl);
-      } catch (e: unknown) {
-        if (!cancelled) {
-          setLoadError(e instanceof Error ? e.message : t("dash.pdfPreviewLoadFailed"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [fetchUrl, t]);
 
   return (
     <section
@@ -89,15 +47,7 @@ export function InlinePdfPreviewCard({ title, pdfUrl, onClose, previewKey = 0 }:
           </button>
         </div>
       </div>
-      {loadError ? (
-        <p className="px-4 py-3 text-sm text-red-800" role="alert">
-          {loadError}
-        </p>
-      ) : loading ? (
-        <p className="px-4 py-8 text-center text-sm text-zinc-600">{t("dash.pdfPreviewLoading")}</p>
-      ) : blobUrl ? (
-        <iframe title={title} className="block h-[min(70vh,720px)] w-full bg-zinc-100" src={blobUrl} />
-      ) : null}
+      <PdfBlobIframeViewer pdfUrl={pdfUrl} previewKey={previewKey} title={title} />
     </section>
   );
 }

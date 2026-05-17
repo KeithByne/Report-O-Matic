@@ -6,6 +6,7 @@ import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { getTenantDefaultReportLanguage } from "@/lib/data/tenantLanguage";
 import { isReportLanguageCode, languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, subjectLabelLocalized, translate } from "@/lib/i18n/uiStrings";
+import { pdfResponseHeaders } from "@/lib/pdf/pdfResponseHeaders";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { emptyReportInputs } from "@/lib/reportInputs";
 
@@ -58,10 +59,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const fname = `sample-report-${tenantId.slice(0, 8)}.pdf`;
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${fname}"`,
-      },
+      headers: pdfResponseHeaders({ inline, filename: fname }),
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "PDF failed.";
