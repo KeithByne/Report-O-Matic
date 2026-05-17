@@ -37,9 +37,12 @@ function roleLabel(role: RomRole, tr: (k: string) => string): string {
 export function ProfileEditor({
   userDisplayName,
   membershipRoles,
+  embedded = false,
 }: {
   userDisplayName: string;
   membershipRoles: RomRole[];
+  /** Account + privacy cards only, for the teacher dashboard menu panel. */
+  embedded?: boolean;
 }) {
   const { t } = useUiLanguage();
 
@@ -198,31 +201,8 @@ export function ProfileEditor({
     }
   };
 
-  return (
-    <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
-      <header className="rom-app-shell-header">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
-          <AppHeaderLeftCluster
-            roleLabel={headerRoleLine}
-            userDisplayName={userDisplayName}
-            pageTitle={t("profile.pageTitle")}
-          />
-          <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
-            <GlobeLanguageSwitcher />
-            <DisplayModeSwitcher />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-4xl space-y-6 px-5 py-8">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
-      >
-        <ArrowLeft className={ICON_INLINE} aria-hidden />
-        {t("profile.backToDashboard")}
-      </Link>
-
+  const profileCards = (
+    <>
       <div className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
           <UserRound className={ICON_INLINE} aria-hidden />
@@ -418,6 +398,42 @@ export function ProfileEditor({
           </button>
         </div>
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div id="dash-teacher-panel-profile" className="mt-4 space-y-6 border-t border-emerald-100 pt-4">
+        {profileCards}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-emerald-50/80 text-zinc-950">
+      <header className="rom-app-shell-header">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
+          <AppHeaderLeftCluster
+            roleLabel={headerRoleLine}
+            userDisplayName={userDisplayName}
+            pageTitle={t("profile.pageTitle")}
+          />
+          <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
+            <GlobeLanguageSwitcher />
+            <DisplayModeSwitcher />
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-4xl space-y-6 px-5 py-8">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+        >
+          <ArrowLeft className={ICON_INLINE} aria-hidden />
+          {t("profile.backToDashboard")}
+        </Link>
+        {profileCards}
       </main>
     </div>
   );

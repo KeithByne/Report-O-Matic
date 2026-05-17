@@ -43,6 +43,7 @@ import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimet
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { classesListHref } from "@/lib/app/classesNavigation";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
+import { ProfileEditor } from "@/components/dashboard/ProfileEditor";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
 import { DashboardStagedGuide } from "@/components/dashboard/DashboardStagedGuide";
 import { OverviewDataPrivacySection } from "@/components/dashboard/OverviewDataPrivacySection";
@@ -71,7 +72,7 @@ type MyAgentLink = {
 
 type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "subjects" | "classes" | "timetable" | "schoolType";
 
-type TeacherWorkspacePanel = "downloads";
+type TeacherWorkspacePanel = "profile" | "classes" | "downloads";
 
 export type DashboardClientViewProps = {
   email: string;
@@ -231,6 +232,13 @@ export function DashboardClientView({
   const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
     setTeacherWorkspacePanel((cur) => (cur === panel ? null : panel));
   }, []);
+
+  const teacherMenuButtonClass = (panel: TeacherWorkspacePanel) =>
+    `inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+      teacherWorkspacePanel === panel
+        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+    }`;
   const [schoolGradeRubricByTenant, setSchoolGradeRubricByTenant] = useState<Record<string, GradeRubricProfile>>({});
   const [schoolTypeSaving, setSchoolTypeSaving] = useState(false);
 
@@ -749,35 +757,35 @@ export function DashboardClientView({
                   className="mt-4 flex flex-wrap items-center gap-2"
                   aria-label={t("dash.teacherShowSelectionTitle")}
                 >
-                  <Link
-                    href="/dashboard/profile"
+                  <button
+                    type="button"
+                    aria-pressed={teacherWorkspacePanel === "profile"}
                     onMouseEnter={() => setTeacherGuideHoverKey("teacher_profile")}
                     onFocus={() => setTeacherGuideHoverKey("teacher_profile")}
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                    onClick={() => toggleTeacherWorkspacePanel("profile")}
+                    className={teacherMenuButtonClass("profile")}
                   >
                     <UserRound className={ICON_INLINE} aria-hidden />
                     {t("dash.profileButton")}
-                  </Link>
-                  <Link
-                    href={reportsClassesHref(primaryMembership.tenantId, primaryMembership.role)}
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={teacherWorkspacePanel === "classes"}
                     onMouseEnter={() => setTeacherGuideHoverKey("teacher_classes_reports")}
                     onFocus={() => setTeacherGuideHoverKey("teacher_classes_reports")}
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
+                    onClick={() => toggleTeacherWorkspacePanel("classes")}
+                    className={teacherMenuButtonClass("classes")}
                   >
                     <Library className={ICON_INLINE} aria-hidden />
                     {t("dash.reportsClasses")}
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     aria-pressed={teacherWorkspacePanel === "downloads"}
                     onMouseEnter={() => setTeacherGuideHoverKey("teacher_downloads")}
                     onFocus={() => setTeacherGuideHoverKey("teacher_downloads")}
                     onClick={() => toggleTeacherWorkspacePanel("downloads")}
-                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                      teacherWorkspacePanel === "downloads"
-                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                    }`}
+                    className={teacherMenuButtonClass("downloads")}
                   >
                     <Download className={ICON_INLINE} aria-hidden />
                     {t("tenant.panelDownloads")}
@@ -809,6 +817,25 @@ export function DashboardClientView({
                   activeStageKey={teacherGuideHoverKey ?? undefined}
                   showTabs={false}
                 />
+                {teacherWorkspacePanel === "profile" ? (
+                  <ProfileEditor
+                    key="teacher-profile"
+                    embedded
+                    userDisplayName={userDisplayName}
+                    membershipRoles={memberships.map((m) => m.role)}
+                  />
+                ) : null}
+                {teacherWorkspacePanel === "classes" && primaryMembership ? (
+                  <div id="dash-teacher-panel-classes" className="mt-4 border-t border-emerald-100 pt-4">
+                    <TenantClassesPanel
+                      key={`${primaryMembership.tenantId}-classes`}
+                      tenantId={primaryMembership.tenantId}
+                      viewerRole="teacher"
+                      active
+                      view="classes"
+                    />
+                  </div>
+                ) : null}
                 {teacherWorkspacePanel === "downloads" && primaryMembership ? (
                   <TeacherDownloadsCard
                     key="teacher-downloads"
