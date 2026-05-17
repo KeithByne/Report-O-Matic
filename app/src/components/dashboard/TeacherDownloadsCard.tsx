@@ -14,9 +14,23 @@ type ClassRow = {
   default_new_report_kind?: "standard" | "short_course";
 };
 
-type Props = { tenantId: string; isTeacher?: boolean };
+type RegisterSchool = { tenantId: string; tenantName: string };
 
-export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
+type Props = {
+  tenantId: string;
+  isTeacher?: boolean;
+  /** Renders inside the teacher dashboard menu card (no outer card chrome). */
+  embedded?: boolean;
+  /** When set, register PDF buttons are shown for each school (multi-school teachers). */
+  registerSchools?: RegisterSchool[];
+};
+
+export function TeacherDownloadsCard({
+  tenantId,
+  isTeacher = false,
+  embedded = false,
+  registerSchools,
+}: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -117,21 +131,41 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
     };
   }, [bulkReadyUrl]);
 
-  const registersHref = `${base}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
+  const registersHrefFor = (schoolTenantId: string) =>
+    `/api/tenants/${encodeURIComponent(schoolTenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
   const timetableHref = `${base}/timetable-pdf?lang=${encodeURIComponent(uiLang)}`;
 
-  const linkClass =
+  const btnTimetableClass =
     "inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-100";
-  const linkDisabledClass =
+  const btnReportsClass =
+    "inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-950 hover:bg-emerald-200/80";
+  const btnRegistersClass =
+    "inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800";
+  const btnDisabledClass =
     "inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400";
 
+  const registerTargets = useMemo(() => {
+    if (registerSchools && registerSchools.length > 0) return registerSchools;
+    return [{ tenantId, tenantName: "" }];
+  }, [registerSchools, tenantId]);
+
+  const shellClass = embedded
+    ? "mt-4 border-t border-emerald-100 pt-4"
+    : "mt-4 rounded-xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5";
+
   return (
-    <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-        <Printer className={ICON_INLINE} aria-hidden />
-        {t("dash.teacherDownloadsCardTitle")}
-      </h3>
-      <p className="mt-1 text-xs text-zinc-600">{t("dash.teacherDownloadsCardLead")}</p>
+    <div className={shellClass} id={embedded ? "dash-teacher-panel-downloads" : undefined}>
+      {!embedded ? (
+        <>
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+            <Printer className={ICON_INLINE} aria-hidden />
+            {t("dash.teacherDownloadsCardTitle")}
+          </h3>
+          <p className="mt-1 text-xs text-zinc-600">{t("dash.teacherDownloadsCardLead")}</p>
+        </>
+      ) : (
+        <p className="text-xs text-zinc-600">{t("dash.teacherDownloadsCardLead")}</p>
+      )}
 
       {loadError ? (
         <p className="mt-3 text-sm text-red-700" role="alert">
@@ -139,110 +173,87 @@ export function TeacherDownloadsCard({ tenantId, isTeacher = false }: Props) {
         </p>
       ) : null}
 
-      <ul className="mt-4 space-y-4">
-        <li className="flex flex-col gap-2 border-b border-emerald-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="flex items-center gap-2 text-sm font-medium text-zinc-800">
-              <NotebookText className={ICON_INLINE} aria-hidden />
-              {t("dash.teacherDownloadsRegisters")}
-            </p>
-            <p className="mt-0.5 text-xs text-zinc-500">{t("dash.teacherDownloadsRegistersHint")}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => openPdfForPrint(registersHref)}
-            className={`${linkClass} shrink-0`}
-          >
-            <Printer className={ICON_INLINE} aria-hidden />
-            {t("common.printPdf")}
-          </button>
-        </li>
-
-        <li className="flex flex-col gap-2 border-b border-emerald-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="flex items-center gap-2 text-sm font-medium text-zinc-800">
-              <CalendarDays className={ICON_INLINE} aria-hidden />
-              {t("dash.teacherDownloadsTimetable")}
-            </p>
-            <p className="mt-0.5 text-xs text-zinc-500">{t("dash.teacherDownloadsTimetableHint")}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => openPdfForPrint(timetableHref)}
-            className={`${linkClass} shrink-0`}
-          >
-            <Printer className={ICON_INLINE} aria-hidden />
-            {t("common.printPdf")}
-          </button>
-        </li>
-
-        <li className="flex flex-col gap-2">
-          <div>
-            <p className="flex items-center gap-2 text-sm font-medium text-zinc-800">
-              <FileText className={ICON_INLINE} aria-hidden />
-              {t("dash.teacherDownloadsAllReports")}
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex flex-col gap-2">
-              {allShortCourse ? (
-                <label className="flex flex-col gap-1 text-sm sm:min-w-[12rem]">
-                  <span className="text-zinc-600">{t("dash.teacherDownloadsShortCourseClass")}</span>
-                  <select
-                    value={reportsClassId}
-                    onChange={(e) => setReportsClassId(e.target.value)}
-                    className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                  >
-                    {classes.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : (
-                <label className="flex flex-col gap-1 text-sm sm:min-w-[10rem]">
-                  <select
-                    value={reportsTerm}
-                    onChange={(e) => setReportsTerm(e.target.value as ReportPeriod)}
-                    className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                  >
-                    <option value="first">{t("archive.term1")}</option>
-                    <option value="second">{t("archive.term2")}</option>
-                    <option value="third">{t("archive.term3")}</option>
-                  </select>
-                </label>
-              )}
-            </div>
-            {teacherReportsHref ? (
-              bulkReportsReady === true ? (
-                <button
-                  type="button"
-                  onClick={() => openPdfForPrint(teacherReportsHref)}
-                  className={`${linkClass} shrink-0`}
+      <div className="mt-3 flex flex-col gap-3">
+        {(allShortCourse || !allShortCourse) && classes.length > 0 ? (
+          <div className="flex flex-wrap items-end gap-2">
+            {allShortCourse ? (
+              <label className="flex min-w-[12rem] flex-col gap-1 text-sm">
+                <span className="text-zinc-600">{t("dash.teacherDownloadsShortCourseClass")}</span>
+                <select
+                  value={reportsClassId}
+                  onChange={(e) => setReportsClassId(e.target.value)}
+                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
-                  <Printer className={ICON_INLINE} aria-hidden />
-                  {t("common.printPdf")}
-                </button>
-              ) : (
-                <div className="flex flex-col gap-1 sm:items-end">
-                  <span className={`${linkDisabledClass} w-fit shrink-0`} aria-disabled>
-                    <Printer className={ICON_INLINE} aria-hidden />
-                    {bulkReportsReady === null ? t("dash.teacherDownloadsChecking") : t("common.printPdf")}
-                  </span>
-                  {bulkReportsReady === false ? (
-                    <p className="max-w-md text-xs text-amber-800">
-                      {isTeacher ? t("dash.teacherDownloadsBulkReportsEmpty") : t("dash.teacherDownloadsReportsNotReady")}
-                    </p>
-                  ) : null}
-                </div>
-              )
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
             ) : (
-              <span className="text-sm text-zinc-400">{t("dash.teacherDownloadsNoClass")}</span>
+              <label className="flex min-w-[10rem] flex-col gap-1 text-sm">
+                <span className="sr-only">{t("dash.teacherDownloadsAllReports")}</span>
+                <select
+                  value={reportsTerm}
+                  onChange={(e) => setReportsTerm(e.target.value as ReportPeriod)}
+                  className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="first">{t("archive.term1")}</option>
+                  <option value="second">{t("archive.term2")}</option>
+                  <option value="third">{t("archive.term3")}</option>
+                </select>
+              </label>
             )}
           </div>
-        </li>
-      </ul>
+        ) : null}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => openPdfForPrint(timetableHref)} className={btnTimetableClass}>
+            <CalendarDays className={ICON_INLINE} aria-hidden />
+            {t("dash.teacherDownloadsTimetable")}
+          </button>
+
+          {teacherReportsHref ? (
+            bulkReportsReady === true ? (
+              <button
+                type="button"
+                onClick={() => openPdfForPrint(teacherReportsHref)}
+                className={btnReportsClass}
+              >
+                <FileText className={ICON_INLINE} aria-hidden />
+                {t("dash.teacherDownloadsAllReports")}
+              </button>
+            ) : (
+              <span className={btnDisabledClass} aria-disabled>
+                <FileText className={ICON_INLINE} aria-hidden />
+                {bulkReportsReady === null ? t("dash.teacherDownloadsChecking") : t("dash.teacherDownloadsAllReports")}
+              </span>
+            )
+          ) : (
+            <span className="text-sm text-zinc-400">{t("dash.teacherDownloadsNoClass")}</span>
+          )}
+
+          {registerTargets.map((school) => (
+            <button
+              key={school.tenantId}
+              type="button"
+              onClick={() => openPdfForPrint(registersHrefFor(school.tenantId))}
+              className={btnRegistersClass}
+            >
+              <NotebookText className={ICON_INLINE} aria-hidden />
+              {registerTargets.length > 1 && school.tenantName ? `${school.tenantName} — ` : null}
+              {t("dash.teacherDownloadsPrintMyRegisters")}
+            </button>
+          ))}
+        </div>
+
+        {bulkReportsReady === false && teacherReportsHref ? (
+          <p className="text-xs text-amber-800">
+            {isTeacher ? t("dash.teacherDownloadsBulkReportsEmpty") : t("dash.teacherDownloadsReportsNotReady")}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

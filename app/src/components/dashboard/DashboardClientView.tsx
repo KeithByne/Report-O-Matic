@@ -475,7 +475,7 @@ export function DashboardClientView({
             </div>
           ) : null}
 
-          {teacherMemberships.length > 0 ? (
+          {teacherMemberships.length > 0 && !usesTeacherWorkspaceMenu ? (
             <div className="mt-5 rounded-xl border border-emerald-300/70 bg-gradient-to-br from-emerald-50/95 to-white p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
                 <NotebookText className={ICON_INLINE} aria-hidden />
@@ -496,11 +496,11 @@ export function DashboardClientView({
                   >
                     <Printer className={ICON_INLINE} aria-hidden />
                     {teacherMemberships.length > 1 ? `${m.tenantName} — ` : null}
-                    {t("common.printPdf")}
+                    {t("dash.teacherDownloadsPrintMyRegisters")}
                   </button>
                 ))}
               </div>
-            </div>
+              </div>
           ) : null}
 
           {hasOwner && memberships.length > 0 ? (
@@ -793,15 +793,21 @@ export function DashboardClientView({
                   activeStageKey={teacherGuideHoverKey ?? undefined}
                   showTabs={false}
                 />
-                {teacherWorkspacePanel ? (
-                  <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-xs font-medium text-emerald-950" role="status" aria-live="polite">
-                    <span className="text-zinc-600">{t("dash.teacherSelectionShowing")}</span>{" "}
-                    <span className="text-zinc-900">
-                      {teacherWorkspacePanel === "downloads"
-                          ? t("tenant.panelDownloads")
-                          : t("tenant.panelDownloads")}
-                    </span>
-                  </p>
+                {teacherWorkspacePanel === "downloads" && primaryMembership ? (
+                  <TeacherDownloadsCard
+                    key="teacher-downloads"
+                    tenantId={primaryMembership.tenantId}
+                    isTeacher={primaryMembership.role === "teacher"}
+                    embedded
+                    registerSchools={
+                      teacherMemberships.length > 1
+                        ? teacherMemberships.map((m) => ({
+                            tenantId: m.tenantId,
+                            tenantName: m.tenantName,
+                          }))
+                        : undefined
+                    }
+                  />
                 ) : null}
               </div>
             </div>
@@ -1125,20 +1131,6 @@ export function DashboardClientView({
                 <p className="mt-2 text-sm text-teal-900/90">{t("dash.dhBlurbBody")}</p>
               </section>
             ) : null}
-            {usesTeacherWorkspaceMenu ? (
-              <>
-                {teacherWorkspacePanel === "downloads" && primaryMembership ? (
-                  <div id="dash-teacher-panel-downloads">
-                    <TeacherDownloadsCard
-                      key="teacher-downloads"
-                      tenantId={primaryMembership.tenantId}
-                      isTeacher={primaryMembership.role === "teacher"}
-                    />
-                  </div>
-                ) : null}
-              </>
-            ) : null}
-
             {usesSchoolWorkspaceMenu ? (
               <>
                 {workspaceDashPanel === "overview" && primaryMembership ? (

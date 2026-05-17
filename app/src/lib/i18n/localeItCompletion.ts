@@ -229,6 +229,7 @@ export const IT_COMPLETION: Record<string, string> = {
   "dash.teacherDownloadsNoClass": "Nessuna classe assegnata.",
   "dash.teacherDownloadsPdf": "Stampa PDF",
   "dash.teacherDownloadsRegisters": "Stampa registri",
+  "dash.teacherDownloadsPrintMyRegisters": "Stampa i miei registri",
   "dash.teacherDownloadsRegistersHint": "Un PDF contenente il registro per ciascuna delle tue classi.",
   "dash.teacherDownloadsReportsNotReady": "Il download è disponibile quando ogni alunno ha un rapporto finito per questa scelta (stesse regole dell'esportazione in blocco).",
   "dash.teacherDownloadsShortCourseClass": "Classe",

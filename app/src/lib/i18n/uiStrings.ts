@@ -508,6 +508,7 @@ const EN: UiMessages = {
   "dash.teacherDownloadsCardLead":
     "Print registers, your weekly timetable, or finished reports from your assigned classes.",
   "dash.teacherDownloadsRegisters": "Print registers",
+  "dash.teacherDownloadsPrintMyRegisters": "Print My Registers",
   "dash.teacherDownloadsRegistersHint": "One PDF containing the register for each of your classes.",
   "dash.teacherMenuDownloadRegisters": "Print registers",
   "dash.teacherRegistersCalloutTitle": "Attendance registers",
@@ -1528,6 +1529,7 @@ const FR: UiMessages = {
   "dash.teacherDownloadsCardLead":
     "Imprimez les registres, votre emploi du temps hebdomadaire ou les rapports terminés de vos classes.",
   "dash.teacherDownloadsRegisters": "Imprimer les registres",
+  "dash.teacherDownloadsPrintMyRegisters": "Imprimer mes registres",
   "dash.teacherDownloadsRegistersHint": "Un PDF avec un registre par classe qui vous est assignée.",
   "dash.teacherMenuDownloadRegisters": "Imprimer les registres",
   "dash.teacherRegistersCalloutTitle": "Registres de présence",
@@ -2167,6 +2169,7 @@ const ES: UiMessages = {
   "dash.teacherDownloadsCardLead":
     "Imprima registros, su horario semanal o los informes terminados de sus clases asignadas.",
   "dash.teacherDownloadsRegisters": "Imprimir registros",
+  "dash.teacherDownloadsPrintMyRegisters": "Imprimir mis registros",
   "dash.teacherDownloadsRegistersHint": "Un PDF con un registro por cada clase asignada.",
   "dash.teacherMenuDownloadRegisters": "Imprimir registros",
   "dash.teacherRegistersCalloutTitle": "Registros de asistencia",
