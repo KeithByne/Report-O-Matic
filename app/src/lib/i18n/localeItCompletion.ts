@@ -119,8 +119,6 @@ export const IT_COMPLETION: Record<string, string> = {
   "class.orderUpdatedDesc": "Ultimo aggiornamento (dal più recente)",
   "class.printClassReports": "Stampa i resoconti delle lezioni",
   "class.registerPreviewHint": "Apre il PDF di registrazione in una nuova scheda in modo da poter stampare o salvare dal visualizzatore del browser.",
-  "class.registerMenu": "Registro",
-  "class.printReport": "Stampa rapporto",
   "class.registerPreviewTitle": "Registro",
   "class.reportEditTermAria": "Modifica report per il termine {n}",
   "class.savePupilEdits": "Salva",

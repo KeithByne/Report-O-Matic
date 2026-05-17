@@ -15,6 +15,18 @@ import { isSubjectCode } from "@/lib/subjects";
 import { EL_BODY } from "@/lib/i18n/localeElBody";
 import { DE_LABELS, IT_LABELS, PT_LABELS } from "@/lib/i18n/localeExtra";
 import { IT_COMPLETION } from "@/lib/i18n/localeItCompletion";
+import {
+  CLASS_WORKSPACE_GUIDE_AR,
+  CLASS_WORKSPACE_GUIDE_DE,
+  CLASS_WORKSPACE_GUIDE_EL,
+  CLASS_WORKSPACE_GUIDE_IT,
+  CLASS_WORKSPACE_GUIDE_NL,
+  CLASS_WORKSPACE_GUIDE_PL,
+  CLASS_WORKSPACE_GUIDE_PT,
+  CLASS_WORKSPACE_GUIDE_RO,
+  CLASS_WORKSPACE_GUIDE_RU,
+  CLASS_WORKSPACE_GUIDE_UK,
+} from "@/lib/i18n/localeClassWorkspaceGuide";
 import { GETTING_STARTED_EL } from "@/lib/i18n/localeDashboardGettingStarted";
 import { UI_FILL_EL, UI_FILL_ES, UI_FILL_FR } from "@/lib/i18n/localeUiFill";
 
@@ -1272,7 +1284,7 @@ const EN: UiMessages = {
   "class.activeDaysDisplay": "Register uses",
   "class.printRegister": "Print Register",
   "class.registerMenu": "Register",
-  "class.printReport": "Print report",
+  "class.printReport": "Print Reports",
   "class.registerPreviewTitle": "Register preview",
   "class.registerPreviewHint": "Attendance register for this class. Use Print in the preview toolbar or open in a new tab.",
   "class.guide.settingsTitle": "Class settings",
@@ -1284,7 +1296,7 @@ const EN: UiMessages = {
   "class.guide.students2": "Use New report when a pupil has no report yet for the current term.",
   "class.guide.students3": "Edit or remove a pupil here if you need to fix details before reporting.",
   "class.guide.bulkTitle": "Print class reports",
-  "class.guide.bulk1": "Pick a term, then open Print report to preview every finished report for that term in one PDF.",
+  "class.guide.bulk1": "Pick a term, then open Print Reports to preview every finished report for that term in one PDF.",
   "class.guide.bulk2": "All pupils need a finished report for the selected term before the combined PDF is available.",
   "class.guide.bulk3": "Use Print in the preview toolbar, or open in a new tab if you prefer the browser viewer.",
   "class.guide.registerTitle": "Register",
@@ -2135,7 +2147,7 @@ const FR: UiMessages = {
   "class.activeDaysDisplay": "Jours pour le registre",
   "class.printRegister": "Imprimer le registre",
   "class.registerMenu": "Registre",
-  "class.printReport": "Imprimer le rapport",
+  "class.printReport": "Imprimer les rapports",
   "class.registerPreviewTitle": "Aperçu du registre",
   "class.registerPreviewHint": "Registre de présence pour cette classe. Utilisez Imprimer dans l’aperçu ou ouvrez dans un nouvel onglet.",
   "class.guide.settingsTitle": "Paramètres de la classe",
@@ -2147,7 +2159,7 @@ const FR: UiMessages = {
   "class.guide.students2": "Utilisez Nouveau rapport si l’élève n’a pas encore de rapport pour le trimestre.",
   "class.guide.students3": "Modifiez ou retirez un élève ici si besoin avant les rapports.",
   "class.guide.bulkTitle": "Imprimer les rapports de classe",
-  "class.guide.bulk1": "Choisissez un trimestre, puis Imprimer le rapport pour prévisualiser tous les rapports terminés en un PDF.",
+  "class.guide.bulk1": "Choisissez un trimestre, puis Imprimer les rapports pour prévisualiser tous les rapports terminés en un PDF.",
   "class.guide.bulk2": "Chaque élève doit avoir un rapport terminé pour le trimestre choisi.",
   "class.guide.bulk3": "Utilisez Imprimer dans l’aperçu ou ouvrez dans un nouvel onglet.",
   "class.guide.registerTitle": "Registre",
@@ -2800,7 +2812,7 @@ const ES: UiMessages = {
   "class.activeDaysDisplay": "Días activos (registro)",
   "class.printRegister": "Imprimir registro",
   "class.registerMenu": "Registro",
-  "class.printReport": "Imprimir informe",
+  "class.printReport": "Imprimir informes",
   "class.registerPreviewTitle": "Vista previa del registro",
   "class.registerPreviewHint": "Registro de asistencia de la clase. Use Imprimir en la vista previa o abra en una pestaña nueva.",
   "class.guide.settingsTitle": "Ajustes de la clase",
@@ -2812,7 +2824,7 @@ const ES: UiMessages = {
   "class.guide.students2": "Use Nuevo informe si aún no hay informe para el trimestre.",
   "class.guide.students3": "Edite o elimine un alumno aquí si hace falta antes de informar.",
   "class.guide.bulkTitle": "Imprimir informes de la clase",
-  "class.guide.bulk1": "Elija un trimestre y pulse Imprimir informe para ver todos los informes terminados en un PDF.",
+  "class.guide.bulk1": "Elija un trimestre y pulse Imprimir informes para ver todos los informes terminados en un PDF.",
   "class.guide.bulk2": "Todos los alumnos deben tener un informe terminado para ese trimestre.",
   "class.guide.bulk3": "Use Imprimir en la vista previa o abra en una pestaña nueva.",
   "class.guide.registerTitle": "Registro",
@@ -2839,18 +2851,18 @@ const ES: UiMessages = {
   ...UI_FILL_ES,
 };
 
-const EL: UiMessages = { ...EN, ...EL_BODY, ...UI_FILL_EL, ...GETTING_STARTED_EL };
+const EL: UiMessages = { ...EN, ...EL_BODY, ...UI_FILL_EL, ...GETTING_STARTED_EL, ...CLASS_WORKSPACE_GUIDE_EL };
 
-const DE: UiMessages = { ...EN, ...DE_LABELS };
-const IT: UiMessages = { ...EN, ...IT_LABELS, ...IT_COMPLETION };
-const PT: UiMessages = { ...EN, ...PT_LABELS };
+const DE: UiMessages = { ...EN, ...DE_LABELS, ...CLASS_WORKSPACE_GUIDE_DE };
+const IT: UiMessages = { ...EN, ...IT_LABELS, ...IT_COMPLETION, ...CLASS_WORKSPACE_GUIDE_IT };
+const PT: UiMessages = { ...EN, ...PT_LABELS, ...CLASS_WORKSPACE_GUIDE_PT };
 /** nl / pl / ro / ru / uk / ar: English base + `localePatches6` overlays (extend patches for fuller coverage). */
-const NL: UiMessages = { ...EN, ...NL_PATCH };
-const PL: UiMessages = { ...EN, ...PL_PATCH };
-const RO: UiMessages = { ...EN, ...RO_PATCH };
-const RU: UiMessages = { ...EN, ...RU_PATCH };
-const UK: UiMessages = { ...EN, ...UK_PATCH };
-const AR: UiMessages = { ...EN, ...AR_PATCH };
+const NL: UiMessages = { ...EN, ...NL_PATCH, ...CLASS_WORKSPACE_GUIDE_NL };
+const PL: UiMessages = { ...EN, ...PL_PATCH, ...CLASS_WORKSPACE_GUIDE_PL };
+const RO: UiMessages = { ...EN, ...RO_PATCH, ...CLASS_WORKSPACE_GUIDE_RO };
+const RU: UiMessages = { ...EN, ...RU_PATCH, ...CLASS_WORKSPACE_GUIDE_RU };
+const UK: UiMessages = { ...EN, ...UK_PATCH, ...CLASS_WORKSPACE_GUIDE_UK };
+const AR: UiMessages = { ...EN, ...AR_PATCH, ...CLASS_WORKSPACE_GUIDE_AR };
 
 export const UI_STRINGS: Record<UiLang, UiMessages> = {
   en: EN,
