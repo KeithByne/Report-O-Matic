@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  ArrowDown,
   ArrowLeft,
   ArrowLeftRight,
+  ClipboardList,
   FolderKanban,
   Printer,
   Settings2,
@@ -36,7 +38,8 @@ import { resolveDefaultSubjectInputToStorage, subjectFieldDisplayValueFromStored
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { labelForLessonPeriodIndex } from "@/lib/timetable/lessonPeriodLabels";
 import { classesListHref } from "@/lib/app/classesNavigation";
-import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
+import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCard";
+import { ClassWorkspaceGuide } from "@/components/reports/ClassWorkspaceGuide";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -54,8 +57,18 @@ const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
   students: Users,
   bulkDownload: Printer,
   movePupil: ArrowLeftRight,
-  registerPreview: Printer,
+  registerPreview: ClipboardList,
 };
+
+const CLASS_PANEL_GUIDE_KEY: Record<ClassWorkspacePanelId, string> = {
+  settings: "class_settings",
+  students: "class_students",
+  bulkDownload: "class_bulk",
+  movePupil: "class_move",
+  registerPreview: "class_register",
+};
+
+const CLASS_BULK_PDF_ID = "class-bulk-reports";
 
 function normalizeScholasticYearLabel(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -186,10 +199,6 @@ export function ClassWorkspace({
     return `${batchBase}?${qp.toString()}`;
   }, [batchBase, batchTermFilter]);
 
-  const openClassBulkPdfPreview = useCallback(() => {
-    openPdfForPrint(batchHref);
-  }, [batchHref]);
-
   const registerPdfHref = useMemo(() => {
     const qp = new URLSearchParams();
     qp.set("lang", uiLang);
@@ -248,6 +257,14 @@ export function ClassWorkspace({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [openClassPanel, setOpenClassPanel] = useState<ClassWorkspacePanelId | null>(() => initialOpenPanel ?? null);
+  const [classPdfPreview, setClassPdfPreview] = useState<{
+    id: string;
+    url: string;
+    title: string;
+    key: number;
+  } | null>(null);
+  const [classGuideHoverKey, setClassGuideHoverKey] = useState<string | null>(null);
+  const [registerPreviewKey, setRegisterPreviewKey] = useState(0);
   const [duplicateReportDialog, setDuplicateReportDialog] = useState<{
     studentName: string;
     existingReportId: string;
@@ -350,14 +367,33 @@ export function ClassWorkspace({
   }, [students, initialFocusStudentId]);
 
   const toggleClassPanel = useCallback((id: ClassWorkspacePanelId) => {
+    setClassPdfPreview(null);
     setOpenClassPanel((current) => (current === id ? null : id));
   }, []);
+
+  const previewClassPdf = useCallback((id: string, url: string, title: string) => {
+    setOpenClassPanel(null);
+    setClassPdfPreview((cur) =>
+      cur?.id === id ? null : { id, url, title, key: Date.now() },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (openClassPanel === "registerPreview") {
+      setRegisterPreviewKey((k) => k + 1);
+    }
+  }, [openClassPanel]);
 
   useEffect(() => {
     if (!openClassPanel) return;
     const el = document.getElementById(`class-workspace-panel-${openClassPanel}`);
     scrollPanelContentTopIntoView(el);
   }, [openClassPanel]);
+
+  useEffect(() => {
+    if (!classPdfPreview) return;
+    scrollPanelContentTopIntoView(document.getElementById("dash-teacher-panel-pdf-preview"));
+  }, [classPdfPreview]);
 
   const classPanelButtonClass = useCallback(
     (id: ClassWorkspacePanelId) =>
@@ -384,7 +420,7 @@ export function ClassWorkspace({
     }
     items.push({
       id: "registerPreview",
-      label: t("class.registerPreviewTitle"),
+      label: t("class.registerMenu"),
       Icon: CLASS_PANEL_ICON.registerPreview,
     });
     return items;
@@ -1021,18 +1057,26 @@ export function ClassWorkspace({
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
       ) : null}
 
-      <section className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm">
+      <section
+        className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
+        onMouseLeave={() => setClassGuideHoverKey(null)}
+      >
         <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
           <FolderKanban className={ICON_SECTION} aria-hidden />
           {t("tenant.sectionMenuTitle")}
         </h2>
         <p className="mt-1 text-sm text-zinc-600">{t("tenant.sectionMenuHint")}</p>
-        <nav className="mt-4 flex flex-wrap gap-2" aria-label={t("tenant.sectionMenuTitle")}>
+        <nav
+          className="mt-4 flex flex-wrap items-center gap-2"
+          aria-label={t("tenant.sectionMenuTitle")}
+        >
           {classPanelMenuItems.map(({ id, label, Icon }) => (
             <button
               key={id}
               type="button"
               aria-pressed={openClassPanel === id}
+              onMouseEnter={() => setClassGuideHoverKey(CLASS_PANEL_GUIDE_KEY[id])}
+              onFocus={() => setClassGuideHoverKey(CLASS_PANEL_GUIDE_KEY[id])}
               onClick={() => toggleClassPanel(id)}
               className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${classPanelButtonClass(id)}`}
             >
@@ -1040,7 +1084,21 @@ export function ClassWorkspace({
               {label}
             </button>
           ))}
+          {openClassPanel || classPdfPreview ? (
+            <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
+              <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
+            </span>
+          ) : null}
         </nav>
+        <ClassWorkspaceGuide viewerRole={viewerRole} activeStageKey={classGuideHoverKey ?? undefined} />
+        {classPdfPreview ? (
+          <InlinePdfPreviewCard
+            title={classPdfPreview.title}
+            pdfUrl={classPdfPreview.url}
+            previewKey={classPdfPreview.key}
+            onClose={() => setClassPdfPreview(null)}
+          />
+        ) : null}
       </section>
 
       {openClassPanel === "settings" ? (
@@ -1623,11 +1681,18 @@ export function ClassWorkspace({
               <>
                 <button
                   type="button"
-                  onClick={() => openClassBulkPdfPreview()}
-                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50 disabled:opacity-50"
+                  aria-pressed={classPdfPreview?.id === CLASS_BULK_PDF_ID}
+                  onClick={() =>
+                    previewClassPdf(CLASS_BULK_PDF_ID, batchHref, t("class.printReport"))
+                  }
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    classPdfPreview?.id === CLASS_BULK_PDF_ID
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
+                      : "border-emerald-200 bg-white text-zinc-800 hover:bg-emerald-50"
+                  } disabled:opacity-50`}
                 >
                   <Printer className={ICON_INLINE} aria-hidden />
-                  {t("common.printPdf")}
+                  {t("class.printReport")}
                 </button>
               </>
             ) : (
@@ -1636,7 +1701,7 @@ export function ClassWorkspace({
                   className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
                   title={classBulkPdfGate.message}
                 >
-                  {t("common.printPdf")}
+                  {t("class.printReport")}
                 </span>
                 <p className="max-w-md text-xs text-amber-800">{classBulkPdfGate.message}</p>
               </div>
@@ -1704,30 +1769,21 @@ export function ClassWorkspace({
           id="class-workspace-panel-registerPreview"
           className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
         >
-          <h3 className="text-sm font-semibold text-zinc-900">{t("class.registerPreviewTitle")}</h3>
-          <p className="mt-1 text-xs text-zinc-500">{t("class.registerPreviewHint")}</p>
-          <div className="mt-3 flex flex-wrap items-end gap-2">
-            {registerPdfGate.canPrint ? (
-              <button
-                type="button"
-                onClick={() => openPdfForPrint(registerPdfHref)}
-                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
-              >
-                <Printer className={ICON_INLINE} aria-hidden />
-                {t("common.printPdf")}
-              </button>
-            ) : (
-              <div className="flex flex-col gap-1">
-                <span
-                  className="inline-flex cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-400"
-                  title={registerPdfGate.message}
-                >
-                  {t("common.printPdf")}
-                </span>
-                <p className="max-w-md text-xs text-amber-800">{registerPdfGate.message}</p>
-              </div>
-            )}
-          </div>
+          {registerPdfGate.canPrint ? (
+            <InlinePdfPreviewCard
+              title={t("class.registerMenu")}
+              pdfUrl={registerPdfHref}
+              previewKey={registerPreviewKey}
+              onClose={() => setOpenClassPanel(null)}
+            />
+          ) : (
+            <>
+              <h3 className="text-sm font-semibold text-zinc-900">{t("class.registerMenu")}</h3>
+              <p className="mt-2 text-sm text-amber-800" role="alert">
+                {registerPdfGate.message}
+              </p>
+            </>
+          )}
         </section>
       ) : null}
     </div>
