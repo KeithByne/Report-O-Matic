@@ -12,6 +12,7 @@ import { languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, resolvedSubjectLabelForPdf } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
+import { pdfResponseHeaders } from "@/lib/pdf/pdfResponseHeaders";
 import {
   parseClassBulkPdfTermFilter,
   reportReadyForClassBulkPdf,
@@ -190,10 +191,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const fname = safeFilename(fileStem) + ".pdf";
   return new NextResponse(new Uint8Array(merged), {
     status: 200,
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${fname}"`,
-    },
+    headers: pdfResponseHeaders({ inline, filename: fname }),
   });
 }
 

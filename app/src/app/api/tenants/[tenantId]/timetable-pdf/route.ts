@@ -10,6 +10,7 @@ import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { buildTimetablePdfBuffer, type TimetablePdfSlot } from "@/lib/pdf/timetablePdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
+import { pdfResponseHeaders } from "@/lib/pdf/pdfResponseHeaders";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
@@ -220,10 +221,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const fname = `${safeFilename(tenantRecordName)}-${role === "teacher" ? "my-timetable" : "timetable"}.pdf`;
     return new NextResponse(new Uint8Array(pdf), {
       status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${fname}"`,
-      },
+      headers: pdfResponseHeaders({ inline, filename: fname }),
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to build PDF.";

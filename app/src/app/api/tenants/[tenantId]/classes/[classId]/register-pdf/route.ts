@@ -10,6 +10,7 @@ import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { isUiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { buildRegisterPdfBuffer } from "@/lib/pdf/registerPdf";
+import { pdfResponseHeaders } from "@/lib/pdf/pdfResponseHeaders";
 
 export const runtime = "nodejs";
 
@@ -74,10 +75,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     const fname = `${safeFilename(klass.name || "class")}-register.pdf`;
     return new NextResponse(new Uint8Array(pdf), {
       status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${fname}"`,
-      },
+      headers: pdfResponseHeaders({ inline, filename: fname }),
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to build PDF.";
