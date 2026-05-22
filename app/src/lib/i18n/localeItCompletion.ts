@@ -5,6 +5,7 @@
  */
 
 import { OWNER_MENU_GUIDE_IT } from "@/lib/i18n/localeOwnerMenuGuide";
+import { MENU_GUIDE_EXTRAS_IT } from "@/lib/i18n/localeMenuGuideExtras";
 
 export const IT_COMPLETION: Record<string, string> = {
   "archive.gradesTitleShortCourse": "Voti (0–10) — corso breve",
@@ -488,4 +489,5 @@ export const IT_COMPLETION: Record<string, string> = {
   "timetable.teacherIntro": "Le tue lezioni compaiono nella griglia sottostante. I capi dipartimento e i proprietari costruiscono l’orario completo della scuola.",
   "timetable.title": "Orario",
   ...OWNER_MENU_GUIDE_IT,
+  ...MENU_GUIDE_EXTRAS_IT,
 };

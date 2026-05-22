@@ -26,7 +26,63 @@ const CLASS_GUIDE_KEYS = [
   "class.guide.move1",
   "class.guide.move2",
   "class.guide.move3",
+  "class.guide.locateTitle",
+  "class.guide.locate1",
+  "class.guide.locate2",
+  "class.guide.locate3",
 ] as const;
+
+const CLASS_GUIDE_LOCATE_IT: Record<string, string> = {
+  "class.guide.locateTitle": "Colloca da Studenti attivi",
+  "class.guide.locate1":
+    "Apri per collocare uno studente dall’elenco Studenti attivi in questa classe.",
+  "class.guide.locate2":
+    "Scegli lo studente e conferma — resta nell’elenco attivo per altre classi.",
+  "class.guide.locate3": "Aggiungi prima nuovi studenti in Studenti attivi nel pannello.",
+};
+
+const CLASS_GUIDE_LOCATE_FR: Record<string, string> = {
+  "class.guide.locateTitle": "Placer depuis les élèves actifs",
+  "class.guide.locate1":
+    "Ouvrez ceci pour placer un élève de la liste Élèves actifs dans cette classe.",
+  "class.guide.locate2":
+    "Choisissez l’élève, puis confirmez — il reste sur la liste active pour d’autres classes.",
+  "class.guide.locate3": "Ajoutez d’abord de nouveaux élèves via Élèves actifs sur le tableau de bord.",
+};
+
+const CLASS_GUIDE_LOCATE_DE: Record<string, string> = {
+  "class.guide.locateTitle": "Aus aktiven Schülern zuordnen",
+  "class.guide.locate1":
+    "Öffnen Sie dies, um einen Schüler aus der Liste Aktive Schüler dieser Klasse zuzuordnen.",
+  "class.guide.locate2":
+    "Schüler wählen und bestätigen — er bleibt auf der aktiven Liste für andere Klassen.",
+  "class.guide.locate3": "Neue Schüler zuerst unter Aktive Schüler im Dashboard anlegen.",
+};
+
+const CLASS_GUIDE_LOCATE_ES: Record<string, string> = {
+  "class.guide.locateTitle": "Colocar desde alumnos activos",
+  "class.guide.locate1":
+    "Abra esto para colocar un alumno de la lista de Alumnos activos en esta clase.",
+  "class.guide.locate2":
+    "Elija el alumno y confirme — sigue en la lista activa para otras clases.",
+  "class.guide.locate3": "Añada primero alumnos nuevos en Alumnos activos del panel.",
+};
+
+const CLASS_GUIDE_LOCATE_RU: Record<string, string> = {
+  "class.guide.locateTitle": "Разместить из активных учеников",
+  "class.guide.locate1":
+    "Откройте, чтобы добавить ученика из списка активных в этот класс.",
+  "class.guide.locate2":
+    "Выберите ученика и подтвердите — он остаётся в активном списке для других классов.",
+  "class.guide.locate3": "Сначала добавьте учеников в «Активные ученики» на панели.",
+};
+
+const CLASS_GUIDE_LOCATE_AR: Record<string, string> = {
+  "class.guide.locateTitle": "تعيين من الطلاب النشطين",
+  "class.guide.locate1": "افتح لتعيين تلميذ من قائمة الطلاب النشطين في هذا الصف.",
+  "class.guide.locate2": "اختر التلميذ ثم أكّد — يبقى في القائمة النشطة لصفوف أخرى.",
+  "class.guide.locate3": "أضف تلاميذ جدداً أولاً في الطلاب النشطون على لوحة التحكم.",
+};
 
 export const CLASS_WORKSPACE_GUIDE_IT: Record<string, string> = {
   "class.registerMenu": "Registro",
@@ -54,6 +110,7 @@ export const CLASS_WORKSPACE_GUIDE_IT: Record<string, string> = {
   "class.guide.move1": "Sposta uno studente in un’altra classe senza perdere i rapporti.",
   "class.guide.move2": "Scegli studente e classe di destinazione, poi conferma.",
   "class.guide.move3": "Utile quando uno studente cambia gruppo a metà anno.",
+  ...CLASS_GUIDE_LOCATE_IT,
 };
 
 export const CLASS_WORKSPACE_GUIDE_EL: Record<string, string> = {
@@ -81,6 +138,7 @@ export const CLASS_WORKSPACE_GUIDE_EL: Record<string, string> = {
   "class.guide.move1": "Μετακινήστε μαθητή σε άλλη τάξη χωρίς να χάσετε τις αναφορές.",
   "class.guide.move2": "Επιλέξτε μαθητή και τάξη προορισμού, μετά επιβεβαιώστε.",
   "class.guide.move3": "Χρήσιμο όταν ένας μαθητής αλλάζει ομάδα στη μέση της χρονιάς.",
+  ...CLASS_GUIDE_LOCATE_FR,
 };
 
 export const CLASS_WORKSPACE_GUIDE_DE: Record<string, string> = {
@@ -108,6 +166,7 @@ export const CLASS_WORKSPACE_GUIDE_DE: Record<string, string> = {
   "class.guide.move1": "Schüler in eine andere Klasse verschieben, ohne Berichte zu verlieren.",
   "class.guide.move2": "Schüler und Zielklasse wählen, dann bestätigen.",
   "class.guide.move3": "Nützlich, wenn ein Schüler die Gruppe im Jahresverlauf wechselt.",
+  ...CLASS_GUIDE_LOCATE_DE,
 };
 
 export const CLASS_WORKSPACE_GUIDE_PT: Record<string, string> = {
@@ -135,6 +194,7 @@ export const CLASS_WORKSPACE_GUIDE_PT: Record<string, string> = {
   "class.guide.move1": "Mova um aluno para outra turma sem perder os relatórios.",
   "class.guide.move2": "Escolha o aluno e a turma de destino e confirme.",
   "class.guide.move3": "Útil quando um aluno muda de grupo a meio do ano letivo.",
+  ...CLASS_GUIDE_LOCATE_ES,
 };
 
 export const CLASS_WORKSPACE_GUIDE_NL: Record<string, string> = {
@@ -162,6 +222,7 @@ export const CLASS_WORKSPACE_GUIDE_NL: Record<string, string> = {
   "class.guide.move1": "Verplaats een leerling naar een andere klas zonder rapporten te verliezen.",
   "class.guide.move2": "Kies leerling en doelklas en bevestig.",
   "class.guide.move3": "Handig wanneer een leerling van groep wisselt tijdens het schooljaar.",
+  ...CLASS_GUIDE_LOCATE_FR,
 };
 
 export const CLASS_WORKSPACE_GUIDE_PL: Record<string, string> = {
@@ -189,6 +250,7 @@ export const CLASS_WORKSPACE_GUIDE_PL: Record<string, string> = {
   "class.guide.move1": "Przenieś ucznia do innej klasy bez utraty sprawozdań.",
   "class.guide.move2": "Wybierz ucznia i klasę docelową, potem potwierdź.",
   "class.guide.move3": "Przydatne, gdy uczeń zmienia grupę w trakcie roku.",
+  ...CLASS_GUIDE_LOCATE_FR,
 };
 
 export const CLASS_WORKSPACE_GUIDE_RO: Record<string, string> = {
@@ -216,6 +278,7 @@ export const CLASS_WORKSPACE_GUIDE_RO: Record<string, string> = {
   "class.guide.move1": "Mutați un elev în altă clasă fără a pierde rapoartele.",
   "class.guide.move2": "Alegeți elevul și clasa destinație, apoi confirmați.",
   "class.guide.move3": "Util când un elev schimbă grupa la mijlocul anului.",
+  ...CLASS_GUIDE_LOCATE_FR,
 };
 
 export const CLASS_WORKSPACE_GUIDE_RU: Record<string, string> = {
@@ -243,6 +306,7 @@ export const CLASS_WORKSPACE_GUIDE_RU: Record<string, string> = {
   "class.guide.move1": "Переместите ученика в другой класс без потери отчётов.",
   "class.guide.move2": "Выберите ученика и класс назначения, затем подтвердите.",
   "class.guide.move3": "Полезно, когда ученик меняет группу в середине года.",
+  ...CLASS_GUIDE_LOCATE_RU,
 };
 
 export const CLASS_WORKSPACE_GUIDE_UK: Record<string, string> = {
@@ -270,6 +334,13 @@ export const CLASS_WORKSPACE_GUIDE_UK: Record<string, string> = {
   "class.guide.move1": "Перемістіть учня в інший клас без втрати звітів.",
   "class.guide.move2": "Оберіть учня та клас призначення, потім підтвердіть.",
   "class.guide.move3": "Корисно, коли учень змінює групу в середині року.",
+  ...CLASS_GUIDE_LOCATE_RU,
+  "class.guide.locateTitle": "Розмістити з активних учнів",
+  "class.guide.locate1":
+    "Відкрийте, щоб додати учня зі списку активних у цей клас.",
+  "class.guide.locate2":
+    "Оберіть учня та підтвердіть — він лишається в активному списку для інших класів.",
+  "class.guide.locate3": "Спочатку додайте учнів у «Активні учні» на панелі.",
 };
 
 export const CLASS_WORKSPACE_GUIDE_AR: Record<string, string> = {
@@ -295,6 +366,7 @@ export const CLASS_WORKSPACE_GUIDE_AR: Record<string, string> = {
   "class.guide.move1": "انقل تلميذاً إلى صف آخر دون فقدان تقاريره.",
   "class.guide.move2": "اختر التلميذ والصف الوجهة ثم أكّد.",
   "class.guide.move3": "مفيد عندما يغيّر التلميذ مجموعته منتصف العام.",
+  ...CLASS_GUIDE_LOCATE_AR,
 };
 
 /** Keys exported for tests or validation. */

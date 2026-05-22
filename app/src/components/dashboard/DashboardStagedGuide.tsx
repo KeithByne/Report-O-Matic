@@ -16,6 +16,18 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
   if (mode === "owner_hub") {
     return [
       {
+        key: "menu_profile",
+        n: 0,
+        titleKey: "dash.guide.teacherProfileTitle",
+        linesKeys: ["dash.guide.teacherProfile1", "dash.guide.teacherProfile2", "dash.guide.teacherProfile3"],
+      },
+      {
+        key: "owner_agent",
+        n: 0,
+        titleKey: "dash.guide.agentTitle",
+        linesKeys: ["dash.guide.agent1", "dash.guide.agent2", "dash.guide.agent3"],
+      },
+      {
         key: "hub_add_school",
         n: 1,
         titleKey: "dash.guide.hubAddSchoolTitle",
@@ -31,6 +43,12 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
   }
   if (mode === "owner_workspace") {
     return [
+      {
+        key: "menu_profile",
+        n: 0,
+        titleKey: "dash.guide.teacherProfileTitle",
+        linesKeys: ["dash.guide.teacherProfile1", "dash.guide.teacherProfile2", "dash.guide.teacherProfile3"],
+      },
       {
         key: "owner_overview",
         n: 1,
@@ -68,15 +86,39 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
         linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
       },
       {
-        key: "owner_timetable",
+        key: "owner_active_students",
         n: 7,
+        titleKey: "dash.guide.activeStudentsTitle",
+        linesKeys: ["dash.guide.activeStudents1", "dash.guide.activeStudents2", "dash.guide.activeStudents3"],
+      },
+      {
+        key: "owner_inactive_students",
+        n: 8,
+        titleKey: "dash.guide.inactiveStudentsTitle",
+        linesKeys: ["dash.guide.inactiveStudents1", "dash.guide.inactiveStudents2", "dash.guide.inactiveStudents3"],
+      },
+      {
+        key: "owner_timetable",
+        n: 9,
         titleKey: "dash.guide.ownerTimetableTitle",
         linesKeys: ["dash.guide.ownerTimetable1", "dash.guide.ownerTimetable2", "dash.guide.ownerTimetable3"],
+      },
+      {
+        key: "owner_registers",
+        n: 10,
+        titleKey: "dash.guide.registersTitle",
+        linesKeys: ["dash.guide.registers1", "dash.guide.registers2", "dash.guide.registers3"],
       },
     ];
   }
   if (mode === "department_head") {
     return [
+      {
+        key: "menu_profile",
+        n: 0,
+        titleKey: "dash.guide.teacherProfileTitle",
+        linesKeys: ["dash.guide.teacherProfile1", "dash.guide.teacherProfile2", "dash.guide.teacherProfile3"],
+      },
       {
         key: "dh_overview",
         n: 1,
@@ -102,16 +144,40 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
         linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
       },
       {
-        key: "dh_timetable",
+        key: "dh_active_students",
         n: 5,
+        titleKey: "dash.guide.activeStudentsTitle",
+        linesKeys: ["dash.guide.activeStudents1", "dash.guide.activeStudents2", "dash.guide.activeStudents3"],
+      },
+      {
+        key: "dh_inactive_students",
+        n: 6,
+        titleKey: "dash.guide.inactiveStudentsTitle",
+        linesKeys: ["dash.guide.inactiveStudents1", "dash.guide.inactiveStudents2", "dash.guide.inactiveStudents3"],
+      },
+      {
+        key: "dh_timetable",
+        n: 7,
         titleKey: "dash.guide.dhTimetableTitle",
         linesKeys: ["dash.guide.dhTimetable1", "dash.guide.dhTimetable2", "dash.guide.dhTimetable3"],
       },
       {
+        key: "dh_registers",
+        n: 8,
+        titleKey: "dash.guide.registersTitle",
+        linesKeys: ["dash.guide.registers1", "dash.guide.registers2", "dash.guide.registers3"],
+      },
+      {
         key: "dh_pdf",
-        n: 6,
+        n: 9,
         titleKey: "dash.guide.stepLetterheadTitle",
         linesKeys: ["dash.guide.dhPdf1", "dash.guide.dhPdf2", "dash.guide.dhPdf3"],
+      },
+      {
+        key: "dh_downloads",
+        n: 10,
+        titleKey: "dash.guide.menuDownloadsTitle",
+        linesKeys: ["dash.guide.menuDownloads1", "dash.guide.menuDownloads2", "dash.guide.menuDownloads3"],
       },
     ];
   }
@@ -135,8 +201,14 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
       linesKeys: ["dash.guide.teacherDownloads1", "dash.guide.teacherDownloads2", "dash.guide.teacherDownloads3"],
     },
     {
-      key: "teacher_reports",
+      key: "teacher_registers",
       n: 4,
+      titleKey: "dash.guide.teacherRegistersTitle",
+      linesKeys: ["dash.guide.teacherRegisters1", "dash.guide.teacherRegisters2", "dash.guide.teacherRegisters3"],
+    },
+    {
+      key: "teacher_reports",
+      n: 5,
       titleKey: "dash.guide.stepReportsTitle",
       linesKeys: ["dash.guide.report1", "dash.guide.report2", "dash.guide.report3"],
     },

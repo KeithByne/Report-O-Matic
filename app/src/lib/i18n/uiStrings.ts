@@ -14,6 +14,7 @@ import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import { isSubjectCode } from "@/lib/subjects";
 import { EL_BODY } from "@/lib/i18n/localeElBody";
 import { DE_LABELS, IT_LABELS, PT_LABELS } from "@/lib/i18n/localeExtra";
+import { MENU_GUIDE_EXTRAS_EN } from "@/lib/i18n/localeMenuGuideExtras";
 import { IT_COMPLETION } from "@/lib/i18n/localeItCompletion";
 import {
   CLASS_WORKSPACE_GUIDE_AR,
@@ -650,6 +651,11 @@ const EN: UiMessages = {
   "dash.guide.teacherDownloads1": "Open Downloads for printable registers, timetable, and report PDFs.",
   "dash.guide.teacherDownloads2": "Use it when you need one-off documents for meetings or paper copies.",
   "dash.guide.teacherDownloads3": "Check status messages there before printing large report batches.",
+  ...MENU_GUIDE_EXTRAS_EN,
+  "class.guide.locateTitle": "Locate from Active Students",
+  "class.guide.locate1": "Open this to place a pupil from the school Active Students list into this class.",
+  "class.guide.locate2": "Pick the pupil, then confirm—they stay on the active list for other classes too.",
+  "class.guide.locate3": "Use Active Students on the dashboard to add new pupils first.",
   "dash.ownerBackToSchools": "Back to schools",
   "dash.ownerMenuClassesAndReports": "Classes and Reports",
   "profile.pageTitle": "Your account",
@@ -2220,6 +2226,12 @@ const FR: UiMessages = {
   "class.guide.move1": "Déplacez un élève vers une autre classe de l’école sans perdre ses rapports.",
   "class.guide.move2": "Choisissez l’élève et la classe de destination, puis confirmez.",
   "class.guide.move3": "Utile quand un élève change de groupe en cours d’année.",
+  "class.guide.locateTitle": "Placer depuis les élèves actifs",
+  "class.guide.locate1":
+    "Ouvrez ceci pour placer un élève de la liste Élèves actifs dans cette classe.",
+  "class.guide.locate2":
+    "Choisissez l’élève, puis confirmez — il reste sur la liste active pour d’autres classes.",
+  "class.guide.locate3": "Ajoutez d’abord de nouveaux élèves via Élèves actifs sur le tableau de bord.",
   "class.printRegisterNeedDays": "Choisissez d’abord les jours de cours dans les paramètres de la classe.",
   "class.printRegisterNeedStudents": "Ajoutez des élèves avant d’imprimer le registre.",
   "class.duplicatePupilWarning":
@@ -2910,6 +2922,12 @@ const ES: UiMessages = {
   "class.guide.move1": "Mueva un alumno a otra clase de la escuela sin perder sus informes.",
   "class.guide.move2": "Elija alumno y clase de destino y confirme.",
   "class.guide.move3": "Útil cuando un alumno cambia de grupo a mitad de curso.",
+  "class.guide.locateTitle": "Colocar desde alumnos activos",
+  "class.guide.locate1":
+    "Abra esto para colocar un alumno de la lista de Alumnos activos en esta clase.",
+  "class.guide.locate2":
+    "Elija el alumno y confirme — sigue en la lista activa para otras clases.",
+  "class.guide.locate3": "Añada primero alumnos nuevos en Alumnos activos del panel.",
   "class.printRegisterNeedDays": "Elija primero los días de clase en Ajustes de la clase.",
   "class.printRegisterNeedStudents": "Añada alumnos antes de imprimir el registro.",
   "class.duplicatePupilWarning":

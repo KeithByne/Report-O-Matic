@@ -544,7 +544,10 @@ export function DashboardClientView({
           ) : null}
 
           {teacherMemberships.length > 0 && !usesTeacherWorkspaceMenu ? (
-            <div className="mt-5 rounded-xl border border-emerald-300/70 bg-gradient-to-br from-emerald-50/95 to-white p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5">
+            <div
+              className="mt-5 rounded-xl border border-emerald-300/70 bg-gradient-to-br from-emerald-50/95 to-white p-4 shadow-sm ring-1 ring-emerald-100 sm:p-5"
+              onMouseLeave={() => setTeacherGuideHoverKey(null)}
+            >
               <h3 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
                 <NotebookText className={ICON_INLINE} aria-hidden />
                 {t("dash.teacherRegistersCalloutTitle")}
@@ -556,6 +559,8 @@ export function DashboardClientView({
                     key={m.tenantId}
                     type="button"
                     aria-pressed={dashboardPdfPreview?.id === teacherRegistersPdfId(m.tenantId)}
+                    onMouseEnter={() => setTeacherGuideHoverKey("teacher_registers")}
+                    onFocus={() => setTeacherGuideHoverKey("teacher_registers")}
                     onClick={() =>
                       previewDashboardPdf(
                         "account",
@@ -584,6 +589,11 @@ export function DashboardClientView({
                   onClose={closeDashboardPdfPreview}
                 />
               ) : null}
+              <DashboardStagedGuide
+                mode="teacher"
+                activeStageKey={teacherGuideHoverKey ?? undefined}
+                showTabs={false}
+              />
             </div>
           ) : null}
 
@@ -591,6 +601,8 @@ export function DashboardClientView({
             <p className="mt-4 text-sm">
               <Link
                 href="/dashboard/profile"
+                onMouseEnter={() => setWorkspaceGuideHoverKey("menu_profile")}
+                onFocus={() => setWorkspaceGuideHoverKey("menu_profile")}
                 className="inline-flex items-center gap-2 font-medium text-emerald-900 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-950"
               >
                 <UserRound className={ICON_INLINE} aria-hidden />
@@ -600,8 +612,14 @@ export function DashboardClientView({
           ) : null}
 
           {hasOwner && memberships.length > 0 && !ownerFocusTenantId ? (
-            <div className="mt-6 space-y-8 border-t border-emerald-100 pt-6">
-              <div>
+            <div
+              className="mt-6 space-y-8 border-t border-emerald-100 pt-6"
+              onMouseLeave={() => setWorkspaceGuideHoverKey(null)}
+            >
+              <div
+                onMouseEnter={() => setWorkspaceGuideHoverKey("hub_add_school")}
+                onFocus={() => setWorkspaceGuideHoverKey("hub_add_school")}
+              >
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
                   <Building2 className={ICON_INLINE} aria-hidden />
                   {t("dash.ownerHubAddSchool")}
@@ -610,7 +628,11 @@ export function DashboardClientView({
                   <AddSchoolForm embedded suppressEmbeddedHeading />
                 </div>
               </div>
-              <div className="border-t border-emerald-100 pt-8">
+              <div
+                className="border-t border-emerald-100 pt-8"
+                onMouseEnter={() => setWorkspaceGuideHoverKey("hub_pick_school")}
+                onFocus={() => setWorkspaceGuideHoverKey("hub_pick_school")}
+              >
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
                   <Building2 className={ICON_INLINE} aria-hidden />
                   {t("dash.schoolFocusTitle")}
@@ -659,11 +681,16 @@ export function DashboardClientView({
                   ))}
                 </ul>
               </div>
+              <DashboardStagedGuide
+                mode="owner_hub"
+                activeStageKey={
+                  workspaceGuideHoverKey && workspaceGuideHoverKey !== "owner_agent"
+                    ? workspaceGuideHoverKey
+                    : undefined
+                }
+                showTabs={false}
+              />
             </div>
-          ) : null}
-
-          {hasOwner && memberships.length > 0 && !ownerFocusTenantId ? (
-            <DashboardStagedGuide mode="owner_hub" />
           ) : null}
 
           {usesSchoolWorkspaceMenu && memberships.length > 0 && primaryMembership && !hasOwner ? (
@@ -682,6 +709,8 @@ export function DashboardClientView({
                   >
                     <Link
                       href="/dashboard/profile"
+                      onMouseEnter={() => setWorkspaceGuideHoverKey("menu_profile")}
+                      onFocus={() => setWorkspaceGuideHoverKey("menu_profile")}
                       className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                     >
                       <UserRound className={ICON_INLINE} aria-hidden />
@@ -754,6 +783,8 @@ export function DashboardClientView({
                         <button
                           type="button"
                           aria-pressed={workspaceDashPanel === "activeStudents"}
+                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_active_students")}
+                          onFocus={() => setWorkspaceGuideHoverKey("dh_active_students")}
                           onClick={() => toggleWorkspacePanel("activeStudents")}
                           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                             workspaceDashPanel === "activeStudents"
@@ -767,6 +798,8 @@ export function DashboardClientView({
                         <button
                           type="button"
                           aria-pressed={workspaceDashPanel === "inactiveStudents"}
+                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_inactive_students")}
+                          onFocus={() => setWorkspaceGuideHoverKey("dh_inactive_students")}
                           onClick={() => toggleWorkspacePanel("inactiveStudents")}
                           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                             workspaceDashPanel === "inactiveStudents"
@@ -797,6 +830,8 @@ export function DashboardClientView({
                           aria-pressed={
                             dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
                           }
+                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_registers")}
+                          onFocus={() => setWorkspaceGuideHoverKey("dh_registers")}
                           onClick={() =>
                             previewDashboardPdf(
                               "workspace",
@@ -836,6 +871,8 @@ export function DashboardClientView({
                     {showWorkspaceDownloadsTab && !deptHeadOnlyWorkspace ? (
                       <Link
                         href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}?panel=downloads`}
+                        onMouseEnter={() => setWorkspaceGuideHoverKey("dh_downloads")}
+                        onFocus={() => setWorkspaceGuideHoverKey("dh_downloads")}
                         className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
                       >
                         <Download className={ICON_INLINE} aria-hidden />
@@ -909,6 +946,8 @@ export function DashboardClientView({
                       key={m.tenantId}
                       type="button"
                       aria-pressed={dashboardPdfPreview?.id === teacherRegistersPdfId(m.tenantId)}
+                      onMouseEnter={() => setTeacherGuideHoverKey("teacher_registers")}
+                      onFocus={() => setTeacherGuideHoverKey("teacher_registers")}
                       onClick={() =>
                         previewDashboardPdf(
                           "teacher",
@@ -1097,6 +1136,8 @@ export function DashboardClientView({
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "activeStudents"}
+                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_active_students")}
+                  onFocus={() => setWorkspaceGuideHoverKey("owner_active_students")}
                   onClick={() => toggleWorkspacePanel("activeStudents")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     workspaceDashPanel === "activeStudents"
@@ -1110,6 +1151,8 @@ export function DashboardClientView({
                 <button
                   type="button"
                   aria-pressed={workspaceDashPanel === "inactiveStudents"}
+                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_inactive_students")}
+                  onFocus={() => setWorkspaceGuideHoverKey("owner_inactive_students")}
                   onClick={() => toggleWorkspacePanel("inactiveStudents")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     workspaceDashPanel === "inactiveStudents"
@@ -1140,6 +1183,8 @@ export function DashboardClientView({
                   aria-pressed={
                     dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
                   }
+                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_registers")}
+                  onFocus={() => setWorkspaceGuideHoverKey("owner_registers")}
                   onClick={() =>
                     previewDashboardPdf(
                       "workspace",
@@ -1173,9 +1218,14 @@ export function DashboardClientView({
         ) : null}
 
         {hasOwner && memberships.length > 0 && !ownerFocusTenantId ? (
-          <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <section
+            className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
+            onMouseLeave={() => setWorkspaceGuideHoverKey(null)}
+          >
             <button
               type="button"
+              onMouseEnter={() => setWorkspaceGuideHoverKey("owner_agent")}
+              onFocus={() => setWorkspaceGuideHoverKey("owner_agent")}
               onClick={() => {
                 setAgentStartupOpen((o) => {
                   const next = !o;
@@ -1306,6 +1356,13 @@ export function DashboardClientView({
                   <div className="mt-3 text-sm text-zinc-600">{myAgentBusy ? t("dash.agentLoading") : "—"}</div>
                 )}
               </div>
+            ) : null}
+            {workspaceGuideHoverKey === "owner_agent" ? (
+              <DashboardStagedGuide
+                mode="owner_hub"
+                activeStageKey={workspaceGuideHoverKey}
+                showTabs={false}
+              />
             ) : null}
           </section>
         ) : null}
