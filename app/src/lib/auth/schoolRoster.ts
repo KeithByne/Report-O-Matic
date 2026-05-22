@@ -1,6 +1,6 @@
-import type { TenantRole } from "@/lib/data/memberships";
+import type { RomRole } from "@/lib/data/memberships";
 
 /** School-wide active/inactive pupil roster (not class-scoped). */
-export function canManageSchoolRoster(role: TenantRole | null): boolean {
+export function canManageSchoolRoster(role: RomRole | null): role is RomRole {
   return role === "owner" || role === "department_head";
 }

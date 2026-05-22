@@ -22,7 +22,10 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!canManageSchoolRoster(role)) {
-    return NextResponse.json({ error: "Only owners and department heads can locate pupils into classes." }, { status: 403 });
+    return NextResponse.json(
+      { error: "Only owners and department heads can locate pupils into classes." },
+      { status: 403 },
+    );
   }
 
   let body: { class_id?: unknown };
