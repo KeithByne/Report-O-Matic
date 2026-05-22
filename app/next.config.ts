@@ -1,5 +1,14 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
+
+/** Monorepo tracing root (repo root above `app/`). Works when config loads as ESM on Vercel (`__dirname` may be undefined). */
+function monorepoTracingRoot(): string {
+  if (typeof __dirname === "string") {
+    return path.join(__dirname, "..");
+  }
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+}
 
 const securityHeaders: { key: string; value: string }[] = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -16,7 +25,7 @@ const apiSecurityHeaders = securityHeaders.filter((h) => h.key !== "X-Frame-Opti
 
 const nextConfig: NextConfig = {
   // Monorepo: silence inferred workspace-root warning (multiple lockfiles).
-  outputFileTracingRoot: path.join(__dirname, ".."),
+  outputFileTracingRoot: monorepoTracingRoot(),
   async headers() {
     return [
       // First match wins: API routes must not send X-Frame-Options: DENY or inline PDF preview breaks.
