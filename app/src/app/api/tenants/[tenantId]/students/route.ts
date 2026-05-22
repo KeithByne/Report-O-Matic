@@ -50,7 +50,14 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!role) return NextResponse.json({ error: "No access." }, { status: 403 });
 
-  let body: { display_name?: unknown; class_id?: unknown; first_name?: unknown; last_name?: unknown; gender?: unknown };
+  let body: {
+    display_name?: unknown;
+    class_id?: unknown;
+    first_name?: unknown;
+    last_name?: unknown;
+    gender?: unknown;
+    school_student_id?: unknown;
+  };
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -86,19 +93,24 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       return NextResponse.json({ error: "You cannot add students to this class." }, { status: 403 });
     }
 
+    const schoolStudentId =
+      typeof body.school_student_id === "string" && isUuid(body.school_student_id.trim())
+        ? body.school_student_id.trim()
+        : undefined;
     const student = await insertStudent({
       tenantId,
       classId: cid,
       firstName: firstName,
       lastName: lastName,
       gender,
+      schoolStudentId,
     });
     await logStudentEvent({
       tenantId,
       actorEmail: gate.email,
-      type: "added",
+      type: schoolStudentId ? "enrolled" : "added",
       studentId: student.id,
-      fromClassId: null,
+      schoolStudentId: student.school_student_id,
       toClassId: cid,
     });
     return NextResponse.json({ student });

@@ -5,15 +5,23 @@ function formatErr(e: { message: string; details?: string | null; hint?: string 
   return parts.join(" — ") || "Database error.";
 }
 
-export type StudentEventType = "added" | "deleted" | "moved";
+export type StudentEventType =
+  | "added"
+  | "deleted"
+  | "moved"
+  | "enrolled"
+  | "unenrolled"
+  | "inactivated"
+  | "reactivated";
 
 export async function logStudentEvent(opts: {
   tenantId: string;
   actorEmail: string;
   type: StudentEventType;
-  studentId: string | null;
-  fromClassId: string | null;
-  toClassId: string | null;
+  studentId?: string | null;
+  schoolStudentId?: string | null;
+  fromClassId?: string | null;
+  toClassId?: string | null;
 }): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) return;
@@ -21,9 +29,10 @@ export async function logStudentEvent(opts: {
     tenant_id: opts.tenantId,
     actor_email: opts.actorEmail.trim().toLowerCase(),
     event_type: opts.type,
-    student_id: opts.studentId,
-    from_class_id: opts.fromClassId,
-    to_class_id: opts.toClassId,
+    student_id: opts.studentId ?? null,
+    school_student_id: opts.schoolStudentId ?? null,
+    from_class_id: opts.fromClassId ?? null,
+    to_class_id: opts.toClassId ?? null,
   });
   if (error) throw new Error(formatErr(error));
 }

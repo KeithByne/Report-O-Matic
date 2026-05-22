@@ -5,7 +5,7 @@ import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { Gender } from "@/lib/data/students";
 import { canDeleteStudent } from "@/lib/auth/resourceDelete";
-import { deleteStudentInTenant, getStudentInTenant, moveStudentToClass, updateStudent } from "@/lib/data/students";
+import { endEnrollmentInTenant, getStudentInTenant, moveStudentToClass, updateStudent } from "@/lib/data/students";
 import { logStudentEvent } from "@/lib/data/studentEvents";
 
 function isUuid(s: string): boolean {
@@ -98,14 +98,14 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
     if (klass && !canAccessClass({ role, viewerEmail: gate.email, klass })) {
       return NextResponse.json({ error: "You cannot delete this student." }, { status: 403 });
     }
-    await deleteStudentInTenant(tenantId, studentId);
+    await endEnrollmentInTenant(tenantId, studentId);
     await logStudentEvent({
       tenantId,
       actorEmail: gate.email,
-      type: "deleted",
+      type: "unenrolled",
       studentId,
+      schoolStudentId: existing.school_student_id,
       fromClassId: existing.class_id,
-      toClassId: null,
     });
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {

@@ -8,6 +8,7 @@ import {
   FolderKanban,
   Printer,
   Settings2,
+  UserPlus,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -50,6 +51,7 @@ type ClassWorkspacePanelId =
   | "students"
   | "bulkDownload"
   | "movePupil"
+  | "locateFromActive"
   | "registerPreview";
 
 const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
@@ -57,6 +59,7 @@ const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
   students: Users,
   bulkDownload: Printer,
   movePupil: ArrowLeftRight,
+  locateFromActive: UserPlus,
   registerPreview: ClipboardList,
 };
 
@@ -65,6 +68,7 @@ const CLASS_PANEL_GUIDE_KEY: Record<ClassWorkspacePanelId, string> = {
   students: "class_students",
   bulkDownload: "class_bulk",
   movePupil: "class_move",
+  locateFromActive: "class_locate_active",
   registerPreview: "class_register",
 };
 
@@ -183,6 +187,8 @@ export function ClassWorkspace({
   );
   const [students, setStudents] = useState<Student[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
+  const [activeRoster, setActiveRoster] = useState<{ id: string; display_name: string; class_ids: string[] }[]>([]);
+  const [locateSchoolStudentId, setLocateSchoolStudentId] = useState("");
 
   const classBulkPdfGate = useMemo(() => {
     if (students.length === 0) {
@@ -412,6 +418,11 @@ export function ClassWorkspace({
       { id: "bulkDownload", label: t("class.printClassReports"), Icon: CLASS_PANEL_ICON.bulkDownload },
     );
     if (viewerRole === "owner" || viewerRole === "department_head") {
+      items.push({
+        id: "locateFromActive",
+        label: t("class.panelLocateFromActive"),
+        Icon: CLASS_PANEL_ICON.locateFromActive,
+      });
       items.push({
         id: "movePupil",
         label: t("class.panelMovePupil"),
@@ -848,6 +859,52 @@ export function ClassWorkspace({
   const canDeleteStudent =
     viewerRole === "owner" || viewerRole === "department_head" || viewerRole === "teacher";
   const canDeleteClass = viewerRole === "owner" || viewerRole === "department_head";
+
+  const locateCandidates = useMemo(
+    () => activeRoster.filter((r) => !r.class_ids.includes(classId)),
+    [activeRoster, classId],
+  );
+
+  useEffect(() => {
+    if (openClassPanel !== "locateFromActive") return;
+    if (viewerRole !== "owner" && viewerRole !== "department_head") return;
+    void (async () => {
+      try {
+        const res = await fetch(`${base}/school-students?status=active`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+        const rows = (data.students ?? []) as { id: string; display_name: string; class_ids?: string[] }[];
+        setActiveRoster(rows.map((r) => ({ id: r.id, display_name: r.display_name, class_ids: r.class_ids ?? [] })));
+      } catch {
+        setActiveRoster([]);
+      }
+    })();
+  }, [openClassPanel, viewerRole, base]);
+
+  async function locateFromActiveList() {
+    if (!locateSchoolStudentId) return;
+    setBusy("locate");
+    try {
+      const res = await fetch(
+        `${base}/school-students/${encodeURIComponent(locateSchoolStudentId)}/enrollments`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ class_id: classId }),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
+      setLocateSchoolStudentId("");
+      await refreshStudents();
+      await refreshOrgStudents();
+      router.refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function deleteStudentRow(studentId: string, displayName: string) {
     if (!confirm(t("class.confirmRemoveStudent", { name: displayName }))) return;
@@ -1707,6 +1764,44 @@ export function ClassWorkspace({
               </div>
             )}
           </div>
+        </section>
+      ) : null}
+
+      {openClassPanel === "locateFromActive" && (viewerRole === "owner" || viewerRole === "department_head") ? (
+        <section
+          id="class-workspace-panel-locateFromActive"
+          className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
+        >
+          <h3 className="text-sm font-semibold text-zinc-900">{t("class.locateFromActiveTitle")}</h3>
+          <p className="mt-1 text-sm text-zinc-600">{t("class.locateFromActiveHint")}</p>
+          <div className="mt-4 flex flex-wrap items-end gap-3">
+            <label className="block min-w-0 flex-1 text-sm sm:max-w-md">
+              <span className="mb-1 block text-zinc-600">{t("class.locateFromActivePick")}</span>
+              <select
+                value={locateSchoolStudentId}
+                onChange={(e) => setLocateSchoolStudentId(e.target.value)}
+                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">—</option>
+                {locateCandidates.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.display_name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              disabled={busy !== null || !locateSchoolStudentId}
+              onClick={() => void locateFromActiveList()}
+              className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {t("class.locateFromActiveButton")}
+            </button>
+          </div>
+          {locateCandidates.length === 0 ? (
+            <p className="mt-3 text-xs text-zinc-500">{t("dash.activeStudentsEmpty")}</p>
+          ) : null}
         </section>
       ) : null}
 

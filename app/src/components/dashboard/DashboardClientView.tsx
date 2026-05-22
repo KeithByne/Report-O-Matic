@@ -27,6 +27,8 @@ import {
   Share2,
   UserPlus,
   UserRound,
+  UserCheck,
+  Archive,
   Users,
   X,
 } from "lucide-react";
@@ -38,6 +40,7 @@ import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
 import { DashboardScholasticArchivesOverview } from "@/components/dashboard/DashboardScholasticArchivesOverview";
 import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTable";
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
+import { DashboardSchoolStudentsPanel } from "@/components/dashboard/DashboardSchoolStudentsPanel";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -70,7 +73,16 @@ type MyAgentLink = {
   payout_stripe_account_id?: string | null;
 };
 
-type WorkspaceDashPanel = "overview" | "pdf" | "invites" | "subjects" | "classes" | "timetable" | "schoolType";
+type WorkspaceDashPanel =
+  | "overview"
+  | "pdf"
+  | "invites"
+  | "subjects"
+  | "classes"
+  | "activeStudents"
+  | "inactiveStudents"
+  | "timetable"
+  | "schoolType";
 
 type TeacherWorkspacePanel = "profile" | "classes" | "downloads";
 
@@ -741,6 +753,32 @@ export function DashboardClientView({
                         </button>
                         <button
                           type="button"
+                          aria-pressed={workspaceDashPanel === "activeStudents"}
+                          onClick={() => toggleWorkspacePanel("activeStudents")}
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                            workspaceDashPanel === "activeStudents"
+                              ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                          }`}
+                        >
+                          <UserCheck className={ICON_INLINE} aria-hidden />
+                          {t("dash.panelActiveStudents")}
+                        </button>
+                        <button
+                          type="button"
+                          aria-pressed={workspaceDashPanel === "inactiveStudents"}
+                          onClick={() => toggleWorkspacePanel("inactiveStudents")}
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                            workspaceDashPanel === "inactiveStudents"
+                              ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                          }`}
+                        >
+                          <Archive className={ICON_INLINE} aria-hidden />
+                          {t("dash.panelInactiveStudents")}
+                        </button>
+                        <button
+                          type="button"
                           aria-pressed={workspaceDashPanel === "timetable"}
                           onMouseEnter={() => setWorkspaceGuideHoverKey("dh_timetable")}
                           onFocus={() => setWorkspaceGuideHoverKey("dh_timetable")}
@@ -1055,6 +1093,32 @@ export function DashboardClientView({
                 >
                   <BookOpen className={ICON_INLINE} aria-hidden />
                   {t("tenant.panelClasses")}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={workspaceDashPanel === "activeStudents"}
+                  onClick={() => toggleWorkspacePanel("activeStudents")}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    workspaceDashPanel === "activeStudents"
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                  }`}
+                >
+                  <UserCheck className={ICON_INLINE} aria-hidden />
+                  {t("dash.panelActiveStudents")}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={workspaceDashPanel === "inactiveStudents"}
+                  onClick={() => toggleWorkspacePanel("inactiveStudents")}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    workspaceDashPanel === "inactiveStudents"
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
+                  }`}
+                >
+                  <Archive className={ICON_INLINE} aria-hidden />
+                  {t("dash.panelInactiveStudents")}
                 </button>
                 <button
                   type="button"
@@ -1492,6 +1556,30 @@ export function DashboardClientView({
                       viewerRole={primaryMembership.role}
                       active={workspaceDashPanel === "classes"}
                       view="classes"
+                    />
+                  </div>
+                ) : null}
+
+                {primaryMembership &&
+                workspaceDashPanel === "activeStudents" &&
+                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
+                  <div id="dash-workspace-panel-activeStudents">
+                    <DashboardSchoolStudentsPanel
+                      key={`${primaryMembership.tenantId}-active-students`}
+                      tenantId={primaryMembership.tenantId}
+                      status="active"
+                    />
+                  </div>
+                ) : null}
+
+                {primaryMembership &&
+                workspaceDashPanel === "inactiveStudents" &&
+                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
+                  <div id="dash-workspace-panel-inactiveStudents">
+                    <DashboardSchoolStudentsPanel
+                      key={`${primaryMembership.tenantId}-inactive-students`}
+                      tenantId={primaryMembership.tenantId}
+                      status="inactive"
                     />
                   </div>
                 ) : null}

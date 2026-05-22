@@ -553,6 +553,24 @@ const EN: UiMessages = {
   "dash.schoolWorkspaceMenuHint": "Edit the school you selected above.",
   "dash.ownerViewingSchool": "You are viewing: {name}",
   "dash.ownerAllRegisterLists": "Registers",
+  "dash.panelActiveStudents": "Active Students",
+  "dash.panelInactiveStudents": "Inactive Students",
+  "dash.activeStudentsHint":
+    "School-wide list of all pupils. Add names here, then locate them into any class without removing them from this list. Removing a pupil archives them and ends every class enrollment (reports are kept).",
+  "dash.inactiveStudentsHint":
+    "Archived pupils removed from the Active Students list. Re-activate to return them to the active roster; you can then locate them into classes again.",
+  "dash.activeStudentsAdd": "Add to active list",
+  "dash.activeStudentsEmpty": "No pupils on the active list yet.",
+  "dash.inactiveStudentsEmpty": "No inactive pupils.",
+  "dash.activeStudentsClasses": "Classes",
+  "dash.activeStudentsNoClasses": "Not placed in any class yet",
+  "dash.activeStudentsLocateClass": "Locate in class…",
+  "dash.activeStudentsLocateButton": "Locate",
+  "dash.activeStudentsRemove": "Remove from active list",
+  "dash.activeStudentsConfirmRemove":
+    "Remove {name} from the Active Students list? They will be removed from all classes and moved to Inactive Students. Their reports are kept.",
+  "dash.inactiveStudentsArchivedAt": "Archived {date}",
+  "dash.inactiveStudentsReactivate": "Re-activate",
   "dash.panelOverview": "Overview",
   "dash.panelPdfLetterhead": "Letterhead",
   "dash.panelInviteTeam": "Invite team",
@@ -1279,7 +1297,14 @@ const EN: UiMessages = {
   "class.noPupils": "No pupils yet — add one above.",
   "class.confirmYearChange":
     "Changing the scholastic year saves a read-only archive of the current year (all pupil reports), then removes those reports so you can start fresh for the new year. Pupils stay in the class. Continue?",
-  "class.confirmRemoveStudent": "Remove {name} from this class? All their reports will be deleted.",
+  "class.confirmRemoveStudent":
+    "Remove {name} from this class? They stay on the Active Students list; their reports for this class are kept.",
+  "class.panelLocateFromActive": "Locate from Active Students",
+  "class.locateFromActiveTitle": "Locate pupil from Active Students",
+  "class.locateFromActiveHint":
+    "Place a pupil from the school active list into this class without removing them from the list.",
+  "class.locateFromActivePick": "Choose pupil…",
+  "class.locateFromActiveButton": "Locate in this class",
   "class.activeDaysLabel": "Days this class meets",
   "class.activeDaysDisplay": "Register uses",
   "class.printRegister": "Print Register",
@@ -1599,6 +1624,24 @@ const FR: UiMessages = {
   "dash.schoolWorkspaceMenuHint": "Modifiez l’école sélectionnée ci-dessus.",
   "dash.ownerViewingSchool": "Vous consultez : {name}",
   "dash.ownerAllRegisterLists": "Registres",
+  "dash.panelActiveStudents": "Élèves actifs",
+  "dash.panelInactiveStudents": "Élèves inactifs",
+  "dash.activeStudentsHint":
+    "Liste de tous les élèves de l’établissement. Ajoutez des noms ici, puis placez-les dans une classe sans les retirer de cette liste. La suppression archive l’élève et met fin à toutes les inscriptions (les rapports sont conservés).",
+  "dash.inactiveStudentsHint":
+    "Élèves archivés retirés de la liste active. Réactivez pour les remettre sur la liste active, puis placez-les dans les classes.",
+  "dash.activeStudentsAdd": "Ajouter à la liste active",
+  "dash.activeStudentsEmpty": "Aucun élève sur la liste active.",
+  "dash.inactiveStudentsEmpty": "Aucun élève inactif.",
+  "dash.activeStudentsClasses": "Classes",
+  "dash.activeStudentsNoClasses": "Pas encore placé dans une classe",
+  "dash.activeStudentsLocateClass": "Placer dans la classe…",
+  "dash.activeStudentsLocateButton": "Placer",
+  "dash.activeStudentsRemove": "Retirer de la liste active",
+  "dash.activeStudentsConfirmRemove":
+    "Retirer {name} de la liste active ? L’élève sera retiré de toutes les classes et archivé. Les rapports sont conservés.",
+  "dash.inactiveStudentsArchivedAt": "Archivé le {date}",
+  "dash.inactiveStudentsReactivate": "Réactiver",
   "dash.panelOverview": "Aperçu",
   "dash.panelPdfLetterhead": "En-tête",
   "dash.panelInviteTeam": "Inviter l’équipe",
@@ -2142,7 +2185,14 @@ const FR: UiMessages = {
   "class.noPupils": "Pas encore d’élèves — ajoutez-en un ci-dessus.",
   "class.confirmYearChange":
     "Changer l’année scolaire enregistre un archive en lecture seule de l’année en cours (tous les rapports des élèves), puis supprime ces rapports pour repartir à zéro. Les élèves restent dans la classe. Continuer ?",
-  "class.confirmRemoveStudent": "Retirer {name} de cette classe ? Tous ses rapports seront supprimés.",
+  "class.confirmRemoveStudent":
+    "Retirer {name} de cette classe ? L’élève reste sur la liste active ; les rapports de cette classe sont conservés.",
+  "class.panelLocateFromActive": "Placer depuis Élèves actifs",
+  "class.locateFromActiveTitle": "Placer un élève de la liste active",
+  "class.locateFromActiveHint":
+    "Ajoutez un élève de la liste active à cette classe sans le retirer de la liste.",
+  "class.locateFromActivePick": "Choisir un élève…",
+  "class.locateFromActiveButton": "Placer dans cette classe",
   "class.activeDaysLabel": "Jours de cours",
   "class.activeDaysDisplay": "Jours pour le registre",
   "class.printRegister": "Imprimer le registre",
@@ -2264,6 +2314,24 @@ const ES: UiMessages = {
   "dash.schoolWorkspaceMenuHint": "Edite el centro que seleccionó arriba.",
   "dash.ownerViewingSchool": "Está viendo: {name}",
   "dash.ownerAllRegisterLists": "Registros",
+  "dash.panelActiveStudents": "Alumnos activos",
+  "dash.panelInactiveStudents": "Alumnos inactivos",
+  "dash.activeStudentsHint":
+    "Lista de todos los alumnos del centro. Añada nombres aquí y colóquelos en cualquier clase sin quitarlos de esta lista. Al eliminar, se archiva y se da de baja en todas las clases (los informes se conservan).",
+  "dash.inactiveStudentsHint":
+    "Alumnos archivados al salir de la lista activa. Reactive para volver a la lista activa y colocarlos en clases.",
+  "dash.activeStudentsAdd": "Añadir a la lista activa",
+  "dash.activeStudentsEmpty": "No hay alumnos en la lista activa.",
+  "dash.inactiveStudentsEmpty": "No hay alumnos inactivos.",
+  "dash.activeStudentsClasses": "Clases",
+  "dash.activeStudentsNoClasses": "Aún no está en ninguna clase",
+  "dash.activeStudentsLocateClass": "Colocar en clase…",
+  "dash.activeStudentsLocateButton": "Colocar",
+  "dash.activeStudentsRemove": "Quitar de la lista activa",
+  "dash.activeStudentsConfirmRemove":
+    "¿Quitar a {name} de la lista activa? Se eliminará de todas las clases y pasará a Inactivos. Los informes se conservan.",
+  "dash.inactiveStudentsArchivedAt": "Archivado {date}",
+  "dash.inactiveStudentsReactivate": "Reactivar",
   "dash.panelOverview": "Resumen",
   "dash.panelPdfLetterhead": "Membrete",
   "dash.panelInviteTeam": "Invitar al equipo",
@@ -2807,7 +2875,14 @@ const ES: UiMessages = {
   "class.noPupils": "Aún no hay alumnos — añada uno arriba.",
   "class.confirmYearChange":
     "Al cambiar el año escolar se archiva en solo lectura el año actual (todos los informes de los alumnos) y luego se eliminan esos informes para empezar de cero. Los alumnos permanecen en la clase. ¿Continuar?",
-  "class.confirmRemoveStudent": "¿Quitar a {name} de esta clase? Se eliminarán todos sus informes.",
+  "class.confirmRemoveStudent":
+    "¿Quitar a {name} de esta clase? Permanece en la lista activa; los informes de esta clase se conservan.",
+  "class.panelLocateFromActive": "Colocar desde Alumnos activos",
+  "class.locateFromActiveTitle": "Colocar alumno de la lista activa",
+  "class.locateFromActiveHint":
+    "Coloque un alumno de la lista activa en esta clase sin quitarlo de la lista.",
+  "class.locateFromActivePick": "Elegir alumno…",
+  "class.locateFromActiveButton": "Colocar en esta clase",
   "class.activeDaysLabel": "Días de clase",
   "class.activeDaysDisplay": "Días activos (registro)",
   "class.printRegister": "Imprimir registro",
