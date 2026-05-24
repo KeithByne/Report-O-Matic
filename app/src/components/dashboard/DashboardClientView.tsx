@@ -49,6 +49,7 @@ import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCar
 import { ProfileEditor } from "@/components/dashboard/ProfileEditor";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
 import { DashboardStagedGuide } from "@/components/dashboard/DashboardStagedGuide";
+import { OwnerWorkspaceGroupedMenu } from "@/components/dashboard/OwnerWorkspaceGroupedMenu";
 import { OverviewDataPrivacySection } from "@/components/dashboard/OverviewDataPrivacySection";
 import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
@@ -252,6 +253,16 @@ export function DashboardClientView({
   const toggleWorkspacePanel = useCallback((panel: WorkspaceDashPanel) => {
     setDashboardPdfPreview(null);
     setWorkspaceDashPanel((cur) => (cur === panel ? null : panel));
+  }, []);
+
+  const openWorkspacePanel = useCallback((panel: WorkspaceDashPanel) => {
+    setDashboardPdfPreview(null);
+    setWorkspaceDashPanel(panel);
+  }, []);
+
+  const openOwnerOverview = useCallback(() => {
+    setDashboardPdfPreview(null);
+    setWorkspaceDashPanel("overview");
   }, []);
 
   const toggleTeacherWorkspacePanel = useCallback((panel: TeacherWorkspacePanel) => {
@@ -662,7 +673,7 @@ export function DashboardClientView({
                             onChange={() => {
                               userClearedSchoolFocus.current = false;
                               setOwnerFocusTenantId(tenantId);
-                              setWorkspaceDashPanel(null);
+                              setWorkspaceDashPanel("overview");
                               setWorkspaceGuideHoverKey(null);
                               setDashboardPdfPreview(null);
                             }}
@@ -1050,168 +1061,31 @@ export function DashboardClientView({
             <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-emerald-950">
               {t("dash.ownerViewingSchool", { name: primaryMembership.tenantName })}
             </p>
-            <nav
-              className="flex flex-wrap gap-2"
-              aria-label={t("dash.schoolWorkspaceMenuTitle")}
-            >
-                <button
-                  type="button"
-                  aria-pressed={workspaceDashPanel === "overview"}
-                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_overview")}
-                  onFocus={() => setWorkspaceGuideHoverKey("owner_overview")}
-                  onClick={() => toggleWorkspacePanel("overview")}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "overview"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <LayoutList className={ICON_INLINE} aria-hidden />
-                  {t("dash.panelOverview")}
-                </button>
-                {showWorkspacePdfTab ? (
-                  <button
-                    type="button"
-                    aria-pressed={workspaceDashPanel === "pdf"}
-                    onMouseEnter={() => setWorkspaceGuideHoverKey("owner_pdf")}
-                    onFocus={() => setWorkspaceGuideHoverKey("owner_pdf")}
-                    onClick={() => toggleWorkspacePanel("pdf")}
-                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                      workspaceDashPanel === "pdf"
-                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                    }`}
-                  >
-                    <FileImage className={ICON_INLINE} aria-hidden />
-                    {t("dash.panelPdfLetterhead")}
-                  </button>
-                ) : null}
-                {showWorkspaceInvitesTab ? (
-                  <button
-                    type="button"
-                    aria-pressed={workspaceDashPanel === "invites"}
-                    onMouseEnter={() => setWorkspaceGuideHoverKey("owner_invite")}
-                    onFocus={() => setWorkspaceGuideHoverKey("owner_invite")}
-                    onClick={() => toggleWorkspacePanel("invites")}
-                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                      workspaceDashPanel === "invites"
-                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                        : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                    }`}
-                  >
-                    <UserPlus className={ICON_INLINE} aria-hidden />
-                    {t("dash.panelInviteTeam")}
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  aria-pressed={workspaceDashPanel === "subjects"}
-                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_subjects")}
-                  onFocus={() => setWorkspaceGuideHoverKey("owner_subjects")}
-                  onClick={() => toggleWorkspacePanel("subjects")}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "subjects"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <Library className={ICON_INLINE} aria-hidden />
-                  {t("tenant.panelSubjects")}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={workspaceDashPanel === "classes"}
-                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_classes")}
-                  onFocus={() => setWorkspaceGuideHoverKey("owner_classes")}
-                  onClick={() => toggleWorkspacePanel("classes")}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "classes"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <BookOpen className={ICON_INLINE} aria-hidden />
-                  {t("tenant.panelClasses")}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={workspaceDashPanel === "activeStudents"}
-                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_active_students")}
-                  onFocus={() => setWorkspaceGuideHoverKey("owner_active_students")}
-                  onClick={() => toggleWorkspacePanel("activeStudents")}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "activeStudents"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <UserCheck className={ICON_INLINE} aria-hidden />
-                  {t("dash.panelActiveStudents")}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={workspaceDashPanel === "inactiveStudents"}
-                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_inactive_students")}
-                  onFocus={() => setWorkspaceGuideHoverKey("owner_inactive_students")}
-                  onClick={() => toggleWorkspacePanel("inactiveStudents")}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "inactiveStudents"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <Archive className={ICON_INLINE} aria-hidden />
-                  {t("dash.panelInactiveStudents")}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={workspaceDashPanel === "timetable"}
-                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_timetable")}
-                  onFocus={() => setWorkspaceGuideHoverKey("owner_timetable")}
-                  onClick={() => toggleWorkspacePanel("timetable")}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    workspaceDashPanel === "timetable"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <CalendarDays className={ICON_INLINE} aria-hidden />
-                  {t("tenant.panelTimetable")}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={
-                    dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
-                  }
-                  onMouseEnter={() => setWorkspaceGuideHoverKey("owner_registers")}
-                  onFocus={() => setWorkspaceGuideHoverKey("owner_registers")}
-                  onClick={() =>
-                    previewDashboardPdf(
-                      "workspace",
-                      schoolRegistersPdfId(primaryMembership.tenantId),
-                      schoolRegistersPdfUrl(primaryMembership.tenantId),
-                      t("dash.ownerAllRegisterLists"),
-                    )
-                  }
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
-                      : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                  }`}
-                >
-                  <Printer className={ICON_INLINE} aria-hidden />
-                  {t("dash.ownerAllRegisterLists")}
-                </button>
-                {workspaceDashPanel || dashboardPdfPreview?.anchor === "workspace" ? (
-                  <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
-                    <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
-                  </span>
-                ) : null}
-            </nav>
-            <DashboardStagedGuide
-              mode="owner_workspace"
-              activeStageKey={workspaceGuideHoverKey ?? undefined}
-              showTabs={false}
+            <OwnerWorkspaceGroupedMenu
+              workspaceDashPanel={
+                workspaceDashPanel === "schoolType" ? null : workspaceDashPanel
+              }
+              registersPreviewActive={
+                dashboardPdfPreview?.anchor === "workspace" &&
+                dashboardPdfPreview.id === schoolRegistersPdfId(primaryMembership.tenantId)
+              }
+              showWorkspacePdfTab={showWorkspacePdfTab}
+              showWorkspaceInvitesTab={showWorkspaceInvitesTab}
+              showPanelArrow={Boolean(
+                workspaceDashPanel || dashboardPdfPreview?.anchor === "workspace",
+              )}
+              onOpenPanel={openWorkspacePanel}
+              onOpenOverview={openOwnerOverview}
+              onOpenRegisters={() =>
+                previewDashboardPdf(
+                  "workspace",
+                  schoolRegistersPdfId(primaryMembership.tenantId),
+                  schoolRegistersPdfUrl(primaryMembership.tenantId),
+                  t("dash.ownerAllRegisterLists"),
+                )
+              }
+              guideHoverKey={workspaceGuideHoverKey}
+              onGuideHover={setWorkspaceGuideHoverKey}
             />
           </section>
           </>

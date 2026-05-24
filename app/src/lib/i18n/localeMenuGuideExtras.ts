@@ -4,6 +4,8 @@
  */
 
 export const MENU_GUIDE_EXTRAS_EN: Record<string, string> = {
+  "dash.panelSetUp": "Set up",
+  "dash.panelStudents": "Students",
   "dash.guide.activeStudentsTitle": "Active Students",
   "dash.guide.activeStudents1": "Open Active Students to manage the school-wide pupil roster.",
   "dash.guide.activeStudents2": "Add pupils here, then locate them into one or more classes.",
@@ -31,6 +33,8 @@ export const MENU_GUIDE_EXTRAS_EN: Record<string, string> = {
 };
 
 export const MENU_GUIDE_EXTRAS_FR: Record<string, string> = {
+  "dash.panelSetUp": "Configuration",
+  "dash.panelStudents": "Élèves",
   "dash.guide.activeStudentsTitle": "Élèves actifs",
   "dash.guide.activeStudents1":
     "Ouvrez Élèves actifs pour gérer la liste des élèves à l’échelle de l’établissement.",
@@ -64,6 +68,8 @@ export const MENU_GUIDE_EXTRAS_FR: Record<string, string> = {
 };
 
 export const MENU_GUIDE_EXTRAS_ES: Record<string, string> = {
+  "dash.panelSetUp": "Configuración",
+  "dash.panelStudents": "Alumnos",
   "dash.guide.activeStudentsTitle": "Alumnos activos",
   "dash.guide.activeStudents1":
     "Abra Alumnos activos para gestionar el listado de alumnos de todo el centro.",
@@ -98,6 +104,8 @@ export const MENU_GUIDE_EXTRAS_ES: Record<string, string> = {
 
 export const MENU_GUIDE_EXTRAS_DE: Record<string, string> = {
   ...MENU_GUIDE_EXTRAS_EN,
+  "dash.panelSetUp": "Einrichtung",
+  "dash.panelStudents": "Schüler",
   "dash.guide.activeStudentsTitle": "Aktive Schüler",
   "dash.guide.activeStudents1":
     "Öffnen Sie „Aktive Schüler“, um die schulweite Schülerliste zu verwalten.",
@@ -140,6 +148,8 @@ export const MENU_GUIDE_EXTRAS_PT: Record<string, string> = {
 };
 
 export const MENU_GUIDE_EXTRAS_IT: Record<string, string> = {
+  "dash.panelSetUp": "Configurazione",
+  "dash.panelStudents": "Studenti",
   "dash.guide.activeStudentsTitle": "Studenti attivi",
   "dash.guide.activeStudents1":
     "Apri Studenti attivi per gestire l’elenco scolastico degli studenti.",
