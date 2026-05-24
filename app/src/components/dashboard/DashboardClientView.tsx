@@ -341,19 +341,23 @@ export function DashboardClientView({
   useEffect(() => {
     if (!workspaceDashPanel) return;
     const el = document.getElementById(`dash-workspace-panel-${workspaceDashPanel}`);
-    scrollPanelContentTopIntoView(el);
+    scrollPanelContentTopIntoView(el, { block: "nearest" });
   }, [workspaceDashPanel]);
+
+  useEffect(() => {
+    if (!dashboardPdfPreview) return;
+    const id =
+      dashboardPdfPreview.anchor === "workspace"
+        ? "dash-workspace-panel-pdf-preview"
+        : "dash-teacher-panel-pdf-preview";
+    scrollPanelContentTopIntoView(document.getElementById(id), { block: "nearest" });
+  }, [dashboardPdfPreview]);
 
   useEffect(() => {
     if (!teacherWorkspacePanel) return;
     const el = document.getElementById(`dash-teacher-panel-${teacherWorkspacePanel}`);
     scrollPanelContentTopIntoView(el);
   }, [teacherWorkspacePanel]);
-
-  useEffect(() => {
-    if (!dashboardPdfPreview) return;
-    scrollPanelContentTopIntoView(document.getElementById("dash-teacher-panel-pdf-preview"));
-  }, [dashboardPdfPreview]);
 
   useEffect(() => {
     if (!agentStartupOpen) return;
@@ -1425,6 +1429,7 @@ export function DashboardClientView({
                 ) : null}
                 {dashboardPdfPreview?.anchor === "workspace" ? (
                   <InlinePdfPreviewCard
+                    sectionId="dash-workspace-panel-pdf-preview"
                     title={dashboardPdfPreview.title}
                     pdfUrl={dashboardPdfPreview.url}
                     previewKey={dashboardPdfPreview.key}

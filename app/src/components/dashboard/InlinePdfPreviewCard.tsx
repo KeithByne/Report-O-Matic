@@ -12,14 +12,22 @@ type Props = {
   onClose: () => void;
   /** Bumps fetch URL when the same PDF is opened again. */
   previewKey?: number;
+  /** Override default section id (teacher PDF preview). */
+  sectionId?: string;
 };
 
-export function InlinePdfPreviewCard({ title, pdfUrl, onClose, previewKey = 0 }: Props) {
+export function InlinePdfPreviewCard({
+  title,
+  pdfUrl,
+  onClose,
+  previewKey = 0,
+  sectionId = "dash-teacher-panel-pdf-preview",
+}: Props) {
   const { t } = useUiLanguage();
 
   return (
     <section
-      id="dash-teacher-panel-pdf-preview"
+      id={sectionId}
       className="mt-4 overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-sm ring-1 ring-emerald-100"
       aria-label={title}
     >

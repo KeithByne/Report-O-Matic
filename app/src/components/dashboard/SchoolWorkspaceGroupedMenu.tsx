@@ -15,7 +15,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DashboardStagedGuide,
   type DashboardStagedGuideMode,
@@ -116,6 +116,17 @@ function primaryButtonClass(active: boolean) {
   }`;
 }
 
+function menuGroupForPanel(
+  workspaceDashPanel: SchoolWorkspacePanel | null,
+  registersPreviewActive: boolean,
+): MenuGroup | null {
+  if (registersPreviewActive) return "students";
+  if (!workspaceDashPanel || workspaceDashPanel === "overview") return null;
+  if (SETUP_PANELS.has(workspaceDashPanel)) return "setup";
+  if (STUDENTS_PANELS.has(workspaceDashPanel)) return "students";
+  return null;
+}
+
 export function SchoolWorkspaceGroupedMenu({
   variant,
   workspaceDashPanel,
@@ -147,12 +158,6 @@ export function SchoolWorkspaceGroupedMenu({
   const guideMode: DashboardStagedGuideMode =
     variant === "owner" ? "owner_workspace" : "department_head";
   const menuIdPrefix = variant === "owner" ? "owner" : "dh";
-
-  const defaultSetupPanel = useCallback((): SchoolWorkspacePanel => {
-    if (showWorkspacePdfTab) return "pdf";
-    if (showWorkspaceInvitesTab) return "invites";
-    return "subjects";
-  }, [showWorkspaceInvitesTab, showWorkspacePdfTab]);
 
   const setupItems = useMemo<SetupItem[]>(
     () => [
@@ -222,26 +227,15 @@ export function SchoolWorkspaceGroupedMenu({
   );
 
   useEffect(() => {
-    if (registersPreviewActive) {
-      setMenuGroup("students");
-      return;
-    }
-    if (!workspaceDashPanel || workspaceDashPanel === "overview") {
-      setMenuGroup(null);
-      return;
-    }
-    if (SETUP_PANELS.has(workspaceDashPanel)) setMenuGroup("setup");
-    else if (STUDENTS_PANELS.has(workspaceDashPanel)) setMenuGroup("students");
+    setMenuGroup(menuGroupForPanel(workspaceDashPanel, registersPreviewActive));
   }, [registersPreviewActive, workspaceDashPanel]);
 
-  const openSetupGroup = () => {
-    setMenuGroup("setup");
-    onOpenPanel(defaultSetupPanel());
-  };
+  const revealSetupGroup = () => setMenuGroup("setup");
+  const revealStudentsGroup = () => setMenuGroup("students");
 
-  const openStudentsGroup = () => {
-    setMenuGroup("students");
-    onOpenPanel("activeStudents");
+  const handleMenuMouseLeave = () => {
+    const pinned = menuGroupForPanel(workspaceDashPanel, registersPreviewActive);
+    setMenuGroup(pinned);
   };
 
   const openOverview = () => {
@@ -258,12 +252,15 @@ export function SchoolWorkspaceGroupedMenu({
     (workspaceDashPanel !== null && STUDENTS_PANELS.has(workspaceDashPanel));
 
   return (
-    <>
+    <div className="min-w-0" onMouseLeave={handleMenuMouseLeave}>
       <nav className="flex flex-wrap items-center gap-2" aria-label={t("dash.schoolWorkspaceMenuTitle")}>
         <button
           type="button"
           aria-pressed={overviewActive}
-          onMouseEnter={() => onGuideHover(guide.overview)}
+          onMouseEnter={() => {
+            onGuideHover(guide.overview);
+            setMenuGroup(null);
+          }}
           onFocus={() => onGuideHover(guide.overview)}
           onClick={openOverview}
           className={primaryButtonClass(overviewActive)}
@@ -274,10 +271,18 @@ export function SchoolWorkspaceGroupedMenu({
         <button
           type="button"
           aria-expanded={menuGroup === "setup"}
+          aria-haspopup="true"
+          aria-controls={`dash-${menuIdPrefix}-menu-setup`}
           aria-pressed={setupGroupActive && !overviewActive}
-          onMouseEnter={() => onGuideHover(guide.setupPrimary)}
-          onFocus={() => onGuideHover(guide.setupPrimary)}
-          onClick={openSetupGroup}
+          onMouseEnter={() => {
+            revealSetupGroup();
+            onGuideHover(guide.setupPrimary);
+          }}
+          onFocus={() => {
+            revealSetupGroup();
+            onGuideHover(guide.setupPrimary);
+          }}
+          onClick={revealSetupGroup}
           className={primaryButtonClass(setupGroupActive && !overviewActive)}
         >
           <SlidersHorizontal className={ICON_INLINE} aria-hidden />
@@ -290,10 +295,18 @@ export function SchoolWorkspaceGroupedMenu({
         <button
           type="button"
           aria-expanded={menuGroup === "students"}
+          aria-haspopup="true"
+          aria-controls={`dash-${menuIdPrefix}-menu-students`}
           aria-pressed={studentsGroupActive && !overviewActive}
-          onMouseEnter={() => onGuideHover(guide.studentsPrimary)}
-          onFocus={() => onGuideHover(guide.studentsPrimary)}
-          onClick={openStudentsGroup}
+          onMouseEnter={() => {
+            revealStudentsGroup();
+            onGuideHover(guide.studentsPrimary);
+          }}
+          onFocus={() => {
+            revealStudentsGroup();
+            onGuideHover(guide.studentsPrimary);
+          }}
+          onClick={revealStudentsGroup}
           className={primaryButtonClass(studentsGroupActive && !overviewActive)}
         >
           <Users className={ICON_INLINE} aria-hidden />
@@ -374,7 +387,7 @@ export function SchoolWorkspaceGroupedMenu({
       ) : null}
 
       <DashboardStagedGuide mode={guideMode} activeStageKey={guideHoverKey ?? undefined} showTabs={false} />
-    </>
+    </div>
   );
 }
 
