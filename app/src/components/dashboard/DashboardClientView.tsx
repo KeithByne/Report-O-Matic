@@ -49,7 +49,7 @@ import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCar
 import { ProfileEditor } from "@/components/dashboard/ProfileEditor";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
 import { DashboardStagedGuide } from "@/components/dashboard/DashboardStagedGuide";
-import { OwnerWorkspaceGroupedMenu } from "@/components/dashboard/OwnerWorkspaceGroupedMenu";
+import { SchoolWorkspaceGroupedMenu } from "@/components/dashboard/SchoolWorkspaceGroupedMenu";
 import { OverviewDataPrivacySection } from "@/components/dashboard/OverviewDataPrivacySection";
 import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
@@ -206,7 +206,9 @@ export function DashboardClientView({
       return;
     }
     const ids = deptHeadSchools.map(([id]) => id);
-    setDhFocusTenantId(ids.length > 0 ? ids[0] : null);
+    const nextId = ids.length > 0 ? ids[0] : null;
+    setDhFocusTenantId(nextId);
+    if (nextId) setWorkspaceDashPanel((cur) => (cur === null ? "overview" : cur));
   }, [hasOwner, hasDeptHead, deptHeadSchools]);
 
   useEffect(() => {
@@ -714,10 +716,7 @@ export function DashboardClientView({
                     {t("dash.teacherShowSelectionTitle")}
                   </h2>
                   <p className="mt-1 text-sm text-zinc-600">{t("tenant.sectionMenuHint")}</p>
-                  <nav
-                    className="mt-4 flex flex-wrap gap-2"
-                    aria-label={t("dash.teacherShowSelectionTitle")}
-                  >
+                  <div className="mt-4">
                     <Link
                       href="/dashboard/profile"
                       onMouseEnter={() => setWorkspaceGuideHoverKey("menu_profile")}
@@ -727,180 +726,36 @@ export function DashboardClientView({
                       <UserRound className={ICON_INLINE} aria-hidden />
                       {t("dash.profileButton")}
                     </Link>
-                    <button
-                      type="button"
-                      aria-pressed={workspaceDashPanel === "overview"}
-                      onMouseEnter={() => setWorkspaceGuideHoverKey("dh_overview")}
-                      onFocus={() => setWorkspaceGuideHoverKey("dh_overview")}
-                      onClick={() => toggleWorkspacePanel("overview")}
-                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                        workspaceDashPanel === "overview"
-                          ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                          : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                      }`}
-                    >
-                      <LayoutList className={ICON_INLINE} aria-hidden />
-                      {t("dash.panelOverview")}
-                    </button>
-                    {showWorkspaceInvitesTab ? (
-                      <button
-                        type="button"
-                        aria-pressed={workspaceDashPanel === "invites"}
-                        onMouseEnter={() => setWorkspaceGuideHoverKey("dh_invite")}
-                        onFocus={() => setWorkspaceGuideHoverKey("dh_invite")}
-                        onClick={() => toggleWorkspacePanel("invites")}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                          workspaceDashPanel === "invites"
-                            ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                            : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                        }`}
-                      >
-                        <UserPlus className={ICON_INLINE} aria-hidden />
-                        {t("dash.panelInviteTeam")}
-                      </button>
-                    ) : null}
-                    {deptHeadOnlyWorkspace ? (
-                      <>
-                        <button
-                          type="button"
-                          aria-pressed={workspaceDashPanel === "subjects"}
-                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_subjects")}
-                          onFocus={() => setWorkspaceGuideHoverKey("dh_subjects")}
-                          onClick={() => toggleWorkspacePanel("subjects")}
-                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                            workspaceDashPanel === "subjects"
-                              ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                          }`}
-                        >
-                          <Library className={ICON_INLINE} aria-hidden />
-                          {t("tenant.panelSubjects")}
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={workspaceDashPanel === "classes"}
-                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_classes")}
-                          onFocus={() => setWorkspaceGuideHoverKey("dh_classes")}
-                          onClick={() => toggleWorkspacePanel("classes")}
-                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                            workspaceDashPanel === "classes"
-                              ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                          }`}
-                        >
-                          <BookOpen className={ICON_INLINE} aria-hidden />
-                          {t("tenant.panelClasses")}
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={workspaceDashPanel === "activeStudents"}
-                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_active_students")}
-                          onFocus={() => setWorkspaceGuideHoverKey("dh_active_students")}
-                          onClick={() => toggleWorkspacePanel("activeStudents")}
-                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                            workspaceDashPanel === "activeStudents"
-                              ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                          }`}
-                        >
-                          <UserCheck className={ICON_INLINE} aria-hidden />
-                          {t("dash.panelActiveStudents")}
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={workspaceDashPanel === "inactiveStudents"}
-                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_inactive_students")}
-                          onFocus={() => setWorkspaceGuideHoverKey("dh_inactive_students")}
-                          onClick={() => toggleWorkspacePanel("inactiveStudents")}
-                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                            workspaceDashPanel === "inactiveStudents"
-                              ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                          }`}
-                        >
-                          <Archive className={ICON_INLINE} aria-hidden />
-                          {t("dash.panelInactiveStudents")}
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={workspaceDashPanel === "timetable"}
-                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_timetable")}
-                          onFocus={() => setWorkspaceGuideHoverKey("dh_timetable")}
-                          onClick={() => toggleWorkspacePanel("timetable")}
-                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                            workspaceDashPanel === "timetable"
-                              ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                          }`}
-                        >
-                          <CalendarDays className={ICON_INLINE} aria-hidden />
-                          {t("tenant.panelTimetable")}
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={
-                            dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
-                          }
-                          onMouseEnter={() => setWorkspaceGuideHoverKey("dh_registers")}
-                          onFocus={() => setWorkspaceGuideHoverKey("dh_registers")}
-                          onClick={() =>
-                            previewDashboardPdf(
-                              "workspace",
-                              schoolRegistersPdfId(primaryMembership.tenantId),
-                              schoolRegistersPdfUrl(primaryMembership.tenantId),
-                              t("dash.ownerAllRegisterLists"),
-                            )
-                          }
-                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                            dashboardPdfPreview?.id === schoolRegistersPdfId(primaryMembership.tenantId)
-                              ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/60"
-                              : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                          }`}
-                        >
-                          <Printer className={ICON_INLINE} aria-hidden />
-                          {t("dash.ownerAllRegisterLists")}
-                        </button>
-                      </>
-                    ) : null}
-                    {showWorkspacePdfTab ? (
-                      <button
-                        type="button"
-                        aria-pressed={workspaceDashPanel === "pdf"}
-                        onMouseEnter={() => setWorkspaceGuideHoverKey("dh_pdf")}
-                        onFocus={() => setWorkspaceGuideHoverKey("dh_pdf")}
-                        onClick={() => toggleWorkspacePanel("pdf")}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                          workspaceDashPanel === "pdf"
-                            ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                            : "border-emerald-200 bg-emerald-50/60 text-zinc-800 hover:bg-emerald-100"
-                        }`}
-                      >
-                        <FileImage className={ICON_INLINE} aria-hidden />
-                        {t("dash.panelPdfLetterhead")}
-                      </button>
-                    ) : null}
-                    {showWorkspaceDownloadsTab && !deptHeadOnlyWorkspace ? (
-                      <Link
-                        href={`/reports/${encodeURIComponent(primaryMembership.tenantId)}?panel=downloads`}
-                        onMouseEnter={() => setWorkspaceGuideHoverKey("dh_downloads")}
-                        onFocus={() => setWorkspaceGuideHoverKey("dh_downloads")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-emerald-100"
-                      >
-                        <Download className={ICON_INLINE} aria-hidden />
-                        {t("tenant.panelDownloads")}
-                      </Link>
-                    ) : null}
-                    {workspaceDashPanel || dashboardPdfPreview?.anchor === "workspace" ? (
-                      <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>
-                        <ArrowDown className="h-9 w-9" strokeWidth={2.75} />
-                      </span>
-                    ) : null}
-                  </nav>
-                  <DashboardStagedGuide
-                    mode="department_head"
-                    activeStageKey={workspaceGuideHoverKey ?? undefined}
-                    showTabs={false}
-                  />
+                  </div>
+                  {deptHeadOnlyWorkspace && primaryMembership ? (
+                    <SchoolWorkspaceGroupedMenu
+                      variant="department_head"
+                      workspaceDashPanel={
+                        workspaceDashPanel === "schoolType" ? null : workspaceDashPanel
+                      }
+                      registersPreviewActive={
+                        dashboardPdfPreview?.anchor === "workspace" &&
+                        dashboardPdfPreview.id === schoolRegistersPdfId(primaryMembership.tenantId)
+                      }
+                      showWorkspacePdfTab={showWorkspacePdfTab}
+                      showWorkspaceInvitesTab={showWorkspaceInvitesTab}
+                      showPanelArrow={Boolean(
+                        workspaceDashPanel || dashboardPdfPreview?.anchor === "workspace",
+                      )}
+                      onOpenPanel={openWorkspacePanel}
+                      onOpenOverview={openOwnerOverview}
+                      onOpenRegisters={() =>
+                        previewDashboardPdf(
+                          "workspace",
+                          schoolRegistersPdfId(primaryMembership.tenantId),
+                          schoolRegistersPdfUrl(primaryMembership.tenantId),
+                          t("dash.ownerAllRegisterLists"),
+                        )
+                      }
+                      guideHoverKey={workspaceGuideHoverKey}
+                      onGuideHover={setWorkspaceGuideHoverKey}
+                    />
+                  ) : null}
             </div>
           ) : null}
 
@@ -1061,7 +916,8 @@ export function DashboardClientView({
             <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-emerald-950">
               {t("dash.ownerViewingSchool", { name: primaryMembership.tenantName })}
             </p>
-            <OwnerWorkspaceGroupedMenu
+            <SchoolWorkspaceGroupedMenu
+              variant="owner"
               workspaceDashPanel={
                 workspaceDashPanel === "schoolType" ? null : workspaceDashPanel
               }
