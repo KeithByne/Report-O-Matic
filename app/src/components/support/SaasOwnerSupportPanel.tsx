@@ -41,21 +41,28 @@ export function SaasOwnerSupportPanel() {
   }, []);
 
   const loadCase = useCallback(
-    async (caseId: string) => {
-      setCaseBusy(true);
+    async (caseId: string, opts?: { silent?: boolean }) => {
+      if (!opts?.silent) {
+        setCaseBusy(true);
+        setShowResolve(false);
+      }
       setErr(null);
-      setShowResolve(false);
       try {
         const res = await fetch(`/api/saas-owner/support/${encodeURIComponent(caseId)}`, { cache: "no-store" });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Could not load case.");
-        setSupportCase(data.case as SupportCaseWithMessages);
+        const loaded = data.case as SupportCaseWithMessages;
+        setSupportCase((prev) => ({
+          ...loaded,
+          messages:
+            loaded.messages?.length > 0 ? loaded.messages : (prev?.id === caseId ? (prev.messages ?? []) : []),
+        }));
         setSelectedId(caseId);
-        void refreshList();
+        if (!opts?.silent) void refreshList();
       } catch (e: unknown) {
         setErr(e instanceof Error ? e.message : "Could not load case.");
       } finally {
-        setCaseBusy(false);
+        if (!opts?.silent) setCaseBusy(false);
       }
     },
     [refreshList],
@@ -108,10 +115,20 @@ export function SaasOwnerSupportPanel() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not resolve case.");
-      setSupportCase(data.case as SupportCaseWithMessages);
+      const resolvedCase = data.case as SupportCaseWithMessages | undefined;
+      if (resolvedCase) {
+        setSupportCase((prev) => ({
+          ...resolvedCase,
+          messages:
+            resolvedCase.messages?.length > 0
+              ? resolvedCase.messages
+              : (prev?.id === selectedId ? (prev.messages ?? []) : []),
+        }));
+      }
       setResolveNote("");
       setShowResolve(false);
-      void refreshList();
+      await refreshList();
+      if (selectedId) await loadCase(selectedId, { silent: true });
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Could not resolve case.");
     } finally {
@@ -194,7 +211,7 @@ export function SaasOwnerSupportPanel() {
           )}
         </div>
 
-        <div className="flex min-h-[16rem] flex-col rounded-xl border border-zinc-200">
+        <div className="flex h-[min(28rem,55vh)] min-h-[16rem] flex-col rounded-xl border border-zinc-200">
           {!selectedId ? (
             <p className="flex flex-1 items-center justify-center p-4 text-sm text-zinc-500">
               Select a case to view the issue and reply.
@@ -262,8 +279,11 @@ export function SaasOwnerSupportPanel() {
                 </div>
               ) : null}
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
+              <div className="min-h-[10rem] flex-1 overflow-y-auto px-3 py-2">
                 <ul className="space-y-2">
+                  {(supportCase?.messages ?? []).length === 0 ? (
+                    <li className="py-4 text-center text-xs text-zinc-500">No messages in this case yet.</li>
+                  ) : null}
                   {(supportCase?.messages ?? []).map((m: SupportMessageRow) => {
                     const owner = m.sender_role === "owner";
                     const system = m.sender_role === "system";
