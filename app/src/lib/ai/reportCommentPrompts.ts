@@ -5,6 +5,7 @@
 
 import type { CefrLevel } from "@/lib/classLevel";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
+import type { ReportPeriod } from "@/lib/reportInputs";
 import type { SubjectCode } from "@/lib/subjects";
 
 /** A1–B1: do not suggest homework or extra work outside class in AI report comments. */
@@ -17,13 +18,22 @@ export function homeworkAdviceRestrictionForCefr(cefr: CefrLevel | null | undefi
  * Standard term-based reports: the model must not hallucinate missing rubric data or
  * reference terms after the focused report period.
  */
-export function standardReportSequentialDataRules(): string {
-  return `Sequential reporting and incomplete data (mandatory):
-- Reports are written in calendar order: first term, then second, then third. Your narrative must align only with the **report period** named in the structured data ("Report period (term focus)").
-- The structured data lists **only** rubric metrics that have a numeric score. Any skill or behaviour (e.g. homework, reading, attendance, listening) that does **not** appear as a scored line under the relevant term is **out of scope**: do not name it, do not allude to it, do not offer generic praise or criticism for it, and do not invent a score or impression for it.
+export function standardReportSequentialDataRules(reportPeriod: ReportPeriod): string {
+  const termRole =
+    reportPeriod === "first"
+      ? `This is a **Term 1 (first period)** report for the current scholastic year. Write it as a **standalone** snapshot of progress so far. If no "Prior term grades" block is supplied, do not imply earlier terms in this year or compare to earlier stored reports.`
+      : reportPeriod === "second"
+        ? `This is a **Term 2 (second period)** report. It must be written **relative to Term 1** when prior saved grades are supplied: comment on improvements, plateaus, or declines you can justify by comparing scored metrics between the prior Term 1 block and the current Term 2 grades. Do not write as if Term 2 were the first report of the year unless prior data is missing.`
+        : `This is a **Term 3 (third period)** report. It must be written **relative to earlier terms in the same scholastic year** when prior saved grades are supplied (Term 1 and/or Term 2 blocks): describe progression across the year using only scored metrics you can compare. Do not write as if it were the first report unless prior data is missing.`;
+
+  return `Sequential reporting, prior terms, and incomplete data (mandatory):
+- Reports follow calendar order: first term, then second, then third within one scholastic year. ${termRole}
+- The block **"Current report — period under review"** holds the grades you are reporting on now. Any **"Prior term grades from other saved reports"** block holds earlier terms from the same scholastic year only — use it for trends and comparison, not as the main appraisal target.
+- When prior and current scores differ for the same metric, you may refer to improvement, steady performance, or decline **only** where both scores exist; be fair and specific.
+- The structured data lists **only** rubric metrics that have a numeric score. Any skill or behaviour that does **not** appear as a scored line under the relevant term is **out of scope**: do not name it, do not allude to it, and do not invent a score or impression for it.
 - Never mention, imply, or invent grades, averages, trends, or qualitative judgments for any metric or term that is not supported by a numeric score in the dataset.
-- Do not refer to **later** terms than the focused report period. For example: a first-term report must not reference second- or third-term outcomes; a second-term report must not reference third-term outcomes. Information that belongs to a following term must never appear in a report for a preceding term.
-- Do not preview, promise, or hedge about results or themes that would belong to a future term relative to the focused period.`;
+- Do not refer to **later** terms than the period under review. Do not preview or promise outcomes that belong to a future term relative to the focused period.
+- Do not reference scholastic years or terms before the prior blocks supplied; prior-year history is out of scope.`;
 }
 
 /** Voice: parents should read this as their child's teacher speaking, not an anonymous report. */
@@ -76,7 +86,7 @@ export type ReportDraftPromptContext = {
   className: string | null;
   /** Human-readable subject label (e.g. "English as a Foreign Language"). */
   subjectLine: string;
-  /** From reportInputsToTeacherNotes (term sections for standard; single rubric block for short course). */
+  /** Numeric rubric plaintext (standard: prior terms + current period; short course: single block). */
   datasetBlock: string;
   extraNotes?: string;
   existingBody?: string;
@@ -84,6 +94,8 @@ export type ReportDraftPromptContext = {
   gradeRubricProfile: GradeRubricProfile;
   /** Class CEFR; when A1–B1, prompts forbid advising homework / extra work at home (language schools only). */
   classCefrLevel?: CefrLevel | null;
+  /** first | second | third — drives standalone vs comparative prompt rules. */
+  reportPeriod: ReportPeriod;
 };
 
 /** Temperature for the OpenAI completion when generating a standard report comment draft. */
@@ -106,7 +118,7 @@ export function buildStandardReportDraftPrompts(ctx: ReportDraftPromptContext): 
       : ctx.gradeRubricProfile === "primary"
         ? "You write primary school report comments for parents about **young learners** in a holistic class programme; tone and priorities follow the primary school context block below."
         : "You write secondary school report comments for parents.";
-  const sequentialBlock = standardReportSequentialDataRules();
+  const sequentialBlock = standardReportSequentialDataRules(ctx.reportPeriod);
   const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
   const noClosingBlock = reportCommentNoLetterClosingRules();
   const system = `${opening}
@@ -128,10 +140,10 @@ ${schoolBlock ? `${schoolBlock}\n` : ""}${sequentialBlock}${cefrBlock ? `\n${cef
       ? `Teacher context (use when shaping the comment for parents; do not quote or label this block; weave in fairly if relevant):\n${ctx.extraNotes}`
       : "",
     ctx.existingBody
-      ? `Revise or replace this draft (keep facts consistent with the dataset and the sequential-term rules; do not introduce later terms or missing scores):\n${ctx.existingBody}`
+      ? `Revise or replace this draft (keep facts consistent with the dataset and the sequential-term rules; use prior-term blocks only for fair comparison; do not introduce later terms or missing scores):\n${ctx.existingBody}`
       : cefrBlock
-        ? "Write a complete comment: opening strength, honest middle where grades are low, end positive with in-lesson next steps only (no homework or independent work at home). Use a first-person teacher voice throughout (see system instructions). Use only scored metrics and terms that appear in the data for the focused report period; do not mention rubric dimensions absent from the structured data; do not discuss later terms."
-        : "Write a complete comment: opening strength, honest middle where grades are low, end positive with next steps. Use a first-person teacher voice throughout (see system instructions). Use only scored metrics and terms that appear in the data for the focused report period; do not mention rubric dimensions that are absent from the structured data; do not discuss later terms.",
+        ? `Write a complete comment for report period "${ctx.reportPeriod}". Use a first-person teacher voice. If prior-term saved grades are present, weave in justified progress or trends into the current period; if this is the first period and no prior block exists, write standalone. Opening strength, honest middle where grades are low, end positive with in-lesson next steps only (no homework). Use only scored metrics in the dataset.`
+        : `Write a complete comment for report period "${ctx.reportPeriod}". Use a first-person teacher voice. If prior-term saved grades are present, weave in justified progress or trends into the current period; if this is the first period and no prior block exists, write standalone. Opening strength, honest middle where grades are low, end positive with next steps. Use only scored metrics in the dataset.`,
   ]
     .filter(Boolean)
     .join("\n\n");

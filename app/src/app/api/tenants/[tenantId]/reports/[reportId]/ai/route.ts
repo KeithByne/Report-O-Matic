@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { generateSchoolReportDraftPair } from "@/lib/ai/generateReportDraft";
 import { estimateOpenAiCostUsd } from "@/lib/ai/openaiCost";
+import { buildMetricLabelsContext, metricDisplayLangFromReportLanguage } from "@/lib/classMetricLabels";
 import { canAccessClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
+import {
+  formatPriorStoredTermsDatasetBlock,
+  listPriorStandardReportsSameScholasticYear,
+} from "@/lib/data/priorReportGradesForAi";
 import { getSubjectSkillMetricLabels } from "@/lib/data/tenantSubjectMetricLabels";
-import { storedSubjectForMetricLabels } from "@/lib/reportInputs";
+import { storedSubjectForMetricLabels, resolvedSubjectLineForAi } from "@/lib/reportInputs";
 import { getTenantCreditBalance, consumeCreditForReport } from "@/lib/data/credits";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { logOpenAiUsageEvent } from "@/lib/data/openaiUsageEvents";
@@ -123,21 +128,40 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const requestNotes = notes.trim();
   const baseNotes = requestNotes || savedNotes || "";
 
-  // If there is no previous report saved, the model must assume non-attendance for earlier terms.
-  // Also, teacher "new to course/class" wording must override generic assumptions.
+  const inputsParsed = parseReportInputs(report.inputs);
+  const gradeRubricProfile = await resolveGradeRubricForTenantReport(
+    tenantId,
+    report.inputs,
+    classDefaultSubject,
+    klass?.grade_rubric_profile,
+  );
+
+  const subjectLine = resolvedSubjectLineForAi(inputsParsed, classDefaultSubject);
+  const displayLang = metricDisplayLangFromReportLanguage(teacherLang, "en");
+  const customMetricLabels = klass
+    ? await getSubjectSkillMetricLabels(
+        tenantId,
+        storedSubjectForMetricLabels(report.inputs, classDefaultSubject),
+      )
+    : {};
+  const labelsCtx = buildMetricLabelsContext(gradeRubricProfile, customMetricLabels, displayLang);
+
+  let priorStoredTermsBlock = "";
   let hasPreviousReport = false;
-  try {
-    const { data: prevAny } = await supabase
-      .from("reports")
-      .select("id")
-      .eq("tenant_id", tenantId)
-      .eq("student_id", report.student_id)
-      .neq("id", report.id)
-      .limit(1);
-    hasPreviousReport = Array.isArray(prevAny) && prevAny.length > 0;
-  } catch {
-    // If this fails, default to "unknown" (don't force the assumption).
-    hasPreviousReport = true;
+  if (!isShortCourseReport(inputsParsed) && focusTermIndex(inputsParsed.report_period) > 0) {
+    try {
+      const priors = await listPriorStandardReportsSameScholasticYear(supabase, {
+        tenantId,
+        studentId: report.student_id,
+        currentReportId: reportId,
+        currentPeriod: inputsParsed.report_period,
+        classScholasticYear: klass?.scholastic_year ?? null,
+      });
+      hasPreviousReport = priors.length > 0;
+      priorStoredTermsBlock = formatPriorStoredTermsDatasetBlock(priors, subjectLine, labelsCtx);
+    } catch {
+      hasPreviousReport = true;
+    }
   }
 
   const attendanceContext = buildAttendanceContext({
@@ -147,13 +171,6 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   });
 
   const extraNotes = [attendanceContext, baseNotes.trim() || null].filter(Boolean).join("\n\n") || undefined;
-
-  const gradeRubricProfile = await resolveGradeRubricForTenantReport(
-    tenantId,
-    report.inputs,
-    classDefaultSubject,
-    klass?.grade_rubric_profile,
-  );
 
   try {
     const bal = await getTenantCreditBalance(tenantId);
@@ -172,12 +189,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       classCefrLevel:
         gradeRubricProfile === "language" ? cefrLevelForAiPrompts(klass?.cefr_level) : null,
       gradeRubricProfile,
-      customMetricLabels: klass
-        ? await getSubjectSkillMetricLabels(
-            tenantId,
-            storedSubjectForMetricLabels(report.inputs, classDefaultSubject),
-          )
-        : {},
+      customMetricLabels,
+      priorStoredTermsBlock,
     });
     if (usage.draft) {
       await logOpenAiUsageEvent({
@@ -205,7 +218,6 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
         estCostUsd: estimateOpenAiCostUsd(usage.translate),
       });
     }
-    const inputsParsed = parseReportInputs(report.inputs);
     const termIdx = isShortCourseReport(inputsParsed) ? 0 : focusTermIndex(inputsParsed.report_period);
     const prevFlags = inputsParsed.comment_generated_for_terms;
     const nextFlags: [boolean, boolean, boolean] = prevFlags

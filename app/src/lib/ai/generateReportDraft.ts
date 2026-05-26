@@ -4,6 +4,7 @@ import { languageLabel } from "@/lib/i18n/reportLanguages";
 import type { GradeRubricProfile } from "@/lib/gradeRubricProfile";
 import type { ReportInputs } from "@/lib/reportInputs";
 import {
+  buildStandardReportAiDatasetBlock,
   isShortCourseReport,
   parseReportInputs,
   reportInputsToTeacherNotes,
@@ -66,6 +67,8 @@ export async function generateSchoolReportDraft(opts: {
   /** Must match titles on the grade form (teacher preview / UI language). */
   metricLabelLang?: UiLang | ReportLanguageCode;
   customMetricLabels?: ClassMetricLabelOverrides | null;
+  /** Earlier terms from saved standard reports (same scholastic year); plaintext block for the model. */
+  priorStoredTermsBlock?: string;
 }): Promise<{ text: string; usage: OpenAiUsage | null }> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey?.trim()) {
@@ -82,7 +85,14 @@ export async function generateSchoolReportDraft(opts: {
   const subjectLine = resolvedSubjectLineForAi(inputs, opts.classDefaultSubject);
   const displayLang = metricDisplayLangFromReportLanguage(opts.metricLabelLang ?? opts.outputLanguage, "en");
   const labelsCtx = buildMetricLabelsContext(opts.gradeRubricProfile, opts.customMetricLabels, displayLang);
-  const datasetBlock = reportInputsToTeacherNotes(inputs, subjectLine, labelsCtx);
+  const datasetBlock = isShortCourseReport(inputs)
+    ? reportInputsToTeacherNotes(inputs, subjectLine, labelsCtx)
+    : buildStandardReportAiDatasetBlock(
+        inputs,
+        subjectLine,
+        labelsCtx,
+        opts.priorStoredTermsBlock ?? "",
+      );
 
   const ctx = {
     subjectCode,
@@ -96,6 +106,7 @@ export async function generateSchoolReportDraft(opts: {
     existingBody: opts.existingBody,
     gradeRubricProfile: opts.gradeRubricProfile,
     classCefrLevel: opts.gradeRubricProfile === "language" ? opts.classCefrLevel : null,
+    reportPeriod: inputs.report_period,
   };
 
   const { system, user, temperature } = isShortCourseReport(inputs)
@@ -225,6 +236,7 @@ export async function generateSchoolReportDraftPair(opts: {
   /** Metric labels in the numeric block sent to the model (language vs primary vs secondary). */
   gradeRubricProfile: GradeRubricProfile;
   customMetricLabels?: ClassMetricLabelOverrides | null;
+  priorStoredTermsBlock?: string;
 }): Promise<{
   pdfBody: string;
   teacherPreview: string;
@@ -249,6 +261,7 @@ export async function generateSchoolReportDraftPair(opts: {
     gradeRubricProfile: opts.gradeRubricProfile,
     metricLabelLang: opts.teacherLanguage,
     customMetricLabels: opts.customMetricLabels,
+    priorStoredTermsBlock: opts.priorStoredTermsBlock,
   });
   const pdfBody = draft.text;
   let teacherPreview: string;

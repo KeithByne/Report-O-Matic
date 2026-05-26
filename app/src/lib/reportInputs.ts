@@ -330,6 +330,8 @@ export function parseClassBulkPdfTermFilter(raw: string | null | undefined): Cla
   return "all";
 }
 
+const TERM_LABEL_EN = ["Term 1", "Term 2", "Term 3"] as const;
+
 /**
  * Append only metrics that have a numeric score so OpenAI does not see unscored skill names
  * (avoids comments about homework, reading, etc. when those cells were left empty).
@@ -355,6 +357,42 @@ function appendScoredMetricsForTerm(
   return any;
 }
 
+/** Plaintext scores for one term index (only lines with numeric scores). */
+export function formatTermGradesBlock(
+  inputs: ReportInputs,
+  termIdx: 0 | 1 | 2,
+  labels: MetricLabelsContext,
+): string {
+  const lines: string[] = [];
+  const any = appendScoredMetricsForTerm(lines, inputs, termIdx, labels);
+  if (!any) lines.push("(No numeric scores recorded for this term.)");
+  const pct = termAveragePercent(inputs.terms[termIdx]);
+  if (pct !== null) lines.push(`${TERM_LABEL_EN[termIdx]} aggregate: ${formatPercentSigFigs(pct, 2)}`);
+  return lines.join("\n");
+}
+
+/**
+ * Dataset for standard-report AI: prior saved terms (optional) + current report period focus only.
+ */
+export function buildStandardReportAiDatasetBlock(
+  inputs: ReportInputs,
+  subjectResolved: string,
+  labels: MetricLabelsContext,
+  priorStoredTermsBlock: string,
+): string {
+  const focusIdx = focusTermIndex(inputs.report_period);
+  const parts: string[] = [];
+  if (priorStoredTermsBlock.trim()) {
+    parts.push(priorStoredTermsBlock.trim());
+    parts.push("");
+  }
+  parts.push(`Current report — period under review: ${inputs.report_period} (${TERM_LABEL_EN[focusIdx]})`);
+  parts.push(`Subject: ${subjectResolved}`);
+  parts.push(`--- ${TERM_LABEL_EN[focusIdx]} (current report grades) ---`);
+  parts.push(formatTermGradesBlock(inputs, focusIdx, labels));
+  return parts.join("\n");
+}
+
 /** Flatten 0–10 grid into plaintext for OpenAI (only scored metrics; teacher prose notes are in the prompt separately). */
 export function reportInputsToTeacherNotes(
   inputs: ReportInputs,
@@ -373,13 +411,9 @@ export function reportInputsToTeacherNotes(
     return lines.join("\n");
   }
   lines.push(`Report period (term focus): ${inputs.report_period}`);
-  const termLabel = ["Term 1", "Term 2", "Term 3"];
   for (let t = 0; t < 3; t++) {
-    lines.push(`--- ${termLabel[t]} ---`);
-    const any = appendScoredMetricsForTerm(lines, inputs, t as 0 | 1 | 2, labels);
-    if (!any) lines.push("(No numeric scores recorded for this term.)");
-    const pct = termAveragePercent(inputs.terms[t]);
-    if (pct !== null) lines.push(`Term ${t + 1} aggregate: ${formatPercentSigFigs(pct, 2)}`);
+    lines.push(`--- ${TERM_LABEL_EN[t]} ---`);
+    lines.push(formatTermGradesBlock(inputs, t as 0 | 1 | 2, labels));
   }
   const yearPct = yearAveragePercent(inputs);
   if (yearPct !== null) lines.push(`Year aggregate: ${formatPercentSigFigs(yearPct, 2)}`);
