@@ -4,6 +4,7 @@ import Link from "next/link";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
+import { SupportMessenger } from "@/components/support/SupportMessenger";
 import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 import type { RomRole } from "@/lib/data/memberships";
 
@@ -43,6 +44,7 @@ export function BillingSuccessView({
             pageTitle={t("billing.successTitle")}
           />
           <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
+            <SupportMessenger tenantId={tenantId} />
             <GlobeLanguageSwitcher />
             <DisplayModeSwitcher />
           </div>

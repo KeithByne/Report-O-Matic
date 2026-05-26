@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
+import { SupportMessenger } from "@/components/support/SupportMessenger";
 import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
@@ -18,6 +19,8 @@ type Props = {
   title: string;
   tenantId?: string;
   classId?: string;
+  /** Passed to support messenger for school context on messages. */
+  supportTenantId?: string;
   /** Multi-school hub at /reports — owners only; hide for department heads and teachers. */
   showAllSchoolsLink?: boolean;
   /** Display name from profile (not email). */
@@ -46,6 +49,7 @@ export function ReportsFlowHeader({
   title,
   tenantId,
   classId,
+  supportTenantId,
   showAllSchoolsLink,
   userDisplayName,
   viewerRole,
@@ -86,6 +90,7 @@ export function ReportsFlowHeader({
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
         <AppHeaderLeftCluster roleLabel={roleLine} userDisplayName={userDisplayName} pageTitle={title} />
         <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
+          <SupportMessenger tenantId={supportTenantId ?? tenantId ?? null} />
           <GlobeLanguageSwitcher />
           <DisplayModeSwitcher />
           {links.map((l) => (

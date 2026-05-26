@@ -57,6 +57,7 @@ import { TimetablePageClient } from "@/components/timetable/TimetablePageClient"
 import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
+import { SupportMessenger } from "@/components/support/SupportMessenger";
 import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
@@ -234,6 +235,8 @@ export function DashboardClientView({
 
   /** Owner with a school focused: hub hidden; only workspace button nav (+ optional panels below). */
   const ownerSchoolMenuOnly = hasOwner && Boolean(ownerFocusTenantId);
+
+  const supportContextTenantId = ownerFocusTenantId ?? dhFocusTenantId ?? memberships[0]?.tenantId ?? null;
 
   const primaryMembership = useMemo(() => {
     if (visibleMemberships.length === 0) return null;
@@ -493,6 +496,7 @@ export function DashboardClientView({
                 pageTitle={t("dash.title")}
               />
               <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
+                <SupportMessenger tenantId={supportContextTenantId} />
                 <GlobeLanguageSwitcher />
                 <DisplayModeSwitcher />
                 <form action="/api/auth/sign-out" method="post" className="shrink-0">
@@ -514,6 +518,7 @@ export function DashboardClientView({
                 pageTitle={t("dash.title")}
               />
               <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
+                <SupportMessenger tenantId={supportContextTenantId} />
                 <GlobeLanguageSwitcher />
                 <DisplayModeSwitcher />
                 <form action="/api/auth/sign-out" method="post" className="shrink-0">
