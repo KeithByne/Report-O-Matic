@@ -241,6 +241,20 @@
         text-underline-offset: 2px;
       }
 
+      .agreeRow {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 4px;
+      }
+      .agreeRow input { width: auto; margin-top: 3px; flex-shrink: 0; }
+      .agreeRow label {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+        cursor: pointer;
+      }
+
       .card {
         padding: 18px;
       }
@@ -437,8 +451,9 @@
                 </ul>
                 <div class="infoLinks">
                   <a href="/legal/data-protection">Data protection</a>
+                  <a href="/legal/terms">Terms</a>
                   <a href="/legal/privacy">Privacy</a>
-                  <a href="/legal/dpa">Data Processing Agreement</a>
+                  <a href="/legal/dpa">DPA</a>
                   <a href="/legal/cookies">Cookies</a>
                 </div>
               </div>
@@ -588,24 +603,33 @@
                   required
                 />
               </div>
+              <div class="agreeRow">
+                <input id="agreeTerms" name="agree_terms" type="checkbox" value="1" required />
+                <label for="agreeTerms">
+                  I confirm I am authorised to register on behalf of my organisation and agree to the
+                  <a href="/legal/terms" target="_blank" rel="noopener noreferrer">Terms of use</a>
+                  and
+                  <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy notice</a>.
+                </label>
+              </div>
               <button id="signUpBtn" class="btn btnPrimary" type="submit">
                 Create account
               </button>
-
-              <p class="small">
-                By continuing, you agree to the Terms and Privacy Policy (links will be added).
-              </p>
             </form>
           </section>
         </main>
       </div>
     </div>
     <footer class="siteFoot">
+      Report-O-Matic Ltd · Co. 17239610 · Registered office: 33 Vange Hill Drive, Basildon, Essex, SS16 4DD, England
+      <br />
       <a href="/legal/data-protection">Data protection</a>
+      ·
+      <a href="/legal/terms">Terms</a>
       ·
       <a href="/legal/privacy">Privacy</a>
       ·
-      <a href="/legal/dpa">Data Processing Agreement</a>
+      <a href="/legal/dpa">DPA</a>
       ·
       <a href="/legal/cookies">Cookies</a>
     </footer>

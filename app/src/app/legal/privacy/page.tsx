@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/LegalPageNav";
-import { operatorLegalName, privacyContactEmail } from "@/lib/legal/operatorIdentity";
+import {
+  operatorCompanyNumber,
+  operatorLegalName,
+  operatorRegisteredAddress,
+  privacyContactEmail,
+} from "@/lib/legal/operatorIdentity";
 import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
 
 export const metadata: Metadata = {
@@ -11,6 +16,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   const operatorName = operatorLegalName();
+  const companyNo = operatorCompanyNumber();
+  const registered = operatorRegisteredAddress();
   const contact = privacyContactEmail();
   const cardPaymentsOn = isStripePaymentsEnabled();
 
@@ -28,8 +35,12 @@ export default function PrivacyPage() {
         ). For account holders signing in as individuals, roles may vary — owners act on behalf of their organisation.{" "}
         <Link href="/legal/data-protection" className="text-emerald-800 underline hover:text-emerald-950">
           Data protection overview
+        </Link>{" "}
+        and{" "}
+        <Link href="/legal/terms" className="text-emerald-800 underline hover:text-emerald-950">
+          terms of use
         </Link>
-        .
+        . {operatorName} (company number {companyNo}, registered office: {registered}).
       </p>
 
       <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
@@ -51,13 +62,9 @@ export default function PrivacyPage() {
         <h2 className="text-base font-semibold text-zinc-950">Contact</h2>
         <p>
           For questions about this processing or to exercise rights relating to the platform, contact{" "}
-          {contact ? (
-            <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${contact}`}>
-              {contact}
-            </a>
-          ) : (
-            <>{operatorName} using the details on your contract or sign-up correspondence</>
-          )}
+          <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${contact}`}>
+            {contact}
+          </a>
           . For pupil-record requests, your school is usually the first point of contact.
         </p>
       </section>
@@ -71,12 +78,14 @@ export default function PrivacyPage() {
             tied to your account (for example report edits or AI assist usage metadata).
           </li>
           <li>
-            <strong>School workflow data:</strong> classes, pupils, report text, timetables, and related content your
-            organisation enters for school reporting.
+            <strong>School workflow data:</strong> classes, pupil names, numeric grades, report text, timetables, and
+            related content your organisation enters. The product is not designed to collect pupil addresses, dates of
+            birth, or contact details.
           </li>
           <li>
-            <strong>Billing:</strong> where card checkout is enabled, a payment processor handles payment data; we may
-            store limited billing identifiers and transaction summaries.{" "}
+            <strong>Billing:</strong> <strong>Stripe</strong> processes card payments when checkout is enabled; we may
+            store limited billing identifiers and transaction summaries. Commercial banking may involve{" "}
+            <strong>Wise</strong>.{" "}
             {!cardPaymentsOn ? (
               <span className="font-medium text-zinc-700">
                 Card checkout is currently disabled on this deployment; no new card payments are taken through the
@@ -85,6 +94,15 @@ export default function PrivacyPage() {
             ) : null}
           </li>
         </ul>
+      </section>
+
+      <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
+        <h2 className="text-base font-semibold text-zinc-950">Marketing communications</h2>
+        <p>
+          We do not currently send promotional emails to schools. We may send <strong>service</strong> messages (for
+          example security, billing, or product changes). If we introduce marketing communications in future, we will do
+          so in line with applicable law and provide appropriate opt-out or consent mechanisms where required.
+        </p>
       </section>
 
       <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
@@ -105,16 +123,14 @@ export default function PrivacyPage() {
       <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
         <h2 className="text-base font-semibold text-zinc-950">Subprocessors</h2>
         <p>
-          Depending on configuration, data may be processed by: <strong>Supabase</strong> (database and storage),{" "}
-          <strong>Resend</strong> (transactional email), <strong>OpenAI</strong> or similar (optional AI-assisted report
-          features), <strong>Cloudflare</strong> (including Turnstile on the sign-in page)
-          {cardPaymentsOn ? (
-            <>, and a <strong>card payment processor</strong> (for example Stripe) when checkout is active</>
-          ) : (
-            <>. A <strong>card payment processor</strong> may be used when the operator re-enables online checkout</>
-          )}
-          . Use subprocessors&apos; privacy policies for detail. International transfers may rely on standard contractual
-          clauses or equivalent mechanisms those providers offer.
+          Data may be processed by providers listed on our{" "}
+          <Link href="/legal/subprocessors" className="text-emerald-800 underline hover:text-emerald-950">
+            subprocessor page
+          </Link>
+          , including <strong>Supabase</strong>, <strong>Resend</strong>, <strong>OpenAI</strong> (optional AI),{" "}
+          <strong>Cloudflare</strong>, <strong>Stripe</strong>, and <strong>Wise</strong>. Use subprocessors&apos; privacy
+          policies for detail. International transfers may rely on standard contractual clauses or equivalent mechanisms
+          those providers offer.
         </p>
       </section>
 

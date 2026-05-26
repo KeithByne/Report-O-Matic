@@ -123,6 +123,14 @@ export function TenantBillingView({
             </p>
           ) : null}
 
+          <p className="mt-4 text-xs leading-relaxed text-zinc-600">
+            Purchases are subject to our{" "}
+            <Link href="/legal/terms" className="font-medium text-emerald-800 underline hover:text-emerald-950">
+              Terms of use
+            </Link>
+            . Credit packs are prepaid and <strong>non-refundable</strong> except where the law requires otherwise.
+          </p>
+
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {packs.map((p) => {
               const storedCents = Number(p.price_cents);

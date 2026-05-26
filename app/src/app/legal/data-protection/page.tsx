@@ -3,8 +3,10 @@ import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/LegalPageNav";
 import {
   icoRegistrationNumber,
+  operatorCompanyNumber,
   operatorLegalName,
   operatorRegisteredAddress,
+  operatorTradingAddress,
   privacyContactEmail,
 } from "@/lib/legal/operatorIdentity";
 import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
@@ -17,7 +19,9 @@ export const metadata: Metadata = {
 
 export default function DataProtectionPage() {
   const operatorName = operatorLegalName();
+  const companyNo = operatorCompanyNumber();
   const operatorAddress = operatorRegisteredAddress();
+  const tradingAddress = operatorTradingAddress();
   const contact = privacyContactEmail();
   const icoNumber = icoRegistrationNumber();
   const cardPaymentsOn = isStripePaymentsEnabled();
@@ -35,11 +39,12 @@ export default function DataProtectionPage() {
       <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
         <h2 className="text-base font-semibold text-zinc-950">Who we are</h2>
         <p>
-          <strong>{operatorName}</strong> ({operatorAddress}) develops and operates the Report-O-Matic software service.
-          We act as a <strong>data processor</strong> when a school or other organisation uses the product to process
-          pupil and staff-related information on the organisation&apos;s instructions. For some account-holder data (for
-          example your sign-in email), we may act as <strong>controller</strong> where we determine how that data is used
-          to run accounts and security.
+          <strong>{operatorName}</strong> (company number {companyNo}) develops and operates the Report-O-Matic software
+          service. Registered office: {operatorAddress}. Trading / operational contact: {tradingAddress}. We act as a{" "}
+          <strong>data processor</strong> when a school or other organisation uses the product to process pupil and
+          staff-related information on the organisation&apos;s instructions. For some account-holder data (for example
+          your sign-in email), we may act as <strong>controller</strong> where we determine how that data is used to run
+          accounts and security.
         </p>
         {icoNumber ? (
           <p>
@@ -68,6 +73,12 @@ export default function DataProtectionPage() {
         <h2 className="text-base font-semibold text-zinc-950">Key documents</h2>
         <ul className="grid gap-3 sm:grid-cols-1">
           <li className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
+            <Link href="/legal/terms" className="font-semibold text-emerald-900 hover:text-emerald-950">
+              Terms of use
+            </Link>
+            <p className="mt-1 text-zinc-600">Contractual terms for schools using the service, credits, and AI features.</p>
+          </li>
+          <li className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
             <Link href="/legal/privacy" className="font-semibold text-emerald-900 hover:text-emerald-950">
               Privacy notice
             </Link>
@@ -84,12 +95,29 @@ export default function DataProtectionPage() {
             </p>
           </li>
           <li className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
+            <Link href="/legal/subprocessors" className="font-semibold text-emerald-900 hover:text-emerald-950">
+              Subprocessor list
+            </Link>
+            <p className="mt-1 text-zinc-600">Hosting, email, AI, payments, and security providers.</p>
+          </li>
+          <li className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
             <Link href="/legal/cookies" className="font-semibold text-emerald-900 hover:text-emerald-950">
               Cookie notice
             </Link>
             <p className="mt-1 text-zinc-600">Session cookies and sign-in security technologies.</p>
           </li>
         </ul>
+      </section>
+
+      <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
+        <h2 className="text-base font-semibold text-zinc-950">Children and pupil data</h2>
+        <p>
+          The product is designed for school reporting. Schools enter pupil <strong>names</strong> (typically first name
+          for AI features; display names may also be stored), class membership, numeric grades, and report text. The
+          service does <strong>not</strong> require pupil addresses, dates of birth, or contact details. Do not enter
+          special-category data unless your organisation has a clear lawful basis and the product is appropriate for that
+          use.
+        </p>
       </section>
 
       <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
@@ -113,15 +141,14 @@ export default function DataProtectionPage() {
       <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
         <h2 className="text-base font-semibold text-zinc-950">Subprocessors</h2>
         <p>
-          Depending on configuration, personal data may be processed by infrastructure and service providers such as{" "}
-          <strong>Supabase</strong> (database), <strong>Resend</strong> (transactional email),{" "}
-          <strong>OpenAI</strong> (optional AI features), and <strong>Cloudflare</strong> (including Turnstile).
-          {cardPaymentsOn ? (
-            <> A card payment processor (for example <strong>Stripe</strong>) handles checkout when enabled.</>
-          ) : (
-            <> Card checkout may be added when enabled by the operator.</>
-          )}{" "}
-          The privacy notice lists current categories; the DPA covers authorisation and objection rights for schools.
+          Personal data may be processed by providers listed on our{" "}
+          <Link href="/legal/subprocessors" className="text-emerald-800 underline hover:text-emerald-950">
+            subprocessor page
+          </Link>
+          , including <strong>Supabase</strong>, <strong>Resend</strong>, <strong>OpenAI</strong> (optional AI),{" "}
+          <strong>Cloudflare</strong>, <strong>Stripe</strong> (card checkout
+          {cardPaymentsOn ? " when enabled" : " when enabled by the operator"}), and <strong>Wise</strong> (business
+          payment operations). The DPA covers authorisation and objection rights for schools.
         </p>
       </section>
 
@@ -166,13 +193,9 @@ export default function DataProtectionPage() {
         <h2 className="text-base font-semibold text-zinc-950">Contact</h2>
         <p>
           For data protection questions about the platform, contact{" "}
-          {contact ? (
-            <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${contact}`}>
-              {contact}
-            </a>
-          ) : (
-            <span>{operatorName} using the address on your contract or sign-up correspondence</span>
-          )}
+          <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${contact}`}>
+            {contact}
+          </a>
           . For requests about a pupil&apos;s records, contact the school first — they are usually the controller.
         </p>
       </section>

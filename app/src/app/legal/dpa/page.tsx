@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/LegalPageNav";
 import {
+  operatorCompanyNumber,
   operatorLegalName,
   operatorRegisteredAddress,
   privacyContactEmail,
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 
 export default function DpaPage() {
   const operatorName = operatorLegalName();
+  const companyNo = operatorCompanyNumber();
   const operatorAddress = operatorRegisteredAddress();
   const contactEmail = privacyContactEmail();
 
@@ -37,9 +39,9 @@ export default function DpaPage() {
           creates an account and instructs users to enter pupil and staff-related data into Report-O-Matic.
         </p>
         <p>
-          <strong>Processor</strong> (the “processor”) is <strong>{operatorName}</strong>, with address{" "}
-          <span className="whitespace-pre-line">{operatorAddress}</span>, who hosts and operates the Report-O-Matic
-          software on the Customer&apos;s behalf.
+          <strong>Processor</strong> (the “processor”) is <strong>{operatorName}</strong> (company number {companyNo}),
+          with registered office at <span className="whitespace-pre-line">{operatorAddress}</span>, who hosts and
+          operates the Report-O-Matic software on the Customer&apos;s behalf.
         </p>
         <p>
           The Processor processes personal data only on documented instructions from the Customer (including through the
@@ -115,7 +117,11 @@ export default function DpaPage() {
         <h2 className="text-base font-semibold text-zinc-950">5. Subprocessors</h2>
         <p>
           The Customer generally authorises the Processor to engage the subprocessors listed or referenced in the privacy
-          notice (for example hosting/database, transactional email, optional AI, optional card payments, and edge security).
+          notice and{" "}
+          <Link href="/legal/subprocessors" className="text-emerald-800 underline hover:text-emerald-950">
+            subprocessor list
+          </Link>{" "}
+          (for example hosting/database, transactional email, optional AI, Stripe, Wise, and edge security).
           The Processor shall impose data protection terms on subprocessors that are materially equivalent to those in this
           DPA. The Customer may object to a new subprocessor on documented reasonable grounds; where no alternative can be
           agreed within a reasonable period, either party may terminate the affected part of the service.
@@ -154,13 +160,9 @@ export default function DpaPage() {
         <h2 className="text-base font-semibold text-zinc-950">9. Contact</h2>
         <p>
           Processor contact for privacy and processing questions:{" "}
-          {contactEmail ? (
-            <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${contactEmail}`}>
-              {contactEmail}
-            </a>
-          ) : (
-            <span>{operatorName}</span>
-          )}
+          <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${contactEmail}`}>
+            {contactEmail}
+          </a>
         </p>
       </section>
 

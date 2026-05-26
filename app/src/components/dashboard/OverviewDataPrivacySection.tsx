@@ -33,6 +33,14 @@ export function OverviewDataPrivacySection() {
               Data protection
             </Link>
             <Link
+              href="/legal/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-emerald-800 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-950"
+            >
+              Terms of use
+            </Link>
+            <Link
               href="/dashboard/profile"
               className="font-medium text-emerald-800 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-950"
             >

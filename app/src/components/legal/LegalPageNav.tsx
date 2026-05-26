@@ -1,10 +1,13 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LegalCompanyFooter } from "@/components/legal/LegalCompanyFooter";
 
 const LINKS = [
   { href: "/legal/data-protection", label: "Data protection" },
+  { href: "/legal/terms", label: "Terms" },
   { href: "/legal/privacy", label: "Privacy" },
   { href: "/legal/dpa", label: "DPA" },
+  { href: "/legal/subprocessors", label: "Subprocessors" },
   { href: "/legal/cookies", label: "Cookies" },
 ] as const;
 
@@ -47,7 +50,10 @@ export function LegalPageShell({
           <LegalPageNav current={current} />
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-5 py-10">{children}</main>
+      <main className="mx-auto max-w-3xl px-5 py-10">
+        {children}
+        <LegalCompanyFooter />
+      </main>
     </div>
   );
 }

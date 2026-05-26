@@ -42,6 +42,22 @@ export default function CookiesPage() {
           </p>
         </div>
         <div>
+          <h2 className="text-base font-semibold text-zinc-950">Stripe (billing checkout)</h2>
+          <p className="mt-2">
+            When card payments are enabled, the billing checkout flow may load <strong>Stripe</strong> scripts or cookies
+            to process payments securely. See{" "}
+            <a
+              className="text-emerald-800 underline hover:text-emerald-950"
+              href="https://stripe.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Stripe&apos;s privacy policy
+            </a>
+            .
+          </p>
+        </div>
+        <div>
           <h2 className="text-base font-semibold text-zinc-950">Managing cookies</h2>
           <p className="mt-2">
             You can block or delete cookies in your browser settings; blocking essential cookies will prevent sign-in.

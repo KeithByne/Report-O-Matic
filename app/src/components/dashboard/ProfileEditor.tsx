@@ -325,6 +325,14 @@ export function ProfileEditor({
             Data protection
           </Link>
           <Link
+            href="/legal/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-emerald-800 hover:text-emerald-950"
+          >
+            Terms of use
+          </Link>
+          <Link
             href="/legal/privacy"
             target="_blank"
             rel="noopener noreferrer"
