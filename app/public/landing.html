@@ -132,19 +132,113 @@
         line-height: 1.6;
       }
 
-      .pillRow {
+      .infoSections {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .infoSection {
+        border: 1px solid rgba(61, 90, 132, 0.75);
+        border-radius: 12px;
+        background: rgba(13, 29, 51, 0.45);
+        overflow: hidden;
+      }
+
+      .infoSection summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #f4f8ff;
+        user-select: none;
+      }
+
+      .infoSection summary::-webkit-details-marker { display: none; }
+
+      .infoSection summary::after {
+        content: "";
+        flex-shrink: 0;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid var(--accent);
+        border-bottom: 2px solid var(--accent);
+        transform: rotate(45deg);
+        margin-top: -3px;
+        transition: transform 0.15s ease;
+      }
+
+      .infoSection[open] summary::after {
+        transform: rotate(-135deg);
+        margin-top: 3px;
+      }
+
+      .infoSectionBody {
+        padding: 0 14px 14px;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.55;
+        border-top: 1px solid rgba(61, 90, 132, 0.45);
+      }
+
+      .infoSectionBody p { margin: 12px 0 0; }
+      .infoSectionBody p:first-child { margin-top: 12px; }
+
+      .infoList {
+        margin: 10px 0 0;
+        padding-left: 1.15rem;
+      }
+
+      .infoList li { margin: 0.35rem 0; }
+
+      .priceTable {
+        width: 100%;
+        margin-top: 10px;
+        border-collapse: collapse;
+        font-size: 12.5px;
+      }
+
+      .priceTable th,
+      .priceTable td {
+        text-align: left;
+        padding: 7px 6px;
+        border-bottom: 1px solid rgba(61, 90, 132, 0.4);
+      }
+
+      .priceTable th {
+        color: var(--muted2);
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .priceTable td:last-child,
+      .priceTable th:last-child { text-align: right; }
+
+      .infoFoot {
+        margin-top: 10px;
+        font-size: 11.5px;
+        color: var(--muted2);
+      }
+
+      .infoLinks {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 14px;
+        gap: 10px 14px;
+        margin-top: 12px;
       }
-      .pill {
+
+      .infoLinks a {
         font-size: 12px;
-        color: #eaf3ff;
-        background: rgba(22, 43, 73, 0.65);
-        border: 1px solid rgba(61, 90, 132, 0.85);
-        padding: 7px 10px;
-        border-radius: 999px;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 2px;
       }
 
       .card {
@@ -297,20 +391,107 @@
 
           <h1>Sign in to your school dashboard</h1>
           <p>
-            Generate consistent, moderated, branded, academic reports in minutes.
-            Your life just got a little easier.
+            Generate consistent, moderated, branded academic reports in minutes.
+            Tap a section below to learn more.
           </p>
 
-          <div class="pillRow" aria-label="Highlights">
-            <span class="pill">Save Time</span>
-            <span class="pill">Work Less</span>
-            <span class="pill">Reduce Stress</span>
-            <span class="pill">Easy to Use</span>
-            <span class="pill">Data Protected</span>
-            <span class="pill">Secure Platform</span>
-            <span class="pill">Multi-tenant isolation</span>
-            <span class="pill">Role permissions</span>
-            <span class="pill">Credit billing</span>
+          <div class="infoSections" aria-label="About Report-O-Matic">
+            <details class="infoSection" name="landing-info" open>
+              <summary>Why it works for you</summary>
+              <div class="infoSectionBody">
+                <ul class="infoList">
+                  <li>Reduce report writing time by 80%</li>
+                  <li>Moderated texts</li>
+                  <li>Keep tone professional and consistent</li>
+                  <li>Generate personalised comments in seconds</li>
+                  <li>Prevent repetitive teacher wording</li>
+                  <li>Help non-native teachers produce polished reports</li>
+                  <li>Standardise reporting across departments</li>
+                  <li>Export instantly to PDF</li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="infoSection" name="landing-info">
+              <summary>Who we are</summary>
+              <div class="infoSectionBody">
+                <p>
+                  Report-O-Matic is built by a practising teacher and school owner with more than 30 years in ESL —
+                  in the classroom, online, and in teacher training for English language teaching and educational
+                  technology. The product reflects what busy schools actually need: fair comments, less admin, and
+                  reports parents can trust.
+                </p>
+              </div>
+            </details>
+
+            <details class="infoSection" name="landing-info">
+              <summary>Security</summary>
+              <div class="infoSectionBody">
+                <ul class="infoList">
+                  <li>Encrypted connections (HTTPS) for sign-in and all dashboard use</li>
+                  <li>Each school is isolated in its own workspace — staff only see their organisation’s data</li>
+                  <li>Role-based access for owners, department heads, and teachers</li>
+                  <li>Human verification (Cloudflare Turnstile) on sign-in and password reset</li>
+                  <li>One report credit consumed only when a comment is generated and saved — clear usage tracking</li>
+                  <li>GDPR-oriented privacy notice and Data Processing Agreement available for your records</li>
+                </ul>
+                <div class="infoLinks">
+                  <a href="/legal/privacy">Privacy</a>
+                  <a href="/legal/dpa">Data Processing Agreement</a>
+                  <a href="/legal/cookies">Cookies</a>
+                </div>
+              </div>
+            </details>
+
+            <details class="infoSection" name="landing-info">
+              <summary>Pricing</summary>
+              <div class="infoSectionBody">
+                <p>
+                  Pay per report with prepaid credit packs. Each successful AI comment generation uses one credit.
+                  Owners purchase packs from the school billing area after sign-in.
+                </p>
+                <table class="priceTable" aria-label="Credit packs">
+                  <thead>
+                    <tr>
+                      <th scope="col">Pack</th>
+                      <th scope="col">Reports</th>
+                      <th scope="col">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Tester</td>
+                      <td>50</td>
+                      <td>€5</td>
+                    </tr>
+                    <tr>
+                      <td>Economy</td>
+                      <td>250</td>
+                      <td>€25</td>
+                    </tr>
+                    <tr>
+                      <td>School</td>
+                      <td>600</td>
+                      <td>€50</td>
+                    </tr>
+                    <tr>
+                      <td>Large School</td>
+                      <td>1,300</td>
+                      <td>€100</td>
+                    </tr>
+                    <tr>
+                      <td>Universal School</td>
+                      <td>6,000</td>
+                      <td>€500</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="infoFoot">
+                  Prices shown are pack list prices in EUR before any applicable tax shown at checkout.
+                  Test access links may include free trial credits.
+                </p>
+              </div>
+            </details>
           </div>
 
         </section>
