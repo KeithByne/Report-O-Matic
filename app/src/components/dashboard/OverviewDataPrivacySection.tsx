@@ -25,6 +25,14 @@ export function OverviewDataPrivacySection() {
           </ol>
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
             <Link
+              href="/legal/data-protection"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-emerald-800 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-950"
+            >
+              Data protection
+            </Link>
+            <Link
               href="/dashboard/profile"
               className="font-medium text-emerald-800 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-950"
             >

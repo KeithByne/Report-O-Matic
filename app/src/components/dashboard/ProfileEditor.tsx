@@ -317,6 +317,14 @@ export function ProfileEditor({
         <p className="mt-1 text-xs text-zinc-600">{t("profile.privacyLead")}</p>
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
           <Link
+            href="/legal/data-protection"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-emerald-800 hover:text-emerald-950"
+          >
+            Data protection
+          </Link>
+          <Link
             href="/legal/privacy"
             target="_blank"
             rel="noopener noreferrer"
