@@ -583,7 +583,7 @@
           <h1>Sign in to your school dashboard</h1>
           <p>
             Generate consistent, moderated, branded academic reports in minutes.
-            Hover a section below to learn more.
+            Click a section below to learn more.
           </p>
 
           <div class="infoSections" aria-label="About Report-O-Matic">
@@ -1115,34 +1115,6 @@
         }
 
         detectBrowserLanguage();
-
-        (function initLandingInfoHover() {
-          var container = document.querySelector(".infoSections");
-          if (!container) return;
-          var sections = container.querySelectorAll("details.infoSection");
-          function closeAll() {
-            sections.forEach(function (d) {
-              d.open = false;
-            });
-          }
-          closeAll();
-          var hoverUi = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-          if (hoverUi) {
-            sections.forEach(function (details) {
-              details.addEventListener("mouseenter", function () {
-                closeAll();
-                details.open = true;
-              });
-              var summary = details.querySelector("summary");
-              if (summary) {
-                summary.addEventListener("click", function (ev) {
-                  ev.preventDefault();
-                });
-              }
-            });
-            container.addEventListener("mouseleave", closeAll);
-          }
-        })();
 
         function mountTurnstileWhenReady() {
           var host = document.getElementById("turnstileWidget");
