@@ -9,11 +9,7 @@ export type SiteFooterLink = {
 export const SITE_FOOTER_LINK_GROUPS: { title: string; links: SiteFooterLink[] }[] = [
   {
     title: "Product",
-    links: [
-      { href: "/landing.html", label: "Sign in" },
-      { href: "/pricing", label: "Pricing" },
-      { href: "/dashboard", label: "Dashboard" },
-    ],
+    links: [{ href: "/pricing", label: "Pricing" }],
   },
   {
     title: "Legal & consumer",
