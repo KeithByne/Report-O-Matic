@@ -28,7 +28,7 @@ export function SaasOwnerSupportPanel({ embedded = false }: Props) {
   const [sendBusy, setSendBusy] = useState(false);
   const [resolveBusy, setResolveBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const listEndRef = useRef<HTMLDivElement | null>(null);
+  const listEndRef = useRef<HTMLLIElement | null>(null);
 
   const refreshList = useCallback(async () => {
     setListBusy(true);

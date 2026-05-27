@@ -37,7 +37,7 @@ export function SupportMessenger({ tenantId = null }: Props) {
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const prevUnread = useRef(0);
-  const listEndRef = useRef<HTMLDivElement | null>(null);
+  const listEndRef = useRef<HTMLLIElement | null>(null);
 
   const refreshList = useCallback(async () => {
     const res = await fetch("/api/support", { cache: "no-store" });
