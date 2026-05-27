@@ -471,7 +471,9 @@ export const REPORT_SUBJECT_I18N: Record<SubjectCode, Record<UiLang, string>> = 
 const EN: UiMessages = {
   "brand.subtitle": "Report-O-Matic",
   "brand.saasName": "Report-O-Matic",
-  "support.buttonLabel": "Contact",
+  "support.buttonLabel": "Contact Support",
+  "support.buttonContact": "Contact",
+  "support.buttonSupport": "Support",
   "support.panelTitle": "Customer support",
   "support.panelLead": "Open a support case and we will reply in this thread.",
   "support.backToList": "Back to cases",

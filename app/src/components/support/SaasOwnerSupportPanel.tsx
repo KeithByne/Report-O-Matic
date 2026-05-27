@@ -10,7 +10,12 @@ import {
 
 type CaseListItem = SupportCaseRow & { unread_for_owner: boolean };
 
-export function SaasOwnerSupportPanel() {
+type Props = {
+  /** Render without outer page section chrome (header modal). */
+  embedded?: boolean;
+};
+
+export function SaasOwnerSupportPanel({ embedded = false }: Props) {
   const [cases, setCases] = useState<CaseListItem[]>([]);
   const [unreadCases, setUnreadCases] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -141,29 +146,45 @@ export function SaasOwnerSupportPanel() {
     ? formatSupportCaseNumber(supportCase.case_number, supportCase.created_at)
     : "";
 
-  return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="text-sm font-semibold text-zinc-900">Customer service</div>
-          <div className="mt-1 text-xs text-zinc-500">
-            Support cases from signed-in users.{" "}
-            {unreadCases > 0 ? `${unreadCases} case(s) with new messages.` : "No new messages."}
+  const body = (
+    <>
+      {!embedded ? (
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-sm font-semibold text-zinc-900">Customer service</div>
+            <div className="mt-1 text-xs text-zinc-500">
+              Support cases from signed-in users.{" "}
+              {unreadCases > 0 ? `${unreadCases} case(s) with new messages.` : "No new messages."}
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => void refreshList()}
+            disabled={listBusy}
+            className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+          >
+            {listBusy ? "Refreshing…" : "Refresh"}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => void refreshList()}
-          disabled={listBusy}
-          className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
-        >
-          {listBusy ? "Refreshing…" : "Refresh"}
-        </button>
-      </div>
+      ) : (
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <p className="text-xs text-zinc-500">
+            {unreadCases > 0 ? `${unreadCases} case(s) with new messages.` : "No new messages."}
+          </p>
+          <button
+            type="button"
+            onClick={() => void refreshList()}
+            disabled={listBusy}
+            className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+          >
+            {listBusy ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      )}
 
-      {err ? <div className="mt-3 text-sm text-red-700">{err}</div> : null}
+      {err ? <div className={`text-sm text-red-700 ${embedded ? "mb-3" : "mt-3"}`}>{err}</div> : null}
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(12rem,34%)_1fr]">
+      <div className={`grid gap-4 lg:grid-cols-[minmax(12rem,34%)_1fr] ${embedded ? "" : "mt-4"}`}>
         <div className="max-h-80 overflow-y-auto rounded-xl border border-zinc-200">
           {cases.length === 0 ? (
             <p className="p-3 text-sm text-zinc-500">No support cases yet.</p>
@@ -337,6 +358,14 @@ export function SaasOwnerSupportPanel() {
           )}
         </div>
       </div>
+    </>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      {body}
     </section>
   );
 }

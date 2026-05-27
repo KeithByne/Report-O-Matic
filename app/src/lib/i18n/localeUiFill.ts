@@ -7,7 +7,9 @@ import { MENU_GUIDE_EXTRAS_ES, MENU_GUIDE_EXTRAS_FR } from "@/lib/i18n/localeMen
 export const UI_FILL_ES: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
   "brand.saasName": "Report-O-Matic",
-  "support.buttonLabel": "Contacto",
+  "support.buttonLabel": "Contacto soporte",
+  "support.buttonContact": "Contacto",
+  "support.buttonSupport": "Soporte",
   "support.panelTitle": "Atención al cliente",
   "support.panelLead": "Abra un caso de soporte y le responderemos en este hilo.",
   "support.backToList": "Volver a casos",
@@ -377,7 +379,9 @@ export const UI_FILL_ES: Record<string, string> = {
 export const UI_FILL_FR: Record<string, string> = {
   "brand.subtitle": "Report-O-Matic",
   "brand.saasName": "Report-O-Matic",
-  "support.buttonLabel": "Contact",
+  "support.buttonLabel": "Contact support",
+  "support.buttonContact": "Contact",
+  "support.buttonSupport": "Support",
   "support.panelTitle": "Service client",
   "support.panelLead": "Ouvrez un dossier de support ; nous répondrons dans ce fil.",
   "support.backToList": "Retour aux dossiers",

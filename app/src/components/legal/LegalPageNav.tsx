@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LegalAppHeader } from "@/components/legal/LegalAppHeader";
 import { LegalCompanyFooter } from "@/components/legal/LegalCompanyFooter";
 
 const LINKS = [
@@ -38,18 +39,7 @@ export function LegalPageShell({
 }) {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
-      <header className="rom-app-shell-header">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <Link
-            href="/landing.html"
-            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
-          >
-            <span aria-hidden>←</span>
-            Sign in
-          </Link>
-          <LegalPageNav current={current} />
-        </div>
-      </header>
+      <LegalAppHeader current={current} />
       <main className="mx-auto max-w-3xl px-5 py-10">
         {children}
         <LegalCompanyFooter />

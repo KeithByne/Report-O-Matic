@@ -3,11 +3,9 @@
 import { Building2, LayoutDashboard, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
-import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
-import { SupportMessenger } from "@/components/support/SupportMessenger";
-import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
+import { AppHeaderRightControls } from "@/components/layout/AppHeaderRightControls";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 
@@ -89,10 +87,7 @@ export function ReportsFlowHeader({
     <header className="rom-app-shell-header">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
         <AppHeaderLeftCluster roleLabel={roleLine} userDisplayName={userDisplayName} pageTitle={title} />
-        <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
-          <SupportMessenger tenantId={supportTenantId ?? tenantId ?? null} />
-          <GlobeLanguageSwitcher />
-          <DisplayModeSwitcher />
+        <AppHeaderRightControls tenantId={supportTenantId ?? tenantId ?? null}>
           {links.map((l) => (
             <Link
               key={l.href}
@@ -103,7 +98,7 @@ export function ReportsFlowHeader({
               {l.label}
             </Link>
           ))}
-        </div>
+        </AppHeaderRightControls>
       </div>
     </header>
   );

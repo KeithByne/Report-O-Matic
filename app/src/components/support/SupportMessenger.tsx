@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeft, MessageCircle, Plus, X } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { ArrowLeft, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { ContactSupportHeaderButton } from "@/components/support/ContactSupportHeaderButton";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import {
   formatSupportCaseNumber,
@@ -24,7 +24,6 @@ type CaseListItem = SupportCaseRow & { unread_for_user: boolean };
 
 export function SupportMessenger({ tenantId = null }: Props) {
   const { t } = useUiLanguage();
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>("list");
   const [cases, setCases] = useState<CaseListItem[]>([]);
@@ -39,8 +38,6 @@ export function SupportMessenger({ tenantId = null }: Props) {
   const [toast, setToast] = useState<string | null>(null);
   const prevUnread = useRef(0);
   const listEndRef = useRef<HTMLDivElement | null>(null);
-
-  const hiddenOnRoute = pathname?.startsWith("/saas-owner") ?? false;
 
   const refreshList = useCallback(async () => {
     const res = await fetch("/api/support", { cache: "no-store" });
@@ -70,7 +67,6 @@ export function SupportMessenger({ tenantId = null }: Props) {
   );
 
   useEffect(() => {
-    if (hiddenOnRoute) return;
     void refreshList().catch(() => {});
     const id = window.setInterval(() => void refreshList().catch(() => {}), 30_000);
     const onFocus = () => void refreshList().catch(() => {});
@@ -79,7 +75,7 @@ export function SupportMessenger({ tenantId = null }: Props) {
       window.clearInterval(id);
       window.removeEventListener("focus", onFocus);
     };
-  }, [hiddenOnRoute, refreshList]);
+  }, [refreshList]);
 
   useEffect(() => {
     if (!open || view !== "detail") return;
@@ -161,8 +157,6 @@ export function SupportMessenger({ tenantId = null }: Props) {
     }
   }
 
-  if (hiddenOnRoute) return null;
-
   const resolved = activeCase?.status === "resolved";
   const caseLabel = activeCase ? formatSupportCaseNumber(activeCase.case_number, activeCase.created_at) : "";
 
@@ -179,23 +173,11 @@ export function SupportMessenger({ tenantId = null }: Props) {
         </button>
       ) : null}
 
-      <button
-        type="button"
+      <ContactSupportHeaderButton
+        unread={unread}
+        active={open}
         onClick={() => (open ? setOpen(false) : openPanel())}
-        className="relative inline-flex shrink-0 items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
-        aria-label={t("support.buttonLabel")}
-      >
-        <MessageCircle className={ICON_INLINE} aria-hidden />
-        <span className="hidden sm:inline">{t("support.buttonLabel")}</span>
-        {unread > 0 ? (
-          <span
-            className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white ring-2 ring-white"
-            aria-label={t("support.unreadBadge")}
-          >
-            {unread > 9 ? "9+" : unread}
-          </span>
-        ) : null}
-      </button>
+      />
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center" role="dialog" aria-modal="true">

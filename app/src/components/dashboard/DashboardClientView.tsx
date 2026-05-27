@@ -54,11 +54,9 @@ import { OverviewDataPrivacySection } from "@/components/dashboard/OverviewDataP
 import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
-import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
-import { SupportMessenger } from "@/components/support/SupportMessenger";
-import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
+import { AppHeaderRightControls } from "@/components/layout/AppHeaderRightControls";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import type { MembershipWithTenant, RomRole, TenantMemberRow } from "@/lib/data/memberships";
 import { GRADE_RUBRIC_PROFILES, gradeRubricProfileDisplayLabel, parseGradeRubricProfile, type GradeRubricProfile } from "@/lib/gradeRubricProfile";
@@ -495,10 +493,7 @@ export function DashboardClientView({
                 userDisplayName={userDisplayName}
                 pageTitle={t("dash.title")}
               />
-              <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
-                <SupportMessenger tenantId={supportContextTenantId} />
-                <GlobeLanguageSwitcher />
-                <DisplayModeSwitcher />
+              <AppHeaderRightControls tenantId={supportContextTenantId}>
                 <form action="/api/auth/sign-out" method="post" className="shrink-0">
                   <button
                     type="submit"
@@ -508,7 +503,7 @@ export function DashboardClientView({
                     {t("nav.signOut")}
                   </button>
                 </form>
-              </div>
+              </AppHeaderRightControls>
             </>
           ) : (
             <>
@@ -517,10 +512,7 @@ export function DashboardClientView({
                 userDisplayName={userDisplayName}
                 pageTitle={t("dash.title")}
               />
-              <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
-                <SupportMessenger tenantId={supportContextTenantId} />
-                <GlobeLanguageSwitcher />
-                <DisplayModeSwitcher />
+              <AppHeaderRightControls tenantId={supportContextTenantId}>
                 <form action="/api/auth/sign-out" method="post" className="shrink-0">
                   <button
                     type="submit"
@@ -530,7 +522,7 @@ export function DashboardClientView({
                     {t("nav.signOut")}
                   </button>
                 </form>
-              </div>
+              </AppHeaderRightControls>
             </>
           )}
         </div>

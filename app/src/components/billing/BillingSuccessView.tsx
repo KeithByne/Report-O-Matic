@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
-import { SupportMessenger } from "@/components/support/SupportMessenger";
-import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
+import { AppHeaderRightControls } from "@/components/layout/AppHeaderRightControls";
 import type { RomRole } from "@/lib/data/memberships";
 
 function roleLabel(role: RomRole, t: (k: string) => string): string {
@@ -43,11 +41,7 @@ export function BillingSuccessView({
             userDisplayName={userDisplayName}
             pageTitle={t("billing.successTitle")}
           />
-          <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
-            <SupportMessenger tenantId={tenantId} />
-            <GlobeLanguageSwitcher />
-            <DisplayModeSwitcher />
-          </div>
+          <AppHeaderRightControls tenantId={tenantId} />
         </div>
       </header>
       <main className="mx-auto max-w-2xl px-5 py-12">

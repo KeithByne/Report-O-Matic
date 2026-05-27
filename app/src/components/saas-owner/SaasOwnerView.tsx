@@ -2,10 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
-import { SaasOwnerSupportPanel } from "@/components/support/SaasOwnerSupportPanel";
-import { GlobeLanguageSwitcher } from "@/components/i18n/GlobeLanguageSwitcher";
+import { AppHeaderRightControls } from "@/components/layout/AppHeaderRightControls";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { DisplayModeSwitcher } from "@/components/ui/DisplayModeSwitcher";
 
 type TenantHit = {
   tenant_id: string;
@@ -396,10 +394,7 @@ export function SaasOwnerView({
             userDisplayName={userDisplayName}
             pageTitle={t("saas.ownerDashboardTitle")}
           />
-          <div className="flex w-full min-w-0 flex-1 items-center justify-end gap-2 sm:w-auto sm:flex-none sm:flex-nowrap">
-            <GlobeLanguageSwitcher />
-            <DisplayModeSwitcher />
-          </div>
+          <AppHeaderRightControls />
         </div>
       </header>
 
@@ -442,8 +437,6 @@ export function SaasOwnerView({
             </div>
           ) : null}
         </section>
-
-        <SaasOwnerSupportPanel />
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
