@@ -208,3 +208,4 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const fname =
     safeFilename(termFilter !== "all" ? `bulk-reports-${termFilter}` : "bulk-reports") + ".pdf";
   return pdfExportResponse(tenantId, merged, { inline, filename: fname });
+}

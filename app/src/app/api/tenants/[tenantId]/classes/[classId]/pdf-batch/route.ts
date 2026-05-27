@@ -190,4 +190,4 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       : `${klass.name || "class"}-reports-${termFilter}`;
   const fname = safeFilename(fileStem) + ".pdf";
   return pdfExportResponse(tenantId, merged, { inline, filename: fname });
-
+}
