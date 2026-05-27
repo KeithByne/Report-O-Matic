@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import {
   formatSupportCaseNumber,
+  isSupportCategory,
   type SupportCaseRow,
   type SupportCaseWithMessages,
   type SupportMessageRow,
@@ -16,6 +18,7 @@ type Props = {
 };
 
 export function SaasOwnerSupportPanel({ embedded = false }: Props) {
+  const { t } = useUiLanguage();
   const [cases, setCases] = useState<CaseListItem[]>([]);
   const [unreadCases, setUnreadCases] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -272,7 +275,11 @@ export function SaasOwnerSupportPanel({ embedded = false }: Props) {
               {supportCase ? (
                 <div className="border-b border-zinc-100 bg-zinc-50/80 px-3 py-2 text-sm">
                   <p className="font-medium text-zinc-900">{supportCase.subject}</p>
-                  <p className="mt-0.5 text-xs capitalize text-zinc-500">{supportCase.category}</p>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    {isSupportCategory(supportCase.category)
+                      ? t(`support.category.${supportCase.category}`)
+                      : supportCase.category}
+                  </p>
                   <p className="mt-2 whitespace-pre-wrap text-zinc-800">{supportCase.description}</p>
                 </div>
               ) : null}

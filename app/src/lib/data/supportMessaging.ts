@@ -4,7 +4,16 @@ function formatErr(e: { message: string }): string {
   return e.message || "Database error.";
 }
 
-export const SUPPORT_CATEGORIES = ["billing", "reports", "account", "technical", "other"] as const;
+export const SUPPORT_CATEGORIES = [
+  "missing",
+  "how_to",
+  "training",
+  "billing",
+  "reports",
+  "account",
+  "technical",
+  "other",
+] as const;
 export type SupportCategory = (typeof SUPPORT_CATEGORIES)[number];
 
 export function isSupportCategory(s: string): s is SupportCategory {

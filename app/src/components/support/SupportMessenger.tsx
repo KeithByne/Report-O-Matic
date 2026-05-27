@@ -31,7 +31,7 @@ export function SupportMessenger({ tenantId = null }: Props) {
   const [unread, setUnread] = useState(0);
   const [draft, setDraft] = useState("");
   const [subject, setSubject] = useState("");
-  const [category, setCategory] = useState<SupportCategory>("technical");
+  const [category, setCategory] = useState<SupportCategory>("missing");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const [loadErr, setLoadErr] = useState<string | null>(null);
@@ -118,7 +118,7 @@ export function SupportMessenger({ tenantId = null }: Props) {
       if (!res.ok) throw new Error(data.error || t("support.errSend"));
       setSubject("");
       setDescription("");
-      setCategory("technical");
+      setCategory("missing");
       setCases((data.cases ?? []) as CaseListItem[]);
       setActiveCase(data.case as SupportCaseWithMessages);
       setView("detail");
