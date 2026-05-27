@@ -15,19 +15,17 @@ Landing page **Pricing** and **Legal** menus open these pages in a **new browser
 
 ---
 
-Report-O-Matic uses **Paddle Billing** as Merchant of Record (MoR): Paddle runs checkout, calculates VAT/sales tax, and sends `transaction.completed` webhooks. Pack list prices in the database are **GBP** and include a **10% margin** on top of the legacy EUR list (× 0.86 conversion × 1.10 Paddle fee — see `app/src/lib/finance/packPricing.ts`).
+Report-O-Matic uses **Paddle Billing** as Merchant of Record (MoR): Paddle runs checkout, calculates VAT/sales tax, and sends `transaction.completed` webhooks. Pack list prices in the database are **GBP**, using the same numeric amounts as the legacy EUR packs (e.g. €25 → £25 — see `app/src/lib/finance/packPricing.ts`).
 
-## Pack prices (GBP, after migration `0047`)
+## Pack prices (GBP, after migration `0048`)
 
 | Pack | Reports | Price |
 |------|---------|-------|
-| Tester | 50 | £4.73 |
-| Economy | 250 | £23.65 |
-| School | 600 | £47.30 |
-| Large School | 1,300 | £94.60 |
-| Universal School | 6,000 | £473.00 |
-
-Override conversion: `ROM_EUR_TO_GBP_RATE` (default `0.86`), `ROM_PADDLE_FEE_MULTIPLIER` (default `1.10`).
+| Tester | 50 | £5.00 |
+| Economy | 250 | £25.00 |
+| School | 600 | £50.00 |
+| Large School | 1,300 | £100.00 |
+| Universal School | 6,000 | £500.00 |
 
 ## Environment variables
 
@@ -62,4 +60,4 @@ Without catalog price IDs, checkout creates a **one-off line item** from `price_
 
 ## Database
 
-Run migration: `supabase/migrations/0047_credit_packs_gbp_paddle.sql`
+Run migrations: `0047_credit_packs_gbp_paddle.sql` (Paddle column), then `0048_credit_packs_gbp_parity.sql` (GBP list prices).
