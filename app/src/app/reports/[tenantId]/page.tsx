@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { ReportCreditsFloatingBanner } from "@/components/credits/ReportCreditsFloatingBanner";
 import { ReportsFlowHeader } from "@/components/layout/ReportsFlowHeader";
 import { TenantReportsHome, type TenantPanelId } from "@/components/reports/TenantReportsHome";
 import { verifySession } from "@/lib/auth/session";
@@ -58,8 +59,7 @@ export default async function ReportsTenantPage({
   }
 
   const schoolName = (await getTenantName(tenantId)) || "School";
-  const credits = await getTenantCreditBalance(tenantId);
-  if (credits <= 0) redirect(`/reports/${tenantId}/billing`);
+  const creditBalance = await getTenantCreditBalance(tenantId);
 
   let userDisplayName = "";
   try {
@@ -86,6 +86,11 @@ export default async function ReportsTenantPage({
           bootPanels={initialOpenPanels}
         />
       </main>
+      <ReportCreditsFloatingBanner
+        creditBalance={creditBalance}
+        billingTenantId={tenantId}
+        viewerRole={role}
+      />
     </div>
   );
 }

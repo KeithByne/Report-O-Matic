@@ -27,6 +27,10 @@ export function LegalCompanyFooter() {
         <span className="font-medium text-zinc-600">Trading / operational contact (Spain):</span> {trading}
       </p>
       <p className="mt-2">
+        <a className="text-emerald-800 underline hover:text-emerald-950" href="/legal/contact">
+          Contact page
+        </a>
+        {" · "}
         Data protection:{" "}
         <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${privacy}`}>
           {privacy}

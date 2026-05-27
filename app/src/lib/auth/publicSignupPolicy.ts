@@ -1,10 +1,10 @@
-import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
+import { isCardPaymentsEnabled } from "@/lib/payments/enabled";
 
 /**
  * When true, `/api/auth/login` rejects `mode: "signup"` for emails that have no
  * membership yet (no self-serve “create a school” from the landing page).
  *
- * - Production default: disabled while card billing is off (`ROM_STRIPE_ENABLED` not `true`),
+ * - Production default: disabled while card billing is off (`ROM_PADDLE_ENABLED` not `true`),
  *   so new schools only come from the SaaS-owner test-access flow (`?test=…` → Sign in).
  * - Invited staff are unaffected: their email already has a membership row before first sign-in.
  *
@@ -18,5 +18,5 @@ export function isPublicSchoolSignupDisabled(): boolean {
   if (raw === "true") return false;
   if (raw === "false") return true;
   if (process.env.NODE_ENV !== "production") return false;
-  return !isStripePaymentsEnabled();
+  return !isCardPaymentsEnabled();
 }

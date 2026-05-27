@@ -33,6 +33,9 @@
       html, body { height: 100%; }
       body {
         margin: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
         font-family: var(--font);
         color: var(--text);
         background:
@@ -46,7 +49,7 @@
       a:hover { text-decoration: underline; }
 
       .wrap {
-        min-height: 100%;
+        flex: 1;
         display: grid;
         place-items: center;
         padding: 28px 16px;
@@ -118,6 +121,121 @@
         color: var(--muted);
         font-size: 13px;
         line-height: 1.4;
+      }
+
+      .landingNav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        margin: 14px 0 4px;
+      }
+
+      .navDrop {
+        position: relative;
+        border: 1px solid rgba(61, 90, 132, 0.75);
+        border-radius: 10px;
+        background: rgba(13, 29, 51, 0.55);
+      }
+
+      .navDrop summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accent-strong);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .navDrop summary::-webkit-details-marker { display: none; }
+
+      .navDrop summary::after {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-right: 2px solid var(--muted);
+        border-bottom: 2px solid var(--muted);
+        transform: rotate(45deg);
+        margin-top: -2px;
+        transition: transform 0.15s ease;
+      }
+
+      .navDrop[open] summary::after {
+        transform: rotate(-135deg);
+        margin-top: 2px;
+      }
+
+      .navDropPanel {
+        position: absolute;
+        left: 0;
+        top: calc(100% + 4px);
+        z-index: 20;
+        min-width: 220px;
+        padding: 6px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(10, 26, 47, 0.98);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .navDropPanel a {
+        display: block;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .navDropPanel a:hover {
+        background: rgba(61, 90, 132, 0.45);
+        text-decoration: none;
+      }
+
+      .navContact {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        padding: 8px 4px;
+      }
+
+      .navContact a {
+        color: var(--accent-strong);
+        font-weight: 700;
+      }
+
+      .openNewTab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(147, 197, 253, 0.45);
+        background: rgba(22, 43, 73, 0.65);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accent-strong);
+        text-decoration: none;
+      }
+
+      .openNewTab:hover {
+        background: rgba(33, 58, 95, 0.85);
+        text-decoration: none;
+      }
+
+      .openNewTab svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        opacity: 0.9;
       }
 
       .hero h1 {
@@ -373,15 +491,40 @@
       .hide { display: none !important; }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
-      .siteFoot {
-        margin-top: 20px;
-        padding: 16px;
+      .romSiteFoot {
+        flex-shrink: 0;
+        margin-top: 0;
+        padding: 12px 16px 14px;
         text-align: center;
-        font-size: 12px;
-        color: var(--muted2);
-        line-height: 1.5;
+        font-size: 11pt;
+        line-height: 1.45;
+        color: #b8cce8;
+        background: rgba(8, 18, 34, 0.94);
+        border-top: 1px solid var(--border);
       }
-      .siteFoot a { color: var(--accent); }
+      .romSiteFoot a {
+        color: #93c5fd;
+        font-size: 11pt;
+        font-weight: 500;
+        text-decoration: none;
+      }
+      .romSiteFoot a:hover { text-decoration: underline; }
+      .romSiteFoot .footSep {
+        margin: 0 0.35em;
+        color: #6b8fb8;
+        user-select: none;
+      }
+      .romSiteFoot .footBar {
+        margin: 0 0.5em;
+        color: #5a7a9e;
+        user-select: none;
+      }
+      .romSiteFootMeta {
+        margin: 8px 0 0;
+        font-size: 10pt;
+        color: var(--muted2);
+        line-height: 1.4;
+      }
     </style>
   </head>
   <body>
@@ -402,6 +545,40 @@
               <p class="subtitle">AI-assisted student reports • secure • printable A4 PDF</p>
             </div>
           </div>
+
+          <nav class="landingNav" aria-label="Pricing and legal">
+            <details class="navDrop">
+              <summary>Pricing</summary>
+              <div class="navDropPanel" role="menu">
+                <a href="/pricing" target="_blank" rel="noopener noreferrer" role="menuitem">
+                  Credit packs &amp; prices (GBP)
+                </a>
+              </div>
+            </details>
+            <details class="navDrop">
+              <summary>Legal</summary>
+              <div class="navDropPanel" role="menu">
+                <a href="/legal/terms" target="_blank" rel="noopener noreferrer" role="menuitem">
+                  Terms &amp; Conditions
+                </a>
+                <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" role="menuitem">
+                  Privacy Policy
+                </a>
+                <a href="/legal/refund" target="_blank" rel="noopener noreferrer" role="menuitem">
+                  Refund &amp; cancellation policy
+                </a>
+                <a href="/legal/contact" target="_blank" rel="noopener noreferrer" role="menuitem">
+                  Contact us
+                </a>
+                <a href="/legal/data-protection" target="_blank" rel="noopener noreferrer" role="menuitem">
+                  Data protection
+                </a>
+              </div>
+            </details>
+            <span class="navContact">
+              <a href="/legal/contact" target="_blank" rel="noopener noreferrer">Contact page</a>
+            </span>
+          </nav>
 
           <h1>Sign in to your school dashboard</h1>
           <p>
@@ -450,11 +627,13 @@
                   <li>GDPR-oriented privacy notice and Data Processing Agreement available for your records</li>
                 </ul>
                 <div class="infoLinks">
-                  <a href="/legal/data-protection">Data protection</a>
-                  <a href="/legal/terms">Terms</a>
-                  <a href="/legal/privacy">Privacy</a>
-                  <a href="/legal/dpa">DPA</a>
-                  <a href="/legal/cookies">Cookies</a>
+                  <a href="/legal/data-protection" target="_blank" rel="noopener noreferrer">Data protection</a>
+                  <a href="/legal/terms" target="_blank" rel="noopener noreferrer">Terms</a>
+                  <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy</a>
+                  <a href="/legal/refund" target="_blank" rel="noopener noreferrer">Refunds</a>
+                  <a href="/legal/contact" target="_blank" rel="noopener noreferrer">Contact</a>
+                  <a href="/legal/dpa" target="_blank" rel="noopener noreferrer">DPA</a>
+                  <a href="/legal/cookies" target="_blank" rel="noopener noreferrer">Cookies</a>
                 </div>
               </div>
             </details>
@@ -463,48 +642,55 @@
               <summary>Pricing</summary>
               <div class="infoSectionBody">
                 <p>
-                  Pay per report with prepaid credit packs. Each successful AI comment generation uses one credit.
-                  Owners purchase packs from the school billing area after sign-in.
+                  Pay per report with prepaid credit packs in <strong>GBP</strong>. Each successful AI comment
+                  generation uses one credit. Owners purchase packs from the school billing area after sign-in.
+                  Checkout and tax are handled by <strong>Paddle</strong>.
                 </p>
                 <table class="priceTable" aria-label="Credit packs">
                   <thead>
                     <tr>
                       <th scope="col">Pack</th>
                       <th scope="col">Reports</th>
-                      <th scope="col">Price</th>
+                      <th scope="col">List (GBP)</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td>Tester</td>
                       <td>50</td>
-                      <td>€5</td>
+                      <td>£4.73</td>
                     </tr>
                     <tr>
                       <td>Economy</td>
                       <td>250</td>
-                      <td>€25</td>
+                      <td>£23.65</td>
                     </tr>
                     <tr>
                       <td>School</td>
                       <td>600</td>
-                      <td>€50</td>
+                      <td>£47.30</td>
                     </tr>
                     <tr>
                       <td>Large School</td>
                       <td>1,300</td>
-                      <td>€100</td>
+                      <td>£94.60</td>
                     </tr>
                     <tr>
                       <td>Universal School</td>
                       <td>6,000</td>
-                      <td>€500</td>
+                      <td>£473.00</td>
                     </tr>
                   </tbody>
                 </table>
+                <a class="openNewTab" href="/pricing" target="_blank" rel="noopener noreferrer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M14 3h7v7M10 14 21 3M21 14v7h-7M3 10V3h7" />
+                  </svg>
+                  Open full pricing page
+                </a>
                 <p class="infoFoot">
-                  Prices shown are pack list prices in EUR before any applicable tax shown at checkout.
-                  Test access links may include free trial credits.
+                  VAT or sales tax, where applicable, is shown at checkout. Test access links may include free trial
+                  credits. See Refund policy in the Legal menu.
                 </p>
               </div>
             </details>
@@ -607,9 +793,9 @@
                 <input id="agreeTerms" name="agree_terms" type="checkbox" value="1" required />
                 <label for="agreeTerms">
                   I confirm I am authorised to register on behalf of my organisation and agree to the
-                  <a href="/legal/terms" target="_blank" rel="noopener noreferrer">Terms of use</a>
-                  and
-                  <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy notice</a>.
+                  <a href="/legal/terms" target="_blank" rel="noopener noreferrer">Terms of use</a>,
+                  <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy notice</a>, and
+                  <a href="/legal/refund" target="_blank" rel="noopener noreferrer">Refund &amp; cancellation policy</a>.
                 </label>
               </div>
               <button id="signUpBtn" class="btn btnPrimary" type="submit">
@@ -620,18 +806,26 @@
         </main>
       </div>
     </div>
-    <footer class="siteFoot">
-      Report-O-Matic Ltd · Co. 17239610 · Registered office: 33 Vange Hill Drive, Basildon, Essex, SS16 4DD, England
-      <br />
-      <a href="/legal/data-protection">Data protection</a>
-      ·
-      <a href="/legal/terms">Terms</a>
-      ·
-      <a href="/legal/privacy">Privacy</a>
-      ·
-      <a href="/legal/dpa">DPA</a>
-      ·
-      <a href="/legal/cookies">Cookies</a>
+    <footer class="romSiteFoot" aria-label="Site map">
+      <nav>
+        <a href="/landing.html">Sign in</a><span class="footSep">·</span>
+        <a href="/pricing">Pricing</a><span class="footSep">·</span>
+        <a href="/dashboard">Dashboard</a>
+        <span class="footBar" aria-hidden>|</span>
+        <a href="/legal/terms">Terms</a><span class="footSep">·</span>
+        <a href="/legal/privacy">Privacy</a><span class="footSep">·</span>
+        <a href="/legal/refund">Refunds</a><span class="footSep">·</span>
+        <a href="/legal/contact">Contact</a><span class="footSep">·</span>
+        <a href="/legal/data-protection">Data protection</a><span class="footSep">·</span>
+        <a href="/legal/dpa">DPA</a><span class="footSep">·</span>
+        <a href="/legal/cookies">Cookies</a><span class="footSep">·</span>
+        <a href="/legal/subprocessors">Subprocessors</a>
+      </nav>
+      <p class="romSiteFootMeta">
+        Report-O-Matic Ltd · Co. 17239610 · 33 Vange Hill Drive, Basildon, Essex, SS16 4DD, England
+        <br />
+        <a href="mailto:keith.byne@hotmail.co.uk">keith.byne@hotmail.co.uk</a>
+      </p>
     </footer>
 
     <script>

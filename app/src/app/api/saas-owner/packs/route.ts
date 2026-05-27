@@ -9,7 +9,7 @@ export async function GET() {
   if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
   const { data, error } = await supabase
     .from("credit_packs")
-    .select("id, name, price_cents, currency, report_credits, active, sort_order, created_at")
+    .select("id, name, price_cents, currency, report_credits, active, sort_order, paddle_price_id, created_at")
     .order("sort_order", { ascending: true });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ packs: data ?? [] });
@@ -38,6 +38,7 @@ export async function PATCH(req: Request) {
   if (typeof body.report_credits === "number") patch.report_credits = Math.max(0, Math.trunc(body.report_credits));
   if (typeof body.active === "boolean") patch.active = body.active;
   if (typeof body.sort_order === "number") patch.sort_order = Math.trunc(body.sort_order);
+  if (typeof body.paddle_price_id === "string") patch.paddle_price_id = body.paddle_price_id.trim() || null;
 
   if (Object.keys(patch).length === 0) return NextResponse.json({ error: "No changes." }, { status: 400 });
 
@@ -45,7 +46,7 @@ export async function PATCH(req: Request) {
     .from("credit_packs")
     .update(patch)
     .eq("id", id)
-    .select("id, name, price_cents, currency, report_credits, active, sort_order, created_at")
+    .select("id, name, price_cents, currency, report_credits, active, sort_order, paddle_price_id, created_at")
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ pack: data });

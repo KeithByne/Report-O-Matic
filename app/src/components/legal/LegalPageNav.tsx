@@ -1,12 +1,14 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LegalAppHeader } from "@/components/legal/LegalAppHeader";
-import { LegalCompanyFooter } from "@/components/legal/LegalCompanyFooter";
 
 const LINKS = [
+  { href: "/pricing", label: "Pricing" },
+  { href: "/legal/contact", label: "Contact" },
   { href: "/legal/data-protection", label: "Data protection" },
   { href: "/legal/terms", label: "Terms" },
   { href: "/legal/privacy", label: "Privacy" },
+  { href: "/legal/refund", label: "Refunds" },
   { href: "/legal/dpa", label: "DPA" },
   { href: "/legal/subprocessors", label: "Subprocessors" },
   { href: "/legal/cookies", label: "Cookies" },
@@ -40,9 +42,8 @@ export function LegalPageShell({
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
       <LegalAppHeader current={current} />
-      <main className="mx-auto max-w-3xl px-5 py-10">
+      <main className="mx-auto max-w-3xl px-5 py-10 pb-6">
         {children}
-        <LegalCompanyFooter />
       </main>
     </div>
   );

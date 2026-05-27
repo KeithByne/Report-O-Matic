@@ -17,6 +17,7 @@
     "i18n:export-missing": "node scripts/i18n-export-missing.mjs"
   },
   "dependencies": {
+    "@paddle/paddle-node-sdk": "^2.5.0",
     "@supabase/supabase-js": "^2.100.1",
     "lucide-react": "^0.468.0",
     "next": "^16.2.3",

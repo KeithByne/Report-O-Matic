@@ -9,7 +9,7 @@ import {
   operatorTradingAddress,
   privacyContactEmail,
 } from "@/lib/legal/operatorIdentity";
-import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
+import { isCardPaymentsEnabled } from "@/lib/payments/enabled";
 
 export const metadata: Metadata = {
   title: "Data protection — Report-O-Matic",
@@ -24,7 +24,7 @@ export default function DataProtectionPage() {
   const tradingAddress = operatorTradingAddress();
   const contact = privacyContactEmail();
   const icoNumber = icoRegistrationNumber();
-  const cardPaymentsOn = isStripePaymentsEnabled();
+  const cardPaymentsOn = isCardPaymentsEnabled();
 
   return (
     <LegalPageShell current="/legal/data-protection">
@@ -146,7 +146,7 @@ export default function DataProtectionPage() {
             subprocessor page
           </Link>
           , including <strong>Supabase</strong>, <strong>Resend</strong>, <strong>OpenAI</strong> (optional AI),{" "}
-          <strong>Cloudflare</strong>, <strong>Stripe</strong> (card checkout
+          <strong>Cloudflare</strong>, <strong>Paddle</strong> (card checkout
           {cardPaymentsOn ? " when enabled" : " when enabled by the operator"}), and <strong>Wise</strong> (business
           payment operations). The DPA covers authorisation and objection rights for schools.
         </p>

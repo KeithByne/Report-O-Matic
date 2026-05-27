@@ -1,15 +1,18 @@
 /**
- * Sales tax / VAT / IVA for retail pack display and checkout totals (when card payments are enabled).
- * Configure with env vars.
+ * Sales tax / VAT display for credit packs.
+ * With Paddle (Merchant of Record), tax is calculated at checkout — do not add a second layer here.
  */
+
+import { isCardPaymentsEnabled } from "@/lib/payments/enabled";
 
 export type PackPriceTaxBasis = "inclusive" | "exclusive";
 
-/** Default 21% = Spain general IVA; override with ROM_VAT_RATE_PERCENT or ROM_TAX_RATE_PERCENT. */
+/** Default 0% when Paddle MoR is on (VAT at checkout). Otherwise 20% UK VAT or ROM_VAT_RATE_PERCENT. */
 export function getSalesTaxRatePercent(): number {
-  const raw = (process.env.ROM_VAT_RATE_PERCENT ?? process.env.ROM_TAX_RATE_PERCENT ?? "21").trim();
+  const defaultRate = isCardPaymentsEnabled() ? "0" : "20";
+  const raw = (process.env.ROM_VAT_RATE_PERCENT ?? process.env.ROM_TAX_RATE_PERCENT ?? defaultRate).trim();
   const n = Number(raw);
-  return Number.isFinite(n) && n >= 0 ? n : 21;
+  return Number.isFinite(n) && n >= 0 ? n : isCardPaymentsEnabled() ? 0 : 20;
 }
 
 /**
@@ -18,14 +21,16 @@ export function getSalesTaxRatePercent(): number {
  * - inclusive: amount already includes tax (customer pays price_cents). Set ROM_PACK_PRICE_TAX_BASIS=inclusive if needed.
  */
 export function getPackPriceTaxBasis(): PackPriceTaxBasis {
-  const r = (process.env.ROM_PACK_PRICE_TAX_BASIS ?? "exclusive").trim().toLowerCase();
+  const fallback = isCardPaymentsEnabled() ? "inclusive" : "exclusive";
+  const r = (process.env.ROM_PACK_PRICE_TAX_BASIS ?? fallback).trim().toLowerCase();
   return r === "inclusive" ? "inclusive" : "exclusive";
 }
 
-/** Short label for customer-facing copy (e.g. IVA, VAT, TVA). */
+/** Short label for customer-facing copy (e.g. VAT). */
 export function getSalesTaxLabelForCustomers(): string {
-  const s = (process.env.ROM_SALES_TAX_LABEL ?? "IVA").trim();
-  return s || "IVA";
+  const fallback = isCardPaymentsEnabled() ? "VAT" : "VAT";
+  const s = (process.env.ROM_SALES_TAX_LABEL ?? fallback).trim();
+  return s || "VAT";
 }
 
 /** Cents to charge at checkout / show as total purchase price. */

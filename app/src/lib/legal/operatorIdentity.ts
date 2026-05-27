@@ -11,9 +11,9 @@ export const DEFAULT_TRADING_ADDRESS =
 
 export const DEFAULT_JURISDICTION = "England and Wales";
 
-export const DEFAULT_PRIVACY_EMAIL = "admin@universal-english.com";
+export const DEFAULT_PRIVACY_EMAIL = "keith.byne@hotmail.co.uk";
 
-export const DEFAULT_SUPPORT_EMAIL = "admin@universal-english.com";
+export const DEFAULT_SUPPORT_EMAIL = "keith.byne@hotmail.co.uk";
 
 export function operatorLegalName(): string {
   return process.env.ROM_OPERATOR_LEGAL_NAME?.trim() || DEFAULT_OPERATOR_LEGAL_NAME;

@@ -9,10 +9,10 @@ import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { isReportLanguageCode, languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, resolvedSubjectLabelForPdf } from "@/lib/i18n/uiStrings";
+import { pdfExportResponse } from "@/lib/credits/exportPdf";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { coerceStoredDefaultSubject } from "@/lib/subjects";
 import { getServiceSupabase } from "@/lib/supabase/service";
-import { getTenantCreditBalance } from "@/lib/data/credits";
 
 export const runtime = "nodejs";
 
@@ -35,11 +35,6 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!role) return NextResponse.json({ error: "No access." }, { status: 403 });
-
-  const credits = await getTenantCreditBalance(tenantId);
-  if (credits <= 0) {
-    return NextResponse.json({ error: "No report credits. Please ask the owner to purchase a pack." }, { status: 402 });
-  }
 
   const report = await getReport(tenantId, reportId);
   if (!report) return NextResponse.json({ error: "Report not found." }, { status: 404 });
@@ -100,18 +95,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       gradeRubricProfile,
     });
     const fname = safeFilename(`${st.display_name}-${reportId.slice(0, 8)}`) + ".pdf";
-    const headers: Record<string, string> = {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${fname}"`,
-    };
-    if (inline) {
-      headers["X-Frame-Options"] = "SAMEORIGIN";
-      headers["Content-Security-Policy"] = "frame-ancestors 'self'";
-    }
-    return new NextResponse(new Uint8Array(buf), {
-      status: 200,
-      headers,
-    });
+    return pdfExportResponse(tenantId, buf, { inline, filename: fname });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "PDF failed.";
     return NextResponse.json({ error: msg }, { status: 500 });

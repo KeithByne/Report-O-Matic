@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReportsFlowHeader } from "@/components/layout/ReportsFlowHeader";
+import { ReportCreditsFloatingBanner } from "@/components/credits/ReportCreditsFloatingBanner";
 import { ReportEditor } from "@/components/reports/ReportEditor";
 import { verifySession } from "@/lib/auth/session";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
@@ -30,8 +31,7 @@ export default async function ReportEditPage({
   if (!role) redirect("/reports");
 
   const schoolName = (await getTenantName(tenantId)) || "School";
-  const credits = await getTenantCreditBalance(tenantId);
-  if (credits <= 0) redirect(`/reports/${tenantId}/billing`);
+  const creditBalance = await getTenantCreditBalance(tenantId);
 
   const reportRow = await getReport(tenantId, reportId);
   if (!reportRow) redirect(`/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(classId)}?panel=students`);
@@ -61,8 +61,14 @@ export default async function ReportEditPage({
           reportId={reportId}
           schoolName={schoolName}
           studentId={reportRow.student_id}
+          creditBalance={creditBalance}
         />
       </main>
+      <ReportCreditsFloatingBanner
+        creditBalance={creditBalance}
+        billingTenantId={tenantId}
+        viewerRole={role}
+      />
     </div>
   );
 }

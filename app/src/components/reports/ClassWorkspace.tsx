@@ -144,6 +144,7 @@ type Props = {
   initialOpenPanel?: ClassWorkspacePanelId;
   /** From URL `?student=uuid` (e.g. back from a report): scroll to and highlight that pupil in the list. */
   initialFocusStudentId?: string | null;
+  creditBalance?: number;
 };
 
 function formatTeacherNameParts(first: string | null | undefined, last: string | null | undefined): string | null {
@@ -170,11 +171,13 @@ export function ClassWorkspace({
   viewerRole,
   initialOpenPanel,
   initialFocusStudentId,
+  creditBalance = 1,
 }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const canManageClassSettings = viewerRole === "owner" || viewerRole === "department_head";
+  const canExportPdfs = creditBalance > 0;
 
   const batchBase = `${base}/classes/${encodeURIComponent(classId)}/pdf-batch`;
   const [batchTermFilter, setBatchTermFilter] = useState<ReportPeriod>("first");
@@ -1153,6 +1156,7 @@ export function ClassWorkspace({
             title={classPdfPreview.title}
             pdfUrl={classPdfPreview.url}
             previewKey={classPdfPreview.key}
+            canExport={canExportPdfs}
             onClose={() => setClassPdfPreview(null)}
           />
         ) : null}
@@ -1869,6 +1873,7 @@ export function ClassWorkspace({
               title={t("class.registerMenu")}
               pdfUrl={registerPdfHref}
               previewKey={registerPreviewKey}
+              canExport={canExportPdfs}
               onClose={() => setOpenClassPanel(null)}
             />
           ) : (

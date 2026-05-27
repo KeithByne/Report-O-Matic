@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { canAccessClass } from "@/lib/auth/classAccess";
 import { verifySession } from "@/lib/auth/session";
 import { ClassWorkspace } from "@/components/reports/ClassWorkspace";
+import { ReportCreditsFloatingBanner } from "@/components/credits/ReportCreditsFloatingBanner";
 import { ReportsFlowHeader } from "@/components/layout/ReportsFlowHeader";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
@@ -48,8 +49,7 @@ export default async function ClassReportsPage({
   }
 
   const schoolName = (await getTenantName(tenantId)) || "School";
-  const credits = await getTenantCreditBalance(tenantId);
-  if (credits <= 0) redirect(`/reports/${tenantId}/billing`);
+  const creditBalance = await getTenantCreditBalance(tenantId);
 
   let userDisplayName = "";
   try {
@@ -78,8 +78,14 @@ export default async function ClassReportsPage({
           viewerRole={role}
           initialOpenPanel={initialOpenPanel}
           initialFocusStudentId={studentIdFromUrl}
+          creditBalance={creditBalance}
         />
       </main>
+      <ReportCreditsFloatingBanner
+        creditBalance={creditBalance}
+        billingTenantId={tenantId}
+        viewerRole={role}
+      />
     </div>
   );
 }

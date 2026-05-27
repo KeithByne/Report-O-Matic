@@ -23,6 +23,48 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Global site-map footer — distinct tone from main content; 11pt links. */
+.rom-site-footer {
+  background-color: color-mix(in srgb, #d1fae5 72%, #94a3b8);
+  color: #334155;
+}
+
+.rom-site-footer-link {
+  font-size: 11pt;
+  line-height: 1.35;
+  color: #065f46;
+  font-weight: 500;
+}
+
+.rom-site-footer-meta {
+  font-size: 10pt;
+  line-height: 1.4;
+  color: #475569;
+}
+
+.rom-site-footer-sep {
+  font-size: 11pt;
+  color: #64748b;
+}
+
+html[data-rom-theme="night"] .rom-site-footer {
+  background-color: #162b49 !important;
+  border-top-color: #3d5a84 !important;
+  color: #dbe8fb !important;
+}
+
+html[data-rom-theme="night"] .rom-site-footer-link {
+  color: #93c5fd !important;
+}
+
+html[data-rom-theme="night"] .rom-site-footer-meta {
+  color: #b8cce8 !important;
+}
+
+html[data-rom-theme="night"] .rom-site-footer-sep {
+  color: #7a9bc4 !important;
+}
+
 /**
  * App shell headers (dashboard, reports, billing, SaaS owner, legal top bars).
  * Day: solid white to match typical logo mat / no visible seam behind marks.

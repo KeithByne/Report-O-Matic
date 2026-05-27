@@ -3,8 +3,8 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { isUiLang } from "@/lib/i18n/uiStrings";
+import { pdfExportResponse } from "@/lib/credits/exportPdf";
 import { mergeRegisterPdfsForClassRows } from "@/lib/pdf/mergeRegistersForClasses";
-import { pdfResponseHeaders } from "@/lib/pdf/pdfResponseHeaders";
 
 export const runtime = "nodejs";
 
@@ -40,10 +40,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   try {
     const { pdf, tenantRecordName } = await mergeRegisterPdfsForClassRows(tenantId, classes, uiLang);
     const fname = `${safeFilename(tenantRecordName)}-all-registers.pdf`;
-    return new NextResponse(new Uint8Array(pdf), {
-      status: 200,
-      headers: pdfResponseHeaders({ inline, filename: fname }),
-    });
+    return pdfExportResponse(tenantId, pdf, { inline, filename: fname });
   } catch (e: unknown) {
     const msg = e instanceof Error && e.message === "NO_PRINTABLE_REGISTERS" ? null : e instanceof Error ? e.message : null;
     if (msg === null) {

@@ -175,7 +175,10 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   try {
     const bal = await getTenantCreditBalance(tenantId);
     if (bal <= 0) {
-      return NextResponse.json({ error: "No report credits. Please ask the owner to purchase a pack." }, { status: 402 });
+      return NextResponse.json({
+        needsCredits: true,
+        error: "Add report credits to use AI draft generation. You can still set up your school and preview documents.",
+      });
     }
     const { pdfBody, teacherPreview, usage } = await generateSchoolReportDraftPair({
       studentFirstName: firstName,

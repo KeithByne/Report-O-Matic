@@ -8,10 +8,10 @@ import {
   type MembershipWithTenant,
   type TenantMemberRow,
 } from "@/lib/data/memberships";
-import { getOwnerCreditBalance } from "@/lib/data/credits";
+import { getOwnerCreditBalance, getTenantCreditBalance } from "@/lib/data/credits";
 import { formatDisplayNameFromProfile, getProfileForEmail } from "@/lib/data/userProfile";
 import { getTeacherStatsForTenant, getTenantSummaryStats, type TeacherStats, type TenantSummaryStats } from "@/lib/data/tenantDashboardStats";
-import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
+import { isCardPaymentsEnabled } from "@/lib/payments/enabled";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -107,7 +107,16 @@ export default async function DashboardPage({
     typeof tenantParam === "string" && isUuid(tenantParam.trim()) ? tenantParam.trim() : null;
   const bootOpenClassesPanel = wantsClassesPanel && bootClassesTenantId ? bootClassesTenantId : null;
 
-  const stripePaymentsEnabled = isStripePaymentsEnabled();
+  const stripePaymentsEnabled = isCardPaymentsEnabled();
+
+  let reportCreditBalance: number | null = null;
+  if (memberships.length > 0) {
+    try {
+      reportCreditBalance = await getTenantCreditBalance(memberships[0].tenantId);
+    } catch {
+      reportCreditBalance = 0;
+    }
+  }
 
   return (
     <DashboardClientView
@@ -119,6 +128,7 @@ export default async function DashboardPage({
       summaryByTenant={summaryByTenant}
       teacherStatsByTenant={teacherStatsByTenant}
       ownerReportCredits={ownerReportCredits}
+      reportCreditBalance={reportCreditBalance}
       firstOwnerTenantId={firstOwnerTenantId}
       bootOpenClassesPanel={bootOpenClassesPanel}
       stripePaymentsEnabled={stripePaymentsEnabled}

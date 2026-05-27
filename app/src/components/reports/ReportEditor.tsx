@@ -89,6 +89,7 @@ type Props = {
   schoolName: string;
   /** For “Back to class” — opens class pupils list focused on this student. */
   studentId: string;
+  creditBalance?: number;
 };
 
 function classPageHrefForStudent(tenantId: string, classId: string, studentId: string): string {
@@ -165,10 +166,11 @@ function GradeSelect({
   );
 }
 
-export function ReportEditor({ tenantId, classId, reportId, schoolName, studentId }: Props) {
+export function ReportEditor({ tenantId, classId, reportId, schoolName, studentId, creditBalance = 1 }: Props) {
   const { lang, t } = useUiLanguage();
   const router = useRouter();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
+  const canExportPdfs = creditBalance > 0;
 
   function termHeading(idx: 0 | 1 | 2): string {
     return [t("archive.term1"), t("archive.term2"), t("archive.term3")][idx];
@@ -468,6 +470,9 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
         body: JSON.stringify({ notes: inputs.optional_teacher_notes || undefined }),
       });
       const data = await res.json().catch(() => ({}));
+      if (data.needsCredits) {
+        throw new Error(data.error || t("credits.bannerZeroStaffBody"));
+      }
       if (!res.ok) throw new Error(data.error || t("report.errAi"));
       await load();
       window.dispatchEvent(
@@ -834,13 +839,17 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
           >
             {t("report.pdfPreview")}
           </button>
-          <button
-            type="button"
-            onClick={() => openPdfForPrint(pdfHref())}
-            className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
-          >
-            {t("common.printPdf")}
-          </button>
+          {canExportPdfs ? (
+            <button
+              type="button"
+              onClick={() => openPdfForPrint(pdfHref())}
+              className="inline-flex items-center rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-emerald-50"
+            >
+              {t("common.printPdf")}
+            </button>
+          ) : (
+            <p className="self-center text-xs font-medium text-amber-900">{t("credits.previewOnlyHint")}</p>
+          )}
           <button
             type="button"
             onClick={() => void removeCommentPreviews()}

@@ -1153,6 +1153,16 @@ const EN: UiMessages = {
   "auth.errPasswordMismatch": "Passwords do not match.",
   "auth.errResetFailed": "Reset failed.",
   "dash.pdfLetterheadContactPlaceholder": "Phone · email · website",
+  "credits.bannerLowTitle": "Time to add report credits",
+  "credits.bannerLowBody": "You have {n} report credits left. Add a credit pack to print and download without watermarks.",
+  "credits.bannerZeroOwnerTitle": "Time to add report credits",
+  "credits.bannerZeroOwnerBody":
+    "You can set up your school and preview everything here. Add report credits to print, download, and use AI on reports.",
+  "credits.bannerZeroStaffTitle": "Preview only — report credits needed",
+  "credits.bannerZeroStaffBody":
+    "Your school owner can add report credits so you can print, download, and use AI. You can still enter all report data now.",
+  "credits.bannerBuyCredits": "Add report credits",
+  "credits.previewOnlyHint": "Preview only — add credits to print or download",
   "billing.title": "Buy report credits",
   "billing.leadOwnerLine1": "Credits are added to",
   "billing.leadOwnerAccount": "your owner account",
@@ -1162,9 +1172,11 @@ const EN: UiMessages = {
   "billing.currentBalanceLabel": "Current balance (this account):",
   "billing.reportsRemaining": "{n} reports remaining",
   "billing.ownerOnly": "Only school owners can purchase credits. Ask your owner to buy a pack.",
+  "billing.paddleTaxNote":
+    "Prices are in GBP. Paddle (our payment partner) calculates and collects VAT or sales tax at checkout based on your location.",
   "billing.paymentsPausedTitle": "Card checkout paused.",
   "billing.paymentsPausedBody":
-    "The platform operator has temporarily disabled online card payments. Credit packs and prices may still be shown for reference.",
+    "The platform operator has temporarily disabled online card payments (ROM_PADDLE_ENABLED). Credit packs and prices may still be shown for reference.",
   "billing.paymentsPausedTestExhausted":
     "Your free test credits for this school are used up. Card purchases will be available again when the operator re-enables checkout — contact them if you need access sooner.",
   "billing.continuePayment": "Continue to payment",
@@ -1488,7 +1500,7 @@ const EN: UiMessages = {
   "saas.financeTitle": "Finance",
   "saas.financeLead": "Customer payments in and agent payouts out, with day/week/month/year/YTD filters.",
   "saas.financePaymentsPausedBanner":
-    "Card checkout is disabled (ROM_STRIPE_ENABLED is not true). New payments won’t flow in until you turn it back on; figures below may be historical only.",
+    "Card checkout is disabled (ROM_PADDLE_ENABLED is not true). New payments won’t flow in until you turn it back on; figures below may be historical only.",
   "saas.vatEstimateTitle": "Estimated VAT (for your accounts)",
   "saas.vatEstimateSubtitle":
     "From payments recorded as Paid to SaaS, using your server VAT settings (not tax advice).",
@@ -2042,6 +2054,17 @@ const FR: UiMessages = {
   "auth.errPasswordMismatch": "Les mots de passe ne correspondent pas.",
   "auth.errResetFailed": "Échec de la réinitialisation.",
   "dash.pdfLetterheadContactPlaceholder": "Téléphone · e-mail · site Web",
+  "credits.bannerLowTitle": "Il est temps d’ajouter des crédits de rapports",
+  "credits.bannerLowBody":
+    "Il vous reste {n} crédits de rapports. Ajoutez un pack pour imprimer et télécharger sans filigrane.",
+  "credits.bannerZeroOwnerTitle": "Il est temps d’ajouter des crédits de rapports",
+  "credits.bannerZeroOwnerBody":
+    "Vous pouvez configurer l’école et tout prévisualiser ici. Ajoutez des crédits pour imprimer, télécharger et utiliser l’IA.",
+  "credits.bannerZeroStaffTitle": "Aperçu seulement — crédits requis",
+  "credits.bannerZeroStaffBody":
+    "Le propriétaire de l’école peut ajouter des crédits pour imprimer, télécharger et utiliser l’IA. Vous pouvez déjà saisir toutes les données.",
+  "credits.bannerBuyCredits": "Ajouter des crédits",
+  "credits.previewOnlyHint": "Aperçu seulement — ajoutez des crédits pour imprimer",
   "billing.title": "Acheter des crédits de rapports",
   "billing.leadOwnerLine1": "Les crédits sont ajoutés à",
   "billing.leadOwnerAccount": "votre compte propriétaire",
@@ -2736,6 +2759,17 @@ const ES: UiMessages = {
   "auth.errPasswordMismatch": "Las contraseñas no coinciden.",
   "auth.errResetFailed": "Error al restablecer.",
   "dash.pdfLetterheadContactPlaceholder": "Teléfono · correo · web",
+  "credits.bannerLowTitle": "Es hora de añadir créditos de informes",
+  "credits.bannerLowBody":
+    "Le quedan {n} créditos de informes. Añada un pack para imprimir y descargar sin marca de agua.",
+  "credits.bannerZeroOwnerTitle": "Es hora de añadir créditos de informes",
+  "credits.bannerZeroOwnerBody":
+    "Puede configurar el centro y previsualizar todo aquí. Añada créditos para imprimir, descargar y usar IA en informes.",
+  "credits.bannerZeroStaffTitle": "Solo vista previa — se necesitan créditos",
+  "credits.bannerZeroStaffBody":
+    "El propietario del centro puede añadir créditos para imprimir, descargar y usar IA. Ya puede introducir todos los datos.",
+  "credits.bannerBuyCredits": "Añadir créditos",
+  "credits.previewOnlyHint": "Solo vista previa — añada créditos para imprimir",
   "common.genericError": "Algo salió mal.",
   "common.printPdf": "Imprimir PDF",
   "billing.title": "Comprar créditos de informes",

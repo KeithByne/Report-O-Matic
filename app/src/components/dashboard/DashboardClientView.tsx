@@ -44,6 +44,7 @@ import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTe
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { classesListHref } from "@/lib/app/classesNavigation";
+import { ReportCreditsFloatingBanner } from "@/components/credits/ReportCreditsFloatingBanner";
 import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCard";
 import { ProfileEditor } from "@/components/dashboard/ProfileEditor";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
@@ -105,6 +106,8 @@ export type DashboardClientViewProps = {
   teacherStatsByTenant: Record<string, TeacherStats[]>;
   /** Shared pool for this signed-in email when they own at least one school. */
   ownerReportCredits: number | null;
+  /** Owner pool for the active account (used for preview/export gating). */
+  reportCreditBalance: number | null;
   /** Billing checkout is per-URL; use first owned school for “buy credits”. */
   firstOwnerTenantId: string | null;
   /** From `/dashboard?panel=classes&tenant=` — open that school’s Classes workspace card once. */
@@ -122,6 +125,7 @@ export function DashboardClientView({
   summaryByTenant,
   teacherStatsByTenant,
   ownerReportCredits,
+  reportCreditBalance,
   firstOwnerTenantId,
   bootOpenClassesPanel = null,
   stripePaymentsEnabled,
@@ -133,6 +137,7 @@ export function DashboardClientView({
   const reportsClassesHref = (tenantId: string, role: MembershipWithTenant["role"]) =>
     classesListHref(tenantId, role);
 
+  const canExportPdfs = (reportCreditBalance ?? 1) > 0;
   const hasOwner = memberships.some((m) => m.role === "owner");
   const hasDeptHead = memberships.some((m) => m.role === "department_head");
   const hasTeacherOnly = memberships.length > 0 && memberships.every((m) => m.role === "teacher");
@@ -579,6 +584,7 @@ export function DashboardClientView({
                   title={dashboardPdfPreview.title}
                   pdfUrl={dashboardPdfPreview.url}
                   previewKey={dashboardPdfPreview.key}
+                  canExport={canExportPdfs}
                   onClose={closeDashboardPdfPreview}
                 />
               ) : null}
@@ -860,6 +866,7 @@ export function DashboardClientView({
                     title={dashboardPdfPreview.title}
                     pdfUrl={dashboardPdfPreview.url}
                     previewKey={dashboardPdfPreview.key}
+                    canExport={canExportPdfs}
                     onClose={closeDashboardPdfPreview}
                   />
                 ) : null}
@@ -1408,6 +1415,7 @@ export function DashboardClientView({
                     sectionId="dash-workspace-panel-pdf-preview"
                     title={dashboardPdfPreview.title}
                     pdfUrl={dashboardPdfPreview.url}
+                    canExport={canExportPdfs}
                     previewKey={dashboardPdfPreview.key}
                     onClose={closeDashboardPdfPreview}
                   />
@@ -1589,6 +1597,11 @@ export function DashboardClientView({
           </>
         )}
       </main>
+      <ReportCreditsFloatingBanner
+        creditBalance={reportCreditBalance}
+        billingTenantId={firstOwnerTenantId}
+        viewerRole={hasOwner ? "owner" : memberships[0]?.role ?? null}
+      />
     </div>
   );
 }

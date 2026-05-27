@@ -63,20 +63,31 @@ export default function TermsPage() {
             per successful run, as shown in the product.
           </li>
           <li>
-            Credits are sold in prepaid packs. Prices are shown at checkout (for example via{" "}
-            <strong>Stripe</strong> when card payments are enabled). Applicable tax may be added or included as stated at
-            checkout.
+            Credits are sold in prepaid packs. Prices are shown in GBP on our{" "}
+            <Link href="/pricing" className="text-emerald-800 underline hover:text-emerald-950">
+              pricing page
+            </Link>
+            ; checkout is via <strong>Paddle</strong> when card payments are enabled. Applicable tax is calculated and
+            collected by Paddle at checkout.
           </li>
           <li>
-            <strong>No refunds:</strong> all credit pack purchases are final. Unused credits are not refundable except
-            where the law requires otherwise.
+            <strong>Refunds and cancellation</strong> are governed by our{" "}
+            <Link href="/legal/refund" className="text-emerald-800 underline hover:text-emerald-950">
+              Refund &amp; cancellation policy
+            </Link>
+            . If you are a UK consumer, you have statutory rights (including a 14-day cancellation right and rights
+            where digital content is faulty) which are not limited by these terms.
+          </li>
+          <li>
+            Business customers (schools and organisations) should read the business-customer section of that refund
+            policy. Unused prepaid credits are not normally refundable outside statutory or agreed remedies.
           </li>
           <li>
             Test or promotional credits may be offered at our discretion and may expire or be withdrawn.
           </li>
           <li>
             Commercial receipts and banking may be processed through our payment providers and business accounts (including{" "}
-            <strong>Stripe</strong> and <strong>Wise</strong>).
+            <strong>Paddle</strong> and <strong>Wise</strong>).
           </li>
         </ul>
       </section>
@@ -160,8 +171,10 @@ export default function TermsPage() {
         <p>
           To the fullest extent permitted by law, {operatorName} is not liable for indirect, consequential, or special
           damages, or for loss of profits, data, or goodwill. Our total liability arising from the service in any twelve-month
-          period is limited to the fees you paid to us for the service in that period (or €100 if none). Nothing limits
-          liability that cannot be limited by law (including death or personal injury caused by negligence, or fraud).
+          period is limited to the fees you paid to us for the service in that period (or £100 if none). Nothing in these
+          terms limits or excludes liability that cannot be limited or excluded by law, including liability for death or
+          personal injury caused by negligence, fraud, or your statutory rights as a consumer under the Consumer Rights
+          Act 2015 and related UK legislation.
         </p>
       </section>
 
@@ -193,7 +206,11 @@ export default function TermsPage() {
       <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">
         <h2 className="text-base font-semibold text-zinc-950">13. Contact</h2>
         <p>
-          Questions about these terms:{" "}
+          Questions about these terms: see our{" "}
+          <Link href="/legal/contact" className="text-emerald-800 underline hover:text-emerald-950">
+            contact page
+          </Link>{" "}
+          or email{" "}
           <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${privacy}`}>
             {privacy}
           </a>

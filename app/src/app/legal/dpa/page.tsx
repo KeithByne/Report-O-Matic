@@ -121,7 +121,7 @@ export default function DpaPage() {
           <Link href="/legal/subprocessors" className="text-emerald-800 underline hover:text-emerald-950">
             subprocessor list
           </Link>{" "}
-          (for example hosting/database, transactional email, optional AI, Stripe, Wise, and edge security).
+          (for example hosting/database, transactional email, optional AI, Paddle, Wise, and edge security).
           The Processor shall impose data protection terms on subprocessors that are materially equivalent to those in this
           DPA. The Customer may object to a new subprocessor on documented reasonable grounds; where no alternative can be
           agreed within a reasonable period, either party may terminate the affected part of the service.

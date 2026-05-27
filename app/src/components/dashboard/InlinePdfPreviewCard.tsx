@@ -14,6 +14,8 @@ type Props = {
   previewKey?: number;
   /** Override default section id (teacher PDF preview). */
   sectionId?: string;
+  /** When false, preview is watermarked server-side; open/print is disabled. */
+  canExport?: boolean;
 };
 
 export function InlinePdfPreviewCard({
@@ -22,6 +24,7 @@ export function InlinePdfPreviewCard({
   onClose,
   previewKey = 0,
   sectionId = "dash-teacher-panel-pdf-preview",
+  canExport = true,
 }: Props) {
   const { t } = useUiLanguage();
 
@@ -37,14 +40,18 @@ export function InlinePdfPreviewCard({
           {title}
         </h3>
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => openPdfForPrint(pdfUrl)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-emerald-50"
-          >
-            <ExternalLink className={ICON_INLINE} aria-hidden />
-            {t("dash.pdfPreviewOpenTab")}
-          </button>
+          {canExport ? (
+            <button
+              type="button"
+              onClick={() => openPdfForPrint(pdfUrl)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-emerald-50"
+            >
+              <ExternalLink className={ICON_INLINE} aria-hidden />
+              {t("dash.pdfPreviewOpenTab")}
+            </button>
+          ) : (
+            <p className="text-xs font-medium text-amber-900">{t("credits.previewOnlyHint")}</p>
+          )}
           <button
             type="button"
             onClick={onClose}

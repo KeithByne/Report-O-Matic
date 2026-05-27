@@ -9,8 +9,8 @@ import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { isUiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
+import { pdfExportResponse } from "@/lib/credits/exportPdf";
 import { buildRegisterPdfBuffer } from "@/lib/pdf/registerPdf";
-import { pdfResponseHeaders } from "@/lib/pdf/pdfResponseHeaders";
 
 export const runtime = "nodejs";
 
@@ -73,10 +73,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       uiLang,
     });
     const fname = `${safeFilename(klass.name || "class")}-register.pdf`;
-    return new NextResponse(new Uint8Array(pdf), {
-      status: 200,
-      headers: pdfResponseHeaders({ inline, filename: fname }),
-    });
+    return pdfExportResponse(tenantId, pdf, { inline, filename: fname });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to build PDF.";
     return NextResponse.json({ error: msg }, { status: 500 });

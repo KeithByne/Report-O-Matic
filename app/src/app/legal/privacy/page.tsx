@@ -7,7 +7,7 @@ import {
   operatorRegisteredAddress,
   privacyContactEmail,
 } from "@/lib/legal/operatorIdentity";
-import { isStripePaymentsEnabled } from "@/lib/stripe/enabled";
+import { isCardPaymentsEnabled } from "@/lib/payments/enabled";
 
 export const metadata: Metadata = {
   title: "Privacy notice — Report-O-Matic",
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
   const companyNo = operatorCompanyNumber();
   const registered = operatorRegisteredAddress();
   const contact = privacyContactEmail();
-  const cardPaymentsOn = isStripePaymentsEnabled();
+  const cardPaymentsOn = isCardPaymentsEnabled();
 
   return (
     <LegalPageShell current="/legal/privacy">
@@ -83,9 +83,9 @@ export default function PrivacyPage() {
             birth, or contact details.
           </li>
           <li>
-            <strong>Billing:</strong> <strong>Stripe</strong> processes card payments when checkout is enabled; we may
-            store limited billing identifiers and transaction summaries. Commercial banking may involve{" "}
-            <strong>Wise</strong>.{" "}
+            <strong>Billing:</strong> <strong>Paddle</strong> acts as merchant of record for card payments when checkout
+            is enabled (tax and checkout are handled by Paddle); we may store limited billing identifiers and transaction
+            summaries. Commercial banking may involve <strong>Wise</strong>.{" "}
             {!cardPaymentsOn ? (
               <span className="font-medium text-zinc-700">
                 Card checkout is currently disabled on this deployment; no new card payments are taken through the
@@ -128,7 +128,7 @@ export default function PrivacyPage() {
             subprocessor page
           </Link>
           , including <strong>Supabase</strong>, <strong>Resend</strong>, <strong>OpenAI</strong> (optional AI),{" "}
-          <strong>Cloudflare</strong>, <strong>Stripe</strong>, and <strong>Wise</strong>. Use subprocessors&apos; privacy
+          <strong>Cloudflare</strong>, <strong>Paddle</strong>, and <strong>Wise</strong>. Use subprocessors&apos; privacy
           policies for detail. International transfers may rely on standard contractual clauses or equivalent mechanisms
           those providers offer.
         </p>

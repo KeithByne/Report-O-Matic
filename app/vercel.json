@@ -5,5 +5,11 @@
     "env": {
       "NODE_OPTIONS": "--max-old-space-size=6144"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/account-housekeeping",
+      "schedule": "0 6 * * *"
+    }
+  ]
 }

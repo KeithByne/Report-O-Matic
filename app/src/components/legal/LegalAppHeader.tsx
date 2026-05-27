@@ -5,9 +5,12 @@ import { AppHeaderRightControls } from "@/components/layout/AppHeaderRightContro
 import { LegalPageNav } from "@/components/legal/LegalPageNav";
 
 type LegalHref =
+  | "/pricing"
+  | "/legal/contact"
   | "/legal/data-protection"
   | "/legal/terms"
   | "/legal/privacy"
+  | "/legal/refund"
   | "/legal/dpa"
   | "/legal/subprocessors"
   | "/legal/cookies";

@@ -1,7 +1,10 @@
 import { getOwnerEmailForTenant } from "@/lib/data/memberships";
+import { syncOwnerLifecycleOnBalance } from "@/lib/data/ownerLifecycle";
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { sendLowCreditsWarningEmail } from "@/lib/email/lowCreditsWarningEmail";
 import { getStoredUiLanguageForEmail } from "@/lib/data/userUiLanguage";
+
+const LOW_CREDIT_EMAIL_THRESHOLD = 25;
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
@@ -34,6 +37,40 @@ export async function getTenantCreditBalance(tenantId: string): Promise<number> 
   return getOwnerCreditBalance(owner);
 }
 
+async function maybeSendLowCreditEmail(owner: string, tenantId: string, ownerBalance: number): Promise<void> {
+  if (ownerBalance !== LOW_CREDIT_EMAIL_THRESHOLD) return;
+
+  const supabase = getServiceSupabase();
+  if (!supabase) return;
+
+  try {
+    const { data: tenantRow } = await supabase
+      .from("tenants")
+      .select("name, default_report_language")
+      .eq("id", tenantId)
+      .maybeSingle();
+    const schoolName =
+      tenantRow && typeof (tenantRow as { name?: unknown }).name === "string"
+        ? String((tenantRow as { name?: string }).name || "").trim()
+        : "";
+    const preferredLang =
+      (await getStoredUiLanguageForEmail(owner)) ||
+      (tenantRow && typeof (tenantRow as { default_report_language?: unknown }).default_report_language === "string"
+        ? String((tenantRow as { default_report_language?: string }).default_report_language || "").trim()
+        : "en");
+    await sendLowCreditsWarningEmail({
+      to: owner,
+      schoolName: schoolName || tenantId,
+      language: preferredLang || "en",
+      remainingCredits: ownerBalance,
+      billingUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.report-o-matic.online"}/reports/${encodeURIComponent(tenantId)}/billing`,
+    });
+  } catch (emailErr: unknown) {
+    const msg = emailErr instanceof Error ? emailErr.message : "unknown";
+    console.warn("[ROM credits] low-credit warning email failed:", msg);
+  }
+}
+
 export type CreditOwnerPurchaseOpts = {
   ownerEmail: string;
   credits: number;
@@ -56,6 +93,8 @@ export async function creditOwnerForPurchase(opts: CreditOwnerPurchaseOpts): Pro
     report_id: null,
   });
   if (error && error.code !== "23505") throw new Error(formatErr(error));
+  const balance = await getOwnerCreditBalance(owner);
+  await syncOwnerLifecycleOnBalance(owner, balance);
 }
 
 export async function giftCreditsToTenant(opts: { tenantId: string; credits: number; grantedByEmail: string }): Promise<void> {
@@ -76,6 +115,8 @@ export async function giftCreditsToTenant(opts: { tenantId: string; credits: num
     stripe_event_id: null,
   });
   if (error) throw new Error(formatErr(error));
+  const balance = await getOwnerCreditBalance(owner);
+  await syncOwnerLifecycleOnBalance(owner, balance);
 }
 
 /** @deprecated Prefer creditOwnerForPurchase with buyer email from Stripe metadata. */
@@ -130,35 +171,13 @@ export async function consumeCreditForReport(opts: { tenantId: string; reportId:
     } catch {
       // If test-credit bookkeeping fails, don't block report generation.
     }
-    // Warn owner when balance reaches exactly 50 credits.
+    // Warn owner when balance reaches the low-credit threshold; track zero-balance lifecycle.
     try {
       const ownerBalance = await getOwnerCreditBalance(owner);
-      if (ownerBalance === 50) {
-        const { data: tenantRow } = await supabase
-          .from("tenants")
-          .select("name, default_report_language")
-          .eq("id", opts.tenantId)
-          .maybeSingle();
-        const schoolName =
-          tenantRow && typeof (tenantRow as { name?: unknown }).name === "string"
-            ? String((tenantRow as { name?: string }).name || "").trim()
-            : "";
-        const preferredLang =
-          (await getStoredUiLanguageForEmail(owner)) ||
-          (tenantRow && typeof (tenantRow as { default_report_language?: unknown }).default_report_language === "string"
-            ? String((tenantRow as { default_report_language?: string }).default_report_language || "").trim()
-            : "en");
-        await sendLowCreditsWarningEmail({
-          to: owner,
-          schoolName: schoolName || opts.tenantId,
-          language: preferredLang || "en",
-          remainingCredits: ownerBalance,
-          billingUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.report-o-matic.online"}/reports/${encodeURIComponent(opts.tenantId)}/billing`,
-        });
-      }
-    } catch (emailErr: unknown) {
-      const msg = emailErr instanceof Error ? emailErr.message : "unknown";
-      console.warn("[ROM credits] low-credit warning email failed:", msg);
+      await syncOwnerLifecycleOnBalance(owner, ownerBalance);
+      await maybeSendLowCreditEmail(owner, opts.tenantId, ownerBalance);
+    } catch {
+      /* non-fatal */
     }
     return true;
   }

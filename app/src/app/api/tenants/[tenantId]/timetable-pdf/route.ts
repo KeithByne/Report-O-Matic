@@ -8,9 +8,9 @@ import { getTimetableSettings, listTimetableSlots, type TimetableSettings } from
 import { schoolWeekdaysToSortedDayIndexes } from "@/lib/timetable/timetableSchoolWeekdays";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
+import { pdfExportResponse } from "@/lib/credits/exportPdf";
 import { buildTimetablePdfBuffer, type TimetablePdfSlot } from "@/lib/pdf/timetablePdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
-import { pdfResponseHeaders } from "@/lib/pdf/pdfResponseHeaders";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
@@ -219,10 +219,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       });
     }
     const fname = `${safeFilename(tenantRecordName)}-${role === "teacher" ? "my-timetable" : "timetable"}.pdf`;
-    return new NextResponse(new Uint8Array(pdf), {
-      status: 200,
-      headers: pdfResponseHeaders({ inline, filename: fname }),
-    });
+    return pdfExportResponse(tenantId, pdf, { inline, filename: fname });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to build PDF.";
     return NextResponse.json({ error: msg }, { status: 500 });

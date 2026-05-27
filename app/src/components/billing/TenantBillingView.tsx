@@ -49,7 +49,7 @@ export function TenantBillingView({
   packs,
   packTaxDisplay,
   testAccess,
-  stripePaymentsEnabled,
+  cardPaymentsEnabled,
 }: {
   tenantId: string;
   schoolName: string;
@@ -59,7 +59,7 @@ export function TenantBillingView({
   packs: Pack[];
   packTaxDisplay: PackTaxDisplay;
   testAccess: TestAccessBanner;
-  stripePaymentsEnabled: boolean;
+  cardPaymentsEnabled: boolean;
 }) {
   const { t } = useUiLanguage();
 
@@ -98,17 +98,17 @@ export function TenantBillingView({
               {t("billing.testTrialActive", { n: testAccess.testCreditsRemaining })}
             </p>
           ) : null}
-          {role === "owner" && testAccess.testTrialExhausted && stripePaymentsEnabled ? (
+          {role === "owner" && testAccess.testTrialExhausted && cardPaymentsEnabled ? (
             <p className="mt-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
               {t("billing.testConvertLead")}
             </p>
           ) : null}
-          {role === "owner" && testAccess.testTrialExhausted && !stripePaymentsEnabled ? (
+          {role === "owner" && testAccess.testTrialExhausted && !cardPaymentsEnabled ? (
             <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
               {t("billing.paymentsPausedTestExhausted")}
             </p>
           ) : null}
-          {!stripePaymentsEnabled ? (
+          {!cardPaymentsEnabled ? (
             <p className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800">
               <span className="font-semibold">{t("billing.paymentsPausedTitle")}</span> {t("billing.paymentsPausedBody")}
             </p>
@@ -119,12 +119,25 @@ export function TenantBillingView({
             </p>
           ) : null}
 
+          {cardPaymentsEnabled ? (
+            <p className="mt-3 text-xs leading-relaxed text-zinc-600">{t("billing.paddleTaxNote")}</p>
+          ) : null}
+
           <p className="mt-4 text-xs leading-relaxed text-zinc-600">
             Purchases are subject to our{" "}
             <Link href="/legal/terms" className="font-medium text-emerald-800 underline hover:text-emerald-950">
               Terms of use
+            </Link>{" "}
+            and{" "}
+            <Link href="/legal/refund" className="font-medium text-emerald-800 underline hover:text-emerald-950">
+              Refund &amp; cancellation policy
+            </Link>{" "}
+            and{" "}
+            <Link href="/legal/contact" className="font-medium text-emerald-800 underline hover:text-emerald-950">
+              Contact
             </Link>
-            . Credit packs are prepaid and <strong>non-refundable</strong> except where the law requires otherwise.
+            . UK consumers retain statutory cancellation and quality rights; business customers see the same policy for
+            fairness on errors and non-delivery.
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -174,7 +187,7 @@ export function TenantBillingView({
                 ) : null}
                 <button
                   type="submit"
-                  disabled={role !== "owner" || !stripePaymentsEnabled}
+                  disabled={role !== "owner" || !cardPaymentsEnabled}
                   className="mt-3 w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {t("billing.continuePayment")}
