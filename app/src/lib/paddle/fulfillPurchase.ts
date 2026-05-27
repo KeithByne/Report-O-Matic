@@ -138,8 +138,10 @@ function moneyStringToCents(raw: string): number {
   return Math.max(0, Math.trunc(n));
 }
 
-export function totalCentsFromTransaction(data: Record<string, unknown>): number {
-  const details = data.details as { totals?: { total?: string } } | undefined;
+export function totalCentsFromTransaction(data: unknown): number {
+  if (!data || typeof data !== "object") return 0;
+  const record = data as Record<string, unknown>;
+  const details = record.details as { totals?: { total?: string } } | undefined;
   const totalStr = details?.totals?.total;
   if (typeof totalStr === "string") return moneyStringToCents(totalStr);
   return 0;

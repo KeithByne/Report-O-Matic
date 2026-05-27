@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
   try {
     if (event.eventType === EventName.TransactionCompleted) {
-      const data = event.data as Record<string, unknown>;
+      const data = event.data as unknown as Record<string, unknown>;
       const txnId = typeof data.id === "string" ? data.id : event.eventId;
       const currency =
         typeof data.currency_code === "string" ? data.currency_code.toLowerCase() : "gbp";
