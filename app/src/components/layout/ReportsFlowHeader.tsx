@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { AppHeaderLeftCluster } from "@/components/layout/AppHeaderLeftCluster";
 import { AppHeaderRightControls } from "@/components/layout/AppHeaderRightControls";
+import { HEADER_CONTROL_BLOCK_INTERACTIVE } from "@/components/layout/headerControlStyles";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import type { RomRole } from "@/lib/data/memberships";
 
@@ -92,7 +93,7 @@ export function ReportsFlowHeader({
             <Link
               key={l.href}
               href={l.href}
-              className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+              className={`${HEADER_CONTROL_BLOCK_INTERACTIVE} !w-auto min-w-[6.5rem] flex-row gap-2 px-3 text-sm font-medium whitespace-nowrap`}
             >
               <l.Icon className={ICON_INLINE} aria-hidden />
               {l.label}

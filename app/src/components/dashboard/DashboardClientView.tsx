@@ -20,7 +20,6 @@ import {
   Library,
   NotebookText,
   Printer,
-  LogOut,
   RefreshCw,
   RotateCcw,
   Save,
@@ -493,17 +492,7 @@ export function DashboardClientView({
                 userDisplayName={userDisplayName}
                 pageTitle={t("dash.title")}
               />
-              <AppHeaderRightControls tenantId={supportContextTenantId}>
-                <form action="/api/auth/sign-out" method="post" className="shrink-0">
-                  <button
-                    type="submit"
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 shadow-sm hover:bg-emerald-50/60"
-                  >
-                    <LogOut className={ICON_INLINE} aria-hidden />
-                    {t("nav.signOut")}
-                  </button>
-                </form>
-              </AppHeaderRightControls>
+              <AppHeaderRightControls tenantId={supportContextTenantId} showSignOut />
             </>
           ) : (
             <>
@@ -512,17 +501,7 @@ export function DashboardClientView({
                 userDisplayName={userDisplayName}
                 pageTitle={t("dash.title")}
               />
-              <AppHeaderRightControls tenantId={supportContextTenantId}>
-                <form action="/api/auth/sign-out" method="post" className="shrink-0">
-                  <button
-                    type="submit"
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 shadow-sm hover:bg-emerald-50/60"
-                  >
-                    <LogOut className={ICON_INLINE} aria-hidden />
-                    {t("nav.signOut")}
-                  </button>
-                </form>
-              </AppHeaderRightControls>
+              <AppHeaderRightControls tenantId={supportContextTenantId} showSignOut />
             </>
           )}
         </div>
