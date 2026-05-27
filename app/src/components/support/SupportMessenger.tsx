@@ -255,8 +255,8 @@ export function SupportMessenger({ tenantId = null }: Props) {
                               <span
                                 className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
                                   c.status === "resolved"
-                                    ? "bg-zinc-200 text-zinc-700"
-                                    : "bg-amber-100 text-amber-900"
+                                    ? "rom-support-status-resolved"
+                                    : "rom-support-status-open"
                                 }`}
                               >
                                 {c.status === "resolved" ? t("support.statusResolved") : t("support.statusOpen")}

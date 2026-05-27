@@ -213,8 +213,8 @@ export function SaasOwnerSupportPanel({ embedded = false }: Props) {
                         <span
                           className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
                             row.status === "resolved"
-                              ? "bg-zinc-200 text-zinc-700"
-                              : "bg-amber-100 text-amber-900"
+                              ? "rom-support-status-resolved"
+                              : "rom-support-status-open"
                           }`}
                         >
                           {row.status === "resolved" ? "Resolved" : "Open"}
@@ -264,7 +264,7 @@ export function SaasOwnerSupportPanel({ embedded = false }: Props) {
                         {showResolve ? "Cancel" : "Mark as resolved"}
                       </button>
                     ) : (
-                      <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-semibold uppercase text-zinc-700">
+                      <span className="rom-support-status-resolved rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase">
                         Resolved
                       </span>
                     )}

@@ -328,6 +328,27 @@ html[data-rom-theme="night"] .rom-support-system-message-meta {
   color: #b8d4f0 !important;
 }
 
+/* Support: case list / detail status pills (resolved uses zinc utilities remapped separately in night). */
+.rom-support-status-resolved {
+  background-color: #e4e4e7;
+  color: #3f3f46;
+}
+
+html[data-rom-theme="night"] .rom-support-status-resolved {
+  background-color: #4a6c99 !important;
+  color: #f2f7ff !important;
+}
+
+.rom-support-status-open {
+  background-color: #fef3c7;
+  color: #78350f;
+}
+
+html[data-rom-theme="night"] .rom-support-status-open {
+  background-color: #3d5a2a !important;
+  color: #fef9c3 !important;
+}
+
 html[data-rom-text="bold"] body {
   font-size: 1.06rem;
 }
