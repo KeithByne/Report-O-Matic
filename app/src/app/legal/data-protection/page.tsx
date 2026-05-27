@@ -5,8 +5,6 @@ import {
   icoRegistrationNumber,
   operatorCompanyNumber,
   operatorLegalName,
-  operatorRegisteredAddress,
-  operatorTradingAddress,
   privacyContactEmail,
 } from "@/lib/legal/operatorIdentity";
 import { isCardPaymentsEnabled } from "@/lib/payments/enabled";
@@ -20,14 +18,12 @@ export const metadata: Metadata = {
 export default function DataProtectionPage() {
   const operatorName = operatorLegalName();
   const companyNo = operatorCompanyNumber();
-  const operatorAddress = operatorRegisteredAddress();
-  const tradingAddress = operatorTradingAddress();
   const contact = privacyContactEmail();
   const icoNumber = icoRegistrationNumber();
   const cardPaymentsOn = isCardPaymentsEnabled();
 
   return (
-    <LegalPageShell current="/legal/data-protection">
+    <LegalPageShell>
       <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Data protection</h1>
       <p className="mt-2 text-sm text-zinc-600">
         This page is for schools, trusts, and staff using Report-O-Matic. It explains how{" "}
@@ -40,7 +36,7 @@ export default function DataProtectionPage() {
         <h2 className="text-base font-semibold text-zinc-950">Who we are</h2>
         <p>
           <strong>{operatorName}</strong> (company number {companyNo}) develops and operates the Report-O-Matic software
-          service. Registered office: {operatorAddress}. Trading / operational contact: {tradingAddress}. We act as a{" "}
+          service. We act as a{" "}
           <strong>data processor</strong> when a school or other organisation uses the product to process pupil and
           staff-related information on the organisation&apos;s instructions. For some account-holder data (for example
           your sign-in email), we may act as <strong>controller</strong> where we determine how that data is used to run

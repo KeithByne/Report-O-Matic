@@ -1,4 +1,5 @@
 /** Default legal entity for privacy, DPA, terms, and data protection pages. Override via ROM_* env vars. */
+
 export const DEFAULT_OPERATOR_LEGAL_NAME = "Report-O-Matic Ltd";
 
 export const DEFAULT_COMPANY_NUMBER = "17239610";

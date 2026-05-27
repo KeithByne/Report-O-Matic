@@ -22,7 +22,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-4">
+        <div className="mx-auto flex max-w-3xl items-center px-5 py-4">
           <Link
             href="/landing.html"
             className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50/80"
@@ -30,20 +30,6 @@ export default function PricingPage() {
             <span aria-hidden>←</span>
             Sign in
           </Link>
-          <nav className="flex flex-wrap gap-x-3 gap-y-1 text-sm" aria-label="Legal documents">
-            <Link href="/legal/terms" className="text-emerald-800 hover:text-emerald-950">
-              Terms
-            </Link>
-            <Link href="/legal/privacy" className="text-emerald-800 hover:text-emerald-950">
-              Privacy
-            </Link>
-            <Link href="/legal/refund" className="text-emerald-800 hover:text-emerald-950">
-              Refunds
-            </Link>
-            <Link href="/legal/contact" className="text-emerald-800 hover:text-emerald-950">
-              Contact
-            </Link>
-          </nav>
         </div>
       </header>
 

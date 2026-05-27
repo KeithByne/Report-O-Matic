@@ -4,7 +4,6 @@ import { LegalPageShell } from "@/components/legal/LegalPageNav";
 import {
   operatorCompanyNumber,
   operatorLegalName,
-  operatorRegisteredAddress,
   privacyContactEmail,
 } from "@/lib/legal/operatorIdentity";
 import { isCardPaymentsEnabled } from "@/lib/payments/enabled";
@@ -17,12 +16,11 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   const operatorName = operatorLegalName();
   const companyNo = operatorCompanyNumber();
-  const registered = operatorRegisteredAddress();
   const contact = privacyContactEmail();
   const cardPaymentsOn = isCardPaymentsEnabled();
 
   return (
-    <LegalPageShell current="/legal/privacy">
+    <LegalPageShell>
       <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Privacy notice</h1>
       <p className="mt-2 text-sm text-zinc-600">
         This page summarises how <strong>{operatorName}</strong> processes personal data in the Report-O-Matic{" "}
@@ -40,7 +38,7 @@ export default function PrivacyPage() {
         <Link href="/legal/terms" className="text-emerald-800 underline hover:text-emerald-950">
           terms of use
         </Link>
-        . {operatorName} (company number {companyNo}, registered office: {registered}).
+        . {operatorName} (company number {companyNo}).
       </p>
 
       <section className="mt-8 space-y-3 text-sm leading-relaxed text-zinc-800">

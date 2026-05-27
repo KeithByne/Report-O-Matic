@@ -4,7 +4,6 @@ import { LegalPageShell } from "@/components/legal/LegalPageNav";
 import {
   operatorCompanyNumber,
   operatorLegalName,
-  operatorRegisteredAddress,
   privacyContactEmail,
 } from "@/lib/legal/operatorIdentity";
 
@@ -16,11 +15,10 @@ export const metadata: Metadata = {
 export default function DpaPage() {
   const operatorName = operatorLegalName();
   const companyNo = operatorCompanyNumber();
-  const operatorAddress = operatorRegisteredAddress();
   const contactEmail = privacyContactEmail();
 
   return (
-    <LegalPageShell current="/legal/dpa">
+    <LegalPageShell>
       <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Data Processing Agreement (DPA)</h1>
       <p className="mt-2 text-sm text-zinc-600">
         This agreement supplements your use of the Report-O-Matic hosted service between your organisation and{" "}
@@ -40,8 +38,12 @@ export default function DpaPage() {
         </p>
         <p>
           <strong>Processor</strong> (the “processor”) is <strong>{operatorName}</strong> (company number {companyNo}),
-          with registered office at <span className="whitespace-pre-line">{operatorAddress}</span>, who hosts and
-          operates the Report-O-Matic software on the Customer&apos;s behalf.
+          registered in England and Wales, who hosts and operates the Report-O-Matic software on the Customer&apos;s
+          behalf. Processor contact for data protection matters:{" "}
+          <a className="text-emerald-800 underline hover:text-emerald-950" href={`mailto:${contactEmail}`}>
+            {contactEmail}
+          </a>
+          .
         </p>
         <p>
           The Processor processes personal data only on documented instructions from the Customer (including through the

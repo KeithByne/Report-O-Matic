@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageShell } from "@/components/legal/LegalPageNav";
+import { LegalUkCompanyDisclosure } from "@/components/legal/LegalUkCompanyDisclosure";
 import {
   operatorCompanyNumber,
   operatorJurisdiction,
   operatorLegalName,
-  operatorRegisteredAddress,
   privacyContactEmail,
   supportContactEmail,
 } from "@/lib/legal/operatorIdentity";
@@ -18,20 +18,19 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   const operatorName = operatorLegalName();
   const companyNo = operatorCompanyNumber();
-  const registered = operatorRegisteredAddress();
   const jurisdiction = operatorJurisdiction();
   const privacy = privacyContactEmail();
   const support = supportContactEmail();
 
   return (
-    <LegalPageShell current="/legal/terms">
+    <LegalPageShell>
       <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Terms of use</h1>
       <p className="mt-2 text-sm text-zinc-600">
         These terms govern access to the Report-O-Matic hosted service operated by{" "}
         <strong>
           {operatorName}
         </strong>{" "}
-        (company number {companyNo}, registered office: {registered}). By creating an account or using the service, you
+        (company number {companyNo}). By creating an account or using the service, you
         agree on behalf of your organisation. If you do not agree, do not use the service. This document is a practical
         template, not legal advice.
       </p>
@@ -218,7 +217,9 @@ export default function TermsPage() {
         </p>
       </section>
 
-      <p className="mt-10 text-xs text-zinc-500">Last updated: {new Date().toISOString().slice(0, 10)}.</p>
+      <LegalUkCompanyDisclosure />
+
+      <p className="mt-4 text-xs text-zinc-500">Last updated: {new Date().toISOString().slice(0, 10)}.</p>
     </LegalPageShell>
   );
 }

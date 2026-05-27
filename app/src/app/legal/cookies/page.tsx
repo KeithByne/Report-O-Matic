@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <LegalPageShell current="/legal/cookies">
+    <LegalPageShell>
       <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Cookie notice</h1>
       <p className="mt-2 text-sm text-zinc-600">
         This describes cookies and similar technologies used by Report-O-Matic Ltd in the hosted service. Essential

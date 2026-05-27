@@ -2,20 +2,8 @@
 
 import Link from "next/link";
 import { AppHeaderRightControls } from "@/components/layout/AppHeaderRightControls";
-import { LegalPageNav } from "@/components/legal/LegalPageNav";
 
-type LegalHref =
-  | "/pricing"
-  | "/legal/contact"
-  | "/legal/data-protection"
-  | "/legal/terms"
-  | "/legal/privacy"
-  | "/legal/refund"
-  | "/legal/dpa"
-  | "/legal/subprocessors"
-  | "/legal/cookies";
-
-export function LegalAppHeader({ current }: { current?: LegalHref }) {
+export function LegalAppHeader() {
   return (
     <header className="rom-app-shell-header">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
@@ -26,9 +14,7 @@ export function LegalAppHeader({ current }: { current?: LegalHref }) {
           <span aria-hidden>←</span>
           Sign in
         </Link>
-        <AppHeaderRightControls>
-          <LegalPageNav current={current} />
-        </AppHeaderRightControls>
+        <AppHeaderRightControls />
       </div>
     </header>
   );

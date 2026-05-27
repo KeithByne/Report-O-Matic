@@ -5,7 +5,6 @@ import {
   operatorCompanyNumber,
   operatorJurisdiction,
   operatorLegalName,
-  operatorRegisteredAddress,
   privacyContactEmail,
   supportContactEmail,
 } from "@/lib/legal/operatorIdentity";
@@ -19,18 +18,17 @@ export const metadata: Metadata = {
 export default function RefundPolicyPage() {
   const operatorName = operatorLegalName();
   const companyNo = operatorCompanyNumber();
-  const registered = operatorRegisteredAddress();
   const jurisdiction = operatorJurisdiction();
   const contact = privacyContactEmail();
   const support = supportContactEmail();
   const mailto = support || contact;
 
   return (
-    <LegalPageShell current="/legal/refund">
+    <LegalPageShell>
       <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Refund &amp; cancellation policy</h1>
       <p className="mt-2 text-sm text-zinc-600">
         This policy explains cancellations and refunds for prepaid report credits sold by{" "}
-        <strong>{operatorName}</strong> (company number {companyNo}, registered office: {registered}). Card checkout is
+        <strong>{operatorName}</strong> (company number {companyNo}). Card checkout is
         handled by <strong>Paddle</strong> as Merchant of Record. Nothing in this policy limits your{" "}
         <strong>mandatory statutory rights</strong> under UK law.
       </p>

@@ -13,7 +13,7 @@ export default function SubprocessorsPage() {
   const operatorName = operatorLegalName();
 
   return (
-    <LegalPageShell current="/legal/subprocessors">
+    <LegalPageShell>
       <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Subprocessors</h1>
       <p className="mt-2 text-sm text-zinc-600">
         {operatorName} uses the following categories of service providers to operate Report-O-Matic. School customers
