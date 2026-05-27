@@ -92,7 +92,9 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const taxLabel = getSalesTaxLabelForCustomers();
   const storedCents = Number((pack as { price_cents: number }).price_cents);
   const chargeCents = packGrossChargeCents(Number.isFinite(storedCents) ? storedCents : 0, rate, packBasis);
-  const currency = String((pack as { currency: string }).currency || "gbp").toUpperCase();
+  // Paddle SDK expects `CurrencyCode` (string union), not a plain `string`.
+  // Our DB stores ISO 4217 codes; we cast after normalizing to keep TS happy.
+  const currency = String((pack as { currency: string }).currency || "gbp").toUpperCase() as unknown as any;
   const packName = String((pack as { name: string }).name);
   const productName = rate > 0 ? `${packName} (${taxLabel} handled at checkout)` : packName;
 
