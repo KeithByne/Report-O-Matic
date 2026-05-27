@@ -320,7 +320,7 @@ export function SaasOwnerSupportPanel({ embedded = false }: Props) {
                         <div
                           className={`max-w-[90%] rounded-xl px-3 py-2 text-sm ${
                             system
-                              ? "border border-sky-200 bg-sky-50 text-sky-950"
+                              ? "rom-support-system-message"
                               : owner
                                 ? "bg-zinc-900 text-white"
                                 : "bg-emerald-50 text-zinc-900"
@@ -329,7 +329,11 @@ export function SaasOwnerSupportPanel({ embedded = false }: Props) {
                           <p className="whitespace-pre-wrap">{m.body}</p>
                           <p
                             className={`mt-1 text-[10px] ${
-                              owner ? "text-zinc-300" : system ? "text-sky-700" : "text-zinc-500"
+                              owner
+                                ? "text-zinc-300"
+                                : system
+                                  ? "rom-support-system-message-meta"
+                                  : "text-zinc-500"
                             }`}
                           >
                             {new Date(m.created_at).toLocaleString()}

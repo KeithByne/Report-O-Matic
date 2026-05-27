@@ -307,6 +307,27 @@ html[data-rom-theme="night"] .rom-timetable-grid [class*="border-zinc-100"] {
   border-color: #f4f4f5 !important;
 }
 
+/* Support: resolved / system messages (sky utilities are not remapped in night mode). */
+.rom-support-system-message {
+  border: 1px solid #bae6fd;
+  background-color: #f0f9ff;
+  color: #082f49;
+}
+
+html[data-rom-theme="night"] .rom-support-system-message {
+  background-color: #1a3558 !important;
+  border-color: #5b8fd4 !important;
+  color: #eef5ff !important;
+}
+
+.rom-support-system-message-meta {
+  color: #0369a1;
+}
+
+html[data-rom-theme="night"] .rom-support-system-message-meta {
+  color: #b8d4f0 !important;
+}
+
 html[data-rom-text="bold"] body {
   font-size: 1.06rem;
 }

@@ -338,7 +338,7 @@ export function SupportMessenger({ tenantId = null }: Props) {
                           <div
                             className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
                               system
-                                ? "border border-sky-200 bg-sky-50 text-sky-950"
+                                ? "rom-support-system-message"
                                 : mine
                                   ? "bg-emerald-800 text-white"
                                   : "border border-emerald-200 bg-emerald-50/80 text-zinc-900"
@@ -347,7 +347,11 @@ export function SupportMessenger({ tenantId = null }: Props) {
                             <p className="whitespace-pre-wrap">{m.body}</p>
                             <p
                               className={`mt-1 text-[10px] ${
-                                mine ? "text-emerald-100" : system ? "text-sky-700" : "text-zinc-500"
+                                mine
+                                  ? "text-emerald-100"
+                                  : system
+                                    ? "rom-support-system-message-meta"
+                                    : "text-zinc-500"
                               }`}
                             >
                               {new Date(m.created_at).toLocaleString()}
