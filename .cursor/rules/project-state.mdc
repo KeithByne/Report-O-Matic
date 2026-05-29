@@ -1,0 +1,30 @@
+---
+description: Current project priorities and go-live blockers — read before billing, infra, or Paddle/Wise work
+alwaysApply: true
+---
+
+# Report-O-Matic — project context
+
+Before **Paddle**, **Wise**, **Vercel env**, **Supabase migrations**, or **go-live** work, read **`docs/PROJECT_STATE.md`** for the latest handoff.
+
+## Snapshot (2026-05-27)
+
+- **Live:** `report-o-matic.online` on Vercel; git on `main`, auto-deploy.
+- **Payments code:** Paddle integrated; checkout **disabled** until `ROM_PADDLE_ENABLED=true`.
+- **Blocker:** Operator deferred **Wise Business Advanced** (£50 one-time) — needed for GBP account details to receive Paddle payouts. Free Wise Essential is **not** sufficient.
+- **Next when funded:** Wise Advanced → Paddle seller + sandbox → Vercel sandbox keys → test purchase → link Wise in Paddle Payouts → production.
+
+## Key docs
+
+- `docs/PROJECT_STATE.md` — full handoff (update when priorities change)
+- `docs/PADDLE_SETUP.md` — step-by-step Paddle + Wise weekend checklist
+- `docs/OPERATIONS.md` — DNS, Vercel, email, Supabase
+- `docs/EMAIL_SETUP.md` — Resend + Namecheap Private Email
+
+## Do not assume
+
+- Stripe is legacy; new checkout is **Paddle only**.
+- Wise is **not** wired into the app — only Paddle dashboard payout settings.
+- Do not enable `ROM_PADDLE_ENABLED=true` on production without sandbox test first.
+
+When the operator returns after resting or funds Wise, offer to resume from **`docs/PROJECT_STATE.md`** step list.
