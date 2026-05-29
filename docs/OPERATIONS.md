@@ -2,7 +2,7 @@
 
 Living notes for hosting, DNS, and email. Update this when infrastructure changes so agents and maintainers do not guess.
 
-**Last updated:** 2026-05-29
+**Last updated:** 2026-05-29 (email defaults → `@report-o-matic.online`; see `docs/EMAIL_SETUP.md`)
 
 ---
 
@@ -45,10 +45,12 @@ Living notes for hosting, DNS, and email. Update this when infrastructure change
 - Resend is **send-only**; there is no inbox in Resend.
 - API keys: Resend dashboard → API keys (use a **Sending access** key for production).
 
-### Receiving mail at `support@report-o-matic.online`
+### Receiving mail (inbox)
 
-- Configure at **Namecheap** (Email forwarding or Private Email), or another mailbox provider.
-- Forward to a private inbox if desired; the public site should show `support@…`, not a personal address.
+- **Step-by-step:** `docs/EMAIL_SETUP.md` (Namecheap Private Email + Vercel env + tests).
+- Primary inbox: **`support@report-o-matic.online`**; optional alias **`privacy@`** → same mailbox.
+- Outbound automated mail: **`security@report-o-matic.online`** via Resend (`ROM_FROM_EMAIL`).
+- Personal email is **not** on the public site; SaaS-owner login may still use a private address via `ROM_SAAS_OWNER_EMAILS`.
 
 ### Vercel environment variables (production checklist)
 

@@ -43,6 +43,10 @@ You should see the app at `http://localhost:3000`.
 
 **Landing / sign-in page (local):** with the dev server running, open **`http://localhost:3000/landing.html`** (same origin as the API). Do **not** rely on double-clicking the HTML file from disk (`file://`) — browsers often block those requests (“Failed to fetch”).
 
+### Branded inbox + contact addresses (`@report-o-matic.online`)
+
+Full checklist (Namecheap mailbox + Vercel env): **`docs/EMAIL_SETUP.md`**.
+
 ### Step 1.5 — enable real OTP emails (Resend)
 Right now in local dev, codes can appear in the server log. To send real emails:
 

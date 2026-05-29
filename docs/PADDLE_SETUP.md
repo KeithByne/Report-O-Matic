@@ -9,7 +9,7 @@
 | Terms & Conditions | `/legal/terms` |
 | Privacy Policy | `/legal/privacy` |
 | Refund & cancellation policy | `/legal/refund` |
-| Contact | `/legal/contact` · `keith.byne@hotmail.co.uk` |
+| Contact | `/legal/contact` · `support@report-o-matic.online` |
 
 Landing page **Pricing** and **Legal** menus open these pages in a **new browser tab** so sign-in stays open.
 
