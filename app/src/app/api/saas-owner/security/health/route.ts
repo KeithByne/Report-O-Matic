@@ -18,8 +18,8 @@ const SECRET_CHECKS: Check[] = [
   { name: "RESEND_API_KEY", requiredInProduction: true, minLength: 16 },
   { name: "ROM_FROM_EMAIL", requiredInProduction: true, minLength: 6 },
   { name: "OPENAI_API_KEY", requiredInProduction: true, minLength: 20 },
-  { name: "STRIPE_SECRET_KEY", requiredInProduction: false, minLength: 20 },
-  { name: "STRIPE_WEBHOOK_SECRET", requiredInProduction: false, minLength: 20 },
+  { name: "PADDLE_API_KEY", requiredInProduction: false, minLength: 20 },
+  { name: "PADDLE_WEBHOOK_SECRET", requiredInProduction: false, minLength: 20 },
 ];
 
 export async function GET() {
@@ -27,6 +27,7 @@ export async function GET() {
   if (!gate.ok) return gate.res;
 
   const isProd = process.env.NODE_ENV === "production";
+  const paddleEnabled = process.env.ROM_PADDLE_ENABLED?.trim() === "true";
   const checks = SECRET_CHECKS.map((cfg) => {
     if (cfg.name === "ROM_FROM_EMAIL") {
       const health = getRuntimeSecretHealth(cfg.name, cfg.minLength ?? 24);
@@ -48,8 +49,16 @@ export async function GET() {
       };
     }
     const health = getRuntimeSecretHealth(cfg.name, cfg.minLength ?? 24);
-    const required = cfg.requiredInProduction && isProd;
+    const paddleRequired =
+      isProd &&
+      paddleEnabled &&
+      (cfg.name === "PADDLE_API_KEY" || cfg.name === "PADDLE_WEBHOOK_SECRET");
+    const required = (cfg.requiredInProduction && isProd) || paddleRequired;
     const ok = required ? health.configured && health.strongEnough : true;
+    const hint =
+      paddleRequired && !health.configured
+        ? "Required when ROM_PADDLE_ENABLED=true in production."
+        : undefined;
     return {
       name: cfg.name,
       required,
@@ -57,6 +66,7 @@ export async function GET() {
       strongEnough: health.strongEnough,
       minLength: health.minLength,
       ok,
+      hint,
     };
   });
 

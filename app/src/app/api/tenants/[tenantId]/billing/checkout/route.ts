@@ -85,7 +85,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     ? String((tenantRow as { referral_code?: string }).referral_code)
     : "";
 
-  const baseUrl = process.env.ROM_PUBLIC_BASE_URL?.trim() || new URL(req.url).origin;
+  const baseUrl = (process.env.ROM_PUBLIC_BASE_URL?.trim() || new URL(req.url).origin).replace(/\/$/, "");
+  const checkoutReturnUrl = `${baseUrl}/reports/${tenantId}/billing/success`;
 
   const rate = getSalesTaxRatePercent();
   const packBasis = getPackPriceTaxBasis();
@@ -135,12 +136,13 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       customData,
       currencyCode: currency,
       collectionMode: "automatic",
+      checkout: { url: checkoutReturnUrl },
     });
 
     const checkoutUrl =
       transaction.checkout?.url ??
       (transaction.id
-        ? `${baseUrl.replace(/\/$/, "")}/?_ptxn=${encodeURIComponent(transaction.id)}`
+        ? `${checkoutReturnUrl}?_ptxn=${encodeURIComponent(transaction.id)}`
         : null);
 
     if (!checkoutUrl) {

@@ -2,7 +2,7 @@
 
 Living notes for hosting, DNS, and email. Update this when infrastructure changes so agents and maintainers do not guess.
 
-**Last updated:** 2026-05-29 (email defaults → `@report-o-matic.online`; see `docs/EMAIL_SETUP.md`)
+**Last updated:** 2026-05-27 (Paddle go-live checklist; Wise as payout bank)
 
 ---
 
@@ -78,7 +78,9 @@ Override legal defaults via `ROM_OPERATOR_*` env vars; see `app/src/lib/legal/op
 
 ### Payments
 
-- **Paddle** (not Stripe for new checkout). Setup: `docs/PADDLE_SETUP.md`.
+- **Paddle** (Merchant of Record) for customer card checkout. Setup: `docs/PADDLE_SETUP.md` (weekend checklist at top).
+- **Wise** (operator only): business bank account for **Paddle payouts** — configure in Paddle dashboard, not in Vercel env.
+- Legacy Stripe webhook route remains for historical events; new checkouts use Paddle only.
 
 ---
 

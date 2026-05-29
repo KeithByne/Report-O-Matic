@@ -33,15 +33,15 @@ export const LEGAL_SUBPROCESSORS: SubprocessorRow[] = [
     locationNote: "Global network; see Cloudflare privacy policy",
   },
   {
-    name: "Stripe",
-    purpose: "Card payment processing for report credit packs when checkout is enabled",
-    dataCategories: "Billing contact, payment method tokens, and transaction metadata",
-    locationNote: "Stripe entity and transfer mechanisms depend on account configuration",
+    name: "Paddle",
+    purpose: "Merchant of Record for card checkout, tax calculation, and payment processing for report credit packs",
+    dataCategories: "Billing contact, payment method tokens, transaction metadata, and tax jurisdiction signals",
+    locationNote: "Paddle entity and transfer mechanisms depend on account configuration; see Paddle privacy/DPA documentation",
   },
   {
     name: "Wise",
-    purpose: "Business payment and settlement operations related to commercial receipts",
-    dataCategories: "Business payer/payee identifiers and payment records where applicable",
-    locationNote: "Used for banking operations; not used to host pupil report content",
+    purpose: "Operator business banking account for receiving Paddle payouts (not used for customer checkout on the site)",
+    dataCategories: "Business banking identifiers and payout records between Paddle and the operator",
+    locationNote: "Banking relationship only; pupil report content is not stored with Wise",
   },
 ];
