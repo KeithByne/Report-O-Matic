@@ -204,10 +204,7 @@ export function DashboardTenantPdfLetterhead({
                 <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-start">
                   <div className="w-full shrink-0 lg:w-[140px]">
                     <p className="text-xs font-medium text-zinc-600">{t("dash.pdfLetterheadLogo")}</p>
-                    <div
-                      className="mt-1 overflow-hidden rounded-lg border border-emerald-200 bg-white"
-                      style={{ aspectRatio: "3 / 1", maxHeight: "100px", width: "100%", maxWidth: "360px" }}
-                    >
+                    <div className="mt-1 flex h-[100px] w-full max-w-[160px] items-center justify-start overflow-hidden rounded-lg border border-emerald-200 bg-white">
                       {logoSrc ? (
                         // eslint-disable-next-line @next/next/no-img-element -- API-served preview
                         <img

@@ -1,15 +1,13 @@
 import sharp from "sharp";
 import {
-  LETTERHEAD_LOGO_ASPECT_TOLERANCE,
-  LETTERHEAD_LOGO_ASPECT_WH,
   LETTERHEAD_LOGO_MAX_UPLOAD_BYTES,
+  letterheadLogoAllowedSharpFormat,
+  letterheadLogoAspectRatioErrorMessage,
+  letterheadLogoAspectRatioOk,
 } from "@/lib/pdf/letterheadLogoConstraints";
 
-/**
- * Max raster size after resize. PDF slot is landscape 216×72 pt (~3″×1″); 2400×800 px is ample when scaled down.
- */
-const MAX_PIXEL_W = 2400;
-const MAX_PIXEL_H = 800;
+/** Max long edge after resize — ample for PDF letterhead slot (~216×72 pt). */
+const MAX_RASTER_EDGE_PX = 2400;
 const MAX_INPUT_PIXELS = 40_000_000;
 
 export type LetterheadLogoProcess =
@@ -27,18 +25,17 @@ export async function processLetterheadLogoUpload(buf: Buffer): Promise<Letterhe
 
   try {
     const meta = await sharp(buf, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS }).rotate().metadata();
+    if (!letterheadLogoAllowedSharpFormat(meta.format)) {
+      return { ok: false, error: "Unsupported image type. Use PNG, JPEG, or WebP only." };
+    }
+    if ((meta.pages ?? 1) > 1) {
+      return { ok: false, error: "Animated images are not supported. Use a still PNG, JPEG, or WebP." };
+    }
+
     const w = meta.width ?? 0;
     const h = meta.height ?? 0;
-    if (!w || !h || w < 16 || h < 16) {
-      return { ok: false, error: "Could not read image dimensions. Use PNG, JPEG, or WebP." };
-    }
-    const ratio = w / h;
-    if (Math.abs(ratio - LETTERHEAD_LOGO_ASPECT_WH) > LETTERHEAD_LOGO_ASPECT_TOLERANCE) {
-      return {
-        ok: false,
-        error:
-          "Logo must be roughly landscape 3∶1 (about ±10%): width ÷ height between ~2.7 and ~3.3 (e.g. 1200×400 px).",
-      };
+    if (!letterheadLogoAspectRatioOk(w, h)) {
+      return { ok: false, error: letterheadLogoAspectRatioErrorMessage() };
     }
 
     const hasAlpha =
@@ -48,7 +45,7 @@ export async function processLetterheadLogoUpload(buf: Buffer): Promise<Letterhe
 
     const pipeline = sharp(buf, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS })
       .rotate()
-      .resize(MAX_PIXEL_W, MAX_PIXEL_H, { fit: "inside", withoutEnlargement: true });
+      .resize(MAX_RASTER_EDGE_PX, MAX_RASTER_EDGE_PX, { fit: "inside", withoutEnlargement: true });
 
     if (hasAlpha) {
       const buffer = await pipeline.png({ compressionLevel: 9, effort: 6 }).toBuffer();

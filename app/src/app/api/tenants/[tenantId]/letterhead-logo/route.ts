@@ -8,7 +8,10 @@ import {
   uploadTenantLetterheadLogo,
 } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead, setTenantLetterheadLogoPath } from "@/lib/data/tenantPdfLetterhead";
-import { letterheadLogoAllowedMime } from "@/lib/pdf/letterheadLogoConstraints";
+import {
+  LETTERHEAD_LOGO_MAX_UPLOAD_BYTES,
+  letterheadLogoAllowedMime,
+} from "@/lib/pdf/letterheadLogoConstraints";
 import { processLetterheadLogoUpload } from "@/lib/pdf/letterheadLogoProcess";
 
 export const runtime = "nodejs";
@@ -80,6 +83,12 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     );
   }
 
+  const declaredSize = "size" in file && typeof file.size === "number" ? file.size : null;
+  if (declaredSize !== null && declaredSize > LETTERHEAD_LOGO_MAX_UPLOAD_BYTES) {
+    const mb = LETTERHEAD_LOGO_MAX_UPLOAD_BYTES / (1024 * 1024);
+    return NextResponse.json({ error: `Logo file is too large (max ${mb} MB per upload).` }, { status: 400 });
+  }
+
   const buf = Buffer.from(await file.arrayBuffer());
   const processed = await processLetterheadLogoUpload(buf);
   if (!processed.ok) {
@@ -87,6 +96,10 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   }
 
   const objectPath = letterheadLogoObjectPath(tenantId, processed.ext);
+  if (!isTenantLetterheadPath(objectPath, tenantId)) {
+    return NextResponse.json({ error: "Invalid logo storage path." }, { status: 500 });
+  }
+
   const previous = await getTenantPdfLetterhead(tenantId);
   if (previous.pdf_letterhead_logo_path && previous.pdf_letterhead_logo_path !== objectPath) {
     await removeTenantLetterheadLogoObject(previous.pdf_letterhead_logo_path);
