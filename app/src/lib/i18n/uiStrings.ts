@@ -1440,7 +1440,7 @@ const EN: UiMessages = {
   "saas.creditPacksLead": "Manage pricing and how many reports each pack includes.",
   "saas.refreshPacks": "Refresh packs",
   "saas.thPack": "Pack",
-  "saas.thPriceCents": "Price (cents)",
+  "saas.thPriceCents": "Price (pence)",
   "saas.thCurrency": "Currency",
   "saas.thCredits": "Credits",
   "saas.thActive": "Active",

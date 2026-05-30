@@ -25,7 +25,7 @@ Run migrations in order if not already applied:
 
 - `0046_owner_account_lifecycle.sql`
 - `0047_credit_packs_gbp_paddle.sql` (adds `paddle_price_id`, initial GBP prices)
-- `0048_credit_packs_gbp_parity.sql` (£5 / £25 / £50 / £100 / £500)
+- `0049_credit_packs_gbp_list_prices.sql` (£5 / £25 / £500 / £1,000 / £5,000)
 
 Confirm in SQL editor:
 
@@ -52,9 +52,9 @@ Create one **product** (“Report-O-Matic report credits”) and **GBP prices** 
 |---------|---------|-------|
 | `tester` | 50 | £5.00 |
 | `economy` | 250 | £25.00 |
-| `school` | 600 | £50.00 |
-| `large_school` | 1,300 | £100.00 |
-| `universal_school` | 6,000 | £500.00 |
+| `school` | 600 | £500.00 |
+| `large_school` | 1,300 | £1,000.00 |
+| `universal_school` | 6,000 | £5,000.00 |
 
 Copy each `pri_…` into Supabase:
 
@@ -142,9 +142,9 @@ Report-O-Matic uses **Paddle Billing** as Merchant of Record (MoR): Paddle runs 
 |------|---------|-------|
 | Tester | 50 | £5.00 |
 | Economy | 250 | £25.00 |
-| School | 600 | £50.00 |
-| Large School | 1,300 | £100.00 |
-| Universal School | 6,000 | £500.00 |
+| School | 600 | £500.00 |
+| Large School | 1,300 | £1,000.00 |
+| Universal School | 6,000 | £5,000.00 |
 
 ## Environment variables
 
