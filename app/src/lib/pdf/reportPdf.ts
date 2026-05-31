@@ -24,7 +24,6 @@ import {
 } from "@/lib/pdf/letterheadLogoLayout";
 import { formatLetterheadContactForPdf, letterheadContactLabelsForPdf } from "@/lib/pdf/letterheadContact";
 import type { TenantPdfLetterheadRow } from "@/lib/data/tenantPdfLetterhead";
-import type { UiLang } from "@/lib/i18n/uiStrings";
 
 import {
 
