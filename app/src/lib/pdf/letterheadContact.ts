@@ -22,7 +22,8 @@ function trimOrNull(s: string | null | undefined): string | null {
 }
 
 export function parseLetterheadContactLayout(raw: string | null | undefined): LetterheadContactLayout {
-  return raw === "stacked" ? "stacked" : "inline";
+  if (raw === "stacked") return "stacked";
+  return "inline";
 }
 
 /** Build contact block for PDF (with symbols). Returns null when empty. */

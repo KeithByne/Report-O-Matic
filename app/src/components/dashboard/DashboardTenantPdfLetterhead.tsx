@@ -22,25 +22,28 @@ type LhState = {
   has_logo: boolean;
 };
 
-const emptyLh: LhState = {
-  name: "",
-  tagline: "",
-  address: "",
-  contactLayout: "inline",
-  phone: "",
-  mobile: "",
-  email: "",
-  has_logo: false,
-};
+function emptyLhState(): LhState {
+  return {
+    name: "",
+    tagline: "",
+    address: "",
+    contactLayout: "inline",
+    phone: "",
+    mobile: "",
+    email: "",
+    has_logo: false,
+  };
+}
 
 function letterheadFromApi(lh: Record<string, unknown> | null | undefined): LhState {
+  const contactLayout = parseLetterheadContactLayout(
+    typeof lh?.contact_layout === "string" ? lh.contact_layout : null,
+  );
   return {
     name: typeof lh?.name === "string" ? lh.name : "",
     tagline: typeof lh?.tagline === "string" ? lh.tagline : "",
     address: typeof lh?.address === "string" ? lh.address : "",
-    contactLayout: parseLetterheadContactLayout(
-      typeof lh?.contact_layout === "string" ? lh.contact_layout : null,
-    ),
+    contactLayout,
     phone: typeof lh?.phone === "string" ? lh.phone : "",
     mobile: typeof lh?.mobile === "string" ? lh.mobile : "",
     email: typeof lh?.email === "string" ? lh.email : "",
@@ -65,43 +68,19 @@ export function DashboardTenantPdfLetterhead({
   const tenantsRef = useRef(tenants);
   tenantsRef.current = tenants;
 
-  const loadOne = useCallback(async (tenantId: string) => {
+  const loadOne = useCallback(async (tenantId: string): Promise<LhState> => {
     const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}/settings`);
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return emptyLh;
-    const lh = data.pdf_letterhead as
-      | {
-          name?: string | null;
-          tagline?: string | null;
-          address?: string | null;
-          contact_layout?: string | null;
-          phone?: string | null;
-          mobile?: string | null;
-          email?: string | null;
-          has_logo?: boolean;
-        }
-      | undefined;
-    return {
-      name: typeof lh?.name === "string" ? lh.name : "",
-      tagline: typeof lh?.tagline === "string" ? lh.tagline : "",
-      address: typeof lh?.address === "string" ? lh.address : "",
-      contactLayout: lh?.contact_layout === "stacked" ? "stacked" : "inline",
-      phone: typeof lh?.phone === "string" ? lh.phone : "",
-      mobile: typeof lh?.mobile === "string" ? lh.mobile : "",
-      email: typeof lh?.email === "string" ? lh.email : "",
-      has_logo: lh?.has_logo === true,
-    };
+    if (!res.ok) return emptyLhState();
+    const lh = data.pdf_letterhead;
+    if (!lh || typeof lh !== "object" || Array.isArray(lh)) return emptyLhState();
+    return letterheadFromApi(lh as Record<string, unknown>);
   }, []);
 
   const refresh = useCallback(async () => {
     const list = tenantsRef.current;
-    const next: Record<string, LhState> = {};
-    await Promise.all(
-      list.map(async (x) => {
-        next[x.tenantId] = await loadOne(x.tenantId);
-      }),
-    );
-    setByTenant(next);
+    const pairs = await Promise.all(list.map(async (x) => [x.tenantId, await loadOne(x.tenantId)] as const));
+    setByTenant(Object.fromEntries(pairs) as Record<string, LhState>);
   }, [loadOne]);
 
   useEffect(() => {
@@ -109,7 +88,7 @@ export function DashboardTenantPdfLetterhead({
   }, [refresh]);
 
   async function save(tenantId: string) {
-    const fields = byTenant[tenantId] ?? emptyLh;
+    const fields = byTenant[tenantId] ?? emptyLhState();
     setBusy(tenantId);
     try {
       const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}/settings`, {
@@ -129,22 +108,11 @@ export function DashboardTenantPdfLetterhead({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
-      const lh = data.pdf_letterhead as typeof data.pdf_letterhead;
-      if (lh && typeof lh === "object") {
+      const lh = data.pdf_letterhead;
+      if (lh && typeof lh === "object" && !Array.isArray(lh)) {
         setByTenant((prev) => ({
           ...prev,
-          [tenantId]: {
-            ...(prev[tenantId] ?? emptyLh),
-            name: typeof lh.name === "string" ? lh.name : "",
-            tagline: typeof lh.tagline === "string" ? lh.tagline : "",
-            address: typeof lh.address === "string" ? lh.address : "",
-            contactLayout:
-              (lh as { contact_layout?: string }).contact_layout === "stacked" ? "stacked" : "inline",
-            phone: typeof (lh as { phone?: string }).phone === "string" ? (lh as { phone: string }).phone : "",
-            mobile: typeof (lh as { mobile?: string }).mobile === "string" ? (lh as { mobile: string }).mobile : "",
-            email: typeof (lh as { email?: string }).email === "string" ? (lh as { email: string }).email : "",
-            has_logo: lh.has_logo === true,
-          },
+          [tenantId]: letterheadFromApi(lh as Record<string, unknown>),
         }));
       }
     } catch (e: unknown) {
@@ -167,7 +135,7 @@ export function DashboardTenantPdfLetterhead({
       if (!res.ok) throw new Error(data.error || t("common.uploadFailed"));
       setByTenant((prev) => ({
         ...prev,
-        [tenantId]: { ...(prev[tenantId] ?? emptyLh), has_logo: true },
+        [tenantId]: { ...(prev[tenantId] ?? emptyLhState()), has_logo: true },
       }));
       setLogoKey((k) => k + 1);
     } catch (e: unknown) {
@@ -187,7 +155,7 @@ export function DashboardTenantPdfLetterhead({
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       setByTenant((prev) => ({
         ...prev,
-        [tenantId]: { ...(prev[tenantId] ?? emptyLh), has_logo: false },
+        [tenantId]: { ...(prev[tenantId] ?? emptyLhState()), has_logo: false },
       }));
       setLogoKey((k) => k + 1);
     } catch (e: unknown) {
@@ -204,7 +172,7 @@ export function DashboardTenantPdfLetterhead({
   ) {
     setByTenant((prev) => ({
       ...prev,
-      [tenantId]: { ...(prev[tenantId] ?? emptyLh), [key]: value },
+      [tenantId]: { ...(prev[tenantId] ?? emptyLhState()), [key]: value },
     }));
   }
 
@@ -230,7 +198,7 @@ export function DashboardTenantPdfLetterhead({
         <p className="mt-1 text-sm text-zinc-600">{t("dash.pdfLetterheadHint")}</p>
         <ul className="mt-4 space-y-6">
           {tenants.map((ten) => {
-            const f = byTenant[ten.tenantId] ?? emptyLh;
+            const f = byTenant[ten.tenantId] ?? emptyLhState();
             const logoSrc = f.has_logo
               ? `/api/tenants/${encodeURIComponent(ten.tenantId)}/letterhead-logo?k=${logoKey}`
               : null;
