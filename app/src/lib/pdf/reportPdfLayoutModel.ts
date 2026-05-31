@@ -8,7 +8,7 @@
  * For visual tweaks inside the same structure, adjust `PDF_TYPOGRAPHY_V1` / `PDF_PAGE_SPEC`.
  */
 
-export const REPORT_PDF_LAYOUT_VERSION = 16;
+export const REPORT_PDF_LAYOUT_VERSION = 17;
 
 /** Stable id embedded in PDF metadata and logs; change when the layout is not the same document shape. */
 export const REPORT_PDF_LAYOUT_ID = "report-a4-v10" as const;

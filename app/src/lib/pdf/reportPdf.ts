@@ -19,6 +19,7 @@ import { pdfTeacherSignatureLabel } from "@/lib/pdf/pdfTeacherSignature";
 
 import {
   letterheadLogoFallbackDrawPt,
+  letterheadLogoRenderPt,
   resolveLetterheadLogoDrawPt,
   type LetterheadLogoDrawPt,
 } from "@/lib/pdf/letterheadLogoLayout";
@@ -295,7 +296,10 @@ function drawLetterheadBlock(
   logoDrawPt: LetterheadLogoDrawPt | null = null,
 ): void {
 
-  const startY = doc.y;
+  /** Absolute page coords — start flush with the top margin (no extra flow offset). */
+  const startY = pageMarginPt;
+
+  doc.x = pageMarginPt;
 
   const leftX = pageMarginPt;
 
@@ -319,24 +323,31 @@ function drawLetterheadBlock(
 
   const textBlockH = nameH + (addrBlock ? LETTERHEAD_NAME_ADDR_GAP_PT + addrH : 0);
 
-  const logoH = hasLogo && drawBox ? drawBox.heightPt : 0;
+  const maxLogoH = heightPt * PDF_LETTERHEAD_LOGO_SPEC.maxPageHeightRatio;
 
-  /** Shared grid row height; logo bottom and last contact line sit on this baseline. */
-  const cellH = Math.max(logoH, textBlockH);
+  const logoRender =
+    hasLogo && drawBox ? letterheadLogoRenderPt(drawBox, logoColWidthPt, maxLogoH) : { widthPt: 0, heightPt: 0 };
+
+  const logoRH = logoRender.heightPt;
+
+  /** Shared baseline: bottom of logo image and bottom of contact block (email line). */
+  const cellH = Math.max(logoRH, textBlockH);
 
   const baselineY = startY + cellH;
 
-  const textBlockY = baselineY - textBlockH;
+  const textIsTaller = textBlockH >= logoRH;
 
-  const logoY = hasLogo && drawBox ? baselineY - logoH : startY;
+  const textBlockY = textIsTaller ? startY : baselineY - textBlockH;
+
+  const logoY = textIsTaller ? baselineY - logoRH : startY;
 
 
 
-  if (hasLogo && logo && drawBox && logoH > 0) {
+  if (hasLogo && logo && logoRH > 0) {
 
     try {
 
-      doc.image(logo, leftX, logoY, { fit: [logoColWidthPt, logoH] });
+      doc.image(logo, leftX, logoY, { fit: [logoRender.widthPt, logoRH] });
 
     } catch {
 
@@ -576,7 +587,7 @@ function drawGradesTable(
 
 
 export async function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 16) {
+  if (REPORT_PDF_LAYOUT_VERSION !== 17) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
   const logoDrawPt = await resolveLetterheadLogoDrawPt(ctx.letterheadLogo, {

@@ -70,11 +70,20 @@ export function fitLetterheadLogoToBox(
 ): LetterheadLogoDrawPt {
   if (maxWidthPt <= 0 || maxHeightPt <= 0) return { widthPt: 0, heightPt: 0 };
   const aspect = ideal.widthPt / ideal.heightPt;
-  let heightPt = Math.min(ideal.heightPt, maxHeightPt);
-  let widthPt = heightPt * aspect;
-  if (widthPt > maxWidthPt) {
-    widthPt = maxWidthPt;
-    heightPt = widthPt / aspect;
+  let widthPt = maxWidthPt;
+  let heightPt = widthPt / aspect;
+  if (heightPt > maxHeightPt) {
+    heightPt = maxHeightPt;
+    widthPt = heightPt * aspect;
   }
   return { widthPt: Math.max(1, widthPt), heightPt: Math.max(1, heightPt) };
+}
+
+/** Actual size when the logo is drawn into the letterhead column slot (matches PDFKit `fit`). */
+export function letterheadLogoRenderPt(
+  ideal: LetterheadLogoDrawPt,
+  slotWidthPt: number,
+  maxHeightPt: number,
+): LetterheadLogoDrawPt {
+  return fitLetterheadLogoToBox(ideal, slotWidthPt, maxHeightPt);
 }
