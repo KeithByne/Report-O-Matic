@@ -8,10 +8,10 @@
  * For visual tweaks inside the same structure, adjust `PDF_TYPOGRAPHY_V1` / `PDF_PAGE_SPEC`.
  */
 
-export const REPORT_PDF_LAYOUT_VERSION = 18;
+export const REPORT_PDF_LAYOUT_VERSION = 20;
 
 /** Stable id embedded in PDF metadata and logs; change when the layout is not the same document shape. */
-export const REPORT_PDF_LAYOUT_ID = "report-a4-v10" as const;
+export const REPORT_PDF_LAYOUT_ID = "report-a4-v8-original" as const;
 
 export type ReportPdfLayoutId = typeof REPORT_PDF_LAYOUT_ID;
 
@@ -23,43 +23,14 @@ export const PDF_PAGE_SPEC = {
   marginPt: 48,
 } as const;
 
-/** Letterhead logo sizing — logo is the visual priority (width-first). */
-export const PDF_LETTERHEAD_LOGO_SPEC = {
-  /** Target logo width as a fraction of full page width (~half the page). */
-  logoPageWidthRatio: 0.5,
-  /** Cap height for very tall marks so the header does not dominate the page. */
-  maxPageHeightRatio: 0.28,
-  /** Minimum horizontal gap between logo column and contact column (millimetres). */
-  columnGapMm: 5,
-  /** Fallback draw box when pixel dimensions cannot be read (≈50% page width on A4). */
-  fallbackWidthPt: 298,
-  fallbackHeightPt: 84,
-} as const;
-
 /** Convert mm to PDF points (1 in = 72 pt, 1 in = 25.4 mm). */
 export const PDF_MM_TO_PT = 72 / 25.4;
 
-export function letterheadColumnGapPt(): number {
-  return PDF_LETTERHEAD_LOGO_SPEC.columnGapMm * PDF_MM_TO_PT;
-}
-
-/** Letterhead grid: logo column ≈50% page width, 5 mm gap, contact column fills the rest. */
-export function letterheadColumnWidthsPt(
-  pageWidthPt: number,
-  pageMarginPt: number,
-): { contentWidthPt: number; logoColWidthPt: number; textColWidthPt: number; gapPt: number } {
-  const contentWidthPt = Math.max(1, pageWidthPt - pageMarginPt * 2);
-  const gapPt = letterheadColumnGapPt();
-  const logoColWidthPt = pageWidthPt * PDF_LETTERHEAD_LOGO_SPEC.logoPageWidthRatio;
-  const textColWidthPt = Math.max(1, contentWidthPt - logoColWidthPt - gapPt);
-  return { contentWidthPt, logoColWidthPt, textColWidthPt, gapPt };
-}
-
-/** @deprecated Fixed slot — use PDF_LETTERHEAD_LOGO_SPEC + letterheadLogoLayout. */
+/** Logo slot beside letterhead text: landscape width × height = 3 × 1 (points). */
 export const PDF_LETTERHEAD_BLOCK_SPEC_V1 = {
-  logoSlotWidthPt: PDF_LETTERHEAD_LOGO_SPEC.fallbackWidthPt,
-  logoSlotHeightPt: PDF_LETTERHEAD_LOGO_SPEC.fallbackHeightPt,
-  columnGapPt: letterheadColumnGapPt(),
+  logoSlotWidthPt: 216,
+  logoSlotHeightPt: 72,
+  columnGapPt: 16,
 } as const;
 
 /** Teacher signature rectangle height (points). */

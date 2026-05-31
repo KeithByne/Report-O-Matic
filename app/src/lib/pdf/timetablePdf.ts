@@ -1,7 +1,6 @@
 import PDFDocument from "pdfkit";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { PDF_PAGE_SPEC } from "@/lib/pdf/reportPdfLayoutModel";
-import { resolveLetterheadLogoDrawPt } from "@/lib/pdf/letterheadLogoLayout";
 import { drawReportLetterhead, type ReportPdfLetterhead } from "@/lib/pdf/reportPdf";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 
@@ -107,11 +106,6 @@ function drawPeriodHeaderRow(
 
 export async function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<Buffer> {
   const lang: UiLang = isUiLang(opts.uiLang) ? opts.uiLang : "en";
-  const logoDrawPt = await resolveLetterheadLogoDrawPt(opts.letterheadLogo, {
-    pageWidthPt: PAGE_W,
-    pageHeightPt: PAGE_H,
-    pageMarginPt: MARGIN_PT,
-  });
   const periodTotal = opts.periodsAm + opts.periodsPm;
   const lunchCols = 1;
   const gridCols = periodTotal + lunchCols;
@@ -178,7 +172,6 @@ export async function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<
       drawReportLetterhead(doc, opts.letterhead, opts.letterheadLogo, {
         pageMarginPt: MARGIN_PT,
         pageWidthPt: PAGE_W,
-        logoDrawPt,
       });
 
       doc.moveDown(0.6);

@@ -17,11 +17,6 @@ import {
 
 import { pdfTeacherSignatureLabel } from "@/lib/pdf/pdfTeacherSignature";
 
-import {
-  letterheadLogoFallbackDrawPt,
-  resolveLetterheadLogoDrawPt,
-  type LetterheadLogoDrawPt,
-} from "@/lib/pdf/letterheadLogoLayout";
 import { formatLetterheadContactForPdf, letterheadContactLabelsForPdf } from "@/lib/pdf/letterheadContact";
 import type { TenantPdfLetterheadRow } from "@/lib/data/tenantPdfLetterhead";
 
@@ -35,7 +30,7 @@ import {
 
   PDF_MM_TO_PT,
 
-  letterheadColumnWidthsPt,
+  PDF_LETTERHEAD_BLOCK_SPEC_V1,
 
   PDF_PAGE_SPEC,
 
@@ -188,6 +183,8 @@ const typo = PDF_TYPOGRAPHY_V1;
 
 const tableSpec = PDF_GRADES_TABLE_SPEC_V1;
 
+const lhSpec = PDF_LETTERHEAD_BLOCK_SPEC_V1;
+
 const divisionBoxSpec = PDF_GRADES_DIVISION_BOX_V1;
 
 const commentBoxSpec = PDF_COMMENT_BOX_V1;
@@ -269,97 +266,63 @@ function applyTypo(
 
 }
 
-const LETTERHEAD_NAME_ADDR_GAP_PT = 4;
-const LETTERHEAD_TAGLINE_GAP_PT = 6;
-
-function letterheadTextHeight(
-  doc: PdfDoc,
-  text: string,
-  width: number,
-  t: { fontSize: number; font: "Helvetica" | "Helvetica-Bold"; fill: string; lineGap?: number },
-): number {
-  applyTypo(doc, t);
-  return doc.heightOfString(text, { width, lineGap: t.lineGap ?? 0 });
-}
-
-/**
- * Letterhead grid: logo (~50% page width) | 5 mm gap | name + address + contact.
- * Text starts at the top margin; logo bottom aligns with the last contact line.
- * Tagline sits below that row, under the logo column.
- */
 function drawLetterheadBlock(
   doc: PdfDoc,
   lh: ReportPdfLetterhead,
   logo: Buffer | null,
   pageMarginPt: number = marginPt,
   pageWidthPt: number = widthPt,
-  logoDrawPt: LetterheadLogoDrawPt | null = null,
 ): void {
-  const topY = pageMarginPt;
+  const startY = doc.y;
   const leftX = pageMarginPt;
-  const { contentWidthPt, logoColWidthPt, textColWidthPt, gapPt } = letterheadColumnWidthsPt(pageWidthPt, pageMarginPt);
+  const slotW = lhSpec.logoSlotWidthPt;
+  const slotH = lhSpec.logoSlotHeightPt;
+  const textX = leftX + slotW + lhSpec.columnGapPt;
+  const textW = pageWidthPt - pageMarginPt - textX;
 
   const hasLogo = Boolean(logo?.length);
-  const textX = hasLogo ? leftX + logoColWidthPt + gapPt : leftX;
-  const textW = hasLogo ? textColWidthPt : contentWidthPt;
-
-  const nameText = lh.displayName;
-  const nameH = letterheadTextHeight(doc, nameText, textW, typo.letterheadName);
-  const addrBlock = [lh.address?.trim(), lh.contact?.trim()].filter(Boolean).join("\n");
-  const addrH = addrBlock ? letterheadTextHeight(doc, addrBlock, textW, typo.letterheadAddress) : 0;
-  const textBlockH = nameH + (addrBlock ? LETTERHEAD_NAME_ADDR_GAP_PT + addrH : 0);
-  const textBottomY = topY + textBlockH;
-
-  let logoW = 0;
-  let logoH = 0;
-  if (hasLogo) {
-    const box = logoDrawPt ?? letterheadLogoFallbackDrawPt(pageWidthPt);
-    logoW = box.widthPt;
-    logoH = box.heightPt;
-    if (textBlockH > 0 && logoH > textBlockH) {
-      const aspect = box.widthPt / box.heightPt;
-      logoH = textBlockH;
-      logoW = logoH * aspect;
-    }
-  }
-
-  applyTypo(doc, typo.letterheadName);
-  doc.text(nameText, textX, topY, { width: textW, align: "left" });
-
-  if (addrBlock) {
-    applyTypo(doc, typo.letterheadAddress);
-    doc.text(addrBlock, textX, topY + nameH + LETTERHEAD_NAME_ADDR_GAP_PT, {
-      width: textW,
-      align: "left",
-      lineGap: typo.letterheadAddress.lineGap,
-    });
-  }
-
-  if (hasLogo && logo && logoW > 0 && logoH > 0) {
-    const logoY = textBottomY - logoH;
+  if (hasLogo && logo) {
     try {
-      doc.image(logo, leftX, logoY, { width: logoW, height: logoH });
+      doc.image(logo, leftX, startY, { fit: [slotW, slotH] });
     } catch {
       // skip
     }
   }
 
-  const taglineText = lh.tagline?.trim() ?? "";
-  let blockEndY = textBottomY;
+  const logoBottom = startY + (hasLogo ? slotH : 0);
 
-  if (taglineText) {
-    const taglineY = textBottomY + LETTERHEAD_TAGLINE_GAP_PT;
+  let tagBottom = startY;
+  if (lh.tagline?.trim()) {
+    const tagY = hasLogo ? logoBottom + 6 : startY;
     applyTypo(doc, typo.letterheadTagline);
-    doc.text(taglineText, leftX, taglineY, {
-      width: logoColWidthPt,
+    doc.text(lh.tagline.trim(), leftX, tagY, {
+      width: slotW,
       align: "left",
       lineGap: typo.letterheadTagline.lineGap,
     });
-    blockEndY = taglineY + letterheadTextHeight(doc, taglineText, logoColWidthPt, typo.letterheadTagline);
+    tagBottom = doc.y;
+  } else if (hasLogo) {
+    tagBottom = logoBottom;
   }
 
+  applyTypo(doc, typo.letterheadName);
+  doc.text(lh.displayName, textX, startY, { width: textW, align: "left" });
+  let textBottom = doc.y;
+  const addrBlock = [lh.address?.trim(), lh.contact?.trim()].filter(Boolean).join("\n");
+  if (addrBlock) {
+    applyTypo(doc, typo.letterheadAddress);
+    doc.text(addrBlock, textX, textBottom + 4, {
+      width: textW,
+      align: "left",
+      lineGap: typo.letterheadAddress.lineGap,
+    });
+    textBottom = doc.y;
+  }
+
+  const leftColumnEnd = lh.tagline?.trim() ? tagBottom : hasLogo ? logoBottom : startY;
+  const blockEnd = Math.max(leftColumnEnd, textBottom);
+  doc.y = blockEnd;
   doc.x = pageMarginPt;
-  doc.y = blockEndY;
 }
 
 
@@ -370,7 +333,7 @@ export function drawReportLetterhead(
   doc: PdfDoc,
   lh: ReportPdfLetterhead,
   logo: Buffer | null,
-  opts?: { pageMarginPt?: number; pageWidthPt?: number; logoDrawPt?: LetterheadLogoDrawPt | null },
+  opts?: { pageMarginPt?: number; pageWidthPt?: number },
 ): void {
   drawLetterheadBlock(
     doc,
@@ -378,7 +341,6 @@ export function drawReportLetterhead(
     logo,
     opts?.pageMarginPt ?? marginPt,
     opts?.pageWidthPt ?? widthPt,
-    opts?.logoDrawPt ?? null,
   );
 }
 
@@ -533,23 +495,18 @@ function drawGradesTable(
 
 
 
-export async function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 18) {
+export function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
+  if (REPORT_PDF_LAYOUT_VERSION !== 20) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
-  const logoDrawPt = await resolveLetterheadLogoDrawPt(ctx.letterheadLogo, {
-    pageWidthPt: widthPt,
-    pageHeightPt: heightPt,
-    pageMarginPt: marginPt,
-  });
-  return renderReportPdfLayoutV4(ctx, logoDrawPt);
+  return renderReportPdfLayoutV4(ctx);
 }
 
 
 
 /** Page 1: letterhead + context + academic record; page 2: parent comment only. */
 
-function renderReportPdfLayoutV4(ctx: ReportPdfContext, logoDrawPt: LetterheadLogoDrawPt | null): Promise<Buffer> {
+function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
 
   return new Promise((resolve, reject) => {
 
@@ -590,7 +547,7 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext, logoDrawPt: LetterheadLo
 
     const sigLabel = pdfTeacherSignatureLabel(ctx.outputLanguageCode);
 
-    drawLetterheadBlock(doc, ctx.letterhead, ctx.letterheadLogo, marginPt, widthPt, logoDrawPt);
+    drawLetterheadBlock(doc, ctx.letterhead, ctx.letterheadLogo);
 
     doc.moveDown(0.55);
 

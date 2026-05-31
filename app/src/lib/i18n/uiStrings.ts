@@ -832,7 +832,7 @@ const EN: UiMessages = {
   "dash.addSchoolWorking": "Adding…",
   "dash.pdfLetterheadTitle": "PDF letterhead (owner)",
   "dash.pdfLetterheadHint":
-    "Logo uses about half the page width. Name and address start at the top margin; the logo bottom lines up with the last contact line; tagline sits below. PNG, JPEG, or WebP — 1∶6 to 6∶1, max 4 MB. Save, then preview.",
+    "Logo (left), tagline under the logo, and text to the right on PDFs. Landscape PNG, JPEG, or WebP — about 3∶1 (±10%), max 4 MB. Server normalizes for the PDF. Save text fields, then preview.",
   "dash.pdfLetterheadName": "Official name on PDF (optional)",
   "dash.pdfLetterheadTagline": "Tagline / subtitle (optional, under logo on PDF)",
   "dash.pdfLetterheadAddress": "Address (optional, multiple lines ok)",
@@ -853,7 +853,7 @@ const EN: UiMessages = {
   "dash.pdfLetterheadLogoUploading": "Uploading…",
   "dash.pdfLetterheadLogoRemove": "Remove logo",
   "dash.pdfLetterheadLogoHint":
-    "PNG, JPEG, or WebP. Width ÷ height between 1∶6 and 6∶1 (square to banner). Max 4 MB; optimized for print.",
+    "PNG, JPEG, or WebP. Roughly 3×1 landscape (±10%). Max 4 MB; optimized for print.",
   "dash.pdfLetterheadSave": "Save letterhead",
   "dash.pdfLetterheadSaving": "Saving…",
   "dash.pdfLetterheadPreview": "Preview sample PDF",
