@@ -300,7 +300,7 @@ function drawLetterheadBlock(
 
     try {
 
-      doc.image(logo, leftX, startY, { fit: [logoW, logoH], valign: "top" });
+      doc.image(logo, leftX, startY, { fit: [logoW, logoH] });
 
     } catch {
 
