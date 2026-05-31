@@ -318,20 +318,14 @@ function drawLetterheadBlock(
 
   const addrH = addrBlock ? letterheadTextHeight(doc, addrBlock, textW, typo.letterheadAddress) : 0;
 
+  /** Bottom of the right-column contact block (last address/contact line). */
   const baselineY = startY + nameH + (addrBlock ? LETTERHEAD_NAME_ADDR_GAP_PT + addrH : 0);
 
   const taglineText = lh.tagline?.trim() ?? "";
 
   const taglineH = taglineText ? letterheadTextHeight(doc, taglineText, logoColWidthPt, typo.letterheadTagline) : 0;
 
-  const logoSlotH = baselineY - startY - (taglineText ? taglineH + LETTERHEAD_TAGLINE_LOGO_GAP_PT : 0);
-
-  const fittedLogo =
-    hasLogo && drawBox && logoSlotH > 0
-      ? fitLetterheadLogoToBox(drawBox, logoColWidthPt, logoSlotH)
-      : { widthPt: 0, heightPt: 0 };
-
-  const logoY = baselineY - fittedLogo.heightPt;
+  const taglineY = taglineText ? baselineY - taglineH : baselineY;
 
 
 
@@ -357,27 +351,11 @@ function drawLetterheadBlock(
 
 
 
-  if (hasLogo && logo && fittedLogo.heightPt > 0) {
-
-    try {
-
-      doc.image(logo, leftX, logoY, { fit: [logoColWidthPt, fittedLogo.heightPt] });
-
-    } catch {
-
-      // skip
-
-    }
-
-  }
-
-
-
   if (taglineText) {
 
     applyTypo(doc, typo.letterheadTagline);
 
-    doc.text(taglineText, leftX, startY, {
+    doc.text(taglineText, leftX, taglineY, {
 
       width: logoColWidthPt,
 
@@ -391,7 +369,41 @@ function drawLetterheadBlock(
 
 
 
-  doc.y = baselineY;
+  let logoBottom = startY;
+
+  if (hasLogo && logo && drawBox) {
+
+    let logoDrawH = drawBox.heightPt;
+
+    if (taglineText) {
+
+      const maxH = taglineY - startY - LETTERHEAD_TAGLINE_LOGO_GAP_PT;
+
+      if (maxH > 0 && logoDrawH > maxH) {
+
+        logoDrawH = fitLetterheadLogoToBox(drawBox, logoColWidthPt, maxH).heightPt;
+
+      }
+
+    }
+
+    logoBottom = startY + logoDrawH;
+
+    try {
+
+      doc.image(logo, leftX, startY, { fit: [logoColWidthPt, logoDrawH] });
+
+    } catch {
+
+      // skip
+
+    }
+
+  }
+
+
+
+  doc.y = Math.max(baselineY, logoBottom);
 
   doc.x = pageMarginPt;
 
