@@ -6,7 +6,7 @@ import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { listReportsForTenant } from "@/lib/data/reportsDb";
 import { resolveGradeRubricForTenantReport } from "@/lib/data/resolveGradeRubricForTenantReport";
 import { listStudents } from "@/lib/data/students";
-import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
+import { downloadTenantLetterheadLogoForPdf } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, resolvedSubjectLabelForPdf } from "@/lib/i18n/uiStrings";
@@ -135,7 +135,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
-  const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
+  const letterheadLogo = await downloadTenantLetterheadLogoForPdf(pdfLhRow.pdf_letterhead_logo_path);
 
   const classDefault = coerceStoredDefaultSubject(klass.default_subject);
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { listClasses } from "@/lib/data/classesDb";
-import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
+import { downloadTenantLetterheadLogoForPdf } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant, getTenantName, listMembersForTenant } from "@/lib/data/memberships";
 import { getTimetableSettings, listTimetableSlots, type TimetableSettings } from "@/lib/data/timetableDb";
@@ -112,7 +112,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
   const letterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow, uiLang);
-  const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
+  const letterheadLogo = await downloadTenantLetterheadLogoForPdf(pdfLhRow.pdf_letterhead_logo_path);
 
   const titleKey = role === "teacher" ? "pdf.timetableMyTitle" : "pdf.timetableTitle";
   const visibleDayIndexes = visibleDayIndexesForPdf(settings);

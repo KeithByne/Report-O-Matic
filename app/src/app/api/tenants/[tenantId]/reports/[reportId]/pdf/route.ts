@@ -5,7 +5,7 @@ import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { resolveGradeRubricForTenantReport } from "@/lib/data/resolveGradeRubricForTenantReport";
 import { getReport } from "@/lib/data/reportsDb";
-import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
+import { downloadTenantLetterheadLogoForPdf } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { isReportLanguageCode, languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, resolvedSubjectLabelForPdf } from "@/lib/i18n/uiStrings";
@@ -59,7 +59,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
-  const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
+  const letterheadLogo = await downloadTenantLetterheadLogoForPdf(pdfLhRow.pdf_letterhead_logo_path);
   const outputLanguageCode =
     typeof report.output_language === "string" && isReportLanguageCode(report.output_language.trim())
       ? report.output_language.trim()

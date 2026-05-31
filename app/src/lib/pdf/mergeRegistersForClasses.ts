@@ -2,7 +2,7 @@ import { effectiveActiveWeekdaysForRegister, registerSessionColumnCount } from "
 import type { ClassRow } from "@/lib/data/classesDb";
 import { getTenantName } from "@/lib/data/memberships";
 import { listStudents } from "@/lib/data/students";
-import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
+import { downloadTenantLetterheadLogoForPdf } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { isUiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings, type ReportPdfLetterhead } from "@/lib/pdf/reportPdf";
@@ -21,7 +21,7 @@ export async function mergeRegisterPdfsForClassRows(
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
   const letterhead: ReportPdfLetterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow, uiLang);
-  const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
+  const letterheadLogo = await downloadTenantLetterheadLogoForPdf(pdfLhRow.pdf_letterhead_logo_path);
 
   const pdfs: Buffer[] = [];
   for (const klass of classes) {

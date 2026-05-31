@@ -12,6 +12,25 @@ export type LetterheadLogoProcess =
   | { ok: true; buffer: Buffer; contentType: "image/png" | "image/jpeg"; ext: "png" | "jpg" }
   | { ok: false; error: string };
 
+async function prepareLetterheadRaster(buf: Buffer): Promise<Buffer> {
+  const input = sharp(buf, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS }).rotate();
+  try {
+    return await input.clone().trim({ threshold: 12 }).toBuffer();
+  } catch {
+    return input.toBuffer();
+  }
+}
+
+/** Trim empty borders before PDF draw (fixes padded exports). Safe to call on every PDF build. */
+export async function trimLetterheadLogoForPdf(buf: Buffer): Promise<Buffer> {
+  if (!buf.length) return buf;
+  try {
+    return await prepareLetterheadRaster(buf);
+  } catch {
+    return buf;
+  }
+}
+
 export async function processLetterheadLogoUpload(buf: Buffer): Promise<LetterheadLogoProcess> {
   if (buf.length > LETTERHEAD_LOGO_MAX_UPLOAD_BYTES) {
     const mb = LETTERHEAD_LOGO_MAX_UPLOAD_BYTES / (1024 * 1024);
@@ -22,7 +41,8 @@ export async function processLetterheadLogoUpload(buf: Buffer): Promise<Letterhe
   }
 
   try {
-    const meta = await sharp(buf, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS }).rotate().metadata();
+    const trimmed = await prepareLetterheadRaster(buf);
+    const meta = await sharp(trimmed, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS }).metadata();
 
     if (!letterheadLogoAllowedSharpFormat(meta.format)) {
       return { ok: false, error: "Unsupported image type. Use PNG, JPEG, or WebP only." };
@@ -42,9 +62,11 @@ export async function processLetterheadLogoUpload(buf: Buffer): Promise<Letterhe
       meta.channels === 4 ||
       (typeof meta.space === "string" && meta.space.toLowerCase() === "rgba");
 
-    const pipeline = sharp(buf, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS })
-      .rotate()
-      .resize(MAX_RASTER_EDGE_PX, MAX_RASTER_EDGE_PX, { fit: "inside", withoutEnlargement: true });
+    const pipeline = sharp(trimmed, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS }).resize(
+      MAX_RASTER_EDGE_PX,
+      MAX_RASTER_EDGE_PX,
+      { fit: "inside", withoutEnlargement: true },
+    );
 
     if (hasAlpha) {
       const buffer = await pipeline.png({ compressionLevel: 9, effort: 6 }).toBuffer();

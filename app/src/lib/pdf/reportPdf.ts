@@ -266,6 +266,42 @@ function applyTypo(
 
 }
 
+function letterheadLogoColumnWidthPt(pageWidthPt: number, pageMarginPt: number): number {
+  const usableW = pageWidthPt - pageMarginPt * 2;
+  return usableW * lhSpec.logoColumnWidthRatio;
+}
+
+/** Width-first logo draw: fills the logo column, height from aspect ratio (capped). */
+function letterheadLogoDrawSize(
+  doc: PdfDoc,
+  logo: Buffer,
+  pageWidthPt: number,
+  pageMarginPt: number,
+): { widthPt: number; heightPt: number; columnWidthPt: number } {
+  const columnWidthPt = letterheadLogoColumnWidthPt(pageWidthPt, pageMarginPt);
+  const maxH = lhSpec.logoMaxHeightPt;
+  try {
+    const img = doc.openImage(logo);
+    if (!img.width || !img.height) {
+      return { widthPt: columnWidthPt, heightPt: maxH, columnWidthPt };
+    }
+    const aspect = img.width / img.height;
+    let drawW = columnWidthPt;
+    let drawH = drawW / aspect;
+    if (drawH > maxH) {
+      drawH = maxH;
+      drawW = drawH * aspect;
+    }
+    return {
+      widthPt: Math.max(1, drawW),
+      heightPt: Math.max(1, drawH),
+      columnWidthPt,
+    };
+  } catch {
+    return { widthPt: columnWidthPt, heightPt: maxH, columnWidthPt };
+  }
+}
+
 function drawLetterheadBlock(
   doc: PdfDoc,
   lh: ReportPdfLetterhead,
@@ -275,28 +311,32 @@ function drawLetterheadBlock(
 ): void {
   const startY = doc.y;
   const leftX = pageMarginPt;
-  const slotW = lhSpec.logoSlotWidthPt;
-  const slotH = lhSpec.logoSlotHeightPt;
-  const textX = leftX + slotW + lhSpec.columnGapPt;
-  const textW = pageWidthPt - pageMarginPt - textX;
 
   const hasLogo = Boolean(logo?.length);
+  let logoColW = letterheadLogoColumnWidthPt(pageWidthPt, pageMarginPt);
+  let logoDrawH = 0;
+
   if (hasLogo && logo) {
+    const sz = letterheadLogoDrawSize(doc, logo, pageWidthPt, pageMarginPt);
+    logoColW = sz.columnWidthPt;
     try {
-      doc.image(logo, leftX, startY, { fit: [slotW, slotH] });
+      doc.image(logo, leftX, startY, { width: sz.widthPt, height: sz.heightPt });
+      logoDrawH = sz.heightPt;
     } catch {
       // skip
     }
   }
 
-  const logoBottom = startY + (hasLogo ? slotH : 0);
+  const textX = leftX + logoColW + lhSpec.columnGapPt;
+  const textW = pageWidthPt - pageMarginPt - textX;
+  const logoBottom = startY + logoDrawH;
 
   let tagBottom = startY;
   if (lh.tagline?.trim()) {
     const tagY = hasLogo ? logoBottom + 6 : startY;
     applyTypo(doc, typo.letterheadTagline);
     doc.text(lh.tagline.trim(), leftX, tagY, {
-      width: slotW,
+      width: logoColW,
       align: "left",
       lineGap: typo.letterheadTagline.lineGap,
     });
@@ -496,7 +536,7 @@ function drawGradesTable(
 
 
 export function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 20) {
+  if (REPORT_PDF_LAYOUT_VERSION !== 21) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
   return renderReportPdfLayoutV4(ctx);

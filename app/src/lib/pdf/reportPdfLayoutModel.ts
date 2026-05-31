@@ -8,10 +8,10 @@
  * For visual tweaks inside the same structure, adjust `PDF_TYPOGRAPHY_V1` / `PDF_PAGE_SPEC`.
  */
 
-export const REPORT_PDF_LAYOUT_VERSION = 20;
+export const REPORT_PDF_LAYOUT_VERSION = 21;
 
 /** Stable id embedded in PDF metadata and logs; change when the layout is not the same document shape. */
-export const REPORT_PDF_LAYOUT_ID = "report-a4-v8-original" as const;
+export const REPORT_PDF_LAYOUT_ID = "report-a4-v12" as const;
 
 export type ReportPdfLayoutId = typeof REPORT_PDF_LAYOUT_ID;
 
@@ -26,10 +26,12 @@ export const PDF_PAGE_SPEC = {
 /** Convert mm to PDF points (1 in = 72 pt, 1 in = 25.4 mm). */
 export const PDF_MM_TO_PT = 72 / 25.4;
 
-/** Logo slot beside letterhead text: landscape width × height = 3 × 1 (points). */
+/** Letterhead logo: wide left column, width-first draw (height capped). */
 export const PDF_LETTERHEAD_BLOCK_SPEC_V1 = {
-  logoSlotWidthPt: 216,
-  logoSlotHeightPt: 72,
+  /** Logo column as a fraction of usable page width (between margins). */
+  logoColumnWidthRatio: 0.58,
+  /** Max rendered logo height (points). */
+  logoMaxHeightPt: 105,
   columnGapPt: 16,
 } as const;
 

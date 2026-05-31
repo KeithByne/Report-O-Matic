@@ -5,7 +5,7 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant, getTenantName } from "@/lib/data/memberships";
 import { listStudents } from "@/lib/data/students";
-import { downloadTenantLetterheadLogo } from "@/lib/data/tenantLetterheadLogo";
+import { downloadTenantLetterheadLogoForPdf } from "@/lib/data/tenantLetterheadLogo";
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { isUiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
@@ -55,7 +55,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
   const letterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow, uiLang);
-  const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
+  const letterheadLogo = await downloadTenantLetterheadLogoForPdf(pdfLhRow.pdf_letterhead_logo_path);
 
   const studentRows = students.map((s) => ({
     firstName: (s.first_name ?? "").trim() || (s.display_name ?? "").trim(),

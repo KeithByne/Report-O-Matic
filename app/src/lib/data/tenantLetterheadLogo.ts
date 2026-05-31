@@ -1,4 +1,5 @@
 import { getServiceSupabase } from "@/lib/supabase/service";
+import { trimLetterheadLogoForPdf } from "@/lib/pdf/letterheadLogoProcess";
 
 export const TENANT_LETTERHEAD_LOGOS_BUCKET = "tenant-letterhead-logos";
 
@@ -19,6 +20,13 @@ export async function downloadTenantLetterheadLogo(path: string | null | undefin
   const { data, error } = await supabase.storage.from(TENANT_LETTERHEAD_LOGOS_BUCKET).download(p);
   if (error || !data) return null;
   return Buffer.from(await data.arrayBuffer());
+}
+
+/** Logo bytes trimmed for PDF letterhead (removes empty canvas padding). */
+export async function downloadTenantLetterheadLogoForPdf(path: string | null | undefined): Promise<Buffer | null> {
+  const buf = await downloadTenantLetterheadLogo(path);
+  if (!buf?.length) return null;
+  return trimLetterheadLogoForPdf(buf);
 }
 
 export async function uploadTenantLetterheadLogo(
