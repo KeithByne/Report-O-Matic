@@ -272,6 +272,7 @@ function applyTypo(
 }
 
 const LETTERHEAD_NAME_ADDR_GAP_PT = 4;
+const LETTERHEAD_TAGLINE_BELOW_BASELINE_PT = 4;
 
 function letterheadTextHeight(
   doc: PdfDoc,
@@ -298,13 +299,13 @@ function drawLetterheadBlock(
 
   const leftX = pageMarginPt;
 
-  const { contentWidthPt, logoColWidthPt, textColWidthPt } = letterheadColumnWidthsPt(pageWidthPt, pageMarginPt);
+  const { contentWidthPt, logoColWidthPt, textColWidthPt, gapPt } = letterheadColumnWidthsPt(pageWidthPt, pageMarginPt);
 
   const hasLogo = Boolean(logo?.length);
 
   const drawBox = hasLogo ? (logoDrawPt ?? letterheadLogoFallbackDrawPt()) : null;
 
-  const textX = hasLogo ? leftX + logoColWidthPt : leftX;
+  const textX = hasLogo ? leftX + logoColWidthPt + gapPt : leftX;
 
   const textW = hasLogo ? textColWidthPt : contentWidthPt;
 
@@ -316,26 +317,46 @@ function drawLetterheadBlock(
 
   const addrH = addrBlock ? letterheadTextHeight(doc, addrBlock, textW, typo.letterheadAddress) : 0;
 
-  /** Bottom of the right-column contact block (last address/contact line). */
-  const baselineY = startY + nameH + (addrBlock ? LETTERHEAD_NAME_ADDR_GAP_PT + addrH : 0);
+  const textBlockH = nameH + (addrBlock ? LETTERHEAD_NAME_ADDR_GAP_PT + addrH : 0);
 
-  const taglineText = lh.tagline?.trim() ?? "";
+  const logoH = hasLogo && drawBox ? drawBox.heightPt : 0;
 
-  const taglineH = taglineText ? letterheadTextHeight(doc, taglineText, logoColWidthPt, typo.letterheadTagline) : 0;
+  /** Shared grid row height; logo bottom and last contact line sit on this baseline. */
+  const cellH = Math.max(logoH, textBlockH);
 
-  const taglineY = taglineText ? baselineY - taglineH : baselineY;
+  const baselineY = startY + cellH;
+
+  const textBlockY = baselineY - textBlockH;
+
+  const logoY = hasLogo && drawBox ? baselineY - logoH : startY;
+
+
+
+  if (hasLogo && logo && drawBox && logoH > 0) {
+
+    try {
+
+      doc.image(logo, leftX, logoY, { fit: [logoColWidthPt, logoH] });
+
+    } catch {
+
+      // skip
+
+    }
+
+  }
 
 
 
   applyTypo(doc, typo.letterheadName);
 
-  doc.text(nameText, textX, startY, { width: textW, align: "left" });
+  doc.text(nameText, textX, textBlockY, { width: textW, align: "left" });
 
   if (addrBlock) {
 
     applyTypo(doc, typo.letterheadAddress);
 
-    doc.text(addrBlock, textX, startY + nameH + LETTERHEAD_NAME_ADDR_GAP_PT, {
+    doc.text(addrBlock, textX, textBlockY + nameH + LETTERHEAD_NAME_ADDR_GAP_PT, {
 
       width: textW,
 
@@ -349,7 +370,15 @@ function drawLetterheadBlock(
 
 
 
+  const taglineText = lh.tagline?.trim() ?? "";
+
+  let blockEndY = baselineY;
+
   if (taglineText) {
+
+    const taglineH = letterheadTextHeight(doc, taglineText, logoColWidthPt, typo.letterheadTagline);
+
+    const taglineY = baselineY + LETTERHEAD_TAGLINE_BELOW_BASELINE_PT;
 
     applyTypo(doc, typo.letterheadTagline);
 
@@ -363,31 +392,13 @@ function drawLetterheadBlock(
 
     });
 
-  }
-
-
-
-  let logoBottom = startY;
-
-  if (hasLogo && logo && drawBox) {
-
-    logoBottom = startY + drawBox.heightPt;
-
-    try {
-
-      doc.image(logo, leftX, startY, { fit: [drawBox.widthPt, drawBox.heightPt] });
-
-    } catch {
-
-      // skip
-
-    }
+    blockEndY = taglineY + taglineH;
 
   }
 
 
 
-  doc.y = Math.max(baselineY, logoBottom);
+  doc.y = blockEndY;
 
   doc.x = pageMarginPt;
 
@@ -565,7 +576,7 @@ function drawGradesTable(
 
 
 export async function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 15) {
+  if (REPORT_PDF_LAYOUT_VERSION !== 16) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
   const logoDrawPt = await resolveLetterheadLogoDrawPt(ctx.letterheadLogo, {
