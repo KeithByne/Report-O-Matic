@@ -1,8 +1,8 @@
-/** Glyphs that render in PDF Helvetica (WinAnsi). UI uses matching Lucide icons beside these. */
-export const LETTERHEAD_CONTACT_GLYPH = {
-  phone: "\u00BB",
-  mobile: "\u00AB",
-  email: "@",
+/** Short word labels for PDF letterhead contact lines (Helvetica-safe). */
+export const LETTERHEAD_CONTACT_LABEL = {
+  phone: "Tel:",
+  mobile: "Mob:",
+  email: "Email:",
 } as const;
 
 export type LetterheadContactLayout = "inline" | "stacked";
@@ -26,16 +26,16 @@ export function parseLetterheadContactLayout(raw: string | null | undefined): Le
   return "inline";
 }
 
-/** Build contact block for PDF (with symbols). Returns null when empty. */
+/** Build contact block for PDF. Returns null when empty. */
 export function formatLetterheadContactForPdf(fields: LetterheadContactFields): string | null {
   const phone = trimOrNull(fields.phone);
   const mobile = trimOrNull(fields.mobile);
   const email = trimOrNull(fields.email);
 
   const parts: string[] = [];
-  if (phone) parts.push(`${LETTERHEAD_CONTACT_GLYPH.phone} ${phone}`);
-  if (mobile) parts.push(`${LETTERHEAD_CONTACT_GLYPH.mobile} ${mobile}`);
-  if (email) parts.push(`${LETTERHEAD_CONTACT_GLYPH.email} ${email}`);
+  if (phone) parts.push(`${LETTERHEAD_CONTACT_LABEL.phone} ${phone}`);
+  if (mobile) parts.push(`${LETTERHEAD_CONTACT_LABEL.mobile} ${mobile}`);
+  if (email) parts.push(`${LETTERHEAD_CONTACT_LABEL.email} ${email}`);
 
   if (parts.length === 0) {
     return trimOrNull(fields.legacyContact);

@@ -7,7 +7,7 @@ import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { LETTERHEAD_CONTACT_GLYPH, parseLetterheadContactLayout, type LetterheadContactLayout } from "@/lib/pdf/letterheadContact";
+import { parseLetterheadContactLayout, type LetterheadContactLayout } from "@/lib/pdf/letterheadContact";
 
 type Tenant = { tenantId: string; tenantName: string };
 
@@ -316,7 +316,6 @@ export function DashboardTenantPdfLetterhead({
                       <label className="block min-w-0 text-sm">
                         <span className="mb-1 flex items-center gap-1.5 text-zinc-600">
                           <Phone className={`${ICON_INLINE} shrink-0 text-emerald-800/80`} aria-hidden />
-                          <span aria-hidden>{LETTERHEAD_CONTACT_GLYPH.phone}</span>
                           {t("dash.pdfLetterheadPhone")}
                         </span>
                         <input
@@ -329,7 +328,6 @@ export function DashboardTenantPdfLetterhead({
                       <label className="block min-w-0 text-sm">
                         <span className="mb-1 flex items-center gap-1.5 text-zinc-600">
                           <Smartphone className={`${ICON_INLINE} shrink-0 text-emerald-800/80`} aria-hidden />
-                          <span aria-hidden>{LETTERHEAD_CONTACT_GLYPH.mobile}</span>
                           {t("dash.pdfLetterheadMobile")}
                         </span>
                         <input
@@ -342,7 +340,6 @@ export function DashboardTenantPdfLetterhead({
                       <label className="block min-w-0 text-sm">
                         <span className="mb-1 flex items-center gap-1.5 text-zinc-600">
                           <Mail className={`${ICON_INLINE} shrink-0 text-emerald-800/80`} aria-hidden />
-                          <span aria-hidden>{LETTERHEAD_CONTACT_GLYPH.email}</span>
                           {t("dash.pdfLetterheadEmail")}
                         </span>
                         <input
