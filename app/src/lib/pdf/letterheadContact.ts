@@ -1,7 +1,7 @@
-/** PDF-safe glyphs (Helvetica / WinAnsi). Shown in UI via matching Lucide icons. */
+/** Glyphs that render in PDF Helvetica (WinAnsi). UI uses matching Lucide icons beside these. */
 export const LETTERHEAD_CONTACT_GLYPH = {
-  phone: "\u260E",
-  mobile: "\u260F",
+  phone: "\u00BB",
+  mobile: "\u00AB",
   email: "@",
 } as const;
 
