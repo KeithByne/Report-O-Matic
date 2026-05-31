@@ -38,6 +38,8 @@ import {
 
   PDF_LETTERHEAD_LOGO_SPEC,
 
+  letterheadColumnWidthsPt,
+
   PDF_PAGE_SPEC,
 
   PDF_SIGNATURE_BOX_HEIGHT_PT,
@@ -285,19 +287,17 @@ function drawLetterheadBlock(
 
   const leftX = pageMarginPt;
 
-  const columnGapPt = PDF_LETTERHEAD_LOGO_SPEC.columnGapPt;
+  const { contentWidthPt, logoColWidthPt, textColWidthPt } = letterheadColumnWidthsPt(pageWidthPt, pageMarginPt);
 
   const hasLogo = Boolean(logo?.length);
 
   const drawBox = hasLogo ? (logoDrawPt ?? letterheadLogoFallbackDrawPt()) : null;
 
-  const logoW = drawBox?.widthPt ?? 0;
-
   const logoH = drawBox?.heightPt ?? 0;
 
-  const textX = leftX + logoW + (hasLogo ? columnGapPt : 0);
+  const textX = hasLogo ? leftX + logoColWidthPt : leftX;
 
-  const textW = pageWidthPt - pageMarginPt - textX;
+  const textW = hasLogo ? textColWidthPt : contentWidthPt;
 
 
 
@@ -305,7 +305,7 @@ function drawLetterheadBlock(
 
     try {
 
-      doc.image(logo, leftX, startY, { fit: [logoW, logoH] });
+      doc.image(logo, leftX, startY, { fit: [logoColWidthPt, logoH] });
 
     } catch {
 
@@ -331,7 +331,7 @@ function drawLetterheadBlock(
 
     doc.text(lh.tagline.trim(), leftX, tagY, {
 
-      width: hasLogo ? logoW : Math.min(220, pageWidthPt - pageMarginPt * 2),
+      width: hasLogo ? logoColWidthPt : contentWidthPt,
 
       align: "left",
 
@@ -559,7 +559,7 @@ function drawGradesTable(
 
 
 export async function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 14) {
+  if (REPORT_PDF_LAYOUT_VERSION !== 15) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
   const logoDrawPt = await resolveLetterheadLogoDrawPt(ctx.letterheadLogo, {

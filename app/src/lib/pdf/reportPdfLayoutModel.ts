@@ -8,7 +8,7 @@
  * For visual tweaks inside the same structure, adjust `PDF_TYPOGRAPHY_V1` / `PDF_PAGE_SPEC`.
  */
 
-export const REPORT_PDF_LAYOUT_VERSION = 14;
+export const REPORT_PDF_LAYOUT_VERSION = 15;
 
 /** Stable id embedded in PDF metadata and logs; change when the layout is not the same document shape. */
 export const REPORT_PDF_LAYOUT_ID = "report-a4-v10" as const;
@@ -25,15 +25,26 @@ export const PDF_PAGE_SPEC = {
 
 /** Letterhead logo sizing — aspect-aware (portrait vs landscape). */
 export const PDF_LETTERHEAD_LOGO_SPEC = {
+  /** Left column share of header content width (logo + tagline). Right column is the remainder. */
+  logoColumnRatio: 0.6,
   /** Tall logos (height > width): target height as fraction of page height. */
   tallMaxPageHeightRatio: 0.2,
-  /** Wide logos (width ≥ height): target width as fraction of header content width. */
-  wideHeaderWidthRatio: 0.4,
   columnGapPt: 16,
   /** Fallback draw box when pixel dimensions cannot be read. */
   fallbackWidthPt: 216,
   fallbackHeightPt: 72,
 } as const;
+
+/** Fixed 60/40 letterhead columns (logo left, name/address/contact right). */
+export function letterheadColumnWidthsPt(
+  pageWidthPt: number,
+  pageMarginPt: number,
+): { contentWidthPt: number; logoColWidthPt: number; textColWidthPt: number } {
+  const contentWidthPt = Math.max(1, pageWidthPt - pageMarginPt * 2);
+  const logoColWidthPt = contentWidthPt * PDF_LETTERHEAD_LOGO_SPEC.logoColumnRatio;
+  const textColWidthPt = contentWidthPt - logoColWidthPt;
+  return { contentWidthPt, logoColWidthPt, textColWidthPt };
+}
 
 /** @deprecated Fixed slot — use PDF_LETTERHEAD_LOGO_SPEC + letterheadLogoLayout. */
 export const PDF_LETTERHEAD_BLOCK_SPEC_V1 = {

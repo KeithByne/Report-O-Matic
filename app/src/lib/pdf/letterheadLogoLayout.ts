@@ -28,10 +28,10 @@ export function computeLetterheadLogoDrawPt(
   pageMarginPt: number,
 ): LetterheadLogoDrawPt {
   const headerWidthPt = Math.max(1, pageWidthPt - pageMarginPt * 2);
-  const { tallMaxPageHeightRatio, wideHeaderWidthRatio } = PDF_LETTERHEAD_LOGO_SPEC;
+  const { tallMaxPageHeightRatio, logoColumnRatio } = PDF_LETTERHEAD_LOGO_SPEC;
   const aspect = size.width / size.height;
   const maxHeightPt = pageHeightPt * tallMaxPageHeightRatio;
-  const maxWidthPt = headerWidthPt * wideHeaderWidthRatio;
+  const maxWidthPt = headerWidthPt * logoColumnRatio;
 
   let widthPt: number;
   let heightPt: number;
