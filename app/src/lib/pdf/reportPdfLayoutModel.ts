@@ -8,10 +8,10 @@
  * For visual tweaks inside the same structure, adjust `PDF_TYPOGRAPHY_V1` / `PDF_PAGE_SPEC`.
  */
 
-export const REPORT_PDF_LAYOUT_VERSION = 12;
+export const REPORT_PDF_LAYOUT_VERSION = 13;
 
 /** Stable id embedded in PDF metadata and logs; change when the layout is not the same document shape. */
-export const REPORT_PDF_LAYOUT_ID = "report-a4-v8" as const;
+export const REPORT_PDF_LAYOUT_ID = "report-a4-v9" as const;
 
 export type ReportPdfLayoutId = typeof REPORT_PDF_LAYOUT_ID;
 
@@ -23,11 +23,23 @@ export const PDF_PAGE_SPEC = {
   marginPt: 48,
 } as const;
 
-/** Logo slot beside letterhead text: landscape width × height = 3 × 1 (points). */
-export const PDF_LETTERHEAD_BLOCK_SPEC_V1 = {
-  logoSlotWidthPt: 216,
-  logoSlotHeightPt: 72,
+/** Letterhead logo sizing — aspect-aware (portrait vs landscape). */
+export const PDF_LETTERHEAD_LOGO_SPEC = {
+  /** Tall logos (height > width): target height as fraction of page height. */
+  tallMaxPageHeightRatio: 0.2,
+  /** Wide logos (width ≥ height): target width as fraction of header content width. */
+  wideHeaderWidthRatio: 0.4,
   columnGapPt: 16,
+  /** Fallback draw box when pixel dimensions cannot be read. */
+  fallbackWidthPt: 216,
+  fallbackHeightPt: 72,
+} as const;
+
+/** @deprecated Fixed slot — use PDF_LETTERHEAD_LOGO_SPEC + letterheadLogoLayout. */
+export const PDF_LETTERHEAD_BLOCK_SPEC_V1 = {
+  logoSlotWidthPt: PDF_LETTERHEAD_LOGO_SPEC.fallbackWidthPt,
+  logoSlotHeightPt: PDF_LETTERHEAD_LOGO_SPEC.fallbackHeightPt,
+  columnGapPt: PDF_LETTERHEAD_LOGO_SPEC.columnGapPt,
 } as const;
 
 /** Teacher signature rectangle height (points). */

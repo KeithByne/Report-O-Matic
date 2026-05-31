@@ -18,6 +18,12 @@ import {
 import { pdfTeacherSignatureLabel } from "@/lib/pdf/pdfTeacherSignature";
 
 import {
+  letterheadLogoFallbackDrawPt,
+  resolveLetterheadLogoDrawPt,
+  type LetterheadLogoDrawPt,
+} from "@/lib/pdf/letterheadLogoLayout";
+
+import {
 
   PDF_GRADES_TABLE_SPEC_V1,
 
@@ -27,7 +33,7 @@ import {
 
   PDF_MM_TO_PT,
 
-  PDF_LETTERHEAD_BLOCK_SPEC_V1,
+  PDF_LETTERHEAD_LOGO_SPEC,
 
   PDF_PAGE_SPEC,
 
@@ -174,8 +180,6 @@ type PdfDoc = InstanceType<typeof PDFDocument>;
 
 const { marginPt, widthPt, heightPt } = PDF_PAGE_SPEC;
 
-const lhSpec = PDF_LETTERHEAD_BLOCK_SPEC_V1;
-
 const typo = PDF_TYPOGRAPHY_V1;
 
 const tableSpec = PDF_GRADES_TABLE_SPEC_V1;
@@ -269,29 +273,34 @@ function drawLetterheadBlock(
   logo: Buffer | null,
   pageMarginPt: number = marginPt,
   pageWidthPt: number = widthPt,
+  logoDrawPt: LetterheadLogoDrawPt | null = null,
 ): void {
 
   const startY = doc.y;
 
   const leftX = pageMarginPt;
 
-  const slotW = lhSpec.logoSlotWidthPt;
+  const columnGapPt = PDF_LETTERHEAD_LOGO_SPEC.columnGapPt;
 
-  const slotH = lhSpec.logoSlotHeightPt;
+  const hasLogo = Boolean(logo?.length);
 
-  const textX = leftX + slotW + lhSpec.columnGapPt;
+  const drawBox = hasLogo ? (logoDrawPt ?? letterheadLogoFallbackDrawPt()) : null;
+
+  const logoW = drawBox?.widthPt ?? 0;
+
+  const logoH = drawBox?.heightPt ?? 0;
+
+  const textX = leftX + logoW + (hasLogo ? columnGapPt : 0);
 
   const textW = pageWidthPt - pageMarginPt - textX;
 
 
 
-  const hasLogo = Boolean(logo?.length);
-
-  if (hasLogo && logo) {
+  if (hasLogo && logo && drawBox) {
 
     try {
 
-      doc.image(logo, leftX, startY, { fit: [slotW, slotH] });
+      doc.image(logo, leftX, startY, { fit: [logoW, logoH], align: "left", valign: "top" });
 
     } catch {
 
@@ -303,7 +312,7 @@ function drawLetterheadBlock(
 
 
 
-  const logoBottom = startY + (hasLogo ? slotH : 0);
+  const logoBottom = startY + (hasLogo ? logoH : 0);
 
 
 
@@ -317,7 +326,7 @@ function drawLetterheadBlock(
 
     doc.text(lh.tagline.trim(), leftX, tagY, {
 
-      width: slotW,
+      width: hasLogo ? logoW : Math.min(220, pageWidthPt - pageMarginPt * 2),
 
       align: "left",
 
@@ -381,9 +390,16 @@ export function drawReportLetterhead(
   doc: PdfDoc,
   lh: ReportPdfLetterhead,
   logo: Buffer | null,
-  opts?: { pageMarginPt?: number; pageWidthPt?: number },
+  opts?: { pageMarginPt?: number; pageWidthPt?: number; logoDrawPt?: LetterheadLogoDrawPt | null },
 ): void {
-  drawLetterheadBlock(doc, lh, logo, opts?.pageMarginPt ?? marginPt, opts?.pageWidthPt ?? widthPt);
+  drawLetterheadBlock(
+    doc,
+    lh,
+    logo,
+    opts?.pageMarginPt ?? marginPt,
+    opts?.pageWidthPt ?? widthPt,
+    opts?.logoDrawPt ?? null,
+  );
 }
 
 
@@ -537,18 +553,23 @@ function drawGradesTable(
 
 
 
-export function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 12) {
+export async function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
+  if (REPORT_PDF_LAYOUT_VERSION !== 13) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
-  return renderReportPdfLayoutV4(ctx);
+  const logoDrawPt = await resolveLetterheadLogoDrawPt(ctx.letterheadLogo, {
+    pageWidthPt: widthPt,
+    pageHeightPt: heightPt,
+    pageMarginPt: marginPt,
+  });
+  return renderReportPdfLayoutV4(ctx, logoDrawPt);
 }
 
 
 
 /** Page 1: letterhead + context + academic record; page 2: parent comment only. */
 
-function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
+function renderReportPdfLayoutV4(ctx: ReportPdfContext, logoDrawPt: LetterheadLogoDrawPt | null): Promise<Buffer> {
 
   return new Promise((resolve, reject) => {
 
@@ -589,7 +610,7 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
 
     const sigLabel = pdfTeacherSignatureLabel(ctx.outputLanguageCode);
 
-    drawLetterheadBlock(doc, ctx.letterhead, ctx.letterheadLogo);
+    drawLetterheadBlock(doc, ctx.letterhead, ctx.letterheadLogo, marginPt, widthPt, logoDrawPt);
 
     doc.moveDown(0.55);
 

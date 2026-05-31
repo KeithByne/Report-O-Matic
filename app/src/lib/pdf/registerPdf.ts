@@ -2,6 +2,7 @@ import PDFDocument from "pdfkit";
 import type { WeekdayKey } from "@/lib/activeWeekdays";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { PDF_PAGE_SPEC } from "@/lib/pdf/reportPdfLayoutModel";
+import { resolveLetterheadLogoDrawPt, type LetterheadLogoDrawPt } from "@/lib/pdf/letterheadLogoLayout";
 import { drawReportLetterhead, type ReportPdfLetterhead } from "@/lib/pdf/reportPdf";
 
 const REGISTER_MARGIN_PT = 28;
@@ -129,6 +130,7 @@ function drawRegisterPage(
   opts: {
     letterhead: ReportPdfLetterhead;
     letterheadLogo: Buffer | null;
+    logoDrawPt: LetterheadLogoDrawPt | null;
     className: string;
     studentsPage: RegisterPdfStudentRow[];
     sessionColumnCount: number;
@@ -141,7 +143,10 @@ function drawRegisterPage(
   doc.x = M;
   doc.y = M;
 
-  drawReportLetterhead(doc, opts.letterhead, opts.letterheadLogo, { pageMarginPt: M });
+  drawReportLetterhead(doc, opts.letterhead, opts.letterheadLogo, {
+    pageMarginPt: M,
+    logoDrawPt: opts.logoDrawPt,
+  });
 
   const titleRowTop = doc.y + 12;
   const fullTitleRowW = widthPt - M * 2;
@@ -277,13 +282,18 @@ function drawRegisterPage(
   }
 }
 
-export function buildRegisterPdfBuffer(ctx: RegisterPdfContext): Promise<Buffer> {
+export async function buildRegisterPdfBuffer(ctx: RegisterPdfContext): Promise<Buffer> {
   const lang: UiLang = isUiLang(ctx.uiLang) ? ctx.uiLang : "en";
   if (!ctx.activeWeekdays.length) {
     return Promise.reject(new Error("Register PDF requires at least one active weekday."));
   }
   const pages = chunkPages(ctx.students, ROWS_PER_PAGE);
   const usableW = widthPt - REGISTER_MARGIN_PT * 2;
+  const logoDrawPt = await resolveLetterheadLogoDrawPt(ctx.letterheadLogo, {
+    pageWidthPt: widthPt,
+    pageHeightPt: heightPt,
+    pageMarginPt: REGISTER_MARGIN_PT,
+  });
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
@@ -308,6 +318,7 @@ export function buildRegisterPdfBuffer(ctx: RegisterPdfContext): Promise<Buffer>
       drawRegisterPage(doc, {
         letterhead: ctx.letterhead,
         letterheadLogo: ctx.letterheadLogo,
+        logoDrawPt,
         className: ctx.className,
         studentsPage: pages[i] ?? [],
         sessionColumnCount: ctx.sessionColumnCount,
