@@ -832,7 +832,7 @@ const EN: UiMessages = {
   "dash.addSchoolWorking": "Adding…",
   "dash.pdfLetterheadTitle": "PDF letterhead (owner)",
   "dash.pdfLetterheadHint":
-    "Logo (~half page width) and the contact block sit in a grid with a 5 mm gap; the logo bottom and the last contact line share one baseline. Tagline, if any, sits below that line under the logo. PNG, JPEG, or WebP — 1∶6 to 6∶1, max 4 MB. Save, then preview.",
+    "Logo uses about half the page width. Name and address start at the top margin; the logo bottom lines up with the last contact line; tagline sits below. PNG, JPEG, or WebP — 1∶6 to 6∶1, max 4 MB. Save, then preview.",
   "dash.pdfLetterheadName": "Official name on PDF (optional)",
   "dash.pdfLetterheadTagline": "Tagline / subtitle (optional, under logo on PDF)",
   "dash.pdfLetterheadAddress": "Address (optional, multiple lines ok)",

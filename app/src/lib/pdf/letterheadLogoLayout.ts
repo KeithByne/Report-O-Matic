@@ -20,26 +20,20 @@ export async function readLetterheadLogoPixelSize(buf: Buffer | null): Promise<L
   return null;
 }
 
-/** Size logo for PDF: width-first at ~50% page width; height from aspect, capped for tall marks. */
+/** Logo width ≈50% page; height from aspect ratio (width-first). */
 export function computeLetterheadLogoDrawPt(
   size: LetterheadLogoPixelSize,
   pageWidthPt: number,
   pageHeightPt: number,
-  _pageMarginPt: number,
 ): LetterheadLogoDrawPt {
   const { logoPageWidthRatio, maxPageHeightRatio } = PDF_LETTERHEAD_LOGO_SPEC;
   const aspect = size.width / size.height;
-  const maxWidthPt = pageWidthPt * logoPageWidthRatio;
-  const maxHeightPt = pageHeightPt * maxPageHeightRatio;
-
-  let widthPt = maxWidthPt;
+  const widthPt = pageWidthPt * logoPageWidthRatio;
   let heightPt = widthPt / aspect;
-
+  const maxHeightPt = pageHeightPt * maxPageHeightRatio;
   if (heightPt > maxHeightPt) {
     heightPt = maxHeightPt;
-    widthPt = heightPt * aspect;
   }
-
   return {
     widthPt: Math.max(1, widthPt),
     heightPt: Math.max(1, heightPt),
@@ -52,38 +46,15 @@ export async function resolveLetterheadLogoDrawPt(
 ): Promise<LetterheadLogoDrawPt | null> {
   const size = await readLetterheadLogoPixelSize(logo);
   if (!size) return null;
-  return computeLetterheadLogoDrawPt(size, opts.pageWidthPt, opts.pageHeightPt, opts.pageMarginPt);
+  return computeLetterheadLogoDrawPt(size, opts.pageWidthPt, opts.pageHeightPt);
 }
 
-export function letterheadLogoFallbackDrawPt(): LetterheadLogoDrawPt {
+export function letterheadLogoFallbackDrawPt(pageWidthPt: number): LetterheadLogoDrawPt {
+  const widthPt = pageWidthPt * PDF_LETTERHEAD_LOGO_SPEC.logoPageWidthRatio;
+  const { fallbackWidthPt, fallbackHeightPt } = PDF_LETTERHEAD_LOGO_SPEC;
+  const aspect = fallbackWidthPt / fallbackHeightPt;
   return {
-    widthPt: PDF_LETTERHEAD_LOGO_SPEC.fallbackWidthPt,
-    heightPt: PDF_LETTERHEAD_LOGO_SPEC.fallbackHeightPt,
+    widthPt,
+    heightPt: Math.max(1, widthPt / aspect),
   };
-}
-
-/** Scale an ideal logo draw size down to fit a box (preserves aspect ratio). */
-export function fitLetterheadLogoToBox(
-  ideal: LetterheadLogoDrawPt,
-  maxWidthPt: number,
-  maxHeightPt: number,
-): LetterheadLogoDrawPt {
-  if (maxWidthPt <= 0 || maxHeightPt <= 0) return { widthPt: 0, heightPt: 0 };
-  const aspect = ideal.widthPt / ideal.heightPt;
-  let widthPt = maxWidthPt;
-  let heightPt = widthPt / aspect;
-  if (heightPt > maxHeightPt) {
-    heightPt = maxHeightPt;
-    widthPt = heightPt * aspect;
-  }
-  return { widthPt: Math.max(1, widthPt), heightPt: Math.max(1, heightPt) };
-}
-
-/** Actual size when the logo is drawn into the letterhead column slot (matches PDFKit `fit`). */
-export function letterheadLogoRenderPt(
-  ideal: LetterheadLogoDrawPt,
-  slotWidthPt: number,
-  maxHeightPt: number,
-): LetterheadLogoDrawPt {
-  return fitLetterheadLogoToBox(ideal, slotWidthPt, maxHeightPt);
 }
