@@ -23,26 +23,26 @@ export const PDF_PAGE_SPEC = {
   marginPt: 48,
 } as const;
 
-/** Letterhead logo sizing — aspect-aware (portrait vs landscape). */
+/** Letterhead logo sizing — logo is the visual priority (width-first). */
 export const PDF_LETTERHEAD_LOGO_SPEC = {
-  /** Left column share of header content width (logo + tagline). Right column is the remainder. */
-  logoColumnRatio: 0.6,
-  /** Tall logos (height > width): target height as fraction of page height. */
-  tallMaxPageHeightRatio: 0.2,
+  /** Target logo width as a fraction of full page width (~half the page). */
+  logoPageWidthRatio: 0.5,
+  /** Cap height for very tall marks so the header does not dominate the page. */
+  maxPageHeightRatio: 0.28,
   columnGapPt: 16,
-  /** Fallback draw box when pixel dimensions cannot be read. */
-  fallbackWidthPt: 216,
-  fallbackHeightPt: 72,
+  /** Fallback draw box when pixel dimensions cannot be read (≈50% page width on A4). */
+  fallbackWidthPt: 298,
+  fallbackHeightPt: 84,
 } as const;
 
-/** Fixed 60/40 letterhead columns (logo left, name/address/contact right). */
+/** Letterhead columns: logo slot ≈50% page width; contact block uses the remainder. */
 export function letterheadColumnWidthsPt(
   pageWidthPt: number,
   pageMarginPt: number,
 ): { contentWidthPt: number; logoColWidthPt: number; textColWidthPt: number } {
   const contentWidthPt = Math.max(1, pageWidthPt - pageMarginPt * 2);
-  const logoColWidthPt = contentWidthPt * PDF_LETTERHEAD_LOGO_SPEC.logoColumnRatio;
-  const textColWidthPt = contentWidthPt - logoColWidthPt;
+  const logoColWidthPt = pageWidthPt * PDF_LETTERHEAD_LOGO_SPEC.logoPageWidthRatio;
+  const textColWidthPt = Math.max(1, contentWidthPt - logoColWidthPt);
   return { contentWidthPt, logoColWidthPt, textColWidthPt };
 }
 

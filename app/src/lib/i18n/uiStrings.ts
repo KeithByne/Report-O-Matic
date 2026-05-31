@@ -832,7 +832,7 @@ const EN: UiMessages = {
   "dash.addSchoolWorking": "Adding…",
   "dash.pdfLetterheadTitle": "PDF letterhead (owner)",
   "dash.pdfLetterheadHint":
-    "PDF header uses a 60/40 split: logo on the left (top), tagline on the left (bottom), official name plus address and contact on the right. Tagline and the last contact line share one baseline. PNG, JPEG, or WebP — proportions between 1∶6 and 6∶1, max 4 MB. Save text fields, then preview.",
+    "The logo is the visual priority — about half the page width on PDFs. Tagline sits on the left (aligned with the last contact line); name, address, and contact fill the right column. PNG, JPEG, or WebP — proportions between 1∶6 and 6∶1, max 4 MB. Save, then preview.",
   "dash.pdfLetterheadName": "Official name on PDF (optional)",
   "dash.pdfLetterheadTagline": "Tagline / subtitle (optional, under logo on PDF)",
   "dash.pdfLetterheadAddress": "Address (optional, multiple lines ok)",

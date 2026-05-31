@@ -20,36 +20,24 @@ export async function readLetterheadLogoPixelSize(buf: Buffer | null): Promise<L
   return null;
 }
 
-/** Size logo in PDF points: tall → up to 20% page height; wide → 40% header width. */
+/** Size logo for PDF: width-first at ~50% page width; height from aspect, capped for tall marks. */
 export function computeLetterheadLogoDrawPt(
   size: LetterheadLogoPixelSize,
   pageWidthPt: number,
   pageHeightPt: number,
-  pageMarginPt: number,
+  _pageMarginPt: number,
 ): LetterheadLogoDrawPt {
-  const headerWidthPt = Math.max(1, pageWidthPt - pageMarginPt * 2);
-  const { tallMaxPageHeightRatio, logoColumnRatio } = PDF_LETTERHEAD_LOGO_SPEC;
+  const { logoPageWidthRatio, maxPageHeightRatio } = PDF_LETTERHEAD_LOGO_SPEC;
   const aspect = size.width / size.height;
-  const maxHeightPt = pageHeightPt * tallMaxPageHeightRatio;
-  const maxWidthPt = headerWidthPt * logoColumnRatio;
+  const maxWidthPt = pageWidthPt * logoPageWidthRatio;
+  const maxHeightPt = pageHeightPt * maxPageHeightRatio;
 
-  let widthPt: number;
-  let heightPt: number;
+  let widthPt = maxWidthPt;
+  let heightPt = widthPt / aspect;
 
-  if (size.height > size.width) {
+  if (heightPt > maxHeightPt) {
     heightPt = maxHeightPt;
     widthPt = heightPt * aspect;
-    if (widthPt > maxWidthPt) {
-      widthPt = maxWidthPt;
-      heightPt = widthPt / aspect;
-    }
-  } else {
-    widthPt = maxWidthPt;
-    heightPt = widthPt / aspect;
-    if (heightPt > maxHeightPt) {
-      heightPt = maxHeightPt;
-      widthPt = heightPt * aspect;
-    }
   }
 
   return {

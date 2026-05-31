@@ -18,7 +18,6 @@ import {
 import { pdfTeacherSignatureLabel } from "@/lib/pdf/pdfTeacherSignature";
 
 import {
-  fitLetterheadLogoToBox,
   letterheadLogoFallbackDrawPt,
   resolveLetterheadLogoDrawPt,
   type LetterheadLogoDrawPt,
@@ -273,7 +272,6 @@ function applyTypo(
 }
 
 const LETTERHEAD_NAME_ADDR_GAP_PT = 4;
-const LETTERHEAD_TAGLINE_LOGO_GAP_PT = 6;
 
 function letterheadTextHeight(
   doc: PdfDoc,
@@ -373,25 +371,11 @@ function drawLetterheadBlock(
 
   if (hasLogo && logo && drawBox) {
 
-    let logoDrawH = drawBox.heightPt;
-
-    if (taglineText) {
-
-      const maxH = taglineY - startY - LETTERHEAD_TAGLINE_LOGO_GAP_PT;
-
-      if (maxH > 0 && logoDrawH > maxH) {
-
-        logoDrawH = fitLetterheadLogoToBox(drawBox, logoColWidthPt, maxH).heightPt;
-
-      }
-
-    }
-
-    logoBottom = startY + logoDrawH;
+    logoBottom = startY + drawBox.heightPt;
 
     try {
 
-      doc.image(logo, leftX, startY, { fit: [logoColWidthPt, logoDrawH] });
+      doc.image(logo, leftX, startY, { fit: [drawBox.widthPt, drawBox.heightPt] });
 
     } catch {
 
