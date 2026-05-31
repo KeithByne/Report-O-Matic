@@ -22,6 +22,8 @@ import {
   resolveLetterheadLogoDrawPt,
   type LetterheadLogoDrawPt,
 } from "@/lib/pdf/letterheadLogoLayout";
+import { formatLetterheadContactForPdf } from "@/lib/pdf/letterheadContact";
+import type { TenantPdfLetterheadRow } from "@/lib/data/tenantPdfLetterhead";
 
 import {
 
@@ -128,35 +130,33 @@ export type ReportPdfContext = {
 
 
 export function buildLetterheadFromTenantSettings(
-
   tenantName: string,
-
-  row: {
-
-    pdf_letterhead_name: string | null;
-
-    pdf_letterhead_tagline: string | null;
-
-    pdf_letterhead_address: string | null;
-
-    pdf_letterhead_contact: string | null;
-
-  },
-
+  row: Pick<
+    TenantPdfLetterheadRow,
+    | "pdf_letterhead_name"
+    | "pdf_letterhead_tagline"
+    | "pdf_letterhead_address"
+    | "pdf_letterhead_contact"
+    | "pdf_letterhead_contact_layout"
+    | "pdf_letterhead_phone"
+    | "pdf_letterhead_mobile"
+    | "pdf_letterhead_email"
+  >,
 ): ReportPdfLetterhead {
+  const contact = formatLetterheadContactForPdf({
+    layout: row.pdf_letterhead_contact_layout,
+    phone: row.pdf_letterhead_phone,
+    mobile: row.pdf_letterhead_mobile,
+    email: row.pdf_letterhead_email,
+    legacyContact: row.pdf_letterhead_contact,
+  });
 
   return {
-
     displayName: row.pdf_letterhead_name?.trim() || tenantName,
-
     tagline: row.pdf_letterhead_tagline?.trim() || null,
-
     address: row.pdf_letterhead_address?.trim() || null,
-
-    contact: row.pdf_letterhead_contact?.trim() || null,
-
+    contact,
   };
-
 }
 
 
@@ -554,7 +554,7 @@ function drawGradesTable(
 
 
 export async function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
-  if (REPORT_PDF_LAYOUT_VERSION !== 13) {
+  if (REPORT_PDF_LAYOUT_VERSION !== 14) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
   const logoDrawPt = await resolveLetterheadLogoDrawPt(ctx.letterheadLogo, {

@@ -1,12 +1,13 @@
 "use client";
 
-import { Building2, ExternalLink, Eye, FileImage, Save, Trash2, Upload, X } from "lucide-react";
+import { Building2, ExternalLink, Eye, FileImage, Mail, Phone, Save, Smartphone, Trash2, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { PdfBlobIframeViewer } from "@/components/dashboard/PdfBlobIframeViewer";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
+import { LETTERHEAD_CONTACT_GLYPH, type LetterheadContactLayout } from "@/lib/pdf/letterheadContact";
 
 type Tenant = { tenantId: string; tenantName: string };
 
@@ -14,7 +15,10 @@ type LhState = {
   name: string;
   tagline: string;
   address: string;
-  contact: string;
+  contactLayout: LetterheadContactLayout;
+  phone: string;
+  mobile: string;
+  email: string;
   has_logo: boolean;
 };
 
@@ -22,7 +26,10 @@ const emptyLh: LhState = {
   name: "",
   tagline: "",
   address: "",
-  contact: "",
+  contactLayout: "inline",
+  phone: "",
+  mobile: "",
+  email: "",
   has_logo: false,
 };
 
@@ -52,7 +59,10 @@ export function DashboardTenantPdfLetterhead({
           name?: string | null;
           tagline?: string | null;
           address?: string | null;
-          contact?: string | null;
+          contact_layout?: string | null;
+          phone?: string | null;
+          mobile?: string | null;
+          email?: string | null;
           has_logo?: boolean;
         }
       | undefined;
@@ -60,7 +70,10 @@ export function DashboardTenantPdfLetterhead({
       name: typeof lh?.name === "string" ? lh.name : "",
       tagline: typeof lh?.tagline === "string" ? lh.tagline : "",
       address: typeof lh?.address === "string" ? lh.address : "",
-      contact: typeof lh?.contact === "string" ? lh.contact : "",
+      contactLayout: lh?.contact_layout === "stacked" ? "stacked" : "inline",
+      phone: typeof lh?.phone === "string" ? lh.phone : "",
+      mobile: typeof lh?.mobile === "string" ? lh.mobile : "",
+      email: typeof lh?.email === "string" ? lh.email : "",
       has_logo: lh?.has_logo === true,
     };
   }, []);
@@ -92,7 +105,10 @@ export function DashboardTenantPdfLetterhead({
             name: fields.name.trim() || null,
             tagline: fields.tagline.trim() || null,
             address: fields.address.trim() || null,
-            contact: fields.contact.trim() || null,
+            contact_layout: fields.contactLayout,
+            phone: fields.phone.trim() || null,
+            mobile: fields.mobile.trim() || null,
+            email: fields.email.trim() || null,
           },
         }),
       });
@@ -107,7 +123,11 @@ export function DashboardTenantPdfLetterhead({
             name: typeof lh.name === "string" ? lh.name : "",
             tagline: typeof lh.tagline === "string" ? lh.tagline : "",
             address: typeof lh.address === "string" ? lh.address : "",
-            contact: typeof lh.contact === "string" ? lh.contact : "",
+            contactLayout:
+              (lh as { contact_layout?: string }).contact_layout === "stacked" ? "stacked" : "inline",
+            phone: typeof (lh as { phone?: string }).phone === "string" ? (lh as { phone: string }).phone : "",
+            mobile: typeof (lh as { mobile?: string }).mobile === "string" ? (lh as { mobile: string }).mobile : "",
+            email: typeof (lh as { email?: string }).email === "string" ? (lh as { email: string }).email : "",
             has_logo: lh.has_logo === true,
           },
         }));
@@ -162,7 +182,11 @@ export function DashboardTenantPdfLetterhead({
     }
   }
 
-  function updateField(tenantId: string, key: keyof Omit<LhState, "has_logo">, value: string) {
+  function updateField<K extends keyof Omit<LhState, "has_logo">>(
+    tenantId: string,
+    key: K,
+    value: LhState[K],
+  ) {
     setByTenant((prev) => ({
       ...prev,
       [tenantId]: { ...(prev[tenantId] ?? emptyLh), [key]: value },
@@ -279,15 +303,76 @@ export function DashboardTenantPdfLetterhead({
                         className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
                       />
                     </label>
-                    <label className="block min-w-0 text-sm">
-                      <span className="mb-1 block text-zinc-600">{t("dash.pdfLetterheadContact")}</span>
-                      <input
-                        value={f.contact}
-                        onChange={(e) => updateField(ten.tenantId, "contact", e.target.value)}
-                        placeholder={t("dash.pdfLetterheadContactPlaceholder")}
-                        className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                      />
-                    </label>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="mb-1 block text-sm text-zinc-600">{t("dash.pdfLetterheadContact")}</span>
+                        <fieldset className="flex flex-wrap gap-3 text-sm">
+                          <legend className="sr-only">{t("dash.pdfLetterheadContactLayout")}</legend>
+                          <label className="inline-flex cursor-pointer items-center gap-1.5">
+                            <input
+                              type="radio"
+                              name={`lh-contact-layout-${ten.tenantId}`}
+                              checked={f.contactLayout === "inline"}
+                              onChange={() => updateField(ten.tenantId, "contactLayout", "inline")}
+                              className="text-emerald-800"
+                            />
+                            {t("dash.pdfLetterheadContactInline")}
+                          </label>
+                          <label className="inline-flex cursor-pointer items-center gap-1.5">
+                            <input
+                              type="radio"
+                              name={`lh-contact-layout-${ten.tenantId}`}
+                              checked={f.contactLayout === "stacked"}
+                              onChange={() => updateField(ten.tenantId, "contactLayout", "stacked")}
+                              className="text-emerald-800"
+                            />
+                            {t("dash.pdfLetterheadContactStacked")}
+                          </label>
+                        </fieldset>
+                      </div>
+                      <label className="block min-w-0 text-sm">
+                        <span className="mb-1 flex items-center gap-1.5 text-zinc-600">
+                          <Phone className={`${ICON_INLINE} shrink-0 text-emerald-800/80`} aria-hidden />
+                          <span aria-hidden>{LETTERHEAD_CONTACT_GLYPH.phone}</span>
+                          {t("dash.pdfLetterheadPhone")}
+                        </span>
+                        <input
+                          value={f.phone}
+                          onChange={(e) => updateField(ten.tenantId, "phone", e.target.value)}
+                          placeholder={t("dash.pdfLetterheadPhonePlaceholder")}
+                          className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <label className="block min-w-0 text-sm">
+                        <span className="mb-1 flex items-center gap-1.5 text-zinc-600">
+                          <Smartphone className={`${ICON_INLINE} shrink-0 text-emerald-800/80`} aria-hidden />
+                          <span aria-hidden>{LETTERHEAD_CONTACT_GLYPH.mobile}</span>
+                          {t("dash.pdfLetterheadMobile")}
+                        </span>
+                        <input
+                          value={f.mobile}
+                          onChange={(e) => updateField(ten.tenantId, "mobile", e.target.value)}
+                          placeholder={t("dash.pdfLetterheadMobilePlaceholder")}
+                          className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <label className="block min-w-0 text-sm">
+                        <span className="mb-1 flex items-center gap-1.5 text-zinc-600">
+                          <Mail className={`${ICON_INLINE} shrink-0 text-emerald-800/80`} aria-hidden />
+                          <span aria-hidden>{LETTERHEAD_CONTACT_GLYPH.email}</span>
+                          {t("dash.pdfLetterheadEmail")}
+                        </span>
+                        <input
+                          value={f.email}
+                          onChange={(e) => updateField(ten.tenantId, "email", e.target.value)}
+                          placeholder={t("dash.pdfLetterheadEmailPlaceholder")}
+                          className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                          inputMode="email"
+                          autoComplete="email"
+                        />
+                      </label>
+                      <p className="text-xs text-zinc-500">{t("dash.pdfLetterheadContactHint")}</p>
+                    </div>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">

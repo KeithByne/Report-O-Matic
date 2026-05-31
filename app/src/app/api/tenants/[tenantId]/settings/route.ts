@@ -6,9 +6,11 @@ import {
 } from "@/lib/data/tenantLanguage";
 import {
   getTenantPdfLetterhead,
+  letterheadContactFromRow,
   setTenantPdfLetterhead,
   type TenantPdfLetterheadPatch,
 } from "@/lib/data/tenantPdfLetterhead";
+import { parseLetterheadContactLayout } from "@/lib/pdf/letterheadContact";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { parseGradeRubricProfile, type GradeRubricProfile } from "@/lib/gradeRubricProfile";
@@ -41,7 +43,7 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     const { data, error } = await supabase
       .from("tenants")
       .select(
-        "default_report_language, default_grade_rubric_profile, pdf_letterhead_name, pdf_letterhead_tagline, pdf_letterhead_address, pdf_letterhead_contact, pdf_letterhead_logo_path",
+        "default_report_language, default_grade_rubric_profile, pdf_letterhead_name, pdf_letterhead_tagline, pdf_letterhead_address, pdf_letterhead_contact, pdf_letterhead_contact_layout, pdf_letterhead_phone, pdf_letterhead_mobile, pdf_letterhead_email, pdf_letterhead_logo_path",
       )
       .eq("id", tenantId)
       .maybeSingle();
@@ -59,7 +61,12 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
       name: typeof row.pdf_letterhead_name === "string" ? row.pdf_letterhead_name : null,
       tagline: typeof row.pdf_letterhead_tagline === "string" ? row.pdf_letterhead_tagline : null,
       address: typeof row.pdf_letterhead_address === "string" ? row.pdf_letterhead_address : null,
-      contact: typeof row.pdf_letterhead_contact === "string" ? row.pdf_letterhead_contact : null,
+      contact_layout: parseLetterheadContactLayout(
+        typeof row.pdf_letterhead_contact_layout === "string" ? row.pdf_letterhead_contact_layout : null,
+      ),
+      phone: typeof row.pdf_letterhead_phone === "string" ? row.pdf_letterhead_phone : null,
+      mobile: typeof row.pdf_letterhead_mobile === "string" ? row.pdf_letterhead_mobile : null,
+      email: typeof row.pdf_letterhead_email === "string" ? row.pdf_letterhead_email : null,
       has_logo: logoPath.length > 0,
     };
 
@@ -163,12 +170,24 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
         return NextResponse.json({ error: "pdf_letterhead must be an object." }, { status: 400 });
       }
       const raw = o as Record<string, unknown>;
+      const phone = clampField(raw.phone, MAX_SHORT);
+      const mobile = clampField(raw.mobile, MAX_SHORT);
+      const email = clampField(raw.email, MAX_SHORT);
+      const hasStructured = Boolean(phone || mobile || email);
       const patch: TenantPdfLetterheadPatch = {
         pdf_letterhead_name: clampField(raw.name, MAX_SHORT),
         pdf_letterhead_tagline: clampField(raw.tagline, MAX_SHORT),
         pdf_letterhead_address: clampField(raw.address, MAX_ADDRESS),
-        pdf_letterhead_contact: clampField(raw.contact, MAX_SHORT),
+        pdf_letterhead_contact_layout: parseLetterheadContactLayout(
+          typeof raw.contact_layout === "string" ? raw.contact_layout : null,
+        ),
+        pdf_letterhead_phone: phone,
+        pdf_letterhead_mobile: mobile,
+        pdf_letterhead_email: email,
       };
+      if (hasStructured) {
+        patch.pdf_letterhead_contact = null;
+      }
       pdf_letterhead = await setTenantPdfLetterhead(tenantId, patch);
     }
 
@@ -179,7 +198,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
         name: pdf_letterhead.pdf_letterhead_name,
         tagline: pdf_letterhead.pdf_letterhead_tagline,
         address: pdf_letterhead.pdf_letterhead_address,
-        contact: pdf_letterhead.pdf_letterhead_contact,
+        ...letterheadContactFromRow(pdf_letterhead),
         has_logo: Boolean(pdf_letterhead.pdf_letterhead_logo_path?.trim()),
       },
     });
