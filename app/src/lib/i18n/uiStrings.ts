@@ -847,7 +847,7 @@ const EN: UiMessages = {
   "dash.pdfLetterheadMobilePlaceholder": "Mobile number",
   "dash.pdfLetterheadEmailPlaceholder": "Email address",
   "dash.pdfLetterheadContactHint":
-    "The PDF shows Tel:, Mob:, and Email: before each value. One line joins entries with · ; three lines puts each on its own row.",
+    "The PDF shows Telephone:, Mobile:, and Email: before each value. One line puts all three on a row; three lines puts each on its own row.",
   "dash.pdfLetterheadLogo": "Company logo",
   "dash.pdfLetterheadLogoPick": "Choose image…",
   "dash.pdfLetterheadLogoUploading": "Uploading…",

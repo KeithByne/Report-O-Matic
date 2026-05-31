@@ -1,7 +1,7 @@
-/** Short word labels for PDF letterhead contact lines (Helvetica-safe). */
+/** Plain word labels for PDF letterhead contact (Helvetica / WinAnsi safe). */
 export const LETTERHEAD_CONTACT_LABEL = {
-  phone: "Tel:",
-  mobile: "Mob:",
+  phone: "Telephone:",
+  mobile: "Mobile:",
   email: "Email:",
 } as const;
 
@@ -26,6 +26,20 @@ export function parseLetterheadContactLayout(raw: string | null | undefined): Le
   return "inline";
 }
 
+/** Replace legacy symbol prefixes and non-ASCII separators with word labels / ASCII spaces. */
+export function sanitizeLetterheadContactForPdf(text: string): string {
+  let s = text;
+  s = s.replace(/[\u260E\u260F\u2706\u2709]/g, ""); // phone/fax/envelope symbols
+  s = s.replace(/\u00BB/g, "Telephone:");
+  s = s.replace(/\u00AB/g, "Mobile:");
+  s = s.replace(/\s*\u00B7\s*/g, "  "); // middle dot → spaces (often renders as && in PDF)
+  s = s.replace(/\s*\u2022\s*/g, "  "); // bullet
+  s = s.replace(/\s*\u2013\s*/g, " - "); // en dash
+  s = s.replace(/\s*\u2014\s*/g, " - "); // em dash
+  s = s.replace(/\s{3,}/g, "  ");
+  return s.trim();
+}
+
 /** Build contact block for PDF. Returns null when empty. */
 export function formatLetterheadContactForPdf(fields: LetterheadContactFields): string | null {
   const phone = trimOrNull(fields.phone);
@@ -38,8 +52,10 @@ export function formatLetterheadContactForPdf(fields: LetterheadContactFields): 
   if (email) parts.push(`${LETTERHEAD_CONTACT_LABEL.email} ${email}`);
 
   if (parts.length === 0) {
-    return trimOrNull(fields.legacyContact);
+    const legacy = trimOrNull(fields.legacyContact);
+    return legacy ? sanitizeLetterheadContactForPdf(legacy) : null;
   }
 
-  return fields.layout === "stacked" ? parts.join("\n") : parts.join("  \u00B7  ");
+  const joined = fields.layout === "stacked" ? parts.join("\n") : parts.join("  ");
+  return sanitizeLetterheadContactForPdf(joined);
 }
