@@ -198,6 +198,9 @@ export const IT_LABELS: Record<string, string> = {
   "pdf.sampleClassName": "Classe di esempio",
   "pdf.sampleCommentBody":
     "Questo paragrafo mostra come appare il commento per le famiglie a pagina 2 del PDF. A pagina 1 c’è la pagella strutturata. Salva un rapporto reale per vedere i dati effettivi.",
+  "pdf.letterheadContactPhone": "Telefono:",
+  "pdf.letterheadContactMobile": "Cellulare:",
+  "pdf.letterheadContactEmail": "Email:",
   "pdf.registerAbbr.mon": "Lu",
   "pdf.registerAbbr.tue": "Ma",
   "pdf.registerAbbr.wed": "Me",
@@ -548,6 +551,9 @@ export const PT_LABELS: Record<string, string> = {
   "pdf.sampleClassName": "Turma de exemplo",
   "pdf.sampleCommentBody":
     "Este parágrafo de exemplo mostra como o comentário para as famílias aparece na página 2 do PDF. A página 1 mostra o histórico académico estruturado. Guarde um relatório real para ver o conteúdo definitivo.",
+  "pdf.letterheadContactPhone": "Telefone:",
+  "pdf.letterheadContactMobile": "Telemóvel:",
+  "pdf.letterheadContactEmail": "E-mail:",
   "pdf.registerAbbr.mon": "Se",
   "pdf.registerAbbr.tue": "Te",
   "pdf.registerAbbr.wed": "Qu",
@@ -907,6 +913,9 @@ export const DE_LABELS: Record<string, string> = {
   "pdf.sampleClassName": "Beispielklasse",
   "pdf.sampleCommentBody":
     "Dieser Beispielabsatz zeigt, wie der elterngerichtete Kommentar auf Seite 2 des PDFs erscheint. Seite 1 enthält die strukturierte Leistungsübersicht. Speichern Sie einen echten Bericht, um Live-Inhalte zu sehen.",
+  "pdf.letterheadContactPhone": "Telefon:",
+  "pdf.letterheadContactMobile": "Mobil:",
+  "pdf.letterheadContactEmail": "E-Mail:",
   "pdf.registerAbbr.mon": "Mo",
   "pdf.registerAbbr.tue": "Di",
   "pdf.registerAbbr.wed": "Mi",

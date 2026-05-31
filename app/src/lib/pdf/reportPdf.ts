@@ -22,8 +22,9 @@ import {
   resolveLetterheadLogoDrawPt,
   type LetterheadLogoDrawPt,
 } from "@/lib/pdf/letterheadLogoLayout";
-import { formatLetterheadContactForPdf } from "@/lib/pdf/letterheadContact";
+import { formatLetterheadContactForPdf, letterheadContactLabelsForPdf } from "@/lib/pdf/letterheadContact";
 import type { TenantPdfLetterheadRow } from "@/lib/data/tenantPdfLetterhead";
+import type { UiLang } from "@/lib/i18n/uiStrings";
 
 import {
 
@@ -142,14 +143,18 @@ export function buildLetterheadFromTenantSettings(
     | "pdf_letterhead_mobile"
     | "pdf_letterhead_email"
   >,
+  lang: UiLang,
 ): ReportPdfLetterhead {
-  const contact = formatLetterheadContactForPdf({
-    layout: row.pdf_letterhead_contact_layout,
-    phone: row.pdf_letterhead_phone,
-    mobile: row.pdf_letterhead_mobile,
-    email: row.pdf_letterhead_email,
-    legacyContact: row.pdf_letterhead_contact,
-  });
+  const contact = formatLetterheadContactForPdf(
+    {
+      layout: row.pdf_letterhead_contact_layout,
+      phone: row.pdf_letterhead_phone,
+      mobile: row.pdf_letterhead_mobile,
+      email: row.pdf_letterhead_email,
+      legacyContact: row.pdf_letterhead_contact,
+    },
+    letterheadContactLabelsForPdf(lang),
+  );
 
   return {
     displayName: row.pdf_letterhead_name?.trim() || tenantName,

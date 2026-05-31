@@ -20,7 +20,7 @@ export async function mergeRegisterPdfsForClassRows(
   const uiLang = isUiLang(uiLangRaw) ? uiLangRaw : "en";
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
-  const letterhead: ReportPdfLetterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow);
+  const letterhead: ReportPdfLetterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow, uiLang);
   const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
 
   const pdfs: Buffer[] = [];

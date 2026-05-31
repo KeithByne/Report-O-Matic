@@ -54,7 +54,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
-  const letterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow);
+  const letterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow, uiLang);
   const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
 
   const studentRows = students.map((s) => ({

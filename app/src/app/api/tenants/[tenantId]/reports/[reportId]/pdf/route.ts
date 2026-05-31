@@ -59,7 +59,6 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
-  const letterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow);
   const letterheadLogo = await downloadTenantLetterheadLogo(pdfLhRow.pdf_letterhead_logo_path);
   const outputLanguageCode =
     typeof report.output_language === "string" && isReportLanguageCode(report.output_language.trim())
@@ -67,6 +66,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       : "en";
   const outputLanguageLabel = languageLabel(outputLanguageCode);
   const lang = isUiLang(outputLanguageCode) ? outputLanguageCode : "en";
+  const letterhead = buildLetterheadFromTenantSettings(tenantRecordName, pdfLhRow, lang);
   const subjectLabel = resolvedSubjectLabelForPdf(lang, report.inputs, classDefault);
   const gradeRubricProfile = await resolveGradeRubricForTenantReport(
     tenantId,

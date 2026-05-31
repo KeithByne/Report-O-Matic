@@ -1,11 +1,12 @@
-/** Plain word labels for PDF letterhead contact (Helvetica / WinAnsi safe). */
-export const LETTERHEAD_CONTACT_LABEL = {
-  phone: "Telephone:",
-  mobile: "Mobile:",
-  email: "Email:",
-} as const;
+import { translate, type UiLang } from "@/lib/i18n/uiStrings";
 
 export type LetterheadContactLayout = "inline" | "stacked";
+
+export type LetterheadContactLabels = {
+  phone: string;
+  mobile: string;
+  email: string;
+};
 
 export type LetterheadContactFields = {
   layout: LetterheadContactLayout;
@@ -26,12 +27,21 @@ export function parseLetterheadContactLayout(raw: string | null | undefined): Le
   return "inline";
 }
 
-/** Replace legacy symbol prefixes and non-ASCII separators with word labels / ASCII spaces. */
+/** Localized word labels for PDF letterhead contact lines. */
+export function letterheadContactLabelsForPdf(lang: UiLang): LetterheadContactLabels {
+  return {
+    phone: translate(lang, "pdf.letterheadContactPhone"),
+    mobile: translate(lang, "pdf.letterheadContactMobile"),
+    email: translate(lang, "pdf.letterheadContactEmail"),
+  };
+}
+
+/** Replace legacy symbol prefixes and non-ASCII separators with ASCII spaces. */
 export function sanitizeLetterheadContactForPdf(text: string): string {
   let s = text;
   s = s.replace(/[\u260E\u260F\u2706\u2709]/g, ""); // phone/fax/envelope symbols
-  s = s.replace(/\u00BB/g, "Telephone:");
-  s = s.replace(/\u00AB/g, "Mobile:");
+  s = s.replace(/\u00BB/g, "");
+  s = s.replace(/\u00AB/g, "");
   s = s.replace(/\s*\u00B7\s*/g, "  "); // middle dot → spaces (often renders as && in PDF)
   s = s.replace(/\s*\u2022\s*/g, "  "); // bullet
   s = s.replace(/\s*\u2013\s*/g, " - "); // en dash
@@ -41,15 +51,18 @@ export function sanitizeLetterheadContactForPdf(text: string): string {
 }
 
 /** Build contact block for PDF. Returns null when empty. */
-export function formatLetterheadContactForPdf(fields: LetterheadContactFields): string | null {
+export function formatLetterheadContactForPdf(
+  fields: LetterheadContactFields,
+  labels: LetterheadContactLabels,
+): string | null {
   const phone = trimOrNull(fields.phone);
   const mobile = trimOrNull(fields.mobile);
   const email = trimOrNull(fields.email);
 
   const parts: string[] = [];
-  if (phone) parts.push(`${LETTERHEAD_CONTACT_LABEL.phone} ${phone}`);
-  if (mobile) parts.push(`${LETTERHEAD_CONTACT_LABEL.mobile} ${mobile}`);
-  if (email) parts.push(`${LETTERHEAD_CONTACT_LABEL.email} ${email}`);
+  if (phone) parts.push(`${labels.phone} ${phone}`);
+  if (mobile) parts.push(`${labels.mobile} ${mobile}`);
+  if (email) parts.push(`${labels.email} ${email}`);
 
   if (parts.length === 0) {
     const legacy = trimOrNull(fields.legacyContact);

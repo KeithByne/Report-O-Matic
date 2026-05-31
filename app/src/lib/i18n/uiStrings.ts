@@ -847,7 +847,7 @@ const EN: UiMessages = {
   "dash.pdfLetterheadMobilePlaceholder": "Mobile number",
   "dash.pdfLetterheadEmailPlaceholder": "Email address",
   "dash.pdfLetterheadContactHint":
-    "The PDF shows Telephone:, Mobile:, and Email: before each value. One line puts all three on a row; three lines puts each on its own row.",
+    "On the PDF, labels (Telephone, Mobile, Email) follow the report output language. One line puts all three on a row; three lines puts each on its own row.",
   "dash.pdfLetterheadLogo": "Company logo",
   "dash.pdfLetterheadLogoPick": "Choose image…",
   "dash.pdfLetterheadLogoUploading": "Uploading…",
@@ -1088,6 +1088,9 @@ const EN: UiMessages = {
   "pdf.sampleClassName": "Sample class",
   "pdf.sampleCommentBody":
     "This sample paragraph shows how the parent-facing comment appears on page 2 of the PDF. Page 1 shows the academic record. Save a real report to see live content.",
+  "pdf.letterheadContactPhone": "Telephone:",
+  "pdf.letterheadContactMobile": "Mobile:",
+  "pdf.letterheadContactEmail": "Email:",
   "pdf.registerAbbr.mon": "Mn",
   "pdf.registerAbbr.tue": "Tu",
   "pdf.registerAbbr.wed": "Wn",
@@ -1986,6 +1989,9 @@ const FR: UiMessages = {
   "pdf.sampleClassName": "Classe d’exemple",
   "pdf.sampleCommentBody":
     "Ce paragraphe d’exemple montre comment le commentaire destiné aux familles apparaît à la page 2 du PDF. La page 1 présente le relevé de notes. Enregistrez un rapport réel pour voir le contenu en conditions réelles.",
+  "pdf.letterheadContactPhone": "Téléphone :",
+  "pdf.letterheadContactMobile": "Mobile :",
+  "pdf.letterheadContactEmail": "E-mail :",
   "pdf.registerAbbr.mon": "Lu",
   "pdf.registerAbbr.tue": "Ma",
   "pdf.registerAbbr.wed": "Me",
@@ -2693,6 +2699,9 @@ const ES: UiMessages = {
   "pdf.sampleClassName": "Clase de ejemplo",
   "pdf.sampleCommentBody":
     "Este párrafo de ejemplo muestra cómo aparece el comentario para las familias en la página 2 del PDF. La página 1 muestra el historial académico. Guarde un informe real para ver el contenido definitivo.",
+  "pdf.letterheadContactPhone": "Teléfono:",
+  "pdf.letterheadContactMobile": "Móvil:",
+  "pdf.letterheadContactEmail": "Correo:",
   "pdf.registerAbbr.mon": "Lu",
   "pdf.registerAbbr.tue": "Ma",
   "pdf.registerAbbr.wed": "Mi",

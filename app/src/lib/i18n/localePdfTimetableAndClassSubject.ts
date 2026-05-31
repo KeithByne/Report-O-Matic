@@ -7,6 +7,9 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
   Record<string, string>
 > = {
   nl: {
+    "pdf.letterheadContactPhone": "Telefoon:",
+    "pdf.letterheadContactMobile": "Mobiel:",
+    "pdf.letterheadContactEmail": "E-mail:",
     "pdf.timetableTitle": "Weekrooster",
     "pdf.timetableMyTitle": "Mijn rooster",
     "pdf.timetableLunch": "Lunch",
@@ -41,6 +44,9 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.subjectDeleteFailed": "Vak kon niet worden verwijderd.",
   },
   pl: {
+    "pdf.letterheadContactPhone": "Telefon:",
+    "pdf.letterheadContactMobile": "Komórka:",
+    "pdf.letterheadContactEmail": "E-mail:",
     "pdf.timetableTitle": "Plan tygodniowy",
     "pdf.timetableMyTitle": "Mój plan",
     "pdf.timetableLunch": "Obiad",
@@ -75,6 +81,9 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.subjectDeleteFailed": "Nie udało się usunąć przedmiotu.",
   },
   ro: {
+    "pdf.letterheadContactPhone": "Telefon:",
+    "pdf.letterheadContactMobile": "Mobil:",
+    "pdf.letterheadContactEmail": "E-mail:",
     "pdf.timetableTitle": "Orar săptămânal",
     "pdf.timetableMyTitle": "Orarul meu",
     "pdf.timetableLunch": "Pauză de masă",
@@ -109,6 +118,9 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.subjectDeleteFailed": "Ștergerea a eșuat.",
   },
   ru: {
+    "pdf.letterheadContactPhone": "Телефон:",
+    "pdf.letterheadContactMobile": "Мобильный:",
+    "pdf.letterheadContactEmail": "Эл. почта:",
     "pdf.timetableTitle": "Расписание на неделю",
     "pdf.timetableMyTitle": "Моё расписание",
     "pdf.timetableLunch": "Обед",
@@ -143,6 +155,9 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.subjectDeleteFailed": "Не удалось удалить предмет.",
   },
   uk: {
+    "pdf.letterheadContactPhone": "Телефон:",
+    "pdf.letterheadContactMobile": "Мобільний:",
+    "pdf.letterheadContactEmail": "Ел. пошта:",
     "pdf.timetableTitle": "Тижневий розклад",
     "pdf.timetableMyTitle": "Мій розклад",
     "pdf.timetableLunch": "Обід",
@@ -177,6 +192,9 @@ export const EXTRA_PDF_TIMETABLE_AND_CLASS_SUBJECT: Record<
     "class.subjectDeleteFailed": "Не вдалося видалити предмет.",
   },
   ar: {
+    "pdf.letterheadContactPhone": "هاتف:",
+    "pdf.letterheadContactMobile": "جوال:",
+    "pdf.letterheadContactEmail": "بريد إلكتروني:",
     "pdf.timetableTitle": "الجدول الأسبوعي",
     "pdf.timetableMyTitle": "جدولي",
     "pdf.timetableLunch": "غداء",
