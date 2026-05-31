@@ -1,16 +1,12 @@
 /**
- * Letterhead logo rules (before/after Sharp processing).
- * Upload size stays modest so Vercel/serverless request limits are not exceeded; the stored file is smaller still.
+ * Letterhead logo upload rules (before/after Sharp processing).
  */
 
-/** Max incoming multipart file size (bytes). ~4 MB fits typical Vercel hobby limits after overhead. */
+/** Max incoming multipart file size (bytes). */
 export const LETTERHEAD_LOGO_MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
-/** Min allowed width ÷ height (3∶1 landscape). */
-export const LETTERHEAD_LOGO_MIN_ASPECT_WH = 3;
-
-/** Max allowed width ÷ height (4∶1 landscape). */
-export const LETTERHEAD_LOGO_MAX_ASPECT_WH = 4;
+/** Sharp `metadata().format` values we accept after decode. */
+export const LETTERHEAD_LOGO_ALLOWED_SHARP_FORMATS = new Set(["jpeg", "jpg", "png", "webp"]);
 
 const ALLOWED_MIME = new Set([
   "image/png",
@@ -18,20 +14,16 @@ const ALLOWED_MIME = new Set([
   "image/webp",
   "image/pjpeg",
   "image/jpg",
+  "image/x-png",
 ]);
 
 export function letterheadLogoAllowedMime(mime: string): boolean {
   const m = mime.trim().toLowerCase();
-  if (!m) return false;
+  if (!m || m === "application/octet-stream") return true;
   return ALLOWED_MIME.has(m);
 }
 
-export function letterheadLogoAspectRatioOk(width: number, height: number): boolean {
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width < 16 || height < 16) return false;
-  const ratio = width / height;
-  return ratio >= LETTERHEAD_LOGO_MIN_ASPECT_WH && ratio <= LETTERHEAD_LOGO_MAX_ASPECT_WH;
-}
-
-export function letterheadLogoAspectRatioErrorMessage(): string {
-  return "Logo must be landscape between 3∶1 and 4∶1 (width ÷ height from 3 to 4). Examples: 1200×400 px or 1600×400 px.";
+export function letterheadLogoAllowedSharpFormat(format: string | undefined): boolean {
+  const f = (format ?? "").trim().toLowerCase();
+  return LETTERHEAD_LOGO_ALLOWED_SHARP_FORMATS.has(f);
 }

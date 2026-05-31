@@ -832,7 +832,7 @@ const EN: UiMessages = {
   "dash.addSchoolWorking": "Adding…",
   "dash.pdfLetterheadTitle": "PDF letterhead (owner)",
   "dash.pdfLetterheadHint":
-    "Logo (left), tagline under the logo, and text to the right on PDFs. Landscape PNG, JPEG, or WebP — 3∶1 to 4∶1, max 4 MB. Server normalizes for the PDF. Save text fields, then preview.",
+    "Logo (left), tagline under the logo, and text to the right on PDFs. PNG, JPEG, or WebP — max 4 MB. Landscape logos look best. Save text fields, then preview.",
   "dash.pdfLetterheadName": "Official name on PDF (optional)",
   "dash.pdfLetterheadTagline": "Tagline / subtitle (optional, under logo on PDF)",
   "dash.pdfLetterheadAddress": "Address (optional, multiple lines ok)",
@@ -853,7 +853,7 @@ const EN: UiMessages = {
   "dash.pdfLetterheadLogoUploading": "Uploading…",
   "dash.pdfLetterheadLogoRemove": "Remove logo",
   "dash.pdfLetterheadLogoHint":
-    "PNG, JPEG, or WebP. Landscape 3∶1 to 4∶1 (width ÷ height 3–4). Max 4 MB; optimized for print.",
+    "PNG, JPEG, or WebP. Any proportions accepted; landscape banners fit the PDF best. Max 4 MB.",
   "dash.pdfLetterheadSave": "Save letterhead",
   "dash.pdfLetterheadSaving": "Saving…",
   "dash.pdfLetterheadPreview": "Preview sample PDF",
@@ -1743,7 +1743,7 @@ const FR: UiMessages = {
   "dash.addSchoolWorking": "Ajout…",
   "dash.pdfLetterheadTitle": "En-tête PDF (propriétaire)",
   "dash.pdfLetterheadHint":
-    "Logo à gauche, paysage, sous-titre sous le logo. PNG, JPEG ou WebP (3∶1 à 4∶1, max 4 Mo). Enregistrez puis prévisualisez.",
+    "Logo à gauche, sous-titre sous le logo. PNG, JPEG ou WebP (max 4 Mo). Enregistrez puis prévisualisez.",
   "dash.pdfLetterheadName": "Nom officiel sur le PDF (optionnel)",
   "dash.pdfLetterheadTagline": "Sous-titre (optionnel, sous le logo sur le PDF)",
   "dash.pdfLetterheadAddress": "Adresse (optionnel, plusieurs lignes)",
@@ -1753,7 +1753,7 @@ const FR: UiMessages = {
   "dash.pdfLetterheadLogoUploading": "Téléversement…",
   "dash.pdfLetterheadLogoRemove": "Retirer le logo",
   "dash.pdfLetterheadLogoHint":
-    "PNG, JPEG ou WebP. Paysage 3∶1 à 4∶1 (largeur ÷ hauteur 3–4). Max 4 Mo ; optimisé pour l’impression.",
+    "PNG, JPEG ou WebP. Toutes proportions ; bannière horizontale recommandée. Max 4 Mo.",
   "dash.pdfLetterheadSave": "Enregistrer l’en-tête",
   "dash.pdfLetterheadSaving": "Enregistrement…",
   "dash.pdfLetterheadPreview": "Prévisualiser un PDF exemple",
@@ -2454,7 +2454,7 @@ const ES: UiMessages = {
   "dash.addSchoolWorking": "Añadiendo…",
   "dash.pdfLetterheadTitle": "Membrete PDF (propietario)",
   "dash.pdfLetterheadHint":
-    "Logo horizontal a la izquierda, subtítulo debajo. PNG, JPEG o WebP (3∶1 a 4∶1, máx. 4 MB). Guarde y previsualice.",
+    "Logo a la izquierda, subtítulo debajo. PNG, JPEG o WebP (máx. 4 MB). Guarde y previsualice.",
   "dash.pdfLetterheadName": "Nombre oficial en el PDF (opcional)",
   "dash.pdfLetterheadTagline": "Subtítulo (opcional, bajo el logo en el PDF)",
   "dash.pdfLetterheadAddress": "Dirección (opcional, varias líneas)",
@@ -2464,7 +2464,7 @@ const ES: UiMessages = {
   "dash.pdfLetterheadLogoUploading": "Subiendo…",
   "dash.pdfLetterheadLogoRemove": "Quitar logotipo",
   "dash.pdfLetterheadLogoHint":
-    "PNG, JPEG o WebP. Horizontal 3∶1 a 4∶1 (ancho ÷ alto 3–4). Máx. 4 MB; optimizado para impresión.",
+    "PNG, JPEG o WebP. Cualquier proporción; horizontal recomendado. Máx. 4 MB.",
   "dash.pdfLetterheadSave": "Guardar membrete",
   "dash.pdfLetterheadSaving": "Guardando…",
   "dash.pdfLetterheadPreview": "Previsualizar PDF de muestra",

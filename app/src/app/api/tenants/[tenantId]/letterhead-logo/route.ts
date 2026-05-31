@@ -76,7 +76,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   }
 
   const mime = (file as Blob).type || "";
-  if (!letterheadLogoAllowedMime(mime)) {
+  if (mime && !letterheadLogoAllowedMime(mime)) {
     return NextResponse.json(
       { error: "Logo must be PNG, JPEG, or WebP (converted server-side for the PDF)." },
       { status: 400 },
