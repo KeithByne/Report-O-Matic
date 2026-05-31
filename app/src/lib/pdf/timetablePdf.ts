@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { PDF_PAGE_SPEC } from "@/lib/pdf/reportPdfLayoutModel";
+import { resolveLetterheadLogoDrawPt, type LetterheadLogoDrawPt } from "@/lib/pdf/letterheadLogoDrawSize";
 import { drawReportLetterhead, type ReportPdfLetterhead } from "@/lib/pdf/reportPdf";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 
@@ -149,6 +150,7 @@ export async function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<
     ? 1
     : Math.max(1, Math.min(opts.roomsPerPage ?? 1, Math.max(1, effectiveRoomIndices.length)));
   const roomPages = teacherSingle ? 1 : Math.max(1, Math.ceil(effectiveRoomIndices.length / roomsPerPage));
+  const logoDraw = await resolveLetterheadLogoDrawPt(opts.letterheadLogo, PAGE_W, MARGIN_PT);
 
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -172,6 +174,7 @@ export async function buildTimetablePdfBuffer(opts: TimetablePdfInput): Promise<
       drawReportLetterhead(doc, opts.letterhead, opts.letterheadLogo, {
         pageMarginPt: MARGIN_PT,
         pageWidthPt: PAGE_W,
+        logoDraw,
       });
 
       doc.moveDown(0.6);

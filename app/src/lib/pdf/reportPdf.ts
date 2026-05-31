@@ -19,6 +19,12 @@ import { pdfTeacherSignatureLabel } from "@/lib/pdf/pdfTeacherSignature";
 
 import { formatLetterheadContactForPdf, letterheadContactLabelsForPdf } from "@/lib/pdf/letterheadContact";
 import type { TenantPdfLetterheadRow } from "@/lib/data/tenantPdfLetterhead";
+import {
+  computeLetterheadLogoDrawPt,
+  letterheadLogoColumnWidthPt,
+  resolveLetterheadLogoDrawPt,
+  type LetterheadLogoDrawPt,
+} from "@/lib/pdf/letterheadLogoDrawSize";
 
 import {
 
@@ -266,48 +272,13 @@ function applyTypo(
 
 }
 
-function letterheadLogoColumnWidthPt(pageWidthPt: number, pageMarginPt: number): number {
-  const usableW = pageWidthPt - pageMarginPt * 2;
-  return usableW * lhSpec.logoColumnWidthRatio;
-}
-
-/** Width-first logo draw: fills the logo column, height from aspect ratio (capped). */
-function letterheadLogoDrawSize(
-  doc: PdfDoc,
-  logo: Buffer,
-  pageWidthPt: number,
-  pageMarginPt: number,
-): { widthPt: number; heightPt: number; columnWidthPt: number } {
-  const columnWidthPt = letterheadLogoColumnWidthPt(pageWidthPt, pageMarginPt);
-  const maxH = lhSpec.logoMaxHeightPt;
-  try {
-    const img = doc.openImage(logo);
-    if (!img.width || !img.height) {
-      return { widthPt: columnWidthPt, heightPt: maxH, columnWidthPt };
-    }
-    const aspect = img.width / img.height;
-    let drawW = columnWidthPt;
-    let drawH = drawW / aspect;
-    if (drawH > maxH) {
-      drawH = maxH;
-      drawW = drawH * aspect;
-    }
-    return {
-      widthPt: Math.max(1, drawW),
-      heightPt: Math.max(1, drawH),
-      columnWidthPt,
-    };
-  } catch {
-    return { widthPt: columnWidthPt, heightPt: maxH, columnWidthPt };
-  }
-}
-
 function drawLetterheadBlock(
   doc: PdfDoc,
   lh: ReportPdfLetterhead,
   logo: Buffer | null,
   pageMarginPt: number = marginPt,
   pageWidthPt: number = widthPt,
+  logoDraw: LetterheadLogoDrawPt | null = null,
 ): void {
   const startY = doc.y;
   const leftX = pageMarginPt;
@@ -317,7 +288,7 @@ function drawLetterheadBlock(
   let logoDrawH = 0;
 
   if (hasLogo && logo) {
-    const sz = letterheadLogoDrawSize(doc, logo, pageWidthPt, pageMarginPt);
+    const sz = logoDraw ?? computeLetterheadLogoDrawPt(0, 0, pageWidthPt, pageMarginPt);
     logoColW = sz.columnWidthPt;
     try {
       doc.image(logo, leftX, startY, { width: sz.widthPt, height: sz.heightPt });
@@ -373,7 +344,7 @@ export function drawReportLetterhead(
   doc: PdfDoc,
   lh: ReportPdfLetterhead,
   logo: Buffer | null,
-  opts?: { pageMarginPt?: number; pageWidthPt?: number },
+  opts?: { pageMarginPt?: number; pageWidthPt?: number; logoDraw?: LetterheadLogoDrawPt | null },
 ): void {
   drawLetterheadBlock(
     doc,
@@ -381,6 +352,7 @@ export function drawReportLetterhead(
     logo,
     opts?.pageMarginPt ?? marginPt,
     opts?.pageWidthPt ?? widthPt,
+    opts?.logoDraw ?? null,
   );
 }
 
@@ -535,18 +507,19 @@ function drawGradesTable(
 
 
 
-export function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
+export async function buildReportPdfBuffer(ctx: ReportPdfContext): Promise<Buffer> {
   if (REPORT_PDF_LAYOUT_VERSION !== 21) {
     return Promise.reject(new Error(`Unsupported report PDF layout version: ${REPORT_PDF_LAYOUT_VERSION}`));
   }
-  return renderReportPdfLayoutV4(ctx);
+  const logoDraw = await resolveLetterheadLogoDrawPt(ctx.letterheadLogo, widthPt, marginPt);
+  return renderReportPdfLayoutV4(ctx, logoDraw);
 }
 
 
 
 /** Page 1: letterhead + context + academic record; page 2: parent comment only. */
 
-function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
+function renderReportPdfLayoutV4(ctx: ReportPdfContext, logoDraw: LetterheadLogoDrawPt | null): Promise<Buffer> {
 
   return new Promise((resolve, reject) => {
 
@@ -587,7 +560,7 @@ function renderReportPdfLayoutV4(ctx: ReportPdfContext): Promise<Buffer> {
 
     const sigLabel = pdfTeacherSignatureLabel(ctx.outputLanguageCode);
 
-    drawLetterheadBlock(doc, ctx.letterhead, ctx.letterheadLogo);
+    drawLetterheadBlock(doc, ctx.letterhead, ctx.letterheadLogo, marginPt, widthPt, logoDraw);
 
     doc.moveDown(0.55);
 
