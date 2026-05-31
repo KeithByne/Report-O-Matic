@@ -7,7 +7,7 @@ import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
-import { LETTERHEAD_CONTACT_GLYPH, type LetterheadContactLayout } from "@/lib/pdf/letterheadContact";
+import { LETTERHEAD_CONTACT_GLYPH, parseLetterheadContactLayout, type LetterheadContactLayout } from "@/lib/pdf/letterheadContact";
 
 type Tenant = { tenantId: string; tenantName: string };
 
@@ -32,6 +32,21 @@ const emptyLh: LhState = {
   email: "",
   has_logo: false,
 };
+
+function letterheadFromApi(lh: Record<string, unknown> | null | undefined): LhState {
+  return {
+    name: typeof lh?.name === "string" ? lh.name : "",
+    tagline: typeof lh?.tagline === "string" ? lh.tagline : "",
+    address: typeof lh?.address === "string" ? lh.address : "",
+    contactLayout: parseLetterheadContactLayout(
+      typeof lh?.contact_layout === "string" ? lh.contact_layout : null,
+    ),
+    phone: typeof lh?.phone === "string" ? lh.phone : "",
+    mobile: typeof lh?.mobile === "string" ? lh.mobile : "",
+    email: typeof lh?.email === "string" ? lh.email : "",
+    has_logo: lh?.has_logo === true,
+  };
+}
 
 export function DashboardTenantPdfLetterhead({
   tenants,
