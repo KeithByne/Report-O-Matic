@@ -18,6 +18,7 @@ import {
 import { pdfTeacherSignatureLabel } from "@/lib/pdf/pdfTeacherSignature";
 
 import {
+  fitLetterheadLogoToBox,
   letterheadLogoFallbackDrawPt,
   resolveLetterheadLogoDrawPt,
   type LetterheadLogoDrawPt,
@@ -271,6 +272,19 @@ function applyTypo(
 
 }
 
+const LETTERHEAD_NAME_ADDR_GAP_PT = 4;
+const LETTERHEAD_TAGLINE_LOGO_GAP_PT = 6;
+
+function letterheadTextHeight(
+  doc: PdfDoc,
+  text: string,
+  width: number,
+  t: { fontSize: number; font: "Helvetica" | "Helvetica-Bold"; fill: string; lineGap?: number },
+): number {
+  applyTypo(doc, t);
+  return doc.heightOfString(text, { width, lineGap: t.lineGap ?? 0 });
+}
+
 
 
 function drawLetterheadBlock(
@@ -292,19 +306,62 @@ function drawLetterheadBlock(
 
   const drawBox = hasLogo ? (logoDrawPt ?? letterheadLogoFallbackDrawPt()) : null;
 
-  const logoH = drawBox?.heightPt ?? 0;
-
   const textX = hasLogo ? leftX + logoColWidthPt : leftX;
 
   const textW = hasLogo ? textColWidthPt : contentWidthPt;
 
+  const nameText = lh.displayName;
+
+  const nameH = letterheadTextHeight(doc, nameText, textW, typo.letterheadName);
+
+  const addrBlock = [lh.address?.trim(), lh.contact?.trim()].filter(Boolean).join("\n");
+
+  const addrH = addrBlock ? letterheadTextHeight(doc, addrBlock, textW, typo.letterheadAddress) : 0;
+
+  const baselineY = startY + nameH + (addrBlock ? LETTERHEAD_NAME_ADDR_GAP_PT + addrH : 0);
+
+  const taglineText = lh.tagline?.trim() ?? "";
+
+  const taglineH = taglineText ? letterheadTextHeight(doc, taglineText, logoColWidthPt, typo.letterheadTagline) : 0;
+
+  const logoSlotH = baselineY - startY - (taglineText ? taglineH + LETTERHEAD_TAGLINE_LOGO_GAP_PT : 0);
+
+  const fittedLogo =
+    hasLogo && drawBox && logoSlotH > 0
+      ? fitLetterheadLogoToBox(drawBox, logoColWidthPt, logoSlotH)
+      : { widthPt: 0, heightPt: 0 };
+
+  const logoY = baselineY - fittedLogo.heightPt;
 
 
-  if (hasLogo && logo && drawBox) {
+
+  applyTypo(doc, typo.letterheadName);
+
+  doc.text(nameText, textX, startY, { width: textW, align: "left" });
+
+  if (addrBlock) {
+
+    applyTypo(doc, typo.letterheadAddress);
+
+    doc.text(addrBlock, textX, startY + nameH + LETTERHEAD_NAME_ADDR_GAP_PT, {
+
+      width: textW,
+
+      align: "left",
+
+      lineGap: typo.letterheadAddress.lineGap,
+
+    });
+
+  }
+
+
+
+  if (hasLogo && logo && fittedLogo.heightPt > 0) {
 
     try {
 
-      doc.image(logo, leftX, startY, { fit: [logoColWidthPt, logoH] });
+      doc.image(logo, leftX, logoY, { fit: [logoColWidthPt, fittedLogo.heightPt] });
 
     } catch {
 
@@ -316,21 +373,13 @@ function drawLetterheadBlock(
 
 
 
-  const logoBottom = startY + (hasLogo ? logoH : 0);
-
-
-
-  let tagBottom = startY;
-
-  if (lh.tagline?.trim()) {
-
-    const tagY = hasLogo ? logoBottom + 6 : startY;
+  if (taglineText) {
 
     applyTypo(doc, typo.letterheadTagline);
 
-    doc.text(lh.tagline.trim(), leftX, tagY, {
+    doc.text(taglineText, leftX, startY, {
 
-      width: hasLogo ? logoColWidthPt : contentWidthPt,
+      width: logoColWidthPt,
 
       align: "left",
 
@@ -338,49 +387,11 @@ function drawLetterheadBlock(
 
     });
 
-    tagBottom = doc.y;
-
-  } else if (hasLogo) {
-
-    tagBottom = logoBottom;
-
   }
 
 
 
-  applyTypo(doc, typo.letterheadName);
-
-  doc.text(lh.displayName, textX, startY, { width: textW, align: "left" });
-
-  let textBottom = doc.y;
-
-  const addrBlock = [lh.address?.trim(), lh.contact?.trim()].filter(Boolean).join("\n");
-
-  if (addrBlock) {
-
-    applyTypo(doc, typo.letterheadAddress);
-
-    doc.text(addrBlock, textX, textBottom + 4, {
-
-      width: textW,
-
-      align: "left",
-
-      lineGap: typo.letterheadAddress.lineGap,
-
-    });
-
-    textBottom = doc.y;
-
-  }
-
-
-
-  const leftColumnEnd = lh.tagline?.trim() ? tagBottom : hasLogo ? logoBottom : startY;
-
-  const blockEnd = Math.max(leftColumnEnd, textBottom);
-
-  doc.y = blockEnd;
+  doc.y = baselineY;
 
   doc.x = pageMarginPt;
 

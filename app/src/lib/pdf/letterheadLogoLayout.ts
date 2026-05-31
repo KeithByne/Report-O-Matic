@@ -73,3 +73,20 @@ export function letterheadLogoFallbackDrawPt(): LetterheadLogoDrawPt {
     heightPt: PDF_LETTERHEAD_LOGO_SPEC.fallbackHeightPt,
   };
 }
+
+/** Scale an ideal logo draw size down to fit a box (preserves aspect ratio). */
+export function fitLetterheadLogoToBox(
+  ideal: LetterheadLogoDrawPt,
+  maxWidthPt: number,
+  maxHeightPt: number,
+): LetterheadLogoDrawPt {
+  if (maxWidthPt <= 0 || maxHeightPt <= 0) return { widthPt: 0, heightPt: 0 };
+  const aspect = ideal.widthPt / ideal.heightPt;
+  let heightPt = Math.min(ideal.heightPt, maxHeightPt);
+  let widthPt = heightPt * aspect;
+  if (widthPt > maxWidthPt) {
+    widthPt = maxWidthPt;
+    heightPt = widthPt / aspect;
+  }
+  return { widthPt: Math.max(1, widthPt), heightPt: Math.max(1, heightPt) };
+}
