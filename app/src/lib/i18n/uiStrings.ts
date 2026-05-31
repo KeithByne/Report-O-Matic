@@ -847,7 +847,7 @@ const EN: UiMessages = {
   "dash.pdfLetterheadMobilePlaceholder": "Mobile number",
   "dash.pdfLetterheadEmailPlaceholder": "Email address",
   "dash.pdfLetterheadContactHint":
-    "Icons and symbols (☎ ☏ @) appear on the PDF. One line joins entries with · ; three lines puts each on its own row.",
+    "Symbols » (telephone), « (mobile), and @ (email) appear on the PDF. One line joins entries with · ; three lines puts each on its own row.",
   "dash.pdfLetterheadLogo": "Company logo",
   "dash.pdfLetterheadLogoPick": "Choose image…",
   "dash.pdfLetterheadLogoUploading": "Uploading…",
