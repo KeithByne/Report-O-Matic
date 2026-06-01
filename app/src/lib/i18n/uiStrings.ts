@@ -29,6 +29,18 @@ import {
   CLASS_WORKSPACE_GUIDE_UK,
 } from "@/lib/i18n/localeClassWorkspaceGuide";
 import { GETTING_STARTED_EL } from "@/lib/i18n/localeDashboardGettingStarted";
+import {
+  DISPLAY_AR,
+  DISPLAY_DE,
+  DISPLAY_EL,
+  DISPLAY_IT,
+  DISPLAY_NL,
+  DISPLAY_PL,
+  DISPLAY_PT,
+  DISPLAY_RO,
+  DISPLAY_RU,
+  DISPLAY_UK,
+} from "@/lib/i18n/localeDisplayI18n";
 import { UI_FILL_EL, UI_FILL_ES, UI_FILL_FR } from "@/lib/i18n/localeUiFill";
 
 export type UiLang = UiLocaleCode;
@@ -3041,18 +3053,25 @@ const ES: UiMessages = {
   ...UI_FILL_ES,
 };
 
-const EL: UiMessages = { ...EN, ...EL_BODY, ...UI_FILL_EL, ...GETTING_STARTED_EL, ...CLASS_WORKSPACE_GUIDE_EL };
+const EL: UiMessages = {
+  ...EN,
+  ...EL_BODY,
+  ...UI_FILL_EL,
+  ...DISPLAY_EL,
+  ...GETTING_STARTED_EL,
+  ...CLASS_WORKSPACE_GUIDE_EL,
+};
 
-const DE: UiMessages = { ...EN, ...DE_LABELS, ...CLASS_WORKSPACE_GUIDE_DE };
-const IT: UiMessages = { ...EN, ...IT_LABELS, ...IT_COMPLETION, ...CLASS_WORKSPACE_GUIDE_IT };
-const PT: UiMessages = { ...EN, ...PT_LABELS, ...CLASS_WORKSPACE_GUIDE_PT };
+const DE: UiMessages = { ...EN, ...DE_LABELS, ...DISPLAY_DE, ...CLASS_WORKSPACE_GUIDE_DE };
+const IT: UiMessages = { ...EN, ...IT_LABELS, ...IT_COMPLETION, ...DISPLAY_IT, ...CLASS_WORKSPACE_GUIDE_IT };
+const PT: UiMessages = { ...EN, ...PT_LABELS, ...DISPLAY_PT, ...CLASS_WORKSPACE_GUIDE_PT };
 /** nl / pl / ro / ru / uk / ar: English base + `localePatches6` overlays (extend patches for fuller coverage). */
-const NL: UiMessages = { ...EN, ...NL_PATCH, ...CLASS_WORKSPACE_GUIDE_NL };
-const PL: UiMessages = { ...EN, ...PL_PATCH, ...CLASS_WORKSPACE_GUIDE_PL };
-const RO: UiMessages = { ...EN, ...RO_PATCH, ...CLASS_WORKSPACE_GUIDE_RO };
-const RU: UiMessages = { ...EN, ...RU_PATCH, ...CLASS_WORKSPACE_GUIDE_RU };
-const UK: UiMessages = { ...EN, ...UK_PATCH, ...CLASS_WORKSPACE_GUIDE_UK };
-const AR: UiMessages = { ...EN, ...AR_PATCH, ...CLASS_WORKSPACE_GUIDE_AR };
+const NL: UiMessages = { ...EN, ...NL_PATCH, ...DISPLAY_NL, ...CLASS_WORKSPACE_GUIDE_NL };
+const PL: UiMessages = { ...EN, ...PL_PATCH, ...DISPLAY_PL, ...CLASS_WORKSPACE_GUIDE_PL };
+const RO: UiMessages = { ...EN, ...RO_PATCH, ...DISPLAY_RO, ...CLASS_WORKSPACE_GUIDE_RO };
+const RU: UiMessages = { ...EN, ...RU_PATCH, ...DISPLAY_RU, ...CLASS_WORKSPACE_GUIDE_RU };
+const UK: UiMessages = { ...EN, ...UK_PATCH, ...DISPLAY_UK, ...CLASS_WORKSPACE_GUIDE_UK };
+const AR: UiMessages = { ...EN, ...AR_PATCH, ...DISPLAY_AR, ...CLASS_WORKSPACE_GUIDE_AR };
 
 export const UI_STRINGS: Record<UiLang, UiMessages> = {
   en: EN,
@@ -3070,39 +3089,10 @@ export const UI_STRINGS: Record<UiLang, UiMessages> = {
   ar: AR,
 };
 
-/**
- * Locales that merge English + partial patches: when a string still matches English,
- * try French and/or Spanish full bundles so UI is not left in English where those locales define a translation.
- * (ru / uk / ar use dedicated overlays instead — see `localeRuUkArAuthBilling.ts`.)
- */
-const SECONDARY_FALLBACK_LANGS: Partial<Record<UiLang, readonly UiLang[]>> = {
-  it: ["es", "fr"],
-  pt: ["es", "fr"],
-  nl: ["fr", "es"],
-  pl: ["fr", "es"],
-  ro: ["fr", "es"],
-  de: ["fr", "es"],
-  el: ["fr", "es"],
-};
-
-function secondaryLookup(lang: UiLang, key: string, enVal: string): string | undefined {
-  const chain = SECONDARY_FALLBACK_LANGS[lang];
-  if (!chain) return undefined;
-  for (const l of chain) {
-    const t = UI_STRINGS[l][key];
-    if (t !== undefined && t !== enVal) return t;
-  }
-  return undefined;
-}
-
 export function translate(lang: UiLang, key: string, vars?: Record<string, string | number>): string {
   const enVal = UI_STRINGS.en[key] ?? key;
   let s = UI_STRINGS[lang][key];
   if (s === undefined) s = enVal;
-  else if (lang !== "en" && lang !== "fr" && lang !== "es" && s === enVal) {
-    const alt = secondaryLookup(lang, key, enVal);
-    if (alt !== undefined) s = alt;
-  }
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       s = s.replaceAll(`{${k}}`, String(v));

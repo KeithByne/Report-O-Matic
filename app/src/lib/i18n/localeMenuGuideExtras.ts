@@ -138,13 +138,38 @@ export const MENU_GUIDE_EXTRAS_DE: Record<string, string> = {
 };
 
 export const MENU_GUIDE_EXTRAS_PT: Record<string, string> = {
-  ...MENU_GUIDE_EXTRAS_ES,
+  ...MENU_GUIDE_EXTRAS_EN,
+  "dash.panelSetUp": "Configuração",
+  "dash.panelStudents": "Alunos",
   "dash.guide.activeStudentsTitle": "Alunos ativos",
+  "dash.guide.activeStudents1":
+    "Abra Alunos ativos para gerir a lista escolar de alunos.",
+  "dash.guide.activeStudents2": "Adicione alunos aqui e coloque-os numa ou mais turmas.",
+  "dash.guide.activeStudents3":
+    "Remover move para Alunos inativos; os relatórios são mantidos.",
   "dash.guide.inactiveStudentsTitle": "Alunos inativos",
+  "dash.guide.inactiveStudents1":
+    "Abra Alunos inativos para alunos que já não estão na lista ativa.",
+  "dash.guide.inactiveStudents2": "Reative um aluno para o repor em Alunos ativos.",
+  "dash.guide.inactiveStudents3": "Os arquivados ficam fora das listas de turma até os reativar.",
   "dash.guide.registersTitle": "Registos (PDF)",
+  "dash.guide.registers1":
+    "Abra Registos para pré-visualizar PDFs de registo de turma de toda a escola.",
+  "dash.guide.registers2": "Use para listas em papel em reuniões ou no secretariado.",
+  "dash.guide.registers3": "Os registos seguem as turmas e listas atuais.",
   "dash.guide.menuDownloadsTitle": "Transferências",
+  "dash.guide.menuDownloads1":
+    "Abra Transferências para registos, horário e PDFs de relatórios desta escola.",
+  "dash.guide.menuDownloads2": "Para documentos fora dos painéis principais do painel.",
+  "dash.guide.menuDownloads3": "Verifique mensagens antes de imprimir lotes grandes.",
   "dash.guide.agentTitle": "Ser agente",
+  "dash.guide.agent1": "Abra para ver a sua ligação de referência e ganhos de agente.",
+  "dash.guide.agent2": "Partilhe a ligação com escolas que possam registar-se.",
+  "dash.guide.agent3": "Ligue o Stripe quando estiver pronto para receber pagamentos.",
   "dash.guide.teacherRegistersTitle": "Imprimir os meus registos",
+  "dash.guide.teacherRegisters1": "Abra para pré-visualizar o PDF do seu registo de turma.",
+  "dash.guide.teacherRegisters2": "Apenas turmas em que é o professor atribuído.",
+  "dash.guide.teacherRegisters3": "Use Transferências para outros tipos de documento, se disponíveis.",
 };
 
 export const MENU_GUIDE_EXTRAS_IT: Record<string, string> = {
@@ -182,33 +207,108 @@ export const MENU_GUIDE_EXTRAS_IT: Record<string, string> = {
 };
 
 export const MENU_GUIDE_EXTRAS_NL: Record<string, string> = {
-  ...MENU_GUIDE_EXTRAS_FR,
+  ...MENU_GUIDE_EXTRAS_EN,
+  "dash.panelSetUp": "Instellen",
+  "dash.panelStudents": "Leerlingen",
   "dash.guide.activeStudentsTitle": "Actieve leerlingen",
+  "dash.guide.activeStudents1":
+    "Open Actieve leerlingen om de schoolbrede leerlingenlijst te beheren.",
+  "dash.guide.activeStudents2": "Voeg hier leerlingen toe en plaats ze in een of meer klassen.",
+  "dash.guide.activeStudents3":
+    "Verwijderen verplaatst naar Inactieve leerlingen; rapporten blijven bewaard.",
   "dash.guide.inactiveStudentsTitle": "Inactieve leerlingen",
+  "dash.guide.inactiveStudents1":
+    "Open Inactieve leerlingen voor leerlingen die niet meer op de actieve lijst staan.",
+  "dash.guide.inactiveStudents2": "Heractiveer een leerling om terug te zetten naar Actieve leerlingen.",
+  "dash.guide.inactiveStudents3": "Gearchiveerde leerlingen blijven uit klassenlijsten tot u ze terugzet.",
   "dash.guide.registersTitle": "Registers (PDF)",
+  "dash.guide.registers1":
+    "Open Registers om PDF-klassenregisters voor de hele school te bekijken.",
+  "dash.guide.registers2": "Gebruik dit voor papieren lijsten in vergaderingen of op kantoor.",
+  "dash.guide.registers3": "Registers volgen uw huidige klassen en leerlingenlijsten.",
   "dash.guide.menuDownloadsTitle": "Downloads",
+  "dash.guide.menuDownloads1":
+    "Open Downloads voor registers, rooster en rapport-PDF’s van deze school.",
+  "dash.guide.menuDownloads2": "Voor documenten buiten de hoofdpanelen van het dashboard.",
+  "dash.guide.menuDownloads3": "Controleer berichten vóór het printen van grote series.",
   "dash.guide.agentTitle": "Agent worden",
+  "dash.guide.agent1": "Open dit om uw verwijzingslink en agentinkomsten te zien.",
+  "dash.guide.agent2": "Deel uw link met scholen die zich kunnen aanmelden.",
+  "dash.guide.agent3": "Koppel Stripe wanneer u klaar bent om uitbetalingen te ontvangen.",
   "dash.guide.teacherRegistersTitle": "Mijn registers afdrukken",
+  "dash.guide.teacherRegisters1": "Open dit om uw persoonlijke klassenregister-PDF te bekijken.",
+  "dash.guide.teacherRegisters2": "Alleen klassen waarin u de toegewezen docent bent.",
+  "dash.guide.teacherRegisters3": "Gebruik Downloads voor andere documenttypen indien beschikbaar.",
 };
 
 export const MENU_GUIDE_EXTRAS_PL: Record<string, string> = {
-  ...MENU_GUIDE_EXTRAS_FR,
+  ...MENU_GUIDE_EXTRAS_EN,
+  "dash.panelSetUp": "Konfiguracja",
+  "dash.panelStudents": "Uczniowie",
   "dash.guide.activeStudentsTitle": "Aktywni uczniowie",
+  "dash.guide.activeStudents1":
+    "Otwórz Aktywni uczniowie, aby zarządzać szkolną listą uczniów.",
+  "dash.guide.activeStudents2": "Dodawaj uczniów tutaj i umieszczaj ich w jednej lub wielu klasach.",
+  "dash.guide.activeStudents3":
+    "Usunięcie przenosi do Nieaktywni uczniowie; raporty są zachowane.",
   "dash.guide.inactiveStudentsTitle": "Nieaktywni uczniowie",
+  "dash.guide.inactiveStudents1":
+    "Otwórz Nieaktywni uczniowie, aby zobaczyć uczniów spoza aktywnej listy.",
+  "dash.guide.inactiveStudents2": "Aktywuj ponownie ucznia, aby wrócił do Aktywni uczniowie.",
+  "dash.guide.inactiveStudents3": "Zarchiwizowani pozostają poza listami klas do ponownej aktywacji.",
   "dash.guide.registersTitle": "Dzienniki (PDF)",
+  "dash.guide.registers1":
+    "Otwórz Dzienniki, aby podejrzeć PDF dzienników klas dla całej szkoły.",
+  "dash.guide.registers2": "Użyj tego do papierowych list na spotkania lub w sekretariacie.",
+  "dash.guide.registers3": "Dzienniki odzwierciedlają bieżące klasy i listy uczniów.",
   "dash.guide.menuDownloadsTitle": "Pobrania",
+  "dash.guide.menuDownloads1":
+    "Otwórz Pobrania dla dzienników, planu lekcji i raportów PDF tej szkoły.",
+  "dash.guide.menuDownloads2": "Do dokumentów spoza głównych paneli pulpitu.",
+  "dash.guide.menuDownloads3": "Sprawdź komunikaty przed drukowaniem dużych partii.",
   "dash.guide.agentTitle": "Zostań agentem",
+  "dash.guide.agent1": "Otwórz, aby zobaczyć link polecający i zarobki agenta.",
+  "dash.guide.agent2": "Udostępnij link szkołom, które mogą się zarejestrować.",
+  "dash.guide.agent3": "Połącz Stripe, gdy będziesz gotowy na wypłaty.",
   "dash.guide.teacherRegistersTitle": "Drukuj moje dzienniki",
+  "dash.guide.teacherRegisters1": "Otwórz, aby podejrzeć PDF własnego dziennika klasowego.",
+  "dash.guide.teacherRegisters2": "Tylko klasy, w których jesteś przypisanym nauczycielem.",
+  "dash.guide.teacherRegisters3": "Użyj Pobrań dla innych typów dokumentów, jeśli są dostępne.",
 };
 
 export const MENU_GUIDE_EXTRAS_RO: Record<string, string> = {
-  ...MENU_GUIDE_EXTRAS_FR,
+  ...MENU_GUIDE_EXTRAS_EN,
+  "dash.panelSetUp": "Configurare",
+  "dash.panelStudents": "Elevi",
   "dash.guide.activeStudentsTitle": "Elevi activi",
+  "dash.guide.activeStudents1":
+    "Deschideți Elevi activi pentru a gestiona lista școlară de elevi.",
+  "dash.guide.activeStudents2": "Adăugați elevi aici, apoi îi repartizați într-o sau mai multe clase.",
+  "dash.guide.activeStudents3":
+    "Eliminarea îi mută la Elevi inactivi; rapoartele sunt păstrate.",
   "dash.guide.inactiveStudentsTitle": "Elevi inactivi",
+  "dash.guide.inactiveStudents1":
+    "Deschideți Elevi inactivi pentru elevii care nu mai sunt pe lista activă.",
+  "dash.guide.inactiveStudents2": "Reactivați un elev pentru a-l readuce la Elevi activi.",
+  "dash.guide.inactiveStudents3": "Cei arhivați rămân în afara listelor de clasă până îi readuceți.",
   "dash.guide.registersTitle": "Registre (PDF)",
+  "dash.guide.registers1":
+    "Deschideți Registre pentru previzualizarea PDF a registrelor de clasă pentru întreaga școală.",
+  "dash.guide.registers2": "Folosiți pentru liste pe hârtie la ședințe sau la secretariat.",
+  "dash.guide.registers3": "Registrele urmează clasele și listele actuale.",
   "dash.guide.menuDownloadsTitle": "Descărcări",
+  "dash.guide.menuDownloads1":
+    "Deschideți Descărcări pentru registre, orar și rapoarte PDF ale acestei școli.",
+  "dash.guide.menuDownloads2": "Pentru documente în afara panourilor principale.",
+  "dash.guide.menuDownloads3": "Verificați mesajele înainte de tipărirea loturilor mari.",
   "dash.guide.agentTitle": "Fii agent",
+  "dash.guide.agent1": "Deschideți pentru linkul de recomandare și câștiguri.",
+  "dash.guide.agent2": "Distribuiți linkul școlilor care s-ar putea înregistra.",
+  "dash.guide.agent3": "Conectați Stripe când sunteți gata pentru plăți.",
   "dash.guide.teacherRegistersTitle": "Tipărește registrele mele",
+  "dash.guide.teacherRegisters1": "Deschideți pentru previzualizarea PDF a registrului clasei dvs.",
+  "dash.guide.teacherRegisters2": "Doar clasele în care sunteți profesorul desemnat.",
+  "dash.guide.teacherRegisters3": "Folosiți Descărcări pentru alte tipuri de documente.",
 };
 
 export const MENU_GUIDE_EXTRAS_RU: Record<string, string> = {
@@ -281,11 +381,37 @@ export const MENU_GUIDE_EXTRAS_AR: Record<string, string> = {
 };
 
 export const MENU_GUIDE_EXTRAS_EL: Record<string, string> = {
-  ...MENU_GUIDE_EXTRAS_FR,
+  ...MENU_GUIDE_EXTRAS_EN,
+  "dash.panelSetUp": "Ρύθμιση",
+  "dash.panelStudents": "Μαθητές",
   "dash.guide.activeStudentsTitle": "Ενεργοί μαθητές",
+  "dash.guide.activeStudents1":
+    "Ανοίξτε Ενεργοί μαθητές για να διαχειριστείτε τη σχολική λίστα μαθητών.",
+  "dash.guide.activeStudents2": "Προσθέστε μαθητές εδώ και τοποθετήστε τους σε μία ή περισσότερες τάξεις.",
+  "dash.guide.activeStudents3":
+    "Η αφαίρεση τους μεταφέρει στους Ανενεργούς μαθητές· οι αναφορές διατηρούνται.",
   "dash.guide.inactiveStudentsTitle": "Ανενεργοί μαθητές",
+  "dash.guide.inactiveStudents1":
+    "Ανοίξτε Ανενεργούς μαθητές για μαθητές που δεν είναι πλέον στην ενεργή λίστα.",
+  "dash.guide.inactiveStudents2": "Επανενεργοποιήστε έναν μαθητή για να επιστρέψει στους Ενεργούς μαθητές.",
+  "dash.guide.inactiveStudents3":
+    "Οι αρχειοθετημένοι μένουν εκτός λιστών τάξης μέχρι να τους επαναφέρετε.",
   "dash.guide.registersTitle": "Μητρώα (PDF)",
+  "dash.guide.registers1":
+    "Ανοίξτε Μητρώα για προεπισκόπηση PDF μητρώων τάξης για όλο το σχολείο.",
+  "dash.guide.registers2": "Χρησιμοποιήστε το για χάρτινες λίστες σε συναντήσεις ή το γραφείο.",
+  "dash.guide.registers3": "Τα μητρώα ακολουθούν τις τρέχουσες τάξεις και λίστες μαθητών.",
   "dash.guide.menuDownloadsTitle": "Λήψεις",
+  "dash.guide.menuDownloads1":
+    "Ανοίξτε Λήψεις για μητρώα, ωρολόγιο και PDF αναφορών αυτού του σχολείου.",
+  "dash.guide.menuDownloads2": "Για έγγραφα εκτός των κύριων πάνελ του πίνακα ελέγχου.",
+  "dash.guide.menuDownloads3": "Ελέγξτε μηνύματα πριν από εκτύπωση μεγάλων παρτίδων.",
   "dash.guide.agentTitle": "Γίνε πράκτορας",
+  "dash.guide.agent1": "Ανοίξτε για να δείτε τον σύνδεσμο παραπομπής και τα έσοδα πράκτορα.",
+  "dash.guide.agent2": "Μοιραστείτε τον σύνδεσμό με σχολεία που μπορεί να εγγραφούν.",
+  "dash.guide.agent3": "Συνδέστε Stripe όταν είστε έτοιμοι να λαμβάνετε πληρωμές.",
   "dash.guide.teacherRegistersTitle": "Εκτύπωση μητρώων μου",
+  "dash.guide.teacherRegisters1": "Ανοίξτε για προεπισκόπηση του PDF μητρώου τάξης σας.",
+  "dash.guide.teacherRegisters2": "Μόνο τάξεις όπου είστε ο ανατεθειμένος εκπαιδευτικός.",
+  "dash.guide.teacherRegisters3": "Χρησιμοποιήστε Λήψεις για άλλους τύπους εγγράφων αν υπάρχουν.",
 };
