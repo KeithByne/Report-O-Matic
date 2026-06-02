@@ -297,6 +297,29 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
     }
   }
 
+  async function addClassQuick(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isLead || busy !== null) return;
+    const name = newClassName.trim();
+    if (!name) return;
+    setBusy("class");
+    try {
+      const res = await fetch(`${base}/classes`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
+      setNewClassName("");
+      await refresh();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function deleteClass(classId: string, name: string) {
     if (!confirm(t("tenant.confirmDeleteClass", { name }))) return;
     setBusy("del-class");
@@ -610,6 +633,27 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
           <BookOpen className={ICON_SECTION} aria-hidden />
           {t("tenant.classesTitle")}
         </h2>
+        {isLead ? (
+          <form onSubmit={(e) => void addClassQuick(e)} className="mt-4 flex flex-wrap items-center gap-2">
+            <input
+              value={newClassName}
+              onChange={(e) => setNewClassName(e.target.value)}
+              disabled={busy !== null}
+              className="min-w-[12rem] flex-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+              placeholder={t("tenant.newClassPlaceholder")}
+              maxLength={30}
+              autoComplete="off"
+            />
+            <button
+              type="submit"
+              disabled={busy !== null || !newClassName.trim()}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              <Plus className={ICON_INLINE} aria-hidden />
+              {t("tenant.createClass")}
+            </button>
+          </form>
+        ) : null}
         <ul className="mt-4 divide-y divide-emerald-100">
           {classes.map((c) => {
             const classOverviewHref = `/reports/${encodeURIComponent(tenantId)}/classes/${encodeURIComponent(c.id)}?panel=overview`;
