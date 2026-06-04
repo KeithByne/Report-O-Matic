@@ -4,10 +4,14 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import type { ReportInputs } from "@/lib/reportInputs";
-import { parseReportInputs } from "@/lib/reportInputs";
+import {
+  focusTermIndex,
+  isShortCourseReport,
+  parseReportInputs,
+  storedSubjectForMetricLabels,
+} from "@/lib/reportInputs";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getSubjectSkillMetricLabels } from "@/lib/data/tenantSubjectMetricLabels";
-import { storedSubjectForMetricLabels } from "@/lib/reportInputs";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { getTenantDefaultReportLanguage } from "@/lib/data/tenantLanguage";
 import { getStudentInTenant } from "@/lib/data/students";
@@ -17,7 +21,6 @@ import {
   listPriorStandardReportsSameScholasticYear,
 } from "@/lib/data/priorReportGradesForAi";
 import { deleteReport, getReport, updateReport } from "@/lib/data/reportsDb";
-import { focusTermIndex, isShortCourseReport, parseReportInputs } from "@/lib/reportInputs";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
