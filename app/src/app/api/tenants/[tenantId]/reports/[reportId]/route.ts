@@ -60,17 +60,19 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     if (!isShortCourseReport(inputsParsed) && focusTermIndex(inputsParsed.report_period) > 0) {
       let priors: Awaited<ReturnType<typeof listPriorStandardReportsSameScholasticYear>> = [];
       if (klass?.scholastic_year) {
-        try {
-          const supabase = getServiceSupabase();
-          priors = await listPriorStandardReportsSameScholasticYear(supabase, {
-            tenantId,
-            studentId: report.student_id,
-            currentReportId: reportId,
-            currentPeriod: inputsParsed.report_period,
-            classScholasticYear: klass.scholastic_year,
-          });
-        } catch {
-          priors = [];
+        const supabase = getServiceSupabase();
+        if (supabase) {
+          try {
+            priors = await listPriorStandardReportsSameScholasticYear(supabase, {
+              tenantId,
+              studentId: report.student_id,
+              currentReportId: reportId,
+              currentPeriod: inputsParsed.report_period,
+              classScholasticYear: klass.scholastic_year,
+            });
+          } catch {
+            priors = [];
+          }
         }
       }
       prior_terms_grades = buildEditorPriorTermsGrades(priors, inputsParsed);
