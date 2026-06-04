@@ -12,7 +12,13 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import { getTenantDefaultReportLanguage } from "@/lib/data/tenantLanguage";
 import { getStudentInTenant } from "@/lib/data/students";
 import { translateReportComment } from "@/lib/ai/generateReportDraft";
+import {
+  buildEditorPriorTermsGrades,
+  listPriorStandardReportsSameScholasticYear,
+} from "@/lib/data/priorReportGradesForAi";
 import { deleteReport, getReport, updateReport } from "@/lib/data/reportsDb";
+import { focusTermIndex, isShortCourseReport, parseReportInputs } from "@/lib/reportInputs";
+import { getServiceSupabase } from "@/lib/supabase/service";
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -45,6 +51,28 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
           storedSubjectForMetricLabels(report.inputs, klass.default_subject),
         )
       : {};
+
+    const inputsParsed = parseReportInputs(report.inputs);
+    let prior_terms_grades: ReturnType<typeof buildEditorPriorTermsGrades> = [null, null, null];
+    if (!isShortCourseReport(inputsParsed) && focusTermIndex(inputsParsed.report_period) > 0) {
+      let priors: Awaited<ReturnType<typeof listPriorStandardReportsSameScholasticYear>> = [];
+      if (klass?.scholastic_year) {
+        try {
+          const supabase = getServiceSupabase();
+          priors = await listPriorStandardReportsSameScholasticYear(supabase, {
+            tenantId,
+            studentId: report.student_id,
+            currentReportId: reportId,
+            currentPeriod: inputsParsed.report_period,
+            classScholasticYear: klass.scholastic_year,
+          });
+        } catch {
+          priors = [];
+        }
+      }
+      prior_terms_grades = buildEditorPriorTermsGrades(priors, inputsParsed);
+    }
+
     return NextResponse.json({
       report,
       student,
@@ -52,6 +80,7 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
       subject_skill_metric_labels,
       tenant_default_report_language,
       viewer_email: gate.email,
+      prior_terms_grades,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to load report.";

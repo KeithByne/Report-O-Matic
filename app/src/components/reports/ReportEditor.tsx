@@ -65,8 +65,11 @@ type ClassInfo = {
   custom_metric_labels?: ClassMetricLabelOverrides;
 };
 
+type PriorTermsGradesPayload = [TermGrades | null, TermGrades | null, TermGrades | null];
+
 type ReportLoadPayload = {
   subject_skill_metric_labels?: ClassMetricLabelOverrides;
+  prior_terms_grades?: PriorTermsGradesPayload;
 };
 
 type Report = {
@@ -105,21 +108,24 @@ function reportPeriodToTermIndex(rp: ReportPeriod): 0 | 1 | 2 {
   return 2;
 }
 
-/** Prior term scores for the same metric, for teacher guidance (standard reports only). */
+/** Prior term scores for the same metric (1st=N, 2nd=N) from earlier reports in the year. */
 function priorTermGuidanceLine(
-  terms: ReportInputs["terms"],
+  priorTerms: PriorTermsGradesPayload,
+  localTerms: ReportInputs["terms"],
   focusTermIndex: 0 | 1 | 2,
   key: Dataset4MetricKey,
-  termLabel: (idx: 0 | 1 | 2) => string,
 ): string | null {
+  if (focusTermIndex === 0) return null;
+  const ordinals = ["1st", "2nd"] as const;
   const parts: string[] = [];
   for (let i = 0; i < focusTermIndex; i++) {
-    const v = terms[i][key];
+    const tg = priorTerms[i] ?? localTerms[i];
+    const v = tg[key];
     if (v !== null && v !== undefined) {
-      parts.push(`${termLabel(i as 0 | 1 | 2)}: ${v}`);
+      parts.push(`${ordinals[i]}=${v}`);
     }
   }
-  return parts.length > 0 ? parts.join(" · ") : null;
+  return parts.length > 0 ? parts.join(" ") : null;
 }
 
 function GradeSelect({
@@ -158,7 +164,7 @@ function GradeSelect({
       {showSlot ? (
         <div className="mt-1 min-h-[2.25rem] sm:min-h-[2.5rem]">
           {priorGuidance ? (
-            <p className="text-[10px] leading-snug text-zinc-500 sm:text-[11px]">{priorGuidance}</p>
+            <p className="text-[10px] font-medium leading-snug text-red-600 sm:text-[11px]">{priorGuidance}</p>
           ) : null}
         </div>
       ) : null}
@@ -215,6 +221,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
   );
 
   const [subjectSkillMetricLabels, setSubjectSkillMetricLabels] = useState<ClassMetricLabelOverrides>({});
+  const [priorTermsGrades, setPriorTermsGrades] = useState<PriorTermsGradesPayload>([null, null, null]);
 
   const metricLabelsCtx = useMemo(
     () => buildMetricLabelsContext(gradeRubric, subjectSkillMetricLabels, lang),
@@ -268,8 +275,11 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
       setStudent(st);
       setReport(rep);
       setKlass(cl);
-      setSubjectSkillMetricLabels(
-        (data as ReportLoadPayload).subject_skill_metric_labels ?? cl?.custom_metric_labels ?? {},
+      const payload = data as ReportLoadPayload;
+      setSubjectSkillMetricLabels(payload.subject_skill_metric_labels ?? cl?.custom_metric_labels ?? {});
+      const ptg = payload.prior_terms_grades;
+      setPriorTermsGrades(
+        Array.isArray(ptg) && ptg.length === 3 ? (ptg as PriorTermsGradesPayload) : [null, null, null],
       );
       const tLang = data.tenant_default_report_language as string;
       setViewerEmail(typeof data.viewer_email === "string" ? data.viewer_email : "");
@@ -784,7 +794,7 @@ export function ReportEditor({ tenantId, classId, reportId, schoolName, studentI
                   priorGuidance={
                     shortCourse
                       ? undefined
-                      : priorTermGuidanceLine(inputs.terms, focusTermIndex, m.key, termHeading)
+                      : priorTermGuidanceLine(priorTermsGrades, inputs.terms, focusTermIndex, m.key)
                   }
                 />
               </div>

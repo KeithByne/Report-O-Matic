@@ -1,12 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MetricLabelsContext } from "@/lib/classMetricLabels";
 import {
+  DATASET4_METRICS,
   focusTermIndex,
   formatTermGradesBlock,
   isShortCourseReport,
   parseReportInputs,
   type ReportInputs,
   type ReportPeriod,
+  type TermGrades,
 } from "@/lib/reportInputs";
 import { normalizeScholasticYearLabel } from "@/lib/scholasticYear";
 
@@ -73,6 +75,24 @@ export async function listPriorStandardReportsSameScholasticYear(
 
   priors.sort((a, b) => a.termIndex - b.termIndex);
   return priors;
+}
+
+/** Term rubric grids from earlier saved reports (and legacy same-document slots) for the grade editor. */
+export function buildEditorPriorTermsGrades(
+  priors: PriorStoredTermReport[],
+  localInputs: ReportInputs,
+): [TermGrades | null, TermGrades | null, TermGrades | null] {
+  const out: [TermGrades | null, TermGrades | null, TermGrades | null] = [null, null, null];
+  for (const p of priors) {
+    out[p.termIndex] = p.inputs.terms[p.termIndex];
+  }
+  for (let i = 0; i < 3; i++) {
+    if (out[i]) continue;
+    const t = localInputs.terms[i];
+    const hasAny = DATASET4_METRICS.some((m) => t[m.key] !== null && t[m.key] !== undefined);
+    if (hasAny) out[i] = t;
+  }
+  return out;
 }
 
 export function formatPriorStoredTermsDatasetBlock(
