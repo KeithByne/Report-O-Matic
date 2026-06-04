@@ -9,7 +9,9 @@ import { downloadTenantLetterheadLogoForPdf } from "@/lib/data/tenantLetterheadL
 import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, resolvedSubjectLabelForPdf } from "@/lib/i18n/uiStrings";
+import { resolveReportInputsForPdf } from "@/lib/data/priorReportGradesForAi";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
+import { getServiceSupabase } from "@/lib/supabase/service";
 import { pdfExportResponse } from "@/lib/credits/exportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
 import { parseClassBulkPdfTermFilter, reportReadyForClassBulkPdf, type ReportPeriod } from "@/lib/reportInputs";
@@ -160,6 +162,9 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     return NextResponse.json({ error: "No reports found." }, { status: 404 });
   }
 
+  const supabase = getServiceSupabase();
+  if (!supabase) return NextResponse.json({ error: "Database not configured." }, { status: 503 });
+
   const tenantRecordName = (await getTenantName(tenantId)) || "School";
   const pdfLhRow = await getTenantPdfLetterhead(tenantId);
   const letterheadLogo = await downloadTenantLetterheadLogoForPdf(pdfLhRow.pdf_letterhead_logo_path);
@@ -183,6 +188,14 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       klass?.grade_rubric_profile,
     );
 
+    const inputsForPdf = await resolveReportInputsForPdf(supabase, {
+      tenantId,
+      studentId: r.student_id,
+      reportId: r.id,
+      inputs: r.inputs,
+      classScholasticYear: klass?.scholastic_year ?? null,
+    });
+
     const buf = await buildReportPdfBuffer({
       letterhead,
       letterheadLogo,
@@ -193,11 +206,11 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       scholasticYear: klass?.scholastic_year ?? null,
       cefr: klass?.cefr_level ?? null,
       subjectLabel,
-      reportPeriod: r.inputs.report_period,
+      reportPeriod: inputsForPdf.report_period,
       outputLanguageCode,
       outputLanguageLabel,
       reportTitle: r.title,
-      inputs: r.inputs,
+      inputs: inputsForPdf,
       generatedAt: new Date(r.updated_at || Date.now()),
       gradeRubricProfile,
     });

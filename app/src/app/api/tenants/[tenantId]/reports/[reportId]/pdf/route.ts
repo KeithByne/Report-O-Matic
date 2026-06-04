@@ -10,6 +10,7 @@ import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { isReportLanguageCode, languageLabel } from "@/lib/i18n/reportLanguages";
 import { isUiLang, resolvedSubjectLabelForPdf } from "@/lib/i18n/uiStrings";
 import { pdfExportResponse } from "@/lib/credits/exportPdf";
+import { resolveReportInputsForPdf } from "@/lib/data/priorReportGradesForAi";
 import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/pdf/reportPdf";
 import { coerceStoredDefaultSubject } from "@/lib/subjects";
 import { getServiceSupabase } from "@/lib/supabase/service";
@@ -76,6 +77,13 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   );
 
   try {
+    const inputsForPdf = await resolveReportInputsForPdf(supabase, {
+      tenantId,
+      studentId: report.student_id,
+      reportId,
+      inputs: report.inputs,
+      classScholasticYear: klass?.scholastic_year ?? null,
+    });
     const buf = await buildReportPdfBuffer({
       letterhead,
       letterheadLogo,
@@ -86,11 +94,11 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       scholasticYear: klass?.scholastic_year ?? null,
       cefr: klass?.cefr_level ?? null,
       subjectLabel,
-      reportPeriod: report.inputs.report_period,
+      reportPeriod: inputsForPdf.report_period,
       outputLanguageCode,
       outputLanguageLabel,
       reportTitle: report.title,
-      inputs: report.inputs,
+      inputs: inputsForPdf,
       generatedAt: new Date(),
       gradeRubricProfile,
     });

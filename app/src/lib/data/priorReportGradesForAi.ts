@@ -95,6 +95,55 @@ export function buildEditorPriorTermsGrades(
   return out;
 }
 
+/** Full `ReportInputs` with earlier term columns filled from other saved reports (for PDF and exports). */
+export function reportInputsWithMergedPriorTerms(
+  priors: PriorStoredTermReport[],
+  localInputs: ReportInputs,
+): ReportInputs {
+  const parsed = parseReportInputs(localInputs as unknown);
+  if (isShortCourseReport(parsed) || focusTermIndex(parsed.report_period) === 0) {
+    return parsed;
+  }
+  const slots = buildEditorPriorTermsGrades(priors, parsed);
+  const terms: ReportInputs["terms"] = [
+    slots[0] ?? parsed.terms[0],
+    slots[1] ?? parsed.terms[1],
+    slots[2] ?? parsed.terms[2],
+  ];
+  return { ...parsed, terms };
+}
+
+export async function resolveReportInputsForPdf(
+  supabase: SupabaseClient,
+  opts: {
+    tenantId: string;
+    studentId: string;
+    reportId: string;
+    inputs: ReportInputs;
+    classScholasticYear: string | null;
+  },
+): Promise<ReportInputs> {
+  const local = parseReportInputs(opts.inputs as unknown);
+  if (isShortCourseReport(local) || focusTermIndex(local.report_period) === 0) {
+    return local;
+  }
+  let priors: PriorStoredTermReport[] = [];
+  if (opts.classScholasticYear) {
+    try {
+      priors = await listPriorStandardReportsSameScholasticYear(supabase, {
+        tenantId: opts.tenantId,
+        studentId: opts.studentId,
+        currentReportId: opts.reportId,
+        currentPeriod: local.report_period,
+        classScholasticYear: opts.classScholasticYear,
+      });
+    } catch {
+      priors = [];
+    }
+  }
+  return reportInputsWithMergedPriorTerms(priors, local);
+}
+
 export function formatPriorStoredTermsDatasetBlock(
   priors: PriorStoredTermReport[],
   subjectLine: string,
