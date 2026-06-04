@@ -24,7 +24,7 @@ export function standardReportSequentialDataRules(reportPeriod: ReportPeriod): s
       ? `This is a **Term 1 (first period)** report for the current scholastic year. Write it as a **standalone** snapshot of progress so far. If no "Prior term grades" block is supplied, do not imply earlier terms in this year or compare to earlier stored reports.`
       : reportPeriod === "second"
         ? `This is a **Term 2 (second period)** report. It must be written **relative to Term 1** when prior saved grades are supplied: comment on improvements, plateaus, or declines you can justify by comparing scored metrics between the prior Term 1 block and the current Term 2 grades. Do not write as if Term 2 were the first report of the year unless prior data is missing.`
-        : `This is a **Term 3 (third period)** report. It must be written **relative to earlier terms in the same scholastic year** when prior saved grades are supplied (Term 1 and/or Term 2 blocks): describe progression across the year using only scored metrics you can compare. Do not write as if it were the first report unless prior data is missing.`;
+        : `This is a **Term 3 (third period)** report — the **last period of the scholastic year**. It must be written **relative to earlier terms in the same scholastic year** when prior saved grades are supplied (Term 1 and/or Term 2 blocks): describe progression across the year using only scored metrics you can compare. Do not write as if it were the first report unless prior data is missing. Follow the year-end and summer-break rules in the dedicated block below.`;
 
   return `Sequential reporting, prior terms, and incomplete data (mandatory):
 - Reports follow calendar order: first term, then second, then third within one scholastic year. ${termRole}
@@ -34,6 +34,18 @@ export function standardReportSequentialDataRules(reportPeriod: ReportPeriod): s
 - Never mention, imply, or invent grades, averages, trends, or qualitative judgments for any metric or term that is not supported by a numeric score in the dataset.
 - Do not refer to **later** terms than the period under review. Do not preview or promise outcomes that belong to a future term relative to the focused period.
 - Do not reference scholastic years or terms before the prior blocks supplied; prior-year history is out of scope.`;
+}
+
+/**
+ * Term 3 only: scholastic year is ending; summer break; forward-looking text must target the next period.
+ */
+export function standardReportThirdPeriodYearEndRules(): string {
+  return `Scholastic year ending — Term 3 only (mandatory):
+- This is the **final report period of the current scholastic year**. After Term 3, regular lessons with this class and teacher **stop** until the **next scholastic year** begins. There is normally a **summer recess**; school typically resumes around **September** unless teacher notes specify a different calendar.
+- You will **not** see this student again in the same class routine until after that break. Do **not** assume lessons continue without interruption, that the same timetable carries on, or that you will pick up where you left off in the near term.
+- Any forward-looking wording (next steps, goals, continued learning, encouragement for the future) must refer to the **next course**, **next scholastic year**, **next educational period**, or **new class / programme** — not to ongoing lessons in the current year or imminent sessions with you in the same group.
+- Avoid phrasing that implies immediate continuation (e.g. "next week in our lessons", "as we continue this term", "looking forward to seeing you in class soon") unless teacher notes explicitly describe summer teaching or continuity.
+- You may wish the student well for the break or the year ahead in a general, parent-appropriate way.`;
 }
 
 /** Voice: parents should read this as their child's teacher speaking, not an anonymous report. */
@@ -119,6 +131,8 @@ export function buildStandardReportDraftPrompts(ctx: ReportDraftPromptContext): 
         ? "You write primary school report comments for parents about **young learners** in a holistic class programme; tone and priorities follow the primary school context block below."
         : "You write secondary school report comments for parents.";
   const sequentialBlock = standardReportSequentialDataRules(ctx.reportPeriod);
+  const yearEndBlock =
+    ctx.reportPeriod === "third" ? `\n${standardReportThirdPeriodYearEndRules()}` : "";
   const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
   const noClosingBlock = reportCommentNoLetterClosingRules();
   const system = `${opening}
@@ -128,7 +142,7 @@ Use only the student's first name (${ctx.studentFirstName}) — do not use or in
 Base the appraisal solely on the numerical 0–10 lines supplied; each line is an in-scope topic. Be fair and specific.
 ${voiceBlock}
 ${noClosingBlock}
-${schoolBlock ? `${schoolBlock}\n` : ""}${sequentialBlock}${cefrBlock ? `\n${cefrBlock}` : ""}`;
+${schoolBlock ? `${schoolBlock}\n` : ""}${sequentialBlock}${yearEndBlock}${cefrBlock ? `\n${cefrBlock}` : ""}`;
 
   const user = [
     `School: ${ctx.schoolName}`,
@@ -142,8 +156,12 @@ ${schoolBlock ? `${schoolBlock}\n` : ""}${sequentialBlock}${cefrBlock ? `\n${cef
     ctx.existingBody
       ? `Revise or replace this draft (keep facts consistent with the dataset and the sequential-term rules; use prior-term blocks only for fair comparison; do not introduce later terms or missing scores):\n${ctx.existingBody}`
       : cefrBlock
-        ? `Write a complete comment for report period "${ctx.reportPeriod}". Use a first-person teacher voice. If prior-term saved grades are present, weave in justified progress or trends into the current period; if this is the first period and no prior block exists, write standalone. Opening strength, honest middle where grades are low, end positive with in-lesson next steps only (no homework). Use only scored metrics in the dataset.`
-        : `Write a complete comment for report period "${ctx.reportPeriod}". Use a first-person teacher voice. If prior-term saved grades are present, weave in justified progress or trends into the current period; if this is the first period and no prior block exists, write standalone. Opening strength, honest middle where grades are low, end positive with next steps. Use only scored metrics in the dataset.`,
+        ? ctx.reportPeriod === "third"
+          ? `Write a complete comment for report period "${ctx.reportPeriod}" (final period of the scholastic year). Use a first-person teacher voice. If prior-term saved grades are present, weave in justified progress or trends across the year. Frame any forward-looking sentences for the next course or scholastic year after the summer break — not as if lessons continue soon in this class. Opening strength, honest middle where grades are low, end positive with in-lesson next steps only (no homework), suited to year-end. Use only scored metrics in the dataset.`
+          : `Write a complete comment for report period "${ctx.reportPeriod}". Use a first-person teacher voice. If prior-term saved grades are present, weave in justified progress or trends into the current period; if this is the first period and no prior block exists, write standalone. Opening strength, honest middle where grades are low, end positive with in-lesson next steps only (no homework). Use only scored metrics in the dataset.`
+        : ctx.reportPeriod === "third"
+          ? `Write a complete comment for report period "${ctx.reportPeriod}" (final period of the scholastic year). Use a first-person teacher voice. If prior-term saved grades are present, weave in justified progress or trends across the year. Frame any forward-looking sentences for the next course or scholastic year after the summer break — not as if lessons continue soon in this class. Opening strength, honest middle where grades are low, end positive with next steps suited to year-end. Use only scored metrics in the dataset.`
+          : `Write a complete comment for report period "${ctx.reportPeriod}". Use a first-person teacher voice. If prior-term saved grades are present, weave in justified progress or trends into the current period; if this is the first period and no prior block exists, write standalone. Opening strength, honest middle where grades are low, end positive with next steps. Use only scored metrics in the dataset.`,
   ]
     .filter(Boolean)
     .join("\n\n");
