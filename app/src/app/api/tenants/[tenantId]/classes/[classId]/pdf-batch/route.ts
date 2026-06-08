@@ -16,9 +16,10 @@ import { getServiceSupabase } from "@/lib/supabase/service";
 import { pdfExportResponse } from "@/lib/credits/exportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
 import {
+  classBulkPdfRowReadyForPeriod,
   parseClassBulkPdfTermFilter,
+  pickClassBulkReportRowForPeriod,
   reportReadyForClassBulkPdf,
-  reportTermReadyForClassesDashboard,
   type ReportPeriod,
 } from "@/lib/reportInputs";
 import { coerceStoredDefaultSubject } from "@/lib/subjects";
@@ -71,17 +72,6 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const rowReady = (r: (typeof reports)[number]) =>
     reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
 
-  const readyForPeriod = (r: (typeof reports)[number], period: ReportPeriod): boolean => {
-    // Definition of "finished" for term downloads: the comment exists (AI-generated or legacy saved text),
-    // even if some numeric grade cells are blank.
-    const teacherOrParentText = (r.body || "").trim() || (r.body_teacher_preview || "").trim();
-    if (!teacherOrParentText) return false;
-    if (r.status === "final") return true;
-    // Use the same readiness rule as the classes dashboard (comment_generated_for_terms[idx] or legacy saved body).
-    // Note: this checks parent-facing `body` for legacy; we allow teacher preview text as a fallback above.
-    return reportTermReadyForClassesDashboard({ inputs: r.inputs, body: r.body || "" }, period);
-  };
-
   const me = gate.email.trim().toLowerCase();
   let toMerge: typeof reports;
 
@@ -111,15 +101,15 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       toMerge = reports;
     } else {
       const period: ReportPeriod = termFilter;
-      // Term-specific: allow printing/downloading based on the selected term's completion, even if the stored
-      // `inputs.report_period` is stale or the parent-facing body is empty but teacher preview exists.
-      toMerge = reports.filter((r) => readyForPeriod(r, period));
+      const picked: typeof reports = [];
       for (const s of students) {
-        const has = toMerge.some((r) => r.student_id === s.id);
-        if (!has) {
+        const row = pickClassBulkReportRowForPeriod(reports, s.id, period);
+        if (!row || !classBulkPdfRowReadyForPeriod(row, period)) {
           return NextResponse.json({ error: classTermNotReadyMsg }, { status: 409 });
         }
+        picked.push(row);
       }
+      toMerge = picked;
     }
   }
 

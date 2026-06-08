@@ -14,7 +14,13 @@ import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/p
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { pdfExportResponse } from "@/lib/credits/exportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
-import { parseClassBulkPdfTermFilter, reportReadyForClassBulkPdf, type ReportPeriod } from "@/lib/reportInputs";
+import {
+  classBulkPdfRowReadyForPeriod,
+  parseClassBulkPdfTermFilter,
+  pickClassBulkReportRowForPeriod,
+  reportReadyForClassBulkPdf,
+  type ReportPeriod,
+} from "@/lib/reportInputs";
 import { coerceStoredDefaultSubject } from "@/lib/subjects";
 
 export const runtime = "nodejs";
@@ -138,13 +144,15 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     if (onlyFinal) reports = reports.filter((r) => r.status === "final");
     if (termFilter !== "all") {
       const period = termFilter as ReportPeriod;
-      const toMerge = reports.filter((r) => rowReady(r) && r.inputs.report_period === period);
+      const picked: ReportRow[] = [];
       for (const s of students) {
-        if (!toMerge.some((r) => r.student_id === s.id)) {
+        const row = pickClassBulkReportRowForPeriod(reports, s.id, period);
+        if (!row || !classBulkPdfRowReadyForPeriod(row, period)) {
           return NextResponse.json({ error: classTermNotReadyMsg }, { status: 409 });
         }
+        picked.push(row);
       }
-      reports = toMerge;
+      reports = picked;
     }
   }
 

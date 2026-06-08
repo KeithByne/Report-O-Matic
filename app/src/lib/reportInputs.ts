@@ -181,9 +181,9 @@ export function findConflictingReportIdForNewReport(
   return null;
 }
 
-/** AI reliability hint: standard uses full grid; short course uses the focused term only (16 cells). */
+/** AI reliability hint: complete grid for the report period under review (one term per saved report). */
 export function rubricCompleteForAi(inputs: ReportInputs): boolean {
-  return isShortCourseReport(inputs) ? focusTermComplete(inputs) : allTermsComplete(inputs);
+  return focusTermComplete(inputs);
 }
 
 /**
@@ -328,6 +328,58 @@ export function parseClassBulkPdfTermFilter(raw: string | null | undefined): Cla
   if (s === "second" || s === "2") return "second";
   if (s === "third" || s === "3") return "third";
   return "all";
+}
+
+/** At least one rubric cell scored for the given term. */
+export function termHasAnyRecordedGrades(inputs: ReportInputs, period: ReportPeriod): boolean {
+  const term = inputs.terms[focusTermIndex(period)];
+  return KEYS.some((k) => term[k] !== null && term[k] !== undefined);
+}
+
+export function reportCommentTextForBulkPdf(r: {
+  body: string;
+  body_teacher_preview?: string | null;
+}): string {
+  return (r.body || "").trim() || (r.body_teacher_preview || "").trim();
+}
+
+/** Saved report row for one pupil and term (newest when duplicates exist). */
+export function pickClassBulkReportRowForPeriod<
+  T extends { student_id: string; inputs: unknown; updated_at: string },
+>(reports: T[], studentId: string, period: ReportPeriod): T | null {
+  const candidates = reports.filter((r) => {
+    if (r.student_id !== studentId) return false;
+    const inputs = parseReportInputs(r.inputs);
+    if (isShortCourseReport(inputs)) return period === "first";
+    return inputs.report_period === period;
+  });
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at)));
+  return candidates[0] ?? null;
+}
+
+/**
+ * Class bulk PDF for one term: matching `report_period`, generated comment, and grades on that row.
+ */
+export function classBulkPdfRowReadyForPeriod(
+  r: {
+    body: string;
+    body_teacher_preview?: string | null;
+    inputs: unknown;
+  },
+  period: ReportPeriod,
+): boolean {
+  const inputs = parseReportInputs(r.inputs);
+  if (isShortCourseReport(inputs)) {
+    if (period !== "first") return false;
+  } else if (inputs.report_period !== period) {
+    return false;
+  }
+
+  const comment = reportCommentTextForBulkPdf(r);
+  if (!comment) return false;
+  if (!reportTermReadyForClassesDashboard({ inputs, body: comment }, period)) return false;
+  return termHasAnyRecordedGrades(inputs, period);
 }
 
 const TERM_LABEL_EN = ["Term 1", "Term 2", "Term 3"] as const;
