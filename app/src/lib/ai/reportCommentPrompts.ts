@@ -71,6 +71,18 @@ export function shortCourseReportDataCompletenessRules(): string {
 - Comment only on metrics and aggregates that appear with explicit numeric scores in the data block.`;
 }
 
+/**
+ * Short standalone course: one-off programme like a first-term snapshot, with no institutional future.
+ */
+export function shortCourseStandaloneCourseRules(): string {
+  return `Short standalone course — scope and encouragement (mandatory):
+- This report is a **single, self-contained** appraisal of one short course — the same framing as a **first school report** with **no earlier periods** to compare against. Use only the scored rubric snapshot supplied. Do not imply prior terms, trimesters, semesters, scholastic years, or earlier reports at this school.
+- The course **ends** when this report is written. There is **no** planned continuation with you, this class, this programme, or this school's timetable. Do not promise or imply further lessons, another group, re-enrolment, staying in touch, or seeing the student again.
+- Close with **warm, ongoing encouragement** about qualities and growth **shown during the course** — confidence, curiosity, perseverance, cooperation, and similar traits the student can carry with them in life. This encouragement must **not** tie to your future teaching, our classes, a next term or year, or continued contact with us.
+- Do not write "see you next…", "we look forward to…", "in our next lessons", "next year with us", "keep practising with us", or close equivalents in any language.
+- Frame any improvement ideas as strengths and habits already visible in the course, not as preparation for a next school period or next session with you.`;
+}
+
 /** Who enters grades / how strands relate — must stay aligned with `GradeRubricProfile`. */
 export function schoolGradingContextRulesForRubric(rubric: GradeRubricProfile): string {
   if (rubric === "primary") {

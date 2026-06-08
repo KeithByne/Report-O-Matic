@@ -9,6 +9,7 @@ import {
   reportCommentNoLetterClosingRules,
   schoolGradingContextRulesForRubric,
   shortCourseReportDataCompletenessRules,
+  shortCourseStandaloneCourseRules,
   teacherPerspectiveVoiceRules,
 } from "@/lib/ai/reportCommentPrompts";
 
@@ -24,11 +25,12 @@ export function buildShortCourseReportDraftPrompts(ctx: ReportDraftPromptContext
   const cefrBlock = languageSchool ? homeworkAdviceRestrictionForCefr(ctx.classCefrLevel) : "";
   const schoolBlock = schoolGradingContextRulesForRubric(ctx.gradeRubricProfile);
   const dataCompletenessBlock = shortCourseReportDataCompletenessRules();
+  const standaloneBlock = shortCourseStandaloneCourseRules();
   const voiceBlock = teacherPerspectiveVoiceRules(ctx.langName);
   const noClosingBlock = reportCommentNoLetterClosingRules();
   const selfImproveLine = cefrBlock
-    ? "Frame any improvement suggestions around effort and participation during the course sessions only — not tasks or practice outside scheduled class time."
-    : "Any comments about what the student can do to improve are made in the context of what the student can do for themselves.";
+    ? "Frame any improvement suggestions around effort and participation during the course sessions only — not tasks or practice outside scheduled class time, and not preparation for future lessons with us."
+    : "Any encouragement about growth should highlight enduring personal strengths shown on the course — not plans for future classes, terms, or contact with us.";
   const opening =
     ctx.gradeRubricProfile === "language"
       ? "You write school report comments for parents (English as a foreign language / similar language-acquisition contexts)."
@@ -36,9 +38,7 @@ export function buildShortCourseReportDraftPrompts(ctx: ReportDraftPromptContext
         ? "You write primary-style short-course report comments for parents about **young learners**; tone and priorities follow the primary school context block below."
         : "You write secondary-style short-course report comments for parents.";
   const system = `${opening}
-The student has attended a stand-alone course of short duration. 
-The comments are written in a context of how the student has evolved during the short course.
-The student will not be returning to any future courses.
+The student has attended a stand-alone course of short duration — one complete programme, not part of a longer school-year reporting cycle.
 ${selfImproveLine}
 The report narrative must be written entirely in ${ctx.langName}. Do not use another language for the main text.
 Maximum length 1400 characters. Plain paragraphs only (no markdown headings).
@@ -46,7 +46,8 @@ Use only the student's first name (${ctx.studentFirstName}) — do not use or in
 Base the appraisal solely on the numerical 0–10 lines supplied; each line is an in-scope topic. Be fair and specific.
 ${voiceBlock}
 ${noClosingBlock}
-${schoolBlock ? `${schoolBlock}\n` : ""}${dataCompletenessBlock}
+${schoolBlock ? `${schoolBlock}\n` : ""}${standaloneBlock}
+${dataCompletenessBlock}
 In the comment text itself, never use the English word "term" or calendar labels for school reporting slices (e.g. trimester, trimestre, semester, Schultrimester, "marking period"). Refer only to the course or the programme. Write in ${ctx.langName} without importing phrasing from year-long school reports.${cefrBlock ? `\n${cefrBlock}` : ""}`;
 
   const user = [
@@ -54,15 +55,15 @@ In the comment text itself, never use the English word "term" or calendar labels
     ctx.className ? `Class: ${ctx.className}` : "",
     `Student first name (only name to use in text): ${ctx.studentFirstName}`,
     `Subject: ${ctx.subjectLine}`,
-    `Course rubric data — single 0–10 snapshot for this short course only. Your comment must stay in that frame (not a full-year school timeline):\n${ctx.datasetBlock}`,
+    `Course rubric data — single 0–10 snapshot for this short course only (standalone; no prior school terms to compare). Your comment must stay in that frame:\n${ctx.datasetBlock}`,
     ctx.extraNotes
       ? `Teacher context (use when shaping the comment for parents; do not quote or label this block; weave in fairly if relevant):\n${ctx.extraNotes}`
       : "",
     ctx.existingBody
       ? `Revise or replace this draft (keep facts consistent with the dataset):\n${ctx.existingBody}`
       : cefrBlock
-        ? "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and a positive closing focused on what happened in the course — no homework or independent study at home, no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher. Use a first-person teacher voice throughout (see system instructions). Only discuss rubric dimensions that appear as scored lines in the data; do not name or imply any unscored area."
-        : "Write a complete comment: opening strength, honest middle where grades are low, end with encouragement and ideas the student can use going forward — no calendar-slice or school-period vocabulary, no implication of further courses with the same teacher. Use a first-person teacher voice throughout (see system instructions). Only discuss rubric dimensions that appear as scored lines in the data; do not name or imply any unscored area.",
+        ? "Write a complete standalone comment: opening strength, honest middle where grades are low, end with warm ongoing encouragement about qualities shown during the course — no homework or independent study at home, no school-period vocabulary, no future terms/classes/contact with us. Use a first-person teacher voice throughout (see system instructions). Only discuss rubric dimensions that appear as scored lines in the data; do not name or imply any unscored area."
+        : "Write a complete standalone comment: opening strength, honest middle where grades are low, end with warm ongoing encouragement about the student's enduring strengths and growth during the course — not future lessons, classes, terms, or contact with us. Use a first-person teacher voice throughout (see system instructions). Only discuss rubric dimensions that appear as scored lines in the data; do not name or imply any unscored area.",
   ]
     .filter(Boolean)
     .join("\n\n");

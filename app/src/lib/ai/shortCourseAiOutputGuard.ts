@@ -16,7 +16,11 @@ type ReplaceRule = { pattern: RegExp; replacement: string };
 
 /** Longer / more specific patterns first. */
 const EN_SANITIZE: ReplaceRule[] = [
-  { pattern: /\bnext\s+term\b/gi, replacement: "going forward" },
+  { pattern: /\bnext\s+term\b/gi, replacement: "in their learning" },
+  { pattern: /\bnext\s+(?:class|lesson|course|session)s?\b/gi, replacement: "their learning" },
+  { pattern: /\blook\s+forward\s+to\s+seeing\b/gi, replacement: "have enjoyed seeing" },
+  { pattern: /\bsee\s+you\s+(?:again|next)\b/gi, replacement: "have valued working with" },
+  { pattern: /\b(?:stay|keep)\s+in\s+touch\b/gi, replacement: "continue learning" },
   { pattern: /\beach\s+school\s+terms?\b/gi, replacement: "throughout the course" },
   { pattern: /\bacademic\s+terms?\b/gi, replacement: "the course" },
   { pattern: /\bschool\s+terms?\b/gi, replacement: "the course" },
@@ -157,7 +161,8 @@ Rewrite the comment entirely in ${opts.langName}.
 
 Hard rules:
 - Remove every reference to school calendar divisions: English "term/terms", French trimestre/semestre, Spanish trimestre/semestre, German Trimester/Semester, Italian trimestre/semestre, Portuguese trimestre/semestre, and any close equivalent.
-- Use only course-wide wording: the course, this course, during the course, going forward, etc.
+- Remove implications of future lessons, classes, courses, terms, re-enrolment, or continued contact with this teacher or school ("see you next", "look forward to", "next year with us", etc.).
+- Use only course-wide wording: the course, this course, during the course. Enduring encouragement may refer to the student's qualities and growth — not our future teaching.
 - Preserve facts, the student's first name, tone, and approximate length. Plain paragraphs only. No new markdown.
 
 Output only the rewritten comment.`;
