@@ -130,8 +130,8 @@ export function listClassBulkPdfIncompleteAll<
       continue;
     }
     for (const r of rs) {
-      if (reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs })) continue;
       const inputs = parseReportInputs(r.inputs);
+      if (reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs })) continue;
       out.push({
         studentName: s.display_name,
         period: isShortCourseReport(inputs) ? undefined : inputs.report_period,
