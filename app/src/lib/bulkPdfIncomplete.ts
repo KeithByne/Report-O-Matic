@@ -59,16 +59,17 @@ function classifyRowFailure(r: {
   return "not_finished";
 }
 
+type BulkPdfReportRow = {
+  student_id: string;
+  updated_at: string;
+  status: "draft" | "final";
+  body: string;
+  body_teacher_preview?: string | null;
+  inputs: unknown;
+};
+
 /** Why a pupil's report for one term is not ready for class/school bulk PDF. */
-export function classBulkPdfIncompleteEntryForStudent<
-  T extends {
-    student_id: string;
-    status: "draft" | "final";
-    body: string;
-    body_teacher_preview?: string | null;
-    inputs: unknown;
-  },
->(
+export function classBulkPdfIncompleteEntryForStudent<T extends BulkPdfReportRow>(
   reports: T[],
   student: { id: string; display_name: string; class_name?: string },
   period: ReportPeriod,
@@ -148,15 +149,7 @@ export function listClassBulkPdfIncompleteAll<
   return out;
 }
 
-export function listClassBulkPdfIncompleteForTerm<
-  T extends {
-    student_id: string;
-    status: "draft" | "final";
-    body: string;
-    body_teacher_preview?: string | null;
-    inputs: unknown;
-  },
->(
+export function listClassBulkPdfIncompleteForTerm<T extends BulkPdfReportRow>(
   students: { id: string; display_name: string; class_name?: string }[],
   reports: T[],
   period: ReportPeriod,
