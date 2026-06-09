@@ -60,7 +60,7 @@ export function PdfBlobIframeViewer({ pdfUrl, title, previewKey = 0, className }
 
   if (loadError) {
     return (
-      <p className="px-4 py-3 text-sm text-red-800" role="alert">
+      <p className="whitespace-pre-wrap px-4 py-3 text-sm text-red-800" role="alert">
         {loadError}
       </p>
     );

@@ -15,13 +15,12 @@ import { buildLetterheadFromTenantSettings, buildReportPdfBuffer } from "@/lib/p
 import { getServiceSupabase } from "@/lib/supabase/service";
 import { pdfExportResponse } from "@/lib/credits/exportPdf";
 import { mergePdfBuffers } from "@/lib/pdf/mergePdf";
+import { parseClassBulkPdfTermFilter, pickClassBulkReportRowForPeriod, type ReportPeriod } from "@/lib/reportInputs";
 import {
-  classBulkPdfRowReadyForPeriod,
-  parseClassBulkPdfTermFilter,
-  pickClassBulkReportRowForPeriod,
-  reportReadyForClassBulkPdf,
-  type ReportPeriod,
-} from "@/lib/reportInputs";
+  bulkPdfIncompleteResponse,
+  listClassBulkPdfIncompleteAll,
+  listClassBulkPdfIncompleteForTerm,
+} from "@/lib/bulkPdfIncomplete";
 import { coerceStoredDefaultSubject } from "@/lib/subjects";
 
 export const runtime = "nodejs";
@@ -69,9 +68,6 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const allowedStudents = new Set(students.map((s) => s.id));
   const reports = reportsAll.filter((r) => allowedStudents.has(r.student_id));
 
-  const rowReady = (r: (typeof reports)[number]) =>
-    reportReadyForClassBulkPdf({ status: r.status, body: r.body, inputs: r.inputs });
-
   const me = gate.email.trim().toLowerCase();
   let toMerge: typeof reports;
 
@@ -81,35 +77,19 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       return NextResponse.json({ error: "No reports found for this class." }, { status: 404 });
     }
   } else {
-    const byStudent = new Map<string, typeof reports>();
-    for (const r of reports) {
-      const arr = byStudent.get(r.student_id) ?? [];
-      arr.push(r);
-      byStudent.set(r.student_id, arr);
-    }
-    for (const s of students) {
-      const rs = byStudent.get(s.id);
-      if (!rs?.length) {
-        return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
-      }
-    }
-
     if (termFilter === "all") {
-      if (reports.some((r) => !rowReady(r))) {
-        return NextResponse.json({ error: classNotFinishedMsg }, { status: 409 });
+      const incomplete = listClassBulkPdfIncompleteAll(students, reports);
+      if (incomplete.length > 0) {
+        return NextResponse.json(bulkPdfIncompleteResponse(classNotFinishedMsg, incomplete), { status: 409 });
       }
       toMerge = reports;
     } else {
       const period: ReportPeriod = termFilter;
-      const picked: typeof reports = [];
-      for (const s of students) {
-        const row = pickClassBulkReportRowForPeriod(reports, s.id, period);
-        if (!row || !classBulkPdfRowReadyForPeriod(row, period)) {
-          return NextResponse.json({ error: classTermNotReadyMsg }, { status: 409 });
-        }
-        picked.push(row);
+      const incomplete = listClassBulkPdfIncompleteForTerm(students, reports, period);
+      if (incomplete.length > 0) {
+        return NextResponse.json(bulkPdfIncompleteResponse(classTermNotReadyMsg, incomplete), { status: 409 });
       }
-      toMerge = picked;
+      toMerge = students.map((s) => pickClassBulkReportRowForPeriod(reports, s.id, period)!);
     }
   }
 
