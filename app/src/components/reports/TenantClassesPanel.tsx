@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, DoorOpen, Library, Plus, Trash2, Users } from "lucide-react";
+import { BookOpen, CalendarDays, DoorOpen, Library, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -43,6 +43,10 @@ export type TenantClassesPanelProps = {
   active: boolean;
   /** `subjects`: define subjects + create class; `classes`: class list only. */
   view: "subjects" | "classes";
+  /** Switch to timetable in the same workspace (dashboard or reports). */
+  onOpenTimetable?: () => void;
+  /** Link to timetable when no in-page handler is provided. */
+  timetableHref?: string;
 };
 
 function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
@@ -63,7 +67,14 @@ function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
  * Single school “Classes” card: list, term readiness, add/delete (leads), open class + students links.
  * Shown on the dashboard workspace for leads; teachers open the same component via `/reports/[tenant]?panel=classes`.
  */
-export function TenantClassesPanel({ tenantId, viewerRole, active, view }: TenantClassesPanelProps) {
+export function TenantClassesPanel({
+  tenantId,
+  viewerRole,
+  active,
+  view,
+  onOpenTimetable,
+  timetableHref: timetableHrefProp,
+}: TenantClassesPanelProps) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -629,10 +640,30 @@ export function TenantClassesPanel({ tenantId, viewerRole, active, view }: Tenan
         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
       ) : null}
       <section className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-          <BookOpen className={ICON_SECTION} aria-hidden />
-          {t("tenant.classesTitle")}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+            <BookOpen className={ICON_SECTION} aria-hidden />
+            {t("tenant.classesTitle")}
+          </h2>
+          {onOpenTimetable ? (
+            <button
+              type="button"
+              onClick={onOpenTimetable}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+            >
+              <CalendarDays className={ICON_INLINE} aria-hidden />
+              {t("tenant.panelTimetable")}
+            </button>
+          ) : timetableHrefProp ? (
+            <Link
+              href={timetableHrefProp}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+            >
+              <CalendarDays className={ICON_INLINE} aria-hidden />
+              {t("tenant.panelTimetable")}
+            </Link>
+          ) : null}
+        </div>
         {isLead ? (
           <form onSubmit={(e) => void addClassQuick(e)} className="mt-4 flex flex-wrap items-center gap-2">
             <input

@@ -43,7 +43,7 @@ import { DashboardSchoolStudentsPanel } from "@/components/dashboard/DashboardSc
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
-import { classesListHref } from "@/lib/app/classesNavigation";
+import { classesListHref, timetableHref } from "@/lib/app/classesNavigation";
 import { ReportCreditsFloatingBanner } from "@/components/credits/ReportCreditsFloatingBanner";
 import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCard";
 import { ProfileEditor } from "@/components/dashboard/ProfileEditor";
@@ -112,6 +112,8 @@ export type DashboardClientViewProps = {
   firstOwnerTenantId: string | null;
   /** From `/dashboard?panel=classes&tenant=` — open that school’s Classes workspace card once. */
   bootOpenClassesPanel?: string | null;
+  /** From `/dashboard?panel=timetable&tenant=` — open that school’s Timetable workspace card once. */
+  bootOpenTimetablePanel?: string | null;
   /** False when ROM_STRIPE_ENABLED is not true (card checkout and payout fields paused). */
   stripePaymentsEnabled: boolean;
 };
@@ -128,11 +130,13 @@ export function DashboardClientView({
   reportCreditBalance,
   firstOwnerTenantId,
   bootOpenClassesPanel = null,
+  bootOpenTimetablePanel = null,
   stripePaymentsEnabled,
 }: DashboardClientViewProps) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const classesBootApplied = useRef(false);
+  const timetableBootApplied = useRef(false);
 
   const reportsClassesHref = (tenantId: string, role: MembershipWithTenant["role"]) =>
     classesListHref(tenantId, role);
@@ -342,6 +346,27 @@ export function DashboardClientView({
       setWorkspaceDashPanel("classes");
     });
   }, [bootOpenClassesPanel, memberships, router]);
+
+  useEffect(() => {
+    if (timetableBootApplied.current || !bootOpenTimetablePanel) return;
+    const tenant = bootOpenTimetablePanel;
+    const m = memberships.find((x) => x.tenantId === tenant);
+    if (!m) return;
+    timetableBootApplied.current = true;
+    if (m.role === "teacher") {
+      router.replace(`/reports/${encodeURIComponent(tenant)}?panel=timetable`);
+      return;
+    }
+    queueMicrotask(() => {
+      if (m.role === "owner") {
+        userClearedSchoolFocus.current = false;
+        setOwnerFocusTenantId(tenant);
+      } else if (m.role === "department_head") {
+        setDhFocusTenantId(tenant);
+      }
+      setWorkspaceDashPanel("timetable");
+    });
+  }, [bootOpenTimetablePanel, memberships, router]);
 
   useEffect(() => {
     if (!workspaceDashPanel) return;
@@ -846,6 +871,7 @@ export function DashboardClientView({
                       viewerRole="teacher"
                       active
                       view="classes"
+                      timetableHref={timetableHref(primaryMembership.tenantId, "teacher")}
                     />
                   </div>
                 ) : null}
@@ -1330,6 +1356,7 @@ export function DashboardClientView({
                       viewerRole={primaryMembership.role}
                       active={workspaceDashPanel === "classes"}
                       view="classes"
+                      onOpenTimetable={() => openWorkspacePanel("timetable")}
                     />
                   </div>
                 ) : null}
@@ -1403,6 +1430,7 @@ export function DashboardClientView({
                       schoolName={primaryMembership.tenantName}
                       viewerRole={primaryMembership.role}
                       embedded
+                      onOpenClasses={() => openWorkspacePanel("classes")}
                       onPreviewPdf={({ id, url, title }) => previewDashboardPdf("workspace", id, url, title)}
                       activePdfId={
                         dashboardPdfPreview?.anchor === "workspace" ? dashboardPdfPreview.id : null

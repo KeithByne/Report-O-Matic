@@ -103,9 +103,12 @@ export default async function DashboardPage({
   const tenantParam = Array.isArray(tenantRaw) ? tenantRaw[0] : tenantRaw;
   const wantsClassesPanel =
     typeof panelParam === "string" && panelParam.toLowerCase().trim() === "classes";
+  const wantsTimetablePanel =
+    typeof panelParam === "string" && panelParam.toLowerCase().trim() === "timetable";
   const bootClassesTenantId =
     typeof tenantParam === "string" && isUuid(tenantParam.trim()) ? tenantParam.trim() : null;
   const bootOpenClassesPanel = wantsClassesPanel && bootClassesTenantId ? bootClassesTenantId : null;
+  const bootOpenTimetablePanel = wantsTimetablePanel && bootClassesTenantId ? bootClassesTenantId : null;
 
   const stripePaymentsEnabled = isCardPaymentsEnabled();
 
@@ -131,6 +134,7 @@ export default async function DashboardPage({
       reportCreditBalance={reportCreditBalance}
       firstOwnerTenantId={firstOwnerTenantId}
       bootOpenClassesPanel={bootOpenClassesPanel}
+      bootOpenTimetablePanel={bootOpenTimetablePanel}
       stripePaymentsEnabled={stripePaymentsEnabled}
     />
   );

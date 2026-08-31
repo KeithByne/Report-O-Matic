@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
-import { classesListHref } from "@/lib/app/classesNavigation";
+import { classesListHref, timetableHref } from "@/lib/app/classesNavigation";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
 import { TimetablePageClient } from "@/components/timetable/TimetablePageClient";
@@ -128,8 +128,17 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
       setOpenPanels(new Set(["classes"]));
       return;
     }
+    if (last === "timetable" && lead) {
+      router.push(timetableHref(tenantId, viewerRole));
+      return;
+    }
     setOpenPanels(new Set([last]));
   }, [bootPanels, viewerRole, tenantId, router]);
+
+  useEffect(() => {
+    if (viewerRole !== "teacher" || bootPanels?.length) return;
+    setOpenPanels((prev) => (prev.size === 0 ? new Set(["classes"]) : prev));
+  }, [viewerRole, bootPanels]);
 
   async function saveLanguage(next: ReportLanguageCode) {
     setLang(next);
@@ -196,6 +205,9 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
   }, [showBulkInMenu, t, viewerRole]);
 
   if (viewerRole === "teacher") {
+    const openTimetable = () => setOpenPanels(new Set(["timetable"]));
+    const openClasses = () => setOpenPanels(new Set(["classes"]));
+
     return (
       <div className="space-y-8">
         <div>
@@ -210,9 +222,55 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
         {loadError ? (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
         ) : null}
-        <div id="tenant-panel-classes">
-          <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active view="classes" />
-        </div>
+        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
+            <FolderKanban className={ICON_SECTION} aria-hidden />
+            {t("tenant.sectionMenuTitle")}
+          </h2>
+          <p className="mt-1 text-sm text-zinc-600">{t("tenant.sectionMenuHint")}</p>
+          <nav className="mt-4 flex flex-wrap gap-2" aria-label={t("tenant.sectionMenuTitle")}>
+            {menuItems.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => togglePanel(id)}
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${panelButtonClass(id)}`}
+              >
+                <Icon className={ICON_INLINE} aria-hidden />
+                {label}
+              </button>
+            ))}
+          </nav>
+        </section>
+        {openPanels.has("classes") ? (
+          <div id="tenant-panel-classes">
+            <TenantClassesPanel
+              tenantId={tenantId}
+              viewerRole={viewerRole}
+              active
+              view="classes"
+              onOpenTimetable={openTimetable}
+            />
+          </div>
+        ) : null}
+        {openPanels.has("timetable") ? (
+          <div
+            id="tenant-panel-timetable"
+            className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5"
+          >
+            <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <CalendarDays className={ICON_SECTION} aria-hidden />
+              {t("timetable.title")}
+            </h2>
+            <TimetablePageClient
+              tenantId={tenantId}
+              schoolName={schoolName}
+              viewerRole={viewerRole}
+              embedded
+              onOpenClasses={openClasses}
+            />
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -231,6 +289,15 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
               <Link
                 key={id}
                 href={classesListHref(tenantId, viewerRole)}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+              >
+                <Icon className={ICON_INLINE} aria-hidden />
+                {label}
+              </Link>
+            ) : id === "timetable" ? (
+              <Link
+                key={id}
+                href={timetableHref(tenantId, viewerRole)}
                 className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
               >
                 <Icon className={ICON_INLINE} aria-hidden />
@@ -324,7 +391,13 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
             <CalendarDays className={ICON_SECTION} aria-hidden />
             {t("timetable.title")}
           </h2>
-          <TimetablePageClient tenantId={tenantId} schoolName={schoolName} viewerRole={viewerRole} embedded />
+          <TimetablePageClient
+            tenantId={tenantId}
+            schoolName={schoolName}
+            viewerRole={viewerRole}
+            embedded
+            onOpenClasses={() => router.push(classesListHref(tenantId, viewerRole))}
+          />
         </div>
       ) : null}
 

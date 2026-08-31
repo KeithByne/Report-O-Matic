@@ -6,7 +6,6 @@ import {
   BookOpen,
   Building2,
   CalendarDays,
-  Library,
   PencilLine,
   Printer,
   Save,
@@ -52,7 +51,9 @@ type Props = {
   schoolName: string;
   viewerRole: RomRole;
   embedded?: boolean;
-  /** Owner on dashboard: open Classes and Reports panel under the menu (same as menu button). */
+  /** Dashboard or reports workspace: open Classes panel without leaving the page. */
+  onOpenClasses?: () => void;
+  /** @deprecated Use `onOpenClasses`. */
   onOpenClassesAndReports?: () => void;
   onPreviewPdf?: (params: { id: string; url: string; title: string }) => void;
   activePdfId?: string | null;
@@ -65,10 +66,12 @@ export function TimetablePageClient({
   schoolName,
   viewerRole,
   embedded = false,
+  onOpenClasses,
   onOpenClassesAndReports,
   onPreviewPdf,
   activePdfId = null,
 }: Props) {
+  const openClasses = onOpenClasses ?? onOpenClassesAndReports;
   const { t, lang } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
 
@@ -402,30 +405,31 @@ export function TimetablePageClient({
 
   const gridCols = settings.periods_am + 1 + settings.periods_pm;
 
+  const classesCrossNav =
+    openClasses ? (
+      <button
+        type="button"
+        onClick={openClasses}
+        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+      >
+        <BookOpen className={ICON_INLINE} aria-hidden />
+        {t("tenant.panelClasses")}
+      </button>
+    ) : viewerRole === "owner" || viewerRole === "department_head" ? (
+      <Link
+        href={classesListHref(tenantId, viewerRole)}
+        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+      >
+        <BookOpen className={ICON_INLINE} aria-hidden />
+        {t("tenant.panelClasses")}
+      </Link>
+    ) : null;
+
   return (
     <div className="space-y-6">
       {embedded ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap gap-2">
-            {viewerRole === "owner" && onOpenClassesAndReports ? (
-              <button
-                type="button"
-                onClick={onOpenClassesAndReports}
-                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-              >
-                <BookOpen className={ICON_INLINE} aria-hidden />
-                {t("dash.ownerMenuClassesAndReports")}
-              </button>
-            ) : viewerRole === "owner" || viewerRole === "department_head" ? (
-              <Link
-                href={classesListHref(tenantId, viewerRole)}
-                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-              >
-                <BookOpen className={ICON_INLINE} aria-hidden />
-                {t("dash.ownerMenuClassesAndReports")}
-              </Link>
-            ) : null}
-          </div>
+          <div className="flex flex-wrap gap-2">{classesCrossNav}</div>
           <button
             type="button"
             aria-pressed={activePdfId === timetablePrintPdfId}
@@ -462,21 +466,13 @@ export function TimetablePageClient({
             {canEditGrid ? t("timetable.leadIntro") : t("timetable.teacherIntro")}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {viewerRole === "owner" || viewerRole === "department_head" ? (
+            {classesCrossNav ?? (
               <Link
                 href={classesListHref(tenantId, viewerRole)}
                 className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
               >
                 <BookOpen className={ICON_INLINE} aria-hidden />
-                {t("dash.ownerMenuClassesAndReports")}
-              </Link>
-            ) : (
-              <Link
-                href={`/reports/${encodeURIComponent(tenantId)}`}
-                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-              >
-                <Library className={ICON_INLINE} aria-hidden />
-                {t("nav.classesLanguage")}
+                {viewerRole === "teacher" ? t("tenant.panelClasses") : t("nav.classesLanguage")}
               </Link>
             )}
             <button
