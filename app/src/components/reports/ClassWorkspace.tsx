@@ -9,7 +9,6 @@ import {
   FolderKanban,
   Printer,
   Settings2,
-  UserPlus,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -47,22 +46,14 @@ import type { RomRole } from "@/lib/data/memberships";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
 
-type ClassWorkspacePanelId =
-  | "settings"
-  | "students"
-  | "bulkDownload"
-  | "movePupil"
-  | "locateFromActive"
-  | "importFromOtherClass"
-  | "registerPreview";
+type ClassWorkspacePanelId = "settings" | "students" | "bulkDownload" | "registerPreview";
+
+type StudentPanelAction = "add" | "move" | "import";
 
 const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
   settings: Settings2,
   students: Users,
   bulkDownload: Printer,
-  movePupil: ArrowLeftRight,
-  locateFromActive: UserPlus,
-  importFromOtherClass: ArrowRightToLine,
   registerPreview: ClipboardList,
 };
 
@@ -70,10 +61,13 @@ const CLASS_PANEL_GUIDE_KEY: Record<ClassWorkspacePanelId, string> = {
   settings: "class_settings",
   students: "class_students",
   bulkDownload: "class_bulk",
-  movePupil: "class_move",
-  locateFromActive: "class_locate_active",
-  importFromOtherClass: "class_import_other",
   registerPreview: "class_register",
+};
+
+const STUDENT_ACTION_GUIDE_KEY: Record<StudentPanelAction, string> = {
+  add: "class_students",
+  move: "class_move",
+  import: "class_import_other",
 };
 
 const CLASS_BULK_PDF_ID = "class-bulk-reports";
@@ -206,8 +200,6 @@ export function ClassWorkspace({
   );
   const [students, setStudents] = useState<Student[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
-  const [activeRoster, setActiveRoster] = useState<{ id: string; display_name: string; class_ids: string[] }[]>([]);
-  const [locateSchoolStudentId, setLocateSchoolStudentId] = useState("");
 
   const classBulkPdfGate = useMemo(() => {
     if (students.length === 0) {
@@ -274,6 +266,7 @@ export function ClassWorkspace({
   const [newGender, setNewGender] = useState<"" | "male" | "female" | "non_binary">("");
   /** All pupils visible to this user in the organisation (any class), for duplicate-name warnings when adding. */
   const [orgStudents, setOrgStudents] = useState<Student[]>([]);
+  const [studentPanelAction, setStudentPanelAction] = useState<StudentPanelAction>("add");
   const [importFromOtherSearch, setImportFromOtherSearch] = useState("");
   const [importFromOtherClassFilter, setImportFromOtherClassFilter] = useState("");
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
@@ -438,30 +431,13 @@ export function ClassWorkspace({
       { id: "students", label: t("class.studentsTitle"), Icon: CLASS_PANEL_ICON.students },
       { id: "bulkDownload", label: t("class.printClassReports"), Icon: CLASS_PANEL_ICON.bulkDownload },
     );
-    if (viewerRole === "owner" || viewerRole === "department_head") {
-      items.push({
-        id: "locateFromActive",
-        label: t("class.panelLocateFromActive"),
-        Icon: CLASS_PANEL_ICON.locateFromActive,
-      });
-      items.push({
-        id: "importFromOtherClass",
-        label: t("class.panelImportFromOtherClass"),
-        Icon: CLASS_PANEL_ICON.importFromOtherClass,
-      });
-      items.push({
-        id: "movePupil",
-        label: t("class.panelMovePupil"),
-        Icon: CLASS_PANEL_ICON.movePupil,
-      });
-    }
     items.push({
       id: "registerPreview",
       label: t("class.registerMenu"),
       Icon: CLASS_PANEL_ICON.registerPreview,
     });
     return items;
-  }, [t, viewerRole]);
+  }, [t]);
 
   const loadClass = useCallback(async () => {
     const reqId = ++loadClassRequestId.current;
@@ -645,9 +621,19 @@ export function ClassWorkspace({
   }, [refreshOrgStudents]);
 
   useEffect(() => {
-    if (openClassPanel !== "importFromOtherClass") return;
+    if (openClassPanel !== "students" || studentPanelAction !== "import") return;
     void refreshOrgStudents();
-  }, [openClassPanel, refreshOrgStudents]);
+  }, [openClassPanel, studentPanelAction, refreshOrgStudents]);
+
+  const canManageStudents = viewerRole === "owner" || viewerRole === "department_head";
+
+  const studentActionButtonClass = useCallback(
+    (action: StudentPanelAction) =>
+      studentPanelAction === action
+        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+        : "border-emerald-200 bg-white text-zinc-700 hover:bg-emerald-50/80",
+    [studentPanelAction],
+  );
 
   const duplicateNameMatches = useMemo(() => {
     const fn = newFirst.trim();
@@ -940,52 +926,6 @@ export function ClassWorkspace({
   const canDeleteStudent =
     viewerRole === "owner" || viewerRole === "department_head" || viewerRole === "teacher";
   const canDeleteClass = viewerRole === "owner" || viewerRole === "department_head";
-
-  const locateCandidates = useMemo(
-    () => activeRoster.filter((r) => !r.class_ids.includes(classId)),
-    [activeRoster, classId],
-  );
-
-  useEffect(() => {
-    if (openClassPanel !== "locateFromActive") return;
-    if (viewerRole !== "owner" && viewerRole !== "department_head") return;
-    void (async () => {
-      try {
-        const res = await fetch(`${base}/school-students?status=active`);
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) return;
-        const rows = (data.students ?? []) as { id: string; display_name: string; class_ids?: string[] }[];
-        setActiveRoster(rows.map((r) => ({ id: r.id, display_name: r.display_name, class_ids: r.class_ids ?? [] })));
-      } catch {
-        setActiveRoster([]);
-      }
-    })();
-  }, [openClassPanel, viewerRole, base]);
-
-  async function locateFromActiveList() {
-    if (!locateSchoolStudentId) return;
-    setBusy("locate");
-    try {
-      const res = await fetch(
-        `${base}/school-students/${encodeURIComponent(locateSchoolStudentId)}/enrollments`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ class_id: classId }),
-        },
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || t("common.failed"));
-      setLocateSchoolStudentId("");
-      await refreshStudents();
-      await refreshOrgStudents();
-      router.refresh();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : t("common.failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
 
   async function deleteStudentRow(studentId: string, displayName: string) {
     if (!confirm(t("class.confirmRemoveStudent", { name: displayName }))) return;
@@ -1610,6 +1550,49 @@ export function ClassWorkspace({
             </span>
           )}
         </div>
+        {canManageStudents ? (
+          <nav
+            className="mt-4 flex flex-wrap gap-2"
+            aria-label={t("class.studentsActionsLabel")}
+            onMouseLeave={() => setClassGuideHoverKey(null)}
+          >
+            <button
+              type="button"
+              aria-pressed={studentPanelAction === "add"}
+              onMouseEnter={() => setClassGuideHoverKey(STUDENT_ACTION_GUIDE_KEY.add)}
+              onFocus={() => setClassGuideHoverKey(STUDENT_ACTION_GUIDE_KEY.add)}
+              onClick={() => setStudentPanelAction("add")}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${studentActionButtonClass("add")}`}
+            >
+              <Users className={ICON_INLINE} aria-hidden />
+              {t("class.studentsActionAdd")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={studentPanelAction === "move"}
+              onMouseEnter={() => setClassGuideHoverKey(STUDENT_ACTION_GUIDE_KEY.move)}
+              onFocus={() => setClassGuideHoverKey(STUDENT_ACTION_GUIDE_KEY.move)}
+              onClick={() => setStudentPanelAction("move")}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${studentActionButtonClass("move")}`}
+            >
+              <ArrowLeftRight className={ICON_INLINE} aria-hidden />
+              {t("class.studentsActionMove")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={studentPanelAction === "import"}
+              onMouseEnter={() => setClassGuideHoverKey(STUDENT_ACTION_GUIDE_KEY.import)}
+              onFocus={() => setClassGuideHoverKey(STUDENT_ACTION_GUIDE_KEY.import)}
+              onClick={() => setStudentPanelAction("import")}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${studentActionButtonClass("import")}`}
+            >
+              <ArrowRightToLine className={ICON_INLINE} aria-hidden />
+              {t("class.studentsActionImport")}
+            </button>
+          </nav>
+        ) : null}
+
+        {studentPanelAction === "add" || !canManageStudents ? (
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block min-w-0 text-sm">
             <span className="mb-1 block text-zinc-600">{t("class.firstName")}</span>
@@ -1660,8 +1643,122 @@ export function ClassWorkspace({
             </div>
           ) : null}
         </form>
+        ) : null}
 
-        {students.length === 0 ? (
+        {canManageStudents && studentPanelAction === "move" ? (
+          <div className="mt-4">
+            <p className="text-sm text-zinc-600">{t("class.movePupilFootnote")}</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <label className="block min-w-0 text-sm">
+                <span className="mb-1 block text-zinc-600">{t("class.movePupilLabel")}</span>
+                <select
+                  value={moveStudentId}
+                  onChange={(e) => setMoveStudentId(e.target.value)}
+                  className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">—</option>
+                  {students.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.display_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block min-w-0 text-sm">
+                <span className="mb-1 block text-zinc-600">{t("class.moveDestinationLabel")}</span>
+                <select
+                  value={moveToClassId}
+                  onChange={(e) => setMoveToClassId(e.target.value)}
+                  className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">—</option>
+                  {allClasses
+                    .filter((c) => c.id !== classId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  disabled={busy !== null || !moveStudentId || !moveToClassId}
+                  onClick={() => void moveStudent()}
+                  className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
+                >
+                  {t("class.movePupilButton")}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {canManageStudents && studentPanelAction === "import" ? (
+          <div className="mt-4">
+            <p className="text-sm text-zinc-600">{t("class.importFromOtherClassHint")}</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="block min-w-0 text-sm">
+                <span className="mb-1 block text-zinc-600">{t("class.importFromOtherClassSearchLabel")}</span>
+                <input
+                  value={importFromOtherSearch}
+                  onChange={(e) => setImportFromOtherSearch(e.target.value)}
+                  className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                  placeholder={t("class.importFromOtherClassSearchPlaceholder")}
+                  autoComplete="off"
+                />
+              </label>
+              <label className="block min-w-0 text-sm">
+                <span className="mb-1 block text-zinc-600">{t("class.importFromOtherClassFilterLabel")}</span>
+                <select
+                  value={importFromOtherClassFilter}
+                  onChange={(e) => setImportFromOtherClassFilter(e.target.value)}
+                  className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">{t("class.importFromOtherClassFilterAll")}</option>
+                  {importFromOtherSourceClasses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {importFromOtherCandidates.length === 0 ? (
+              <p className="mt-4 text-sm text-zinc-500">{t("class.importFromOtherClassEmpty")}</p>
+            ) : (
+              <ul className="mt-4 max-h-[min(50vh,32rem)] divide-y divide-emerald-100 overflow-y-auto overscroll-y-contain rounded-xl border border-emerald-100">
+                {importFromOtherCandidates.map((student) => (
+                  <li
+                    key={student.id}
+                    className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-zinc-900">{student.display_name}</p>
+                      <p className="text-xs text-zinc-600">
+                        {t("class.importFromOtherClassFrom", {
+                          className: student.class_name?.trim() || t("class.duplicatePupilUnnamedClass"),
+                        })}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => void importStudentFromOtherClass(student)}
+                      className="shrink-0 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-100 disabled:opacity-50"
+                    >
+                      {t("class.importFromOtherClassButton")}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
+
+        {(studentPanelAction === "add" || !canManageStudents) ? (
+          students.length === 0 ? (
           <p className="mt-2 text-sm text-zinc-500">{t("class.noPupils")}</p>
         ) : (
           <div
@@ -1800,7 +1897,8 @@ export function ClassWorkspace({
               ))}
             </ul>
           </div>
-        )}
+        )
+        ) : null}
       </section>
       ) : null}
 
@@ -1854,165 +1952,6 @@ export function ClassWorkspace({
               </div>
             )}
           </div>
-        </section>
-      ) : null}
-
-      {openClassPanel === "locateFromActive" && (viewerRole === "owner" || viewerRole === "department_head") ? (
-        <section
-          id="class-workspace-panel-locateFromActive"
-          className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
-        >
-          <h3 className="text-sm font-semibold text-zinc-900">{t("class.locateFromActiveTitle")}</h3>
-          <p className="mt-1 text-sm text-zinc-600">{t("class.locateFromActiveHint")}</p>
-          <div className="mt-4 flex flex-wrap items-end gap-3">
-            <label className="block min-w-0 flex-1 text-sm sm:max-w-md">
-              <span className="mb-1 block text-zinc-600">{t("class.locateFromActivePick")}</span>
-              <select
-                value={locateSchoolStudentId}
-                onChange={(e) => setLocateSchoolStudentId(e.target.value)}
-                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="">—</option>
-                {locateCandidates.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.display_name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              disabled={busy !== null || !locateSchoolStudentId}
-              onClick={() => void locateFromActiveList()}
-              className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              {t("class.locateFromActiveButton")}
-            </button>
-          </div>
-          {locateCandidates.length === 0 ? (
-            <p className="mt-3 text-xs text-zinc-500">{t("dash.activeStudentsEmpty")}</p>
-          ) : null}
-        </section>
-      ) : null}
-
-      {openClassPanel === "importFromOtherClass" &&
-      (viewerRole === "owner" || viewerRole === "department_head") ? (
-        <section
-          id="class-workspace-panel-importFromOtherClass"
-          className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
-        >
-          <h3 className="text-sm font-semibold text-zinc-900">{t("class.importFromOtherClassTitle")}</h3>
-          <p className="mt-1 text-sm text-zinc-600">{t("class.importFromOtherClassHint")}</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="block min-w-0 text-sm">
-              <span className="mb-1 block text-zinc-600">{t("class.importFromOtherClassSearchLabel")}</span>
-              <input
-                value={importFromOtherSearch}
-                onChange={(e) => setImportFromOtherSearch(e.target.value)}
-                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-                placeholder={t("class.importFromOtherClassSearchPlaceholder")}
-                autoComplete="off"
-              />
-            </label>
-            <label className="block min-w-0 text-sm">
-              <span className="mb-1 block text-zinc-600">{t("class.importFromOtherClassFilterLabel")}</span>
-              <select
-                value={importFromOtherClassFilter}
-                onChange={(e) => setImportFromOtherClassFilter(e.target.value)}
-                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="">{t("class.importFromOtherClassFilterAll")}</option>
-                {importFromOtherSourceClasses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {importFromOtherCandidates.length === 0 ? (
-            <p className="mt-4 text-sm text-zinc-500">{t("class.importFromOtherClassEmpty")}</p>
-          ) : (
-            <ul className="mt-4 max-h-[min(70vh,42rem)] divide-y divide-emerald-100 overflow-y-auto overscroll-y-contain rounded-xl border border-emerald-100">
-              {importFromOtherCandidates.map((student) => (
-                <li
-                  key={student.id}
-                  className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-zinc-900">{student.display_name}</p>
-                    <p className="text-xs text-zinc-600">
-                      {t("class.importFromOtherClassFrom", {
-                        className: student.class_name?.trim() || t("class.duplicatePupilUnnamedClass"),
-                      })}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={busy !== null}
-                    onClick={() => void importStudentFromOtherClass(student)}
-                    className="shrink-0 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-100 disabled:opacity-50"
-                  >
-                    {t("class.importFromOtherClassButton")}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ) : null}
-
-      {openClassPanel === "movePupil" && (viewerRole === "owner" || viewerRole === "department_head") ? (
-        <section
-          id="class-workspace-panel-movePupil"
-          className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
-        >
-          <h3 className="text-sm font-semibold text-zinc-900">{t("class.movePupilSectionTitle")}</h3>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <label className="block min-w-0 text-sm">
-              <span className="mb-1 block text-zinc-600">{t("class.movePupilLabel")}</span>
-              <select
-                value={moveStudentId}
-                onChange={(e) => setMoveStudentId(e.target.value)}
-                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="">—</option>
-                {students.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.display_name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block min-w-0 text-sm">
-              <span className="mb-1 block text-zinc-600">{t("class.moveDestinationLabel")}</span>
-              <select
-                value={moveToClassId}
-                onChange={(e) => setMoveToClassId(e.target.value)}
-                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="">—</option>
-                {allClasses
-                  .filter((c) => c.id !== classId)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <div className="flex items-end">
-              <button
-                type="button"
-                disabled={busy !== null || !moveStudentId || !moveToClassId}
-                onClick={() => void moveStudent()}
-                className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
-              >
-                {t("class.movePupilButton")}
-              </button>
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-zinc-500">{t("class.movePupilFootnote")}</p>
         </section>
       ) : null}
 

@@ -34,21 +34,15 @@ export function classWorkspaceGuideStages(viewerRole: RomRole): StageDef[] {
       linesKeys: ["class.guide.move1", "class.guide.move2", "class.guide.move3"],
     });
     stages.push({
-      key: "class_locate_active",
-      n: 5,
-      titleKey: "class.guide.locateTitle",
-      linesKeys: ["class.guide.locate1", "class.guide.locate2", "class.guide.locate3"],
-    });
-    stages.push({
       key: "class_import_other",
-      n: 6,
+      n: 5,
       titleKey: "class.guide.importFromOtherTitle",
       linesKeys: ["class.guide.importFromOther1", "class.guide.importFromOther2", "class.guide.importFromOther3"],
     });
   }
   stages.push({
     key: "class_register",
-    n: viewerRole === "owner" || viewerRole === "department_head" ? 7 : 4,
+    n: viewerRole === "owner" || viewerRole === "department_head" ? 6 : 4,
     titleKey: "class.guide.registerTitle",
     linesKeys: ["class.guide.register1", "class.guide.register2", "class.guide.register3"],
   });
