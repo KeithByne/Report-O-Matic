@@ -181,6 +181,8 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
 
   const isLead = viewerRole === "owner" || viewerRole === "department_head";
   const showBulkInMenu = viewerRole === "department_head";
+  const openTimetablePanel = useCallback(() => setOpenPanels(new Set(["timetable"])), []);
+  const openClassesPanel = useCallback(() => setOpenPanels(new Set(["classes"])), []);
   const teacherBatchHref = useMemo(() => {
     const qp = new URLSearchParams();
     if (teacherOnlyFinal) qp.set("onlyFinal", "1");
@@ -205,8 +207,8 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
   }, [showBulkInMenu, t, viewerRole]);
 
   if (viewerRole === "teacher") {
-    const openTimetable = () => setOpenPanels(new Set(["timetable"]));
-    const openClasses = () => setOpenPanels(new Set(["classes"]));
+    const openTimetable = openTimetablePanel;
+    const openClasses = openClassesPanel;
 
     return (
       <div className="space-y-8">
@@ -396,7 +398,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
             schoolName={schoolName}
             viewerRole={viewerRole}
             embedded
-            onOpenClasses={() => router.push(classesListHref(tenantId, viewerRole))}
+            onOpenClasses={isLead ? () => router.push(classesListHref(tenantId, viewerRole)) : openClassesPanel}
           />
         </div>
       ) : null}
@@ -475,7 +477,13 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
 
       {openPanels.has("classes") ? (
         <div id="tenant-panel-classes">
-          <TenantClassesPanel tenantId={tenantId} viewerRole={viewerRole} active view="classes" />
+          <TenantClassesPanel
+            tenantId={tenantId}
+            viewerRole={viewerRole}
+            active
+            view="classes"
+            onOpenTimetable={isLead ? () => router.push(timetableHref(tenantId, viewerRole)) : openTimetablePanel}
+          />
         </div>
       ) : null}
     </div>

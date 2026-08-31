@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
+import { timetableHref } from "@/lib/app/classesNavigation";
 import {
   CLASS_SETTINGS_SAVED_EVENT,
   REPORT_AI_SAVED_EVENT,
@@ -98,6 +99,19 @@ export function TenantClassesPanel({
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const isLead = viewerRole === "owner" || viewerRole === "department_head";
   const bulkHref = `${base}/reports/pdf-batch?term=${bulkTerm}`;
+  const timetableCrossNavClass =
+    "inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50";
+  const timetableCrossNav = onOpenTimetable ? (
+    <button type="button" onClick={onOpenTimetable} className={timetableCrossNavClass}>
+      <CalendarDays className={ICON_INLINE} aria-hidden />
+      {t("tenant.panelTimetable")}
+    </button>
+  ) : (
+    <Link href={timetableHrefProp ?? timetableHref(tenantId, viewerRole)} className={timetableCrossNavClass}>
+      <CalendarDays className={ICON_INLINE} aria-hidden />
+      {t("tenant.panelTimetable")}
+    </Link>
+  );
 
   const refresh = useCallback(async () => {
     setLoadError(null);
@@ -439,10 +453,13 @@ export function TenantClassesPanel({
           <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{loadError}</div>
         ) : null}
         <section className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-            <Library className={ICON_SECTION} aria-hidden />
-            {t("tenant.subjectsTitle")}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <Library className={ICON_SECTION} aria-hidden />
+              {t("tenant.subjectsTitle")}
+            </h2>
+            {timetableCrossNav}
+          </div>
         {isLead ? (
           <form
             onSubmit={addClass}
@@ -645,24 +662,7 @@ export function TenantClassesPanel({
             <BookOpen className={ICON_SECTION} aria-hidden />
             {t("tenant.classesTitle")}
           </h2>
-          {onOpenTimetable ? (
-            <button
-              type="button"
-              onClick={onOpenTimetable}
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-            >
-              <CalendarDays className={ICON_INLINE} aria-hidden />
-              {t("tenant.panelTimetable")}
-            </button>
-          ) : timetableHrefProp ? (
-            <Link
-              href={timetableHrefProp}
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-            >
-              <CalendarDays className={ICON_INLINE} aria-hidden />
-              {t("tenant.panelTimetable")}
-            </Link>
-          ) : null}
+          {timetableCrossNav}
         </div>
         {isLead ? (
           <form onSubmit={(e) => void addClassQuick(e)} className="mt-4 flex flex-wrap items-center gap-2">

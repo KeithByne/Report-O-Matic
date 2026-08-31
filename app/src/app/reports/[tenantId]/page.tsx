@@ -53,9 +53,10 @@ export default async function ReportsTenantPage({
 
   if (
     (role === "owner" || role === "department_head") &&
-    initialOpenPanels?.includes("classes")
+    (initialOpenPanels?.includes("classes") || initialOpenPanels?.includes("timetable"))
   ) {
-    redirect(`/dashboard?panel=classes&tenant=${encodeURIComponent(tenantId)}`);
+    const panel = initialOpenPanels?.includes("classes") ? "classes" : "timetable";
+    redirect(`/dashboard?panel=${panel}&tenant=${encodeURIComponent(tenantId)}`);
   }
 
   const schoolName = (await getTenantName(tenantId)) || "School";

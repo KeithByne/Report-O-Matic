@@ -405,25 +405,19 @@ export function TimetablePageClient({
 
   const gridCols = settings.periods_am + 1 + settings.periods_pm;
 
-  const classesCrossNav =
-    openClasses ? (
-      <button
-        type="button"
-        onClick={openClasses}
-        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-      >
-        <BookOpen className={ICON_INLINE} aria-hidden />
-        {t("tenant.panelClasses")}
-      </button>
-    ) : viewerRole === "owner" || viewerRole === "department_head" ? (
-      <Link
-        href={classesListHref(tenantId, viewerRole)}
-        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-      >
-        <BookOpen className={ICON_INLINE} aria-hidden />
-        {t("tenant.panelClasses")}
-      </Link>
-    ) : null;
+  const classesCrossNavClass =
+    "inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50";
+  const classesCrossNav = openClasses ? (
+    <button type="button" onClick={openClasses} className={classesCrossNavClass}>
+      <BookOpen className={ICON_INLINE} aria-hidden />
+      {t("tenant.panelClasses")}
+    </button>
+  ) : (
+    <Link href={classesListHref(tenantId, viewerRole)} className={classesCrossNavClass}>
+      <BookOpen className={ICON_INLINE} aria-hidden />
+      {t("tenant.panelClasses")}
+    </Link>
+  );
 
   return (
     <div className="space-y-6">
@@ -466,15 +460,7 @@ export function TimetablePageClient({
             {canEditGrid ? t("timetable.leadIntro") : t("timetable.teacherIntro")}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {classesCrossNav ?? (
-              <Link
-                href={classesListHref(tenantId, viewerRole)}
-                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
-              >
-                <BookOpen className={ICON_INLINE} aria-hidden />
-                {viewerRole === "teacher" ? t("tenant.panelClasses") : t("nav.classesLanguage")}
-              </Link>
-            )}
+            {classesCrossNav}
             <button
               type="button"
               aria-pressed={activePdfId === timetablePrintPdfId}

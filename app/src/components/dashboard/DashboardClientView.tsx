@@ -1342,6 +1342,7 @@ export function DashboardClientView({
                       viewerRole={primaryMembership.role}
                       active={workspaceDashPanel === "subjects"}
                       view="subjects"
+                      onOpenTimetable={() => openWorkspacePanel("timetable")}
                     />
                   </div>
                 ) : null}
