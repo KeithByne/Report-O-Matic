@@ -4,6 +4,7 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowLeftRight,
+  ArrowRightToLine,
   ClipboardList,
   FolderKanban,
   Printer,
@@ -52,6 +53,7 @@ type ClassWorkspacePanelId =
   | "bulkDownload"
   | "movePupil"
   | "locateFromActive"
+  | "importFromOtherClass"
   | "registerPreview";
 
 const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
@@ -60,6 +62,7 @@ const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
   bulkDownload: Printer,
   movePupil: ArrowLeftRight,
   locateFromActive: UserPlus,
+  importFromOtherClass: ArrowRightToLine,
   registerPreview: ClipboardList,
 };
 
@@ -69,6 +72,7 @@ const CLASS_PANEL_GUIDE_KEY: Record<ClassWorkspacePanelId, string> = {
   bulkDownload: "class_bulk",
   movePupil: "class_move",
   locateFromActive: "class_locate_active",
+  importFromOtherClass: "class_import_other",
   registerPreview: "class_register",
 };
 
@@ -89,23 +93,6 @@ type Student = {
   gender?: StudentGender;
   class_id: string;
   class_name: string;
-};
-
-type SchoolRosterRow = {
-  id: string;
-  display_name: string;
-  first_name: string;
-  last_name: string;
-  class_ids?: string[];
-  class_names?: string[];
-};
-
-type PupilImportCandidate = {
-  schoolStudentId: string;
-  displayName: string;
-  firstName: string;
-  lastName: string;
-  classNames: string[];
 };
 
 function normalizeSearchText(s: string): string {
@@ -287,8 +274,8 @@ export function ClassWorkspace({
   const [newGender, setNewGender] = useState<"" | "male" | "female" | "non_binary">("");
   /** All pupils visible to this user in the organisation (any class), for duplicate-name warnings when adding. */
   const [orgStudents, setOrgStudents] = useState<Student[]>([]);
-  /** Active school roster (owners / dept heads) — includes pupils not yet in any class. */
-  const [schoolRoster, setSchoolRoster] = useState<SchoolRosterRow[]>([]);
+  const [importFromOtherSearch, setImportFromOtherSearch] = useState("");
+  const [importFromOtherClassFilter, setImportFromOtherClassFilter] = useState("");
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");
@@ -456,6 +443,11 @@ export function ClassWorkspace({
         id: "locateFromActive",
         label: t("class.panelLocateFromActive"),
         Icon: CLASS_PANEL_ICON.locateFromActive,
+      });
+      items.push({
+        id: "importFromOtherClass",
+        label: t("class.panelImportFromOtherClass"),
+        Icon: CLASS_PANEL_ICON.importFromOtherClass,
       });
       items.push({
         id: "movePupil",
@@ -653,25 +645,9 @@ export function ClassWorkspace({
   }, [refreshOrgStudents]);
 
   useEffect(() => {
-    if (openClassPanel !== "students" || !canManageClassSettings) {
-      setSchoolRoster([]);
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      try {
-        const res = await fetch(`${base}/school-students?status=active`);
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || cancelled) return;
-        setSchoolRoster(Array.isArray(data.students) ? (data.students as SchoolRosterRow[]) : []);
-      } catch {
-        if (!cancelled) setSchoolRoster([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [openClassPanel, canManageClassSettings, base]);
+    if (openClassPanel !== "importFromOtherClass") return;
+    void refreshOrgStudents();
+  }, [openClassPanel, refreshOrgStudents]);
 
   const duplicateNameMatches = useMemo(() => {
     const fn = newFirst.trim();
@@ -695,77 +671,30 @@ export function ClassWorkspace({
     return t("class.duplicatePupilWarning", { locations });
   }, [duplicateNameMatches, classId, t]);
 
-  const importCandidates = useMemo((): PupilImportCandidate[] => {
-    if (!canManageClassSettings) return [];
-    const query = `${newFirst} ${newLast}`.trim();
-    if (normalizeSearchText(query).length < 2) return [];
-
-    const bySchoolId = new Map<
-      string,
-      PupilImportCandidate & { enrolledClassIds: Set<string> }
-    >();
-
-    const upsert = (opts: {
-      schoolStudentId: string;
-      displayName: string;
-      firstName: string;
-      lastName: string;
-      classNames: string[];
-      classIds: string[];
-    }) => {
-      const existing = bySchoolId.get(opts.schoolStudentId);
-      if (existing) {
-        for (const id of opts.classIds) existing.enrolledClassIds.add(id);
-        for (const name of opts.classNames) {
-          if (name && !existing.classNames.includes(name)) existing.classNames.push(name);
-        }
-        return;
-      }
-      bySchoolId.set(opts.schoolStudentId, {
-        schoolStudentId: opts.schoolStudentId,
-        displayName: opts.displayName,
-        firstName: opts.firstName,
-        lastName: opts.lastName,
-        classNames: [...opts.classNames],
-        enrolledClassIds: new Set(opts.classIds),
-      });
-    };
-
+  const importFromOtherSourceClasses = useMemo(() => {
+    const byId = new Map<string, string>();
     for (const s of orgStudents) {
-      const hay = [s.display_name, s.first_name, s.last_name].filter(Boolean).join(" ");
-      if (!matchesLetterSearch(hay, query)) continue;
-      const schoolStudentId = s.school_student_id?.trim() || s.id;
-      upsert({
-        schoolStudentId,
-        displayName: s.display_name,
-        firstName: (s.first_name ?? "").trim(),
-        lastName: (s.last_name ?? "").trim(),
-        classNames: s.class_name?.trim() ? [s.class_name.trim()] : [],
-        classIds: [s.class_id],
-      });
+      if (s.class_id === classId) continue;
+      const name = s.class_name?.trim() || t("class.duplicatePupilUnnamedClass");
+      if (!byId.has(s.class_id)) byId.set(s.class_id, name);
     }
+    return [...byId.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  }, [orgStudents, classId, t]);
 
-    for (const row of schoolRoster) {
-      const hay = [row.display_name, row.first_name, row.last_name].filter(Boolean).join(" ");
-      if (!matchesLetterSearch(hay, query)) continue;
-      const classIds = Array.isArray(row.class_ids) ? row.class_ids : [];
-      const classNames = Array.isArray(row.class_names) ? row.class_names.filter(Boolean) : [];
-      upsert({
-        schoolStudentId: row.id,
-        displayName: row.display_name,
-        firstName: row.first_name.trim(),
-        lastName: row.last_name.trim(),
-        classNames,
-        classIds,
-      });
-    }
-
-    return [...bySchoolId.values()]
-      .filter((c) => c.firstName && c.lastName && !c.enrolledClassIds.has(classId))
-      .map(({ enrolledClassIds: _enrolledClassIds, ...candidate }) => candidate)
-      .sort((a, b) => a.displayName.localeCompare(b.displayName))
-      .slice(0, 12);
-  }, [canManageClassSettings, newFirst, newLast, orgStudents, schoolRoster, classId]);
+  const importFromOtherCandidates = useMemo(() => {
+    const query = importFromOtherSearch.trim();
+    return orgStudents
+      .filter((s) => s.class_id !== classId)
+      .filter((s) => !importFromOtherClassFilter || s.class_id === importFromOtherClassFilter)
+      .filter((s) => {
+        if (!query) return true;
+        const hay = [s.display_name, s.first_name, s.last_name].filter(Boolean).join(" ");
+        return matchesLetterSearch(hay, query);
+      })
+      .sort((a, b) => a.display_name.localeCompare(b.display_name, undefined, { sensitivity: "base" }));
+  }, [orgStudents, classId, importFromOtherClassFilter, importFromOtherSearch]);
 
   const assignedTeacherLabelInSettings = useMemo(() => {
     if (!detail?.assigned_teacher_email?.trim()) return null;
@@ -921,24 +850,21 @@ export function ClassWorkspace({
     }
   }
 
-  async function importExistingPupil(candidate: PupilImportCandidate) {
-    setBusy("import");
+  async function importStudentFromOtherClass(student: Student) {
+    const fromClass = student.class_name?.trim() || t("class.duplicatePupilUnnamedClass");
+    const toClass = cName.trim() || initialClassName;
+    if (!confirm(t("class.importFromOtherClassConfirm", { who: student.display_name, from: fromClass, to: toClass }))) {
+      return;
+    }
+    setBusy(`import-${student.id}`);
     try {
-      const res = await fetch(`${base}/students`, {
-        method: "POST",
+      const res = await fetch(`${base}/students/${encodeURIComponent(student.id)}`, {
+        method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          class_id: classId,
-          first_name: candidate.firstName,
-          last_name: candidate.lastName,
-          school_student_id: candidate.schoolStudentId,
-        }),
+        body: JSON.stringify({ class_id: classId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
-      setNewFirst("");
-      setNewLast("");
-      setNewGender("");
       await refreshStudents();
       await refreshOrgStudents();
       router.refresh();
@@ -1684,9 +1610,6 @@ export function ClassWorkspace({
             </span>
           )}
         </div>
-        {canManageClassSettings ? (
-          <p className="mt-3 text-sm text-zinc-600">{t("class.addPupilSearchHint")}</p>
-        ) : null}
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block min-w-0 text-sm">
             <span className="mb-1 block text-zinc-600">{t("class.firstName")}</span>
@@ -1725,41 +1648,9 @@ export function ClassWorkspace({
               disabled={busy !== null}
               className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
             >
-              {t("class.addPupilNew")}
+              {t("class.addPupil")}
             </button>
           </div>
-          {canManageClassSettings && importCandidates.length > 0 ? (
-            <div className="sm:col-span-2 lg:col-span-4">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
-                {t("class.importPupilMatchesTitle")}
-              </p>
-              <ul className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-emerald-100 bg-emerald-50/30 p-2">
-                {importCandidates.map((candidate) => (
-                  <li
-                    key={candidate.schoolStudentId}
-                    className="flex flex-col gap-2 rounded-lg border border-emerald-100 bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-medium text-zinc-900">{candidate.displayName}</p>
-                      <p className="text-xs text-zinc-600">
-                        {candidate.classNames.length > 0
-                          ? t("class.importPupilMatchIn", { classes: candidate.classNames.join(", ") })
-                          : t("class.importPupilUnassigned")}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={busy !== null}
-                      onClick={() => void importExistingPupil(candidate)}
-                      className="shrink-0 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-100 disabled:opacity-50"
-                    >
-                      {t("class.importPupilButton")}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
           {duplicatePupilWarningText ? (
             <div
               role="status"
@@ -2001,6 +1892,73 @@ export function ClassWorkspace({
           {locateCandidates.length === 0 ? (
             <p className="mt-3 text-xs text-zinc-500">{t("dash.activeStudentsEmpty")}</p>
           ) : null}
+        </section>
+      ) : null}
+
+      {openClassPanel === "importFromOtherClass" &&
+      (viewerRole === "owner" || viewerRole === "department_head") ? (
+        <section
+          id="class-workspace-panel-importFromOtherClass"
+          className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
+        >
+          <h3 className="text-sm font-semibold text-zinc-900">{t("class.importFromOtherClassTitle")}</h3>
+          <p className="mt-1 text-sm text-zinc-600">{t("class.importFromOtherClassHint")}</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("class.importFromOtherClassSearchLabel")}</span>
+              <input
+                value={importFromOtherSearch}
+                onChange={(e) => setImportFromOtherSearch(e.target.value)}
+                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+                placeholder={t("class.importFromOtherClassSearchPlaceholder")}
+                autoComplete="off"
+              />
+            </label>
+            <label className="block min-w-0 text-sm">
+              <span className="mb-1 block text-zinc-600">{t("class.importFromOtherClassFilterLabel")}</span>
+              <select
+                value={importFromOtherClassFilter}
+                onChange={(e) => setImportFromOtherClassFilter(e.target.value)}
+                className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">{t("class.importFromOtherClassFilterAll")}</option>
+                {importFromOtherSourceClasses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {importFromOtherCandidates.length === 0 ? (
+            <p className="mt-4 text-sm text-zinc-500">{t("class.importFromOtherClassEmpty")}</p>
+          ) : (
+            <ul className="mt-4 max-h-[min(70vh,42rem)] divide-y divide-emerald-100 overflow-y-auto overscroll-y-contain rounded-xl border border-emerald-100">
+              {importFromOtherCandidates.map((student) => (
+                <li
+                  key={student.id}
+                  className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-zinc-900">{student.display_name}</p>
+                    <p className="text-xs text-zinc-600">
+                      {t("class.importFromOtherClassFrom", {
+                        className: student.class_name?.trim() || t("class.duplicatePupilUnnamedClass"),
+                      })}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => void importStudentFromOtherClass(student)}
+                    className="shrink-0 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-100 disabled:opacity-50"
+                  >
+                    {t("class.importFromOtherClassButton")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       ) : null}
 

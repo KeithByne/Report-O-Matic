@@ -707,6 +707,12 @@ const EN: UiMessages = {
   "class.guide.locate1": "Open this to place a pupil from the school Active Students list into this class.",
   "class.guide.locate2": "Pick the pupil, then confirm—they stay on the active list for other classes too.",
   "class.guide.locate3": "Use Active Students on the dashboard to add new pupils first.",
+  "class.guide.importFromOtherTitle": "Import from another class",
+  "class.guide.importFromOther1":
+    "Move a pupil from another class into this one when they are changing groups mid-year.",
+  "class.guide.importFromOther2":
+    "Their reports for this year travel with them; they disappear from the previous class list.",
+  "class.guide.importFromOther3": "Use Locate from Active Students instead if the pupil should stay in more than one class.",
   "dash.ownerBackToSchools": "Back to schools",
   "dash.ownerMenuClassesAndReports": "Classes and Reports",
   "profile.pageTitle": "Your account",
@@ -1383,6 +1389,7 @@ const EN: UiMessages = {
   "class.confirmRemoveStudent":
     "Remove {name} from this class? They stay on the Active Students list; their reports for this class are kept.",
   "class.panelLocateFromActive": "Locate from Active Students",
+  "class.panelImportFromOtherClass": "Import from other class",
   "class.locateFromActiveTitle": "Locate pupil from Active Students",
   "class.locateFromActiveHint":
     "Place a pupil from the school active list into this class without removing them from the list.",
@@ -1437,13 +1444,18 @@ const EN: UiMessages = {
   "class.bulkPdfNotFinishedTerm": "Every pupil needs a finished report for the selected term.",
   "class.bulkPdfNeedStudents": "Add pupils to this class before downloading a combined PDF.",
   "class.firstLastRequired": "First name and last name are required.",
-  "class.addPupilSearchHint":
-    "Type letters from a pupil’s name to search the school and import them from another class, or add a brand-new pupil below.",
-  "class.addPupilNew": "Add new pupil",
-  "class.importPupilMatchesTitle": "Matching pupils elsewhere",
-  "class.importPupilMatchIn": "Currently in: {classes}",
-  "class.importPupilUnassigned": "On the active list (not in a class yet)",
-  "class.importPupilButton": "Import to this class",
+  "class.importFromOtherClassTitle": "Import pupil from another class",
+  "class.importFromOtherClassHint":
+    "Move a pupil from another class into this one. Their reports come with them and they are removed from the previous class.",
+  "class.importFromOtherClassSearchLabel": "Search by name",
+  "class.importFromOtherClassSearchPlaceholder": "Type part of first or last name…",
+  "class.importFromOtherClassFilterLabel": "From class",
+  "class.importFromOtherClassFilterAll": "All classes",
+  "class.importFromOtherClassFrom": "Currently in: {className}",
+  "class.importFromOtherClassButton": "Import to this class",
+  "class.importFromOtherClassEmpty": "No pupils in other classes match your search.",
+  "class.importFromOtherClassConfirm":
+    "Import {who} from {from} into {to}? Their reports will move with them and they will leave {from}.",
   "class.duplicatePupilWarning":
     "Warning: this exact first and last name is already used in: {locations}. You can still add this pupil if appropriate.",
   "class.duplicatePupilThisClass": "this class",
@@ -2294,6 +2306,7 @@ const FR: UiMessages = {
   "class.confirmRemoveStudent":
     "Retirer {name} de cette classe ? L’élève reste sur la liste active ; les rapports de cette classe sont conservés.",
   "class.panelLocateFromActive": "Placer depuis Élèves actifs",
+  "class.panelImportFromOtherClass": "Importer d’une autre classe",
   "class.locateFromActiveTitle": "Placer un élève de la liste active",
   "class.locateFromActiveHint":
     "Ajoutez un élève de la liste active à cette classe sans le retirer de la liste.",
@@ -2332,6 +2345,25 @@ const FR: UiMessages = {
   "class.guide.locate2":
     "Choisissez l’élève, puis confirmez — il reste sur la liste active pour d’autres classes.",
   "class.guide.locate3": "Ajoutez d’abord de nouveaux élèves via Élèves actifs sur le tableau de bord.",
+  "class.guide.importFromOtherTitle": "Importer d’une autre classe",
+  "class.guide.importFromOther1":
+    "Déplacez un élève d’une autre classe vers celle-ci s’il change de groupe en cours d’année.",
+  "class.guide.importFromOther2":
+    "Ses rapports de l’année suivent ; il disparaît de la liste de l’ancienne classe.",
+  "class.guide.importFromOther3":
+    "Utilisez Placer depuis Élèves actifs si l’élève doit rester dans plusieurs classes.",
+  "class.importFromOtherClassTitle": "Importer un élève d’une autre classe",
+  "class.importFromOtherClassHint":
+    "Déplacez un élève d’une autre classe vers celle-ci. Ses rapports suivent et il est retiré de l’ancienne classe.",
+  "class.importFromOtherClassSearchLabel": "Rechercher par nom",
+  "class.importFromOtherClassSearchPlaceholder": "Saisissez une partie du prénom ou du nom…",
+  "class.importFromOtherClassFilterLabel": "Classe d’origine",
+  "class.importFromOtherClassFilterAll": "Toutes les classes",
+  "class.importFromOtherClassFrom": "Actuellement dans : {className}",
+  "class.importFromOtherClassButton": "Importer dans cette classe",
+  "class.importFromOtherClassEmpty": "Aucun élève dans d’autres classes ne correspond à votre recherche.",
+  "class.importFromOtherClassConfirm":
+    "Importer {who} de {from} vers {to} ? Ses rapports suivront et il quittera {from}.",
   "class.printRegisterNeedDays": "Choisissez d’abord les jours de cours dans les paramètres de la classe.",
   "class.printRegisterNeedStudents": "Ajoutez des élèves avant d’imprimer le registre.",
   "class.duplicatePupilWarning":
@@ -3006,6 +3038,7 @@ const ES: UiMessages = {
   "class.confirmRemoveStudent":
     "¿Quitar a {name} de esta clase? Permanece en la lista activa; los informes de esta clase se conservan.",
   "class.panelLocateFromActive": "Colocar desde Alumnos activos",
+  "class.panelImportFromOtherClass": "Importar de otra clase",
   "class.locateFromActiveTitle": "Colocar alumno de la lista activa",
   "class.locateFromActiveHint":
     "Coloque un alumno de la lista activa en esta clase sin quitarlo de la lista.",
@@ -3044,6 +3077,25 @@ const ES: UiMessages = {
   "class.guide.locate2":
     "Elija el alumno y confirme — sigue en la lista activa para otras clases.",
   "class.guide.locate3": "Añada primero alumnos nuevos en Alumnos activos del panel.",
+  "class.guide.importFromOtherTitle": "Importar de otra clase",
+  "class.guide.importFromOther1":
+    "Mueva un alumno de otra clase a esta cuando cambie de grupo a mitad de curso.",
+  "class.guide.importFromOther2":
+    "Sus informes del año viajan con él; desaparece de la lista de la clase anterior.",
+  "class.guide.importFromOther3":
+    "Use Colocar desde Alumnos activos si el alumno debe permanecer en más de una clase.",
+  "class.importFromOtherClassTitle": "Importar alumno de otra clase",
+  "class.importFromOtherClassHint":
+    "Mueva un alumno de otra clase a esta. Sus informes se trasladan y se le quita de la clase anterior.",
+  "class.importFromOtherClassSearchLabel": "Buscar por nombre",
+  "class.importFromOtherClassSearchPlaceholder": "Escriba parte del nombre o apellidos…",
+  "class.importFromOtherClassFilterLabel": "Clase de origen",
+  "class.importFromOtherClassFilterAll": "Todas las clases",
+  "class.importFromOtherClassFrom": "Actualmente en: {className}",
+  "class.importFromOtherClassButton": "Importar a esta clase",
+  "class.importFromOtherClassEmpty": "Ningún alumno de otras clases coincide con su búsqueda.",
+  "class.importFromOtherClassConfirm":
+    "¿Importar a {who} de {from} a {to}? Sus informes se moverán con él y dejará {from}.",
   "class.printRegisterNeedDays": "Elija primero los días de clase en Ajustes de la clase.",
   "class.printRegisterNeedStudents": "Añada alumnos antes de imprimir el registro.",
   "class.duplicatePupilWarning":
