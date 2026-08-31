@@ -82,6 +82,7 @@ type StudentGender = "male" | "female" | "non_binary" | null;
 
 type Student = {
   id: string;
+  school_student_id?: string;
   display_name: string;
   first_name: string | null;
   last_name: string | null;
@@ -89,6 +90,34 @@ type Student = {
   class_id: string;
   class_name: string;
 };
+
+type SchoolRosterRow = {
+  id: string;
+  display_name: string;
+  first_name: string;
+  last_name: string;
+  class_ids?: string[];
+  class_names?: string[];
+};
+
+type PupilImportCandidate = {
+  schoolStudentId: string;
+  displayName: string;
+  firstName: string;
+  lastName: string;
+  classNames: string[];
+};
+
+function normalizeSearchText(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function matchesLetterSearch(haystack: string, query: string): boolean {
+  const parts = normalizeSearchText(query).split(" ").filter(Boolean);
+  if (parts.length === 0) return false;
+  const hay = normalizeSearchText(haystack);
+  return parts.every((part) => hay.includes(part));
+}
 
 type Report = {
   id: string;
@@ -258,6 +287,8 @@ export function ClassWorkspace({
   const [newGender, setNewGender] = useState<"" | "male" | "female" | "non_binary">("");
   /** All pupils visible to this user in the organisation (any class), for duplicate-name warnings when adding. */
   const [orgStudents, setOrgStudents] = useState<Student[]>([]);
+  /** Active school roster (owners / dept heads) — includes pupils not yet in any class. */
+  const [schoolRoster, setSchoolRoster] = useState<SchoolRosterRow[]>([]);
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");
@@ -621,6 +652,27 @@ export function ClassWorkspace({
     void refreshOrgStudents();
   }, [refreshOrgStudents]);
 
+  useEffect(() => {
+    if (openClassPanel !== "students" || !canManageClassSettings) {
+      setSchoolRoster([]);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`${base}/school-students?status=active`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || cancelled) return;
+        setSchoolRoster(Array.isArray(data.students) ? (data.students as SchoolRosterRow[]) : []);
+      } catch {
+        if (!cancelled) setSchoolRoster([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [openClassPanel, canManageClassSettings, base]);
+
   const duplicateNameMatches = useMemo(() => {
     const fn = newFirst.trim();
     const ln = newLast.trim();
@@ -642,6 +694,78 @@ export function ClassWorkspace({
     const locations = [...new Set(labels)].join(", ");
     return t("class.duplicatePupilWarning", { locations });
   }, [duplicateNameMatches, classId, t]);
+
+  const importCandidates = useMemo((): PupilImportCandidate[] => {
+    if (!canManageClassSettings) return [];
+    const query = `${newFirst} ${newLast}`.trim();
+    if (normalizeSearchText(query).length < 2) return [];
+
+    const bySchoolId = new Map<
+      string,
+      PupilImportCandidate & { enrolledClassIds: Set<string> }
+    >();
+
+    const upsert = (opts: {
+      schoolStudentId: string;
+      displayName: string;
+      firstName: string;
+      lastName: string;
+      classNames: string[];
+      classIds: string[];
+    }) => {
+      const existing = bySchoolId.get(opts.schoolStudentId);
+      if (existing) {
+        for (const id of opts.classIds) existing.enrolledClassIds.add(id);
+        for (const name of opts.classNames) {
+          if (name && !existing.classNames.includes(name)) existing.classNames.push(name);
+        }
+        return;
+      }
+      bySchoolId.set(opts.schoolStudentId, {
+        schoolStudentId: opts.schoolStudentId,
+        displayName: opts.displayName,
+        firstName: opts.firstName,
+        lastName: opts.lastName,
+        classNames: [...opts.classNames],
+        enrolledClassIds: new Set(opts.classIds),
+      });
+    };
+
+    for (const s of orgStudents) {
+      const hay = [s.display_name, s.first_name, s.last_name].filter(Boolean).join(" ");
+      if (!matchesLetterSearch(hay, query)) continue;
+      const schoolStudentId = s.school_student_id?.trim() || s.id;
+      upsert({
+        schoolStudentId,
+        displayName: s.display_name,
+        firstName: (s.first_name ?? "").trim(),
+        lastName: (s.last_name ?? "").trim(),
+        classNames: s.class_name?.trim() ? [s.class_name.trim()] : [],
+        classIds: [s.class_id],
+      });
+    }
+
+    for (const row of schoolRoster) {
+      const hay = [row.display_name, row.first_name, row.last_name].filter(Boolean).join(" ");
+      if (!matchesLetterSearch(hay, query)) continue;
+      const classIds = Array.isArray(row.class_ids) ? row.class_ids : [];
+      const classNames = Array.isArray(row.class_names) ? row.class_names.filter(Boolean) : [];
+      upsert({
+        schoolStudentId: row.id,
+        displayName: row.display_name,
+        firstName: row.first_name.trim(),
+        lastName: row.last_name.trim(),
+        classNames,
+        classIds,
+      });
+    }
+
+    return [...bySchoolId.values()]
+      .filter((c) => c.firstName && c.lastName && !c.enrolledClassIds.has(classId))
+      .map(({ enrolledClassIds: _enrolledClassIds, ...candidate }) => candidate)
+      .sort((a, b) => a.displayName.localeCompare(b.displayName))
+      .slice(0, 12);
+  }, [canManageClassSettings, newFirst, newLast, orgStudents, schoolRoster, classId]);
 
   const assignedTeacherLabelInSettings = useMemo(() => {
     if (!detail?.assigned_teacher_email?.trim()) return null;
@@ -790,6 +914,34 @@ export function ClassWorkspace({
       setNewGender("");
       await refreshStudents();
       await refreshOrgStudents();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function importExistingPupil(candidate: PupilImportCandidate) {
+    setBusy("import");
+    try {
+      const res = await fetch(`${base}/students`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          class_id: classId,
+          first_name: candidate.firstName,
+          last_name: candidate.lastName,
+          school_student_id: candidate.schoolStudentId,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
+      setNewFirst("");
+      setNewLast("");
+      setNewGender("");
+      await refreshStudents();
+      await refreshOrgStudents();
+      router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
@@ -1532,6 +1684,9 @@ export function ClassWorkspace({
             </span>
           )}
         </div>
+        {canManageClassSettings ? (
+          <p className="mt-3 text-sm text-zinc-600">{t("class.addPupilSearchHint")}</p>
+        ) : null}
         <form onSubmit={addStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block min-w-0 text-sm">
             <span className="mb-1 block text-zinc-600">{t("class.firstName")}</span>
@@ -1570,9 +1725,41 @@ export function ClassWorkspace({
               disabled={busy !== null}
               className="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
             >
-              {t("class.addPupil")}
+              {t("class.addPupilNew")}
             </button>
           </div>
+          {canManageClassSettings && importCandidates.length > 0 ? (
+            <div className="sm:col-span-2 lg:col-span-4">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+                {t("class.importPupilMatchesTitle")}
+              </p>
+              <ul className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-emerald-100 bg-emerald-50/30 p-2">
+                {importCandidates.map((candidate) => (
+                  <li
+                    key={candidate.schoolStudentId}
+                    className="flex flex-col gap-2 rounded-lg border border-emerald-100 bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-zinc-900">{candidate.displayName}</p>
+                      <p className="text-xs text-zinc-600">
+                        {candidate.classNames.length > 0
+                          ? t("class.importPupilMatchIn", { classes: candidate.classNames.join(", ") })
+                          : t("class.importPupilUnassigned")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => void importExistingPupil(candidate)}
+                      className="shrink-0 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-100 disabled:opacity-50"
+                    >
+                      {t("class.importPupilButton")}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {duplicatePupilWarningText ? (
             <div
               role="status"
@@ -1583,17 +1770,24 @@ export function ClassWorkspace({
           ) : null}
         </form>
 
-        <ul className="mt-4 divide-y divide-emerald-100">
-          {students.map((s) => (
-            <li
-              key={s.id}
-              id={`class-student-row-${s.id}`}
-              className={`py-3 ${
-                initialFocusStudentId && s.id === initialFocusStudentId
-                  ? "scroll-mt-24 rounded-lg bg-emerald-50/80 px-2 ring-2 ring-emerald-400/50"
-                  : ""
-              }`}
-            >
+        {students.length === 0 ? (
+          <p className="mt-2 text-sm text-zinc-500">{t("class.noPupils")}</p>
+        ) : (
+          <div
+            className="mt-4 max-h-[min(70vh,42rem)] overflow-y-auto overscroll-y-contain rounded-xl border border-emerald-100"
+            aria-label={t("class.studentsTitle")}
+          >
+            <ul className="divide-y divide-emerald-100">
+              {students.map((s) => (
+                <li
+                  key={s.id}
+                  id={`class-student-row-${s.id}`}
+                  className={`px-2 py-3 ${
+                    initialFocusStudentId && s.id === initialFocusStudentId
+                      ? "scroll-mt-24 rounded-lg bg-emerald-50/80 ring-2 ring-emerald-400/50"
+                      : ""
+                  }`}
+                >
               {editingStudentId === s.id ? (
                 <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
                   <div className="grid gap-3 sm:grid-cols-3">
@@ -1711,10 +1905,11 @@ export function ClassWorkspace({
                   </div>
                 </div>
               )}
-            </li>
-          ))}
-        </ul>
-        {students.length === 0 ? <p className="mt-2 text-sm text-zinc-500">{t("class.noPupils")}</p> : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
       ) : null}
 

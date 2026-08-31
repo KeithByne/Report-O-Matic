@@ -1437,6 +1437,13 @@ const EN: UiMessages = {
   "class.bulkPdfNotFinishedTerm": "Every pupil needs a finished report for the selected term.",
   "class.bulkPdfNeedStudents": "Add pupils to this class before downloading a combined PDF.",
   "class.firstLastRequired": "First name and last name are required.",
+  "class.addPupilSearchHint":
+    "Type letters from a pupil’s name to search the school and import them from another class, or add a brand-new pupil below.",
+  "class.addPupilNew": "Add new pupil",
+  "class.importPupilMatchesTitle": "Matching pupils elsewhere",
+  "class.importPupilMatchIn": "Currently in: {classes}",
+  "class.importPupilUnassigned": "On the active list (not in a class yet)",
+  "class.importPupilButton": "Import to this class",
   "class.duplicatePupilWarning":
     "Warning: this exact first and last name is already used in: {locations}. You can still add this pupil if appropriate.",
   "class.duplicatePupilThisClass": "this class",
