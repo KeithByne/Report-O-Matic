@@ -6,7 +6,6 @@ import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant, getTenantName, listMembersForTenant } from "@/lib/data/memberships";
 import { getTimetableSettings, listTimetableSlots, type TimetableSettings } from "@/lib/data/timetableDb";
 import { schoolWeekdaysToSortedDayIndexes } from "@/lib/timetable/timetableSchoolWeekdays";
-import { TIMETABLE_OVERVIEW_ROOMS_PER_PAGE } from "@/lib/timetable/timetableOverviewRoomsPerPage";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { pdfExportResponse } from "@/lib/credits/exportPdf";
@@ -57,8 +56,12 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const uiLang: UiLang = isUiLang(langParam) ? langParam : "en";
   const inline = url.searchParams.get("inline") === "1";
   const modeParam = (url.searchParams.get("mode") || "").trim().toLowerCase();
-  const ownerMode = modeParam === "by_teacher" || modeParam === "by_room" || modeParam === "overview" ? modeParam : "overview";
+  const ownerMode =
+    modeParam === "by_teacher" || modeParam === "by_room" || modeParam === "by_class" || modeParam === "overview"
+      ? modeParam
+      : "overview";
   const roomFilterRaw = (url.searchParams.get("room_index") || "").trim();
+  const classFilterRaw = (url.searchParams.get("class_id") || "").trim();
 
   const settings = await getTimetableSettings(tenantId);
   if (!settings) return NextResponse.json({ error: "School not found." }, { status: 404 });
@@ -167,6 +170,54 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         );
         pdf = await mergePdfBuffers(perTeacher);
       }
+    } else if (printMode === "by_class") {
+      const classNameById = new Map(classRows.map((c) => [c.id, c.name.trim() || "—"]));
+      const classIdsWithSlots = [...new Set(slotsRaw.map((s) => s.class_id))].sort((a, b) =>
+        (classNameById.get(a) ?? a).localeCompare(classNameById.get(b) ?? b),
+      );
+      const classFilter = classFilterRaw && isUuid(classFilterRaw) ? classFilterRaw : null;
+      const targetClassIds =
+        classFilter === null ? classIdsWithSlots : classIdsWithSlots.filter((id) => id === classFilter);
+      if (classIdsWithSlots.length === 0) {
+        return NextResponse.json({ error: "No timetable entries for any class yet." }, { status: 409 });
+      }
+      if (targetClassIds.length === 0) {
+        return NextResponse.json({ error: "No timetable entries for that class." }, { status: 409 });
+      }
+      const perClass = await Promise.all(
+        targetClassIds.map((classId) => {
+          const classSlots = slotsRaw
+            .filter((s) => s.class_id === classId)
+            .map((s) => {
+              const assigned = assignedByClassId.get(s.class_id)?.trim().toLowerCase() ?? "";
+              const teacherEmail = assigned || s.teacher_email.trim().toLowerCase();
+              return {
+                day_of_week: s.day_of_week,
+                period_index: s.period_index,
+                room_index: s.room_index,
+                class_name: (s.class_name ?? "").trim() || "—",
+                class_size: classSizeById.get(s.class_id) ?? 0,
+                teacher_display: displayForEmail(members, teacherEmail),
+                teacher_email: teacherEmail,
+              };
+            });
+          const headline = classNameById.get(classId) ?? "—";
+          return buildTimetablePdfBuffer({
+            letterhead,
+            letterheadLogo,
+            titleKey: "pdf.timetableTitle",
+            periodsAm: settings.periods_am,
+            periodsPm: settings.periods_pm,
+            roomCount: 1,
+            slots: classSlots,
+            uiLang,
+            visibleDayIndexes: visibleDayIndexesForPdf(settings),
+            teacherSinglePage: true,
+            getPageHeadline: () => headline,
+          });
+        }),
+      );
+      pdf = await mergePdfBuffers(perClass);
     } else if (printMode === "by_room") {
       const activeRoomIndices = [...new Set(slots.map((s) => s.room_index).filter((n) => Number.isFinite(n) && n >= 0))].sort((a, b) => a - b);
       const roomFilter = roomFilterRaw === "" ? null : Math.max(0, Math.floor(Number(roomFilterRaw)));
@@ -215,7 +266,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         uiLang,
         visibleDayIndexes,
         teacherSinglePage: false,
-        roomsPerPage: TIMETABLE_OVERVIEW_ROOMS_PER_PAGE,
+        roomsPerPage: settings.overview_rooms_per_page,
         getPageHeadline: () => translate(uiLang, "timetable.printModeOverview"),
       });
     }

@@ -118,14 +118,28 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     return NextResponse.json({ error: "Only the account owner can change timetable room and period settings." }, { status: 403 });
   }
 
-  let body: { room_count?: unknown; periods_am?: unknown; periods_pm?: unknown; school_weekdays?: unknown };
+  let body: {
+    room_count?: unknown;
+    periods_am?: unknown;
+    periods_pm?: unknown;
+    school_weekdays?: unknown;
+    overview_rooms_per_page?: unknown;
+    display_density?: unknown;
+  };
   try {
     body = (await req.json()) as typeof body;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const patch: { room_count?: number; periods_am?: number; periods_pm?: number; school_weekdays?: WeekdayKey[] } = {};
+  const patch: {
+    room_count?: number;
+    periods_am?: number;
+    periods_pm?: number;
+    school_weekdays?: WeekdayKey[];
+    overview_rooms_per_page?: number;
+    display_density?: "comfortable" | "compact";
+  } = {};
   if (body.room_count !== undefined) {
     if (typeof body.room_count !== "number" || !Number.isFinite(body.room_count)) {
       return NextResponse.json({ error: "room_count must be a number." }, { status: 400 });
@@ -150,12 +164,26 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     }
     patch.school_weekdays = normalizeActiveWeekdays(body.school_weekdays);
   }
+  if (body.overview_rooms_per_page !== undefined) {
+    if (typeof body.overview_rooms_per_page !== "number" || !Number.isFinite(body.overview_rooms_per_page)) {
+      return NextResponse.json({ error: "overview_rooms_per_page must be a number." }, { status: 400 });
+    }
+    patch.overview_rooms_per_page = Math.floor(body.overview_rooms_per_page);
+  }
+  if (body.display_density !== undefined) {
+    if (body.display_density !== "comfortable" && body.display_density !== "compact") {
+      return NextResponse.json({ error: "display_density must be comfortable or compact." }, { status: 400 });
+    }
+    patch.display_density = body.display_density;
+  }
 
   if (
     patch.room_count === undefined &&
     patch.periods_am === undefined &&
     patch.periods_pm === undefined &&
-    patch.school_weekdays === undefined
+    patch.school_weekdays === undefined &&
+    patch.overview_rooms_per_page === undefined &&
+    patch.display_density === undefined
   ) {
     return NextResponse.json({ error: "No changes supplied." }, { status: 400 });
   }

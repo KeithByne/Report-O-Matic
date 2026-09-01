@@ -23,10 +23,21 @@ import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { WEEKDAY_KEYS, type WeekdayKey } from "@/lib/activeWeekdays";
 import { DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS, schoolWeekdaysToSortedDayIndexes } from "@/lib/timetable/timetableSchoolWeekdays";
-import { TIMETABLE_OVERVIEW_ROOMS_PER_PAGE } from "@/lib/timetable/timetableOverviewRoomsPerPage";
+import {
+  TIMETABLE_OVERVIEW_ROOMS_PER_PAGE_OPTIONS,
+  timetableGridRowHeights,
+  type TimetableDisplayDensity,
+} from "@/lib/timetable/timetableDisplay";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 
-type Settings = { room_count: number; periods_am: number; periods_pm: number; school_weekdays: WeekdayKey[] };
+type Settings = {
+  room_count: number;
+  periods_am: number;
+  periods_pm: number;
+  school_weekdays: WeekdayKey[];
+  overview_rooms_per_page: number;
+  display_density: TimetableDisplayDensity;
+};
 
 type SlotApi = {
   id: string;
@@ -61,7 +72,7 @@ type Props = {
   activePdfId?: string | null;
 };
 
-const ROOM_ROW_HEIGHT_PX = 56;
+type TimetableViewMode = "overview" | "by_teacher" | "by_room" | "by_class";
 
 export function TimetablePageClient({
   tenantId,
@@ -88,6 +99,8 @@ export function TimetablePageClient({
   const [ownerAm, setOwnerAm] = useState("");
   const [ownerPm, setOwnerPm] = useState("");
   const [ownerSchoolDays, setOwnerSchoolDays] = useState<Set<WeekdayKey>>(() => new Set(DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS));
+  const [ownerOverviewRoomsPerPage, setOwnerOverviewRoomsPerPage] = useState("5");
+  const [ownerDisplayDensity, setOwnerDisplayDensity] = useState<TimetableDisplayDensity>("comfortable");
 
   const [modal, setModal] = useState<{
     day: number;
@@ -100,8 +113,9 @@ export function TimetablePageClient({
   const [emptyCellMode, setEmptyCellMode] = useState<"existing" | "new">("existing");
   const [newClassName, setNewClassName] = useState("");
   const [newClassTeacher, setNewClassTeacher] = useState("");
-  const [viewMode, setViewMode] = useState<"overview" | "by_teacher" | "by_room">("overview");
+  const [viewMode, setViewMode] = useState<TimetableViewMode>("overview");
   const [selectedTeacherEmail, setSelectedTeacherEmail] = useState("");
+  const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
   const [overviewRoomPage, setOverviewRoomPage] = useState(0);
   const [formError, setFormError] = useState<string | null>(null);
@@ -122,6 +136,8 @@ export function TimetablePageClient({
       setOwnerAm(String(s.periods_am));
       setOwnerPm(String(s.periods_pm));
       setOwnerSchoolDays(new Set(s.school_weekdays?.length ? s.school_weekdays : DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS));
+      setOwnerOverviewRoomsPerPage(String(s.overview_rooms_per_page ?? 5));
+      setOwnerDisplayDensity(s.display_density ?? "comfortable");
       setSlots((data.slots as SlotApi[]) ?? []);
       setClasses((data.classes as ClassOpt[]) ?? []);
       setTeachers((data.teachers as TeacherOpt[]) ?? []);
@@ -167,6 +183,11 @@ export function TimetablePageClient({
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [slots, classById]);
 
+  const navigableClassIds = useMemo(
+    () => [...classes].sort((a, b) => a.name.localeCompare(b.name)).map((c) => c.id),
+    [classes],
+  );
+
   const effectiveViewMode = viewerRole === "teacher" ? "by_teacher" : viewMode;
   const filteredSlotsForView = useMemo(() => {
     if (effectiveViewMode === "by_teacher") {
@@ -176,11 +197,16 @@ export function TimetablePageClient({
       }
       return slots;
     }
+    if (effectiveViewMode === "by_class") {
+      const classId = selectedClassId.trim();
+      if (classId) return slots.filter((s) => s.class_id === classId);
+      return [];
+    }
     if (effectiveViewMode === "by_room") {
       return slots.filter((s) => s.room_index === selectedRoomIndex);
     }
     return slots;
-  }, [effectiveViewMode, selectedRoomIndex, selectedTeacherEmail, slots, viewerRole]);
+  }, [effectiveViewMode, selectedClassId, selectedRoomIndex, selectedTeacherEmail, slots, viewerRole]);
   const visibleDayIndexes = useMemo(() => {
     const weekdays =
       settings?.school_weekdays?.length ? settings.school_weekdays : DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS;
@@ -207,6 +233,17 @@ export function TimetablePageClient({
     return m;
   }, [effectiveViewMode, filteredSlotsForView]);
 
+  /** At most one lesson per day/period for a class. */
+  const classSlotByDayPeriod = useMemo(() => {
+    const m = new Map<string, SlotApi>();
+    if (effectiveViewMode !== "by_class") return m;
+    for (const s of filteredSlotsForView) {
+      const k = `${s.day_of_week}-${s.period_index}`;
+      if (!m.has(k)) m.set(k, s);
+    }
+    return m;
+  }, [effectiveViewMode, filteredSlotsForView]);
+
   function teacherEmailForDisplay(slot: SlotApi): string {
     const c = classById.get(slot.class_id);
     const fromClass = c?.assigned_teacher_email?.trim().toLowerCase() ?? "";
@@ -218,6 +255,10 @@ export function TimetablePageClient({
     const lab = teachers.find((x) => x.email === e)?.label?.trim();
     if (lab) return lab;
     return t("class.teacherNameNotSet");
+  }
+
+  function classLabelForId(classId: string): string {
+    return classById.get(classId)?.name?.trim() || "—";
   }
 
   function toggleOwnerSchoolDay(key: WeekdayKey) {
@@ -239,6 +280,7 @@ export function TimetablePageClient({
     const am = Number.parseInt(ownerAm, 10);
     const pm = Number.parseInt(ownerPm, 10);
     const school_weekdays = WEEKDAY_KEYS.filter((k) => ownerSchoolDays.has(k));
+    const overview_rooms_per_page = Number.parseInt(ownerOverviewRoomsPerPage, 10);
     if (school_weekdays.length === 0) {
       alert(t("dash.timetableSchoolDaysNeedOne"));
       return;
@@ -248,7 +290,14 @@ export function TimetablePageClient({
       const res = await fetch(`${base}/timetable`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ room_count: rc, periods_am: am, periods_pm: pm, school_weekdays }),
+        body: JSON.stringify({
+          room_count: rc,
+          periods_am: am,
+          periods_pm: pm,
+          school_weekdays,
+          overview_rooms_per_page,
+          display_density: ownerDisplayDensity,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
@@ -404,8 +453,11 @@ export function TimetablePageClient({
     if (effectiveViewMode === "by_room" && (viewerRole === "owner" || viewerRole === "department_head")) {
       params.set("room_index", String(selectedRoomIndex));
     }
+    if (effectiveViewMode === "by_class" && selectedClassId.trim()) {
+      params.set("class_id", selectedClassId.trim());
+    }
     return `${base}/timetable-pdf?${params.toString()}`;
-  }, [base, effectiveViewMode, lang, selectedRoomIndex, viewerRole]);
+  }, [base, effectiveViewMode, lang, selectedClassId, selectedRoomIndex, viewerRole]);
 
   const printTimetableTitle =
     viewerRole === "teacher" ? t("dash.myTimetablePrint") : t("dash.timetablePrint");
@@ -430,25 +482,37 @@ export function TimetablePageClient({
   }, [viewerRole, effectiveViewMode, navigableTeacherEmails, selectedTeacherEmail]);
 
   useEffect(() => {
+    if (viewerRole === "teacher") return;
+    if (effectiveViewMode !== "by_class") return;
+    if (navigableClassIds.length === 0) return;
+    const cur = selectedClassId.trim();
+    if (!cur || !navigableClassIds.includes(cur)) {
+      setSelectedClassId(navigableClassIds[0]!);
+    }
+  }, [viewerRole, effectiveViewMode, navigableClassIds, selectedClassId]);
+
+  useEffect(() => {
     if (settings && selectedRoomIndex >= settings.room_count) setSelectedRoomIndex(0);
   }, [selectedRoomIndex, settings]);
 
+  const overviewRoomsPerPage = settings?.overview_rooms_per_page ?? 5;
+
   useEffect(() => {
     if (!settings) return;
-    const pageCount = Math.max(1, Math.ceil(settings.room_count / TIMETABLE_OVERVIEW_ROOMS_PER_PAGE));
+    const pageCount = Math.max(1, Math.ceil(settings.room_count / overviewRoomsPerPage));
     if (overviewRoomPage >= pageCount) setOverviewRoomPage(pageCount - 1);
-  }, [overviewRoomPage, settings]);
+  }, [overviewRoomPage, overviewRoomsPerPage, settings]);
 
   useEffect(() => {
     if (effectiveViewMode !== "overview") setOverviewRoomPage(0);
   }, [effectiveViewMode]);
 
   const overviewRoomPageCount = settings
-    ? Math.max(1, Math.ceil(settings.room_count / TIMETABLE_OVERVIEW_ROOMS_PER_PAGE))
+    ? Math.max(1, Math.ceil(settings.room_count / overviewRoomsPerPage))
     : 1;
-  const overviewRoomStart = overviewRoomPage * TIMETABLE_OVERVIEW_ROOMS_PER_PAGE;
+  const overviewRoomStart = overviewRoomPage * overviewRoomsPerPage;
   const overviewRoomEnd = settings
-    ? Math.min(settings.room_count, overviewRoomStart + TIMETABLE_OVERVIEW_ROOMS_PER_PAGE)
+    ? Math.min(settings.room_count, overviewRoomStart + overviewRoomsPerPage)
     : 0;
   const visibleOverviewRoomIndices = useMemo(() => {
     if (!settings || effectiveViewMode !== "overview") return [];
@@ -458,6 +522,8 @@ export function TimetablePageClient({
   const canStepTeacher =
     viewerRole !== "teacher" && effectiveViewMode === "by_teacher" && navigableTeacherEmails.length > 1;
   const canStepRoom = viewerRole !== "teacher" && effectiveViewMode === "by_room" && (settings?.room_count ?? 0) > 1;
+  const canStepClass =
+    viewerRole !== "teacher" && effectiveViewMode === "by_class" && navigableClassIds.length > 1;
   const canStepOverviewRooms =
     viewerRole !== "teacher" && effectiveViewMode === "overview" && overviewRoomPageCount > 1;
 
@@ -481,6 +547,13 @@ export function TimetablePageClient({
     setOverviewRoomPage(next);
   }
 
+  function stepClass(dir: -1 | 1) {
+    if (!canStepClass) return;
+    const cur = Math.max(0, navigableClassIds.indexOf(selectedClassId.trim()));
+    const next = (cur + dir + navigableClassIds.length) % navigableClassIds.length;
+    setSelectedClassId(navigableClassIds[next] ?? selectedClassId);
+  }
+
   const stepNavLabel = useMemo(() => {
     if (!settings) return null;
     if (effectiveViewMode === "by_teacher" && selectedTeacherEmail.trim()) {
@@ -489,7 +562,10 @@ export function TimetablePageClient({
     if (effectiveViewMode === "by_room") {
       return t("pdf.timetablePageRoom", { n: selectedRoomIndex + 1 });
     }
-    if (effectiveViewMode === "overview" && settings.room_count > TIMETABLE_OVERVIEW_ROOMS_PER_PAGE) {
+    if (effectiveViewMode === "by_class" && selectedClassId.trim()) {
+      return classLabelForId(selectedClassId);
+    }
+    if (effectiveViewMode === "overview" && settings.room_count > overviewRoomsPerPage) {
       return t("timetable.overviewRoomsRange", {
         from: overviewRoomStart + 1,
         to: overviewRoomEnd,
@@ -501,6 +577,8 @@ export function TimetablePageClient({
     effectiveViewMode,
     overviewRoomEnd,
     overviewRoomStart,
+    overviewRoomsPerPage,
+    selectedClassId,
     selectedRoomIndex,
     selectedTeacherEmail,
     settings,
@@ -520,6 +598,21 @@ export function TimetablePageClient({
   }
 
   const gridCols = settings.periods_am + 1 + settings.periods_pm;
+  const gridRowHeights = timetableGridRowHeights(settings.display_density ?? "comfortable");
+
+  const viewModeSelect = (
+    <select
+      value={viewMode}
+      onChange={(e) => setViewMode(e.target.value as TimetableViewMode)}
+      className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
+      aria-label={t("timetable.viewModeLabel")}
+    >
+      <option value="overview">{t("timetable.printModeOverview")}</option>
+      <option value="by_class">{t("timetable.printModeByClass")}</option>
+      <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
+      <option value="by_room">{t("timetable.printModeByRoom")}</option>
+    </select>
+  );
 
   const classesCrossNavClass =
     "inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50";
@@ -553,18 +646,7 @@ export function TimetablePageClient({
             <Printer className={ICON_INLINE} aria-hidden />
             {printTimetableTitle}
           </button>
-          {viewerRole === "owner" || viewerRole === "department_head" ? (
-            <select
-              value={viewMode}
-              onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
-              className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
-              aria-label={t("timetable.viewModeLabel")}
-            >
-              <option value="overview">{t("timetable.printModeOverview")}</option>
-              <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
-              <option value="by_room">{t("timetable.printModeByRoom")}</option>
-            </select>
-          ) : null}
+          {viewerRole === "owner" || viewerRole === "department_head" ? viewModeSelect : null}
         </div>
       ) : (
         <div>
@@ -590,16 +672,24 @@ export function TimetablePageClient({
               <Printer className={ICON_INLINE} aria-hidden />
               {printTimetableTitle}
             </button>
-            {viewerRole === "owner" || viewerRole === "department_head" ? (
+            {viewerRole === "owner" || viewerRole === "department_head" ? viewModeSelect : null}
+            {viewerRole !== "teacher" && effectiveViewMode === "by_class" ? (
               <select
-                value={viewMode}
-                onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
+                value={navigableClassIds.includes(selectedClassId.trim()) ? selectedClassId : ""}
+                onChange={(e) => setSelectedClassId(e.target.value)}
                 className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm"
-                aria-label={t("timetable.viewModeLabel")}
+                aria-label={t("timetable.class")}
+                disabled={navigableClassIds.length === 0}
               >
-                <option value="overview">{t("timetable.printModeOverview")}</option>
-                <option value="by_teacher">{t("timetable.printModeByTeacher")}</option>
-                <option value="by_room">{t("timetable.printModeByRoom")}</option>
+                {navigableClassIds.length === 0 ? (
+                  <option value="">{t("timetable.noClassesYet")}</option>
+                ) : (
+                  navigableClassIds.map((classId) => (
+                    <option key={classId} value={classId}>
+                      {classLabelForId(classId)}
+                    </option>
+                  ))
+                )}
               </select>
             ) : null}
             {viewerRole !== "teacher" && effectiveViewMode === "by_teacher" ? (
@@ -688,6 +778,31 @@ export function TimetablePageClient({
                 ))}
               </select>
             </label>
+            <label className="block min-w-0 text-xs font-medium text-zinc-700">
+              <span className="mb-1 block">{t("timetable.overviewRoomsPerPageLabel")}</span>
+              <select
+                className="block rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                value={ownerOverviewRoomsPerPage}
+                onChange={(e) => setOwnerOverviewRoomsPerPage(e.target.value)}
+              >
+                {TIMETABLE_OVERVIEW_ROOMS_PER_PAGE_OPTIONS.map((n) => (
+                  <option key={n} value={String(n)}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block min-w-0 text-xs font-medium text-zinc-700">
+              <span className="mb-1 block">{t("timetable.displayDensityLabel")}</span>
+              <select
+                className="block rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                value={ownerDisplayDensity}
+                onChange={(e) => setOwnerDisplayDensity(e.target.value as TimetableDisplayDensity)}
+              >
+                <option value="comfortable">{t("timetable.displayDensityComfortable")}</option>
+                <option value="compact">{t("timetable.displayDensityCompact")}</option>
+              </select>
+            </label>
             <div className="min-w-[min(100%,28rem)] flex-1 basis-full sm:basis-auto">
               <span className="block text-xs font-medium text-zinc-700">{t("dash.timetableSchoolDaysLabel")}</span>
               <p className="mt-0.5 text-[11px] text-zinc-500">{t("dash.timetableSchoolDaysHint")}</p>
@@ -728,7 +843,7 @@ export function TimetablePageClient({
         <p className="text-sm text-amber-800">{t("timetable.noTeachers")}</p>
       ) : null}
 
-      {effectiveViewMode === "overview" && settings.room_count > TIMETABLE_OVERVIEW_ROOMS_PER_PAGE ? (
+      {effectiveViewMode === "overview" && settings.room_count > overviewRoomsPerPage ? (
         <p className="text-sm font-medium text-zinc-700">
           {t("timetable.overviewRoomsRange", {
             from: overviewRoomStart + 1,
@@ -781,35 +896,48 @@ export function TimetablePageClient({
                   if (isLunch) {
                     return (
                       <td key={`l-${d}-${gc}`} className="border-r border-zinc-100 bg-zinc-50/80 align-top">
-                        <div className="flex min-h-[120px] items-center justify-center text-zinc-400">—</div>
+                        <div
+                          className="flex items-center justify-center text-zinc-400"
+                          style={{ minHeight: `${gridRowHeights.lunchMinPx}px` }}
+                        >
+                          —
+                        </div>
                       </td>
                     );
                   }
                   const periodIndex = gc < settings.periods_am ? gc : gc - 1;
-                  if (effectiveViewMode === "by_teacher") {
-                    const slot = teacherSlotByDayPeriod.get(`${d}-${periodIndex}`);
+                  if (effectiveViewMode === "by_teacher" || effectiveViewMode === "by_class") {
+                    const slot =
+                      effectiveViewMode === "by_teacher"
+                        ? teacherSlotByDayPeriod.get(`${d}-${periodIndex}`)
+                        : classSlotByDayPeriod.get(`${d}-${periodIndex}`);
                     const emailForColor = slot ? teacherEmailForDisplay(slot) : "";
                     const bg = emailForColor ? teacherHexColor(emailForColor) : "#f8fafc";
                     return (
                       <td key={`c-${d}-${gc}`} className="border-r border-zinc-100 align-top p-0">
                         <div
-                          className="flex min-h-[120px] flex-col px-1.5 py-1.5 text-left"
-                          style={{ backgroundColor: bg }}
+                          className="flex flex-col px-1.5 py-1.5 text-left"
+                          style={{ backgroundColor: bg, minHeight: `${gridRowHeights.singleSlotMinPx}px` }}
                         >
                           {slot ? (
                             <>
                               <div className="text-[10px] font-semibold text-zinc-600">
                                 {t("pdf.timetableRoomN", { n: slot.room_index + 1 })}
                               </div>
-                              <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
-                                {`${(slot.class_name ?? "").trim() || "—"} (${classById.get(slot.class_id)?.student_count ?? 0})`}
-                              </div>
+                              {effectiveViewMode === "by_teacher" ? (
+                                <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
+                                  {`${(slot.class_name ?? "").trim() || "—"} (${classById.get(slot.class_id)?.student_count ?? 0})`}
+                                </div>
+                              ) : null}
                               <div className="mt-0.5 text-[10px] leading-tight text-zinc-700">
                                 {teacherLabelForEmail(teacherEmailForDisplay(slot))}
                               </div>
                             </>
                           ) : (
-                            <div className="flex min-h-[100px] items-center justify-center text-[11px] text-zinc-500">
+                            <div
+                              className="flex items-center justify-center text-[11px] text-zinc-500"
+                              style={{ minHeight: `${gridRowHeights.emptySlotMinPx}px` }}
+                            >
                               {t("timetable.emptyCell")}
                             </div>
                           )}
@@ -839,7 +967,7 @@ export function TimetablePageClient({
                               className={`border-b border-zinc-100 px-1.5 py-1.5 text-left last:border-b-0 ${
                                 interactive ? "cursor-pointer hover:brightness-95" : "cursor-default"
                               }`}
-                              style={{ backgroundColor: bg, height: `${ROOM_ROW_HEIGHT_PX}px` }}
+                              style={{ backgroundColor: bg, height: `${gridRowHeights.overviewRoomRowPx}px` }}
                             >
                               <div className="text-[10px] font-semibold text-zinc-600">
                                 {t("pdf.timetablePageRoom", { n: roomRowIndex + 1 })}
@@ -868,7 +996,7 @@ export function TimetablePageClient({
           </tbody>
         </table>
       </div>
-      {canStepTeacher || canStepRoom || canStepOverviewRooms ? (
+      {canStepTeacher || canStepRoom || canStepClass || canStepOverviewRooms ? (
         <div className="sticky bottom-3 z-20 flex justify-center">
           <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-xl border border-zinc-900 bg-zinc-950 px-3 py-2 text-white shadow-md dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950">
             <button
@@ -876,6 +1004,10 @@ export function TimetablePageClient({
               onClick={() => {
                 if (canStepTeacher) {
                   stepTeacher(-1);
+                  return;
+                }
+                if (canStepClass) {
+                  stepClass(-1);
                   return;
                 }
                 if (canStepRoom) {
@@ -900,6 +1032,10 @@ export function TimetablePageClient({
               onClick={() => {
                 if (canStepTeacher) {
                   stepTeacher(1);
+                  return;
+                }
+                if (canStepClass) {
+                  stepClass(1);
                   return;
                 }
                 if (canStepRoom) {

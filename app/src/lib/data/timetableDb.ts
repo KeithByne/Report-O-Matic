@@ -1,6 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeActiveWeekdays, type WeekdayKey } from "@/lib/activeWeekdays";
 import { schoolWeekdaysToSortedDayIndexes, timetableSchoolWeekdaysFromDb } from "@/lib/timetable/timetableSchoolWeekdays";
+import {
+  parseOverviewRoomsPerPage,
+  parseTimetableDisplayDensity,
+  type TimetableDisplayDensity,
+} from "@/lib/timetable/timetableDisplay";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
@@ -37,6 +42,18 @@ function delay(ms: number): Promise<void> {
 
 const LEGACY_WEEKDAYS: WeekdayKey[] = ["mon", "tue", "wed", "thu", "fri"];
 
+function tenantTimetableDisplayPrefsUnavailableError(e: unknown): boolean {
+  const msg = supabaseErrText(e).toLowerCase();
+  if (!msg.includes("timetable_overview_rooms_per_page") && !msg.includes("timetable_display_density")) return false;
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    msg.includes("could not find") ||
+    msg.includes("pgrst") ||
+    (msg.includes("unknown") && msg.includes("column"))
+  );
+}
+
 /** PostgREST: column missing in DB, or migration applied but schema cache not reloaded. */
 function tenantTimetableSchoolWeekdaysUnavailableError(e: unknown): boolean {
   const msg = supabaseErrText(e).toLowerCase();
@@ -59,6 +76,9 @@ export type TimetableSettings = {
   periods_pm: number;
   /** Mon=0 … Sun=6 row indices enabled for this school’s timetable. */
   school_weekdays: WeekdayKey[];
+  /** Room rows per overview screen page and overview PDF page. */
+  overview_rooms_per_page: number;
+  display_density: TimetableDisplayDensity;
 };
 
 export type TimetableSlotRow = {
@@ -73,7 +93,26 @@ export type TimetableSlotRow = {
   class_name: string | null;
 };
 
-const tenantTimetableSelect = "timetable_room_count, timetable_periods_am, timetable_periods_pm, timetable_school_weekdays";
+const tenantTimetableSelect =
+  "timetable_room_count, timetable_periods_am, timetable_periods_pm, timetable_school_weekdays, timetable_overview_rooms_per_page, timetable_display_density";
+
+function rowToTimetableSettings(row: {
+  timetable_room_count: number;
+  timetable_periods_am: number;
+  timetable_periods_pm: number;
+  timetable_school_weekdays?: unknown;
+  timetable_overview_rooms_per_page?: unknown;
+  timetable_display_density?: unknown;
+}): TimetableSettings {
+  return {
+    room_count: Number(row.timetable_room_count),
+    periods_am: Number(row.timetable_periods_am),
+    periods_pm: Number(row.timetable_periods_pm),
+    school_weekdays: timetableSchoolWeekdaysFromDb(row.timetable_school_weekdays),
+    overview_rooms_per_page: parseOverviewRoomsPerPage(row.timetable_overview_rooms_per_page),
+    display_density: parseTimetableDisplayDensity(row.timetable_display_density),
+  };
+}
 
 export async function getTimetableSettings(tenantId: string): Promise<TimetableSettings | null> {
   const supabase = getServiceSupabase();
@@ -90,7 +129,9 @@ export async function getTimetableSettings(tenantId: string): Promise<TimetableS
     data = retry.data;
     error = retry.error;
   }
-  if (error && !tenantTimetableSchoolWeekdaysUnavailableError(error)) throw new Error(formatErr(error));
+  if (error && !tenantTimetableSchoolWeekdaysUnavailableError(error) && !tenantTimetableDisplayPrefsUnavailableError(error)) {
+    throw new Error(formatErr(error));
+  }
   if (error && tenantTimetableSchoolWeekdaysUnavailableError(error)) {
     const { data: legacyData, error: legacyError } = await supabase
       .from("tenants")
@@ -109,26 +150,53 @@ export async function getTimetableSettings(tenantId: string): Promise<TimetableS
       periods_am: Number(legacyRow.timetable_periods_am),
       periods_pm: Number(legacyRow.timetable_periods_pm),
       school_weekdays: LEGACY_WEEKDAYS,
+      overview_rooms_per_page: parseOverviewRoomsPerPage(undefined),
+      display_density: parseTimetableDisplayDensity(undefined),
     };
   }
+  if (error && tenantTimetableDisplayPrefsUnavailableError(error)) {
+    const { data: legacyData, error: legacyError } = await supabase
+      .from("tenants")
+      .select("timetable_room_count, timetable_periods_am, timetable_periods_pm, timetable_school_weekdays")
+      .eq("id", tenantId)
+      .maybeSingle();
+    if (legacyError) throw new Error(formatErr(legacyError));
+    if (!legacyData) return null;
+    return rowToTimetableSettings({
+      ...(legacyData as {
+        timetable_room_count: number;
+        timetable_periods_am: number;
+        timetable_periods_pm: number;
+        timetable_school_weekdays?: unknown;
+      }),
+      timetable_overview_rooms_per_page: undefined,
+      timetable_display_density: undefined,
+    });
+  }
+  if (error) throw new Error(formatErr(error));
   if (!data) return null;
-  const row = data as {
-    timetable_room_count: number;
-    timetable_periods_am: number;
-    timetable_periods_pm: number;
-    timetable_school_weekdays?: unknown;
-  };
-  return {
-    room_count: Number(row.timetable_room_count),
-    periods_am: Number(row.timetable_periods_am),
-    periods_pm: Number(row.timetable_periods_pm),
-    school_weekdays: timetableSchoolWeekdaysFromDb(row.timetable_school_weekdays),
-  };
+  return rowToTimetableSettings(
+    data as {
+      timetable_room_count: number;
+      timetable_periods_am: number;
+      timetable_periods_pm: number;
+      timetable_school_weekdays?: unknown;
+      timetable_overview_rooms_per_page?: unknown;
+      timetable_display_density?: unknown;
+    },
+  );
 }
 
 export async function updateTimetableSettings(
   tenantId: string,
-  patch: { room_count?: number; periods_am?: number; periods_pm?: number; school_weekdays?: WeekdayKey[] },
+  patch: {
+    room_count?: number;
+    periods_am?: number;
+    periods_pm?: number;
+    school_weekdays?: WeekdayKey[];
+    overview_rooms_per_page?: number;
+    display_density?: TimetableDisplayDensity;
+  },
 ): Promise<TimetableSettings> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
@@ -141,6 +209,10 @@ export async function updateTimetableSettings(
   const periods_pm = patch.periods_pm ?? current.periods_pm;
   const school_weekdays =
     patch.school_weekdays !== undefined ? normalizeActiveWeekdays(patch.school_weekdays) : current.school_weekdays;
+  const overview_rooms_per_page = parseOverviewRoomsPerPage(
+    patch.overview_rooms_per_page ?? current.overview_rooms_per_page,
+  );
+  const display_density = patch.display_density ?? current.display_density;
 
   if (room_count < 1 || room_count > 50) throw new Error("Rooms must be between 1 and 50.");
   if (periods_am < 1 || periods_am > 6) throw new Error("Morning periods must be between 1 and 6.");
@@ -150,18 +222,32 @@ export async function updateTimetableSettings(
   const periodTotal = periods_am + periods_pm;
   const allowedSet = new Set(schoolWeekdaysToSortedDayIndexes(school_weekdays));
 
-  const timetableUpdate = () =>
-    supabase
-      .from("tenants")
-      .update({
-        timetable_room_count: room_count,
-        timetable_periods_am: periods_am,
-        timetable_periods_pm: periods_pm,
-        timetable_school_weekdays: school_weekdays,
-      })
-      .eq("id", tenantId);
+  const updateRow = {
+    timetable_room_count: room_count,
+    timetable_periods_am: periods_am,
+    timetable_periods_pm: periods_pm,
+    timetable_school_weekdays: school_weekdays,
+    timetable_overview_rooms_per_page: overview_rooms_per_page,
+    timetable_display_density: display_density,
+  };
+
+  const timetableUpdate = () => supabase.from("tenants").update(updateRow).eq("id", tenantId);
 
   let { error: upErr } = await timetableUpdate();
+  if (upErr && tenantTimetableDisplayPrefsUnavailableError(upErr)) {
+    const legacyUpdate = () =>
+      supabase
+        .from("tenants")
+        .update({
+          timetable_room_count: room_count,
+          timetable_periods_am: periods_am,
+          timetable_periods_pm: periods_pm,
+          timetable_school_weekdays: school_weekdays,
+        })
+        .eq("id", tenantId);
+    const legacy = await legacyUpdate();
+    upErr = legacy.error;
+  }
   if (upErr && tenantTimetableSchoolWeekdaysUnavailableError(upErr)) {
     await tryRequestPostgrestSchemaReload(supabase);
     await delay(POSTGREST_SCHEMA_RELOAD_DELAY_MS);
@@ -192,7 +278,7 @@ export async function updateTimetableSettings(
     if (d3) throw new Error(formatErr(d3));
   }
 
-  return { room_count, periods_am, periods_pm, school_weekdays };
+  return { room_count, periods_am, periods_pm, school_weekdays, overview_rooms_per_page, display_density };
 }
 
 function mapSlot(raw: Record<string, unknown>): TimetableSlotRow {
