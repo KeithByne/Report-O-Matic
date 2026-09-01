@@ -152,6 +152,8 @@ export const UI_FILL_ES: Record<string, string> = {
   "timetable.createNewClassHint":
     "La clase se crea con este aula, periodo y día. Puede completar el resto en la ficha de clase.",
   "timetable.noClassesYet": "Aún no hay clases — cree una abajo o en el panel Clases.",
+  "timetable.overviewRoomsRange": "Aulas {from}–{to} de {total}",
+  "timetable.overviewRoomsPage": "(página {page} de {total})",
   "saas.platformBadge": "Plataforma",
   "saas.ownerDashboardTitle": "Panel SaaS",
   "saas.schoolDetailsTitle": "Detalles del centro",
@@ -537,6 +539,8 @@ export const UI_FILL_FR: Record<string, string> = {
   "timetable.createNewClassHint":
     "La classe est créée avec cette salle, ce créneau et ce jour. Vous pourrez compléter les réglages sur la fiche classe.",
   "timetable.noClassesYet": "Aucune classe pour l’instant — créez-en une ci-dessous ou depuis le panneau Classes.",
+  "timetable.overviewRoomsRange": "Salles {from}–{to} sur {total}",
+  "timetable.overviewRoomsPage": "(page {page} sur {total})",
   "saas.platformBadge": "Plateforme",
   "saas.ownerDashboardTitle": "Tableau SaaS",
   "saas.schoolDetailsTitle": "Détails école",
@@ -882,6 +886,8 @@ export const UI_FILL_EL: Record<string, string> = {
   "timetable.createNewClassHint":
     "Η τάξη δημιουργείται με αυτή την αίθουσα, την περίοδο και την ημέρα. Τα υπόλοιπα μπορείτε να τα ορίσετε στη σελίδα τάξης.",
   "timetable.noClassesYet": "Δεν υπάρχουν ακόμα τάξεις — δημιουργήστε μία παρακάτω ή από το πάνελ Τάξεις.",
+  "timetable.overviewRoomsRange": "Αίθουσες {from}–{to} από {total}",
+  "timetable.overviewRoomsPage": "(σελίδα {page} από {total})",
   "saas.platformBadge": "Πλατφόρμα",
   "saas.ownerDashboardTitle": "Πίνακας SaaS",
   "saas.schoolDetailsTitle": "Λεπτομέρειες σχολείου",

@@ -23,6 +23,7 @@ import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { WEEKDAY_KEYS, type WeekdayKey } from "@/lib/activeWeekdays";
 import { DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS, schoolWeekdaysToSortedDayIndexes } from "@/lib/timetable/timetableSchoolWeekdays";
+import { TIMETABLE_OVERVIEW_ROOMS_PER_PAGE } from "@/lib/timetable/timetableOverviewRoomsPerPage";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 
 type Settings = { room_count: number; periods_am: number; periods_pm: number; school_weekdays: WeekdayKey[] };
@@ -102,6 +103,7 @@ export function TimetablePageClient({
   const [viewMode, setViewMode] = useState<"overview" | "by_teacher" | "by_room">("overview");
   const [selectedTeacherEmail, setSelectedTeacherEmail] = useState("");
   const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
+  const [overviewRoomPage, setOverviewRoomPage] = useState(0);
   const [formError, setFormError] = useState<string | null>(null);
 
   const canEditGrid = viewerRole === "owner" || viewerRole === "department_head";
@@ -431,9 +433,33 @@ export function TimetablePageClient({
     if (settings && selectedRoomIndex >= settings.room_count) setSelectedRoomIndex(0);
   }, [selectedRoomIndex, settings]);
 
+  useEffect(() => {
+    if (!settings) return;
+    const pageCount = Math.max(1, Math.ceil(settings.room_count / TIMETABLE_OVERVIEW_ROOMS_PER_PAGE));
+    if (overviewRoomPage >= pageCount) setOverviewRoomPage(pageCount - 1);
+  }, [overviewRoomPage, settings]);
+
+  useEffect(() => {
+    if (effectiveViewMode !== "overview") setOverviewRoomPage(0);
+  }, [effectiveViewMode]);
+
+  const overviewRoomPageCount = settings
+    ? Math.max(1, Math.ceil(settings.room_count / TIMETABLE_OVERVIEW_ROOMS_PER_PAGE))
+    : 1;
+  const overviewRoomStart = overviewRoomPage * TIMETABLE_OVERVIEW_ROOMS_PER_PAGE;
+  const overviewRoomEnd = settings
+    ? Math.min(settings.room_count, overviewRoomStart + TIMETABLE_OVERVIEW_ROOMS_PER_PAGE)
+    : 0;
+  const visibleOverviewRoomIndices = useMemo(() => {
+    if (!settings || effectiveViewMode !== "overview") return [];
+    return Array.from({ length: Math.max(0, overviewRoomEnd - overviewRoomStart) }, (_, i) => overviewRoomStart + i);
+  }, [effectiveViewMode, overviewRoomEnd, overviewRoomStart, settings]);
+
   const canStepTeacher =
     viewerRole !== "teacher" && effectiveViewMode === "by_teacher" && navigableTeacherEmails.length > 1;
   const canStepRoom = viewerRole !== "teacher" && effectiveViewMode === "by_room" && (settings?.room_count ?? 0) > 1;
+  const canStepOverviewRooms =
+    viewerRole !== "teacher" && effectiveViewMode === "overview" && overviewRoomPageCount > 1;
 
   function stepTeacher(dir: -1 | 1) {
     if (!canStepTeacher) return;
@@ -448,6 +474,38 @@ export function TimetablePageClient({
     const next = (selectedRoomIndex + dir + n) % n;
     setSelectedRoomIndex(next);
   }
+
+  function stepOverviewRoomPage(dir: -1 | 1) {
+    if (!canStepOverviewRooms) return;
+    const next = (overviewRoomPage + dir + overviewRoomPageCount) % overviewRoomPageCount;
+    setOverviewRoomPage(next);
+  }
+
+  const stepNavLabel = useMemo(() => {
+    if (!settings) return null;
+    if (effectiveViewMode === "by_teacher" && selectedTeacherEmail.trim()) {
+      return teacherLabelForEmail(selectedTeacherEmail);
+    }
+    if (effectiveViewMode === "by_room") {
+      return t("pdf.timetablePageRoom", { n: selectedRoomIndex + 1 });
+    }
+    if (effectiveViewMode === "overview" && settings.room_count > TIMETABLE_OVERVIEW_ROOMS_PER_PAGE) {
+      return t("timetable.overviewRoomsRange", {
+        from: overviewRoomStart + 1,
+        to: overviewRoomEnd,
+        total: settings.room_count,
+      });
+    }
+    return null;
+  }, [
+    effectiveViewMode,
+    overviewRoomEnd,
+    overviewRoomStart,
+    selectedRoomIndex,
+    selectedTeacherEmail,
+    settings,
+    t,
+  ]);
 
   if (loadError) {
     return (
@@ -670,6 +728,19 @@ export function TimetablePageClient({
         <p className="text-sm text-amber-800">{t("timetable.noTeachers")}</p>
       ) : null}
 
+      {effectiveViewMode === "overview" && settings.room_count > TIMETABLE_OVERVIEW_ROOMS_PER_PAGE ? (
+        <p className="text-sm font-medium text-zinc-700">
+          {t("timetable.overviewRoomsRange", {
+            from: overviewRoomStart + 1,
+            to: overviewRoomEnd,
+            total: settings.room_count,
+          })}
+          <span className="ml-2 font-normal text-zinc-500">
+            {t("timetable.overviewRoomsPage", { page: overviewRoomPage + 1, total: overviewRoomPageCount })}
+          </span>
+        </p>
+      ) : null}
+
       <div className="rom-timetable-grid overflow-x-auto rounded-xl border border-emerald-200 bg-white shadow-sm">
         <table className="min-w-[720px] border-collapse text-left text-xs">
           <thead>
@@ -749,15 +820,19 @@ export function TimetablePageClient({
                   return (
                     <td key={`c-${d}-${gc}`} className="border-r border-zinc-100 align-top p-0">
                       <div className="flex flex-col">
-                        {Array.from({ length: effectiveViewMode === "by_room" ? 1 : settings.room_count }, (_, r) => {
-                          const roomRowIndex = effectiveViewMode === "by_room" ? selectedRoomIndex : r;
+                        {(effectiveViewMode === "by_room"
+                          ? [selectedRoomIndex]
+                          : effectiveViewMode === "overview"
+                            ? visibleOverviewRoomIndices
+                            : Array.from({ length: settings.room_count }, (_, i) => i)
+                        ).map((roomRowIndex) => {
                           const slot = slotMapForView.get(`${d}-${periodIndex}-${roomRowIndex}`);
                           const emailForColor = slot ? teacherEmailForDisplay(slot) : "";
                           const bg = emailForColor ? teacherHexColor(emailForColor) : "#f8fafc";
                           const interactive = canEditGrid;
                           return (
                             <button
-                              key={r}
+                              key={roomRowIndex}
                               type="button"
                               disabled={!interactive}
                               onClick={() => openModal(d, periodIndex, roomRowIndex)}
@@ -793,9 +868,9 @@ export function TimetablePageClient({
           </tbody>
         </table>
       </div>
-      {canStepTeacher || canStepRoom ? (
+      {canStepTeacher || canStepRoom || canStepOverviewRooms ? (
         <div className="sticky bottom-3 z-20 flex justify-center">
-          <div className="inline-flex items-center gap-2 rounded-xl border border-zinc-900 bg-zinc-950 px-3 py-2 text-white shadow-md dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950">
+          <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-xl border border-zinc-900 bg-zinc-950 px-3 py-2 text-white shadow-md dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950">
             <button
               type="button"
               onClick={() => {
@@ -803,7 +878,11 @@ export function TimetablePageClient({
                   stepTeacher(-1);
                   return;
                 }
-                if (canStepRoom) stepRoom(-1);
+                if (canStepRoom) {
+                  stepRoom(-1);
+                  return;
+                }
+                if (canStepOverviewRooms) stepOverviewRoomPage(-1);
               }}
               className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
               aria-label={t("timetable.prevInstance")}
@@ -811,6 +890,11 @@ export function TimetablePageClient({
               <ChevronLeft className={ICON_INLINE} aria-hidden />
               {t("timetable.prevInstance")}
             </button>
+            {stepNavLabel ? (
+              <span className="max-w-[min(100vw-12rem,20rem)] truncate px-1 text-center text-sm font-medium text-emerald-100 dark:text-emerald-900">
+                {stepNavLabel}
+              </span>
+            ) : null}
             <button
               type="button"
               onClick={() => {
@@ -818,7 +902,11 @@ export function TimetablePageClient({
                   stepTeacher(1);
                   return;
                 }
-                if (canStepRoom) stepRoom(1);
+                if (canStepRoom) {
+                  stepRoom(1);
+                  return;
+                }
+                if (canStepOverviewRooms) stepOverviewRoomPage(1);
               }}
               className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
               aria-label={t("timetable.nextInstance")}

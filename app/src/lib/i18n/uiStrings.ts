@@ -847,6 +847,8 @@ const EN: UiMessages = {
   "timetable.createNewClassHint":
     "The class is created with this room, period, and weekday. You can finish other settings on the class page later.",
   "timetable.noClassesYet": "No classes yet — create one below or from the Classes panel.",
+  "timetable.overviewRoomsRange": "Rooms {from}–{to} of {total}",
+  "timetable.overviewRoomsPage": "(page {page} of {total})",
   "timetable.printModeLabel": "Print mode",
   "timetable.viewModeLabel": "View mode",
   "timetable.printModeOverview": "Overview",

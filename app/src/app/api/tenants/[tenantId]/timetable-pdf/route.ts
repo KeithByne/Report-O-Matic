@@ -6,6 +6,7 @@ import { getTenantPdfLetterhead } from "@/lib/data/tenantPdfLetterhead";
 import { getRoleForTenant, getTenantName, listMembersForTenant } from "@/lib/data/memberships";
 import { getTimetableSettings, listTimetableSlots, type TimetableSettings } from "@/lib/data/timetableDb";
 import { schoolWeekdaysToSortedDayIndexes } from "@/lib/timetable/timetableSchoolWeekdays";
+import { TIMETABLE_OVERVIEW_ROOMS_PER_PAGE } from "@/lib/timetable/timetableOverviewRoomsPerPage";
 import { isUiLang, translate, type UiLang } from "@/lib/i18n/uiStrings";
 import { buildLetterheadFromTenantSettings } from "@/lib/pdf/reportPdf";
 import { pdfExportResponse } from "@/lib/credits/exportPdf";
@@ -214,7 +215,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
         uiLang,
         visibleDayIndexes,
         teacherSinglePage: false,
-        roomsPerPage: 5,
+        roomsPerPage: TIMETABLE_OVERVIEW_ROOMS_PER_PAGE,
         getPageHeadline: () => translate(uiLang, "timetable.printModeOverview"),
       });
     }
