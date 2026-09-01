@@ -4,7 +4,7 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import { listClasses } from "@/lib/data/classesDb";
 import { listReportsForTenant } from "@/lib/data/reportsDb";
 import { listStudents } from "@/lib/data/students";
-import { reportTermReadyForClassesDashboard, type ReportPeriod } from "@/lib/reportInputs";
+import { reportTermReadyForClassesDashboard, isShortCourseReport, type ReportPeriod } from "@/lib/reportInputs";
 
 export const runtime = "nodejs";
 
@@ -52,6 +52,21 @@ export async function GET(_req: Request, context: { params: Promise<{ tenantId: 
     };
     if (sids.length === 0) {
       out.first = out.second = out.third = true;
+    } else if (klass.default_new_report_kind === "short_course") {
+      let ok = true;
+      for (const sid of sids) {
+        const rs = byStudent.get(sid) ?? [];
+        const has = rs.some(
+          (r) => isShortCourseReport(r.inputs) && reportTermReadyForClassesDashboard(r, "first"),
+        );
+        if (!has) {
+          ok = false;
+          break;
+        }
+      }
+      out.first = ok;
+      out.second = true;
+      out.third = true;
     } else {
       for (const period of PERIODS) {
         let ok = true;

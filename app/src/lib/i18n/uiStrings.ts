@@ -958,6 +958,8 @@ const EN: UiMessages = {
   "tenant.panelClasses": "Classes",
   "tenant.bulkDownloadAllReportsIn": "Bulk download all reports in",
   "tenant.termReadinessHint": "Term readiness: 1, 2, 3 — green when every pupil has a finished report for that term.",
+  "tenant.shortCourseReadinessHint":
+    "Short course report readiness — green when every pupil has a finished short course report.",
   "class.studentsHint":
     "Term selection, the 0–10 grade grid, and AI comments are on each pupil’s report page (not on this screen).",
   "class.bulkPdfWhichReports": "Bulk download includes",
@@ -1874,6 +1876,8 @@ const FR: UiMessages = {
   "tenant.bulkDownloadAllReportsIn": "Télécharger tous les rapports pour",
   "tenant.termReadinessHint":
     "État par trimestre : 1, 2, 3 — vert lorsque chaque élève a un rapport terminé pour ce trimestre.",
+  "tenant.shortCourseReadinessHint":
+    "Rapport cours court — vert lorsque chaque élève a un rapport de cours court terminé.",
   "class.studentsHint":
     "Choix du trimestre, grille 0–10 et commentaires IA sont sur la page rapport de chaque élève (pas ici).",
   "class.bulkPdfWhichReports": "Le PDF groupé inclut",
@@ -2609,6 +2613,8 @@ const ES: UiMessages = {
   "tenant.bulkDownloadAllReportsIn": "Descargar todos los informes de",
   "tenant.termReadinessHint":
     "Estado por trimestre: 1, 2, 3 — verde cuando cada alumno tiene un informe terminado para ese trimestre.",
+  "tenant.shortCourseReadinessHint":
+    "Informe de curso corto — verde cuando cada alumno tiene un informe de curso corto terminado.",
   "class.studentsHint":
     "Trimestre, cuadrícula 0–10 e IA están en el informe de cada alumno (no aquí).",
   "class.bulkPdfWhichReports": "La descarga incluye",

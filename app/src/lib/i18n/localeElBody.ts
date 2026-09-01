@@ -135,6 +135,10 @@ export const EL_BODY: Record<string, string> = {
   "tenant.panelDownloads": "Λήψεις",
   "tenant.panelClasses": "Τάξεις",
   "tenant.panelSubjects": "Μαθήματα",
+  "tenant.termReadinessHint":
+    "Ετοιμότητα τριμήνου: 1, 2, 3 — πράσινο όταν κάθε μαθητής έχει ολοκληρωμένη αναφορά για το τρίμηνο.",
+  "tenant.shortCourseReadinessHint":
+    "Αναφορά σύντομου κύκλου — πράσινο όταν κάθε μαθητής έχει ολοκληρωμένη αναφορά σύντομου κύκλου.",
   "tenant.subjectsTitle": "Μαθήματα",
   "class.studentsHint": "Επιλογή τριμήνου, πλέγμα 0–10 και ΣΥΝ στην αναφορά κάθε μαθητή (όχι εδώ).",
   "class.bulkPdfWhichReports": "Η μαζική λήψη περιλαμβάνει",

@@ -33,7 +33,12 @@ import { resolveDefaultSubjectInputToStorage } from "@/lib/subjectFormResolve";
 import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducationType";
 import { isSubjectCode, REPORT_SUBJECTS } from "@/lib/subjects";
 
-type ClassRow = { id: string; name: string; student_count: number };
+type ClassRow = {
+  id: string;
+  name: string;
+  student_count: number;
+  default_new_report_kind?: "standard" | "short_course";
+};
 
 type TermCompletion = { first: boolean; second: boolean; third: boolean };
 
@@ -50,9 +55,16 @@ export type TenantClassesPanelProps = {
   timetableHref?: string;
 };
 
-function TermReadiness({ terms }: { terms: TermCompletion | undefined }) {
+function TermReadiness({ terms, shortCourse }: { terms: TermCompletion | undefined; shortCourse?: boolean }) {
   const cls = (ok: boolean | undefined) =>
     ok === undefined ? "text-zinc-400" : ok ? "text-emerald-600" : "text-red-600";
+  if (shortCourse) {
+    return (
+      <span className="inline-flex items-center font-mono text-sm font-bold tabular-nums">
+        <span className={cls(terms?.first)}>1</span>
+      </span>
+    );
+  }
   return (
     <span className="inline-flex items-center font-mono text-sm font-bold tabular-nums">
       <span className={cls(terms?.first)}>1</span>
@@ -703,10 +715,21 @@ export function TenantClassesPanel({
                 <div className="flex flex-wrap items-center gap-2">
                   <span
                     className="inline-flex items-center"
-                    title={t("tenant.termReadinessHint")}
-                    aria-label={t("tenant.termReadinessHint")}
+                    title={
+                      c.default_new_report_kind === "short_course"
+                        ? t("tenant.shortCourseReadinessHint")
+                        : t("tenant.termReadinessHint")
+                    }
+                    aria-label={
+                      c.default_new_report_kind === "short_course"
+                        ? t("tenant.shortCourseReadinessHint")
+                        : t("tenant.termReadinessHint")
+                    }
                   >
-                    <TermReadiness terms={termByClass[c.id]} />
+                    <TermReadiness
+                      terms={termByClass[c.id]}
+                      shortCourse={c.default_new_report_kind === "short_course"}
+                    />
                   </span>
                   <Link
                     href={classOverviewHref}
