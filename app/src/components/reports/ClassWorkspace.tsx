@@ -5,6 +5,8 @@ import {
   ArrowLeft,
   ArrowLeftRight,
   ArrowRightToLine,
+  BookOpen,
+  CalendarDays,
   ClipboardList,
   FolderKanban,
   Printer,
@@ -38,7 +40,7 @@ import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducation
 import { resolveDefaultSubjectInputToStorage, subjectFieldDisplayValueFromStored } from "@/lib/subjectFormResolve";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { labelForLessonPeriodIndex } from "@/lib/timetable/lessonPeriodLabels";
-import { classesListHref } from "@/lib/app/classesNavigation";
+import { classesListHref, timetableHref } from "@/lib/app/classesNavigation";
 import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCard";
 import { ClassWorkspaceGuide } from "@/components/reports/ClassWorkspaceGuide";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
@@ -472,6 +474,7 @@ export function ClassWorkspace({
         const ttRes = await fetch(`${base}/timetable`, { cache: "no-store" });
         const ttData = await ttRes.json().catch(() => ({}));
         if (ttRes.ok) {
+          if (reqId !== loadClassRequestId.current) return;
           const settings = ttData.settings as
             | { room_count?: unknown; periods_am?: unknown; periods_pm?: unknown }
             | undefined;
@@ -507,6 +510,7 @@ export function ClassWorkspace({
       } catch {
         /* ignore timetable metadata load */
       }
+      if (reqId !== loadClassRequestId.current) return;
       setTimetablePeriodsAm(periodsAm);
       setTimetablePeriodsPm(periodsPm);
 
@@ -523,6 +527,10 @@ export function ClassWorkspace({
       setLoadError(e instanceof Error ? e.message : t("class.errLoadClass"));
     }
   }, [base, classId, t, uiLang, viewerRole]);
+
+  useEffect(() => {
+    if (openClassPanel === "settings") void loadClass();
+  }, [openClassPanel, loadClass]);
 
   useEffect(() => {
     const onClassSettingsSaved = (ev: Event) => {
@@ -719,34 +727,48 @@ export function ClassWorkspace({
     }
     setBusy("class-save");
     try {
+      const prevRoom =
+        typeof detail?.preferred_room_index === "number" && Number.isFinite(detail.preferred_room_index)
+          ? Math.floor(detail.preferred_room_index)
+          : null;
+      const nextRoom =
+        preferredRoomNumber.trim() === ""
+          ? null
+          : Math.max(0, Number.parseInt(preferredRoomNumber, 10) - 1);
+      const prevPeriod =
+        typeof detail?.preferred_lesson_period_index === "number" &&
+        Number.isFinite(detail.preferred_lesson_period_index)
+          ? Math.floor(detail.preferred_lesson_period_index)
+          : null;
+      const nextPeriod =
+        lessonPeriodSelect.trim() === ""
+          ? null
+          : (() => {
+              const n = Number.parseInt(lessonPeriodSelect, 10);
+              return Number.isFinite(n) ? Math.max(0, n) : null;
+            })();
+
+      const patchBody: Record<string, unknown> = {
+        name: cName.trim(),
+        scholastic_year: scholasticYear.trim() || null,
+        cefr_level: cefr.trim() || null,
+        default_subject: normalizedSubject,
+        default_output_language: defLang,
+        default_new_report_kind: defNewReportKind,
+        default_new_report_period: defNewReportPeriod,
+        active_weekdays: activeDays,
+        assigned_teacher_email: assignTeacher.trim() ? assignTeacher.trim().toLowerCase() : null,
+      };
+      if (!REPORT_SUBJECTS.some((s) => s.code === normalizedSubject.trim().toLowerCase())) {
+        patchBody.default_subject_rubric_profile = classGradeRubric;
+      }
+      if (nextRoom !== prevRoom) patchBody.preferred_room_index = nextRoom;
+      if (nextPeriod !== prevPeriod) patchBody.preferred_lesson_period_index = nextPeriod;
+
       const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          name: cName.trim(),
-          scholastic_year: scholasticYear.trim() || null,
-          cefr_level: cefr.trim() || null,
-          default_subject: normalizedSubject,
-          default_subject_rubric_profile: REPORT_SUBJECTS.some((s) => s.code === normalizedSubject.trim().toLowerCase())
-            ? undefined
-            : classGradeRubric,
-          default_output_language: defLang,
-          default_new_report_kind: defNewReportKind,
-          default_new_report_period: defNewReportPeriod,
-          active_weekdays: activeDays,
-          assigned_teacher_email: assignTeacher.trim() ? assignTeacher.trim().toLowerCase() : null,
-          preferred_room_index:
-            preferredRoomNumber.trim() === ""
-              ? null
-              : Math.max(0, Number.parseInt(preferredRoomNumber, 10) - 1),
-          preferred_lesson_period_index:
-            lessonPeriodSelect.trim() === ""
-              ? null
-              : (() => {
-                  const n = Number.parseInt(lessonPeriodSelect, 10);
-                  return Number.isFinite(n) ? Math.max(0, n) : null;
-                })(),
-        }),
+        body: JSON.stringify(patchBody),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -1185,7 +1207,23 @@ export function ClassWorkspace({
         id="class-workspace-panel-settings"
         className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
       >
-        <h3 className="text-sm font-semibold text-zinc-900">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Link
+            href={classesListHref(tenantId, viewerRole)}
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+          >
+            <BookOpen className={ICON_INLINE} aria-hidden />
+            {t("tenant.panelClasses")}
+          </Link>
+          <Link
+            href={timetableHref(tenantId, viewerRole)}
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50"
+          >
+            <CalendarDays className={ICON_INLINE} aria-hidden />
+            {t("tenant.panelTimetable")}
+          </Link>
+        </div>
+        <h3 className="mt-3 text-sm font-semibold text-zinc-900">
           <span className="mr-1" aria-hidden>
             🌐
           </span>
