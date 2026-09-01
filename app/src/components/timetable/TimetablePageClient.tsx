@@ -7,6 +7,7 @@ import {
   Building2,
   CalendarDays,
   PencilLine,
+  Plus,
   Printer,
   Save,
   Trash2,
@@ -95,6 +96,9 @@ export function TimetablePageClient({
   } | null>(null);
   const [formClassId, setFormClassId] = useState("");
   const [formTeacher, setFormTeacher] = useState("");
+  const [emptyCellMode, setEmptyCellMode] = useState<"existing" | "new">("existing");
+  const [newClassName, setNewClassName] = useState("");
+  const [newClassTeacher, setNewClassTeacher] = useState("");
   const [viewMode, setViewMode] = useState<"overview" | "by_teacher" | "by_room">("overview");
   const [selectedTeacherEmail, setSelectedTeacherEmail] = useState("");
   const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
@@ -263,7 +267,61 @@ export function TimetablePageClient({
     const slot = slotMap.get(key) ?? null;
     setFormClassId(slot?.class_id ?? "");
     setFormError(null);
+    setEmptyCellMode("existing");
+    setNewClassName("");
+    setNewClassTeacher("");
     setModal({ day, periodIndex, roomIndex, slot });
+  }
+
+  async function createClassAndAssign() {
+    if (!modal || modal.slot) return;
+    const name = newClassName.trim();
+    if (!name) {
+      setFormError(t("timetable.newClassNeedName"));
+      return;
+    }
+    const teacher = newClassTeacher.trim().toLowerCase();
+    if (!teacher) {
+      setFormError(t("timetable.newClassNeedTeacher"));
+      return;
+    }
+    const dayKey = WEEKDAY_KEYS[modal.day];
+    if (!dayKey) {
+      setFormError(t("common.failed"));
+      return;
+    }
+    setBusy(true);
+    setFormError(null);
+    try {
+      const createRes = await fetch(`${base}/classes`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name, assigned_teacher_email: teacher }),
+      });
+      const createData = await createRes.json().catch(() => ({}));
+      if (!createRes.ok) throw new Error((createData as { error?: string }).error || t("common.failed"));
+      const classId = (createData as { class?: { id?: string } }).class?.id;
+      if (!classId) throw new Error(t("common.failed"));
+
+      const patchRes = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          preferred_room_index: modal.roomIndex,
+          preferred_lesson_period_index: modal.periodIndex,
+          active_weekdays: [dayKey],
+        }),
+      });
+      const patchData = await patchRes.json().catch(() => ({}));
+      if (!patchRes.ok) throw new Error((patchData as { error?: string }).error || t("common.failed"));
+
+      setModal(null);
+      void refresh();
+    } catch (e: unknown) {
+      setFormError(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function saveModal() {
@@ -787,7 +845,83 @@ export function TimetablePageClient({
                 room: modal.roomIndex + 1,
               })}
             </p>
+            {!modal.slot ? (
+              <div
+                className="mt-4 flex flex-wrap gap-2"
+                role="group"
+                aria-label={t("timetable.emptyCellModeLabel")}
+              >
+                <button
+                  type="button"
+                  aria-pressed={emptyCellMode === "existing"}
+                  onClick={() => {
+                    setEmptyCellMode("existing");
+                    setFormError(null);
+                  }}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                    emptyCellMode === "existing"
+                      ? "border-emerald-600 bg-emerald-50 text-emerald-950"
+                      : "border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50"
+                  }`}
+                >
+                  <BookOpen className={ICON_INLINE} aria-hidden />
+                  {t("timetable.modeExisting")}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={emptyCellMode === "new"}
+                  onClick={() => {
+                    setEmptyCellMode("new");
+                    setFormError(null);
+                  }}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                    emptyCellMode === "new"
+                      ? "border-emerald-600 bg-emerald-50 text-emerald-950"
+                      : "border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50"
+                  }`}
+                >
+                  <Plus className={ICON_INLINE} aria-hidden />
+                  {t("timetable.modeNew")}
+                </button>
+              </div>
+            ) : null}
             <div className="mt-4 space-y-3">
+              {!modal.slot && emptyCellMode === "new" ? (
+                <>
+                  <label className="block min-w-0 text-xs font-medium text-zinc-700">
+                    <span className="mb-1 block">{t("timetable.newClassNameLabel")}</span>
+                    <input
+                      type="text"
+                      value={newClassName}
+                      onChange={(e) => setNewClassName(e.target.value)}
+                      maxLength={30}
+                      placeholder={t("tenant.newClassPlaceholder")}
+                      className="block w-full rounded border border-zinc-300 px-2 py-2 text-sm"
+                      autoComplete="off"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-xs font-medium text-zinc-700">
+                    <span className="mb-1 block">{t("timetable.pickTeacher")}</span>
+                    <select
+                      className="block w-full rounded border border-zinc-300 px-2 py-2 text-sm"
+                      value={newClassTeacher}
+                      onChange={(e) => setNewClassTeacher(e.target.value)}
+                    >
+                      <option value="">—</option>
+                      {teachers.map((te) => (
+                        <option key={te.email} value={te.email}>
+                          {te.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {teachers.length === 0 ? (
+                    <p className="text-xs text-amber-800">{t("timetable.noTeachers")}</p>
+                  ) : null}
+                  <p className="text-xs text-zinc-600">{t("timetable.createNewClassHint")}</p>
+                </>
+              ) : (
+                <>
               <label className="block min-w-0 text-xs font-medium text-zinc-700">
                 <span className="mb-1 block">{t("timetable.class")}</span>
                 <select
@@ -803,6 +937,9 @@ export function TimetablePageClient({
                   ))}
                 </select>
               </label>
+              {classes.length === 0 ? (
+                <p className="text-xs text-zinc-600">{t("timetable.noClassesYet")}</p>
+              ) : null}
               <p className="text-xs text-zinc-600">{t("timetable.teacherFromClassHint")}</p>
               {formClassId ? (
                 <p className="text-xs font-medium text-zinc-800">
@@ -826,9 +963,22 @@ export function TimetablePageClient({
                   </Link>
                 );
               })()}
+                </>
+              )}
             </div>
             {formError ? <p className="mt-3 text-sm text-red-700">{formError}</p> : null}
             <div className="mt-5 flex flex-wrap gap-2">
+              {!modal.slot && emptyCellMode === "new" ? (
+                <button
+                  type="button"
+                  disabled={busy || teachers.length === 0}
+                  onClick={() => void createClassAndAssign()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  <Plus className={ICON_INLINE} aria-hidden />
+                  {t("timetable.createClassAndAssign")}
+                </button>
+              ) : (
               <button
                 type="button"
                 disabled={busy}
@@ -838,6 +988,7 @@ export function TimetablePageClient({
                 <Save className={ICON_INLINE} aria-hidden />
                 {t("timetable.saveSlot")}
               </button>
+              )}
               {modal.slot ? (
                 <button
                   type="button"
