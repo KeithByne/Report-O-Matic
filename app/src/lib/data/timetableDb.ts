@@ -631,6 +631,83 @@ export async function listTimetableSlotsAt(
   return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
 }
 
+/** Remove every slot in this room for the given periods and days (full clear of those cells). */
+export async function deleteTimetableSlotsAtRoomPeriods(
+  tenantId: string,
+  roomIndex: number,
+  periodIndexes: number[],
+  dayIndices: number[],
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  if (dayIndices.length === 0 || periodIndexes.length === 0) return;
+  const periods = [...new Set(periodIndexes.map((p) => Math.floor(p)).filter((p) => Number.isFinite(p)))];
+  if (periods.length === 0) return;
+  const { error } = await supabase
+    .from("timetable_slots")
+    .delete()
+    .eq("tenant_id", tenantId)
+    .eq("room_index", roomIndex)
+    .in("period_index", periods)
+    .in("day_of_week", dayIndices);
+  if (error) throw new Error(formatErr(error));
+}
+
+/**
+ * Period indexes occupied by this lesson on its day/room: full lesson_block when present,
+ * otherwise consecutive same-class rows (covers blocks created before lesson_block_id existed).
+ */
+export async function resolveLessonPeriodIndexesForClear(slot: TimetableSlotRow): Promise<number[]> {
+  const periods = new Set<number>([slot.period_index]);
+
+  if (slot.lesson_block_id) {
+    const blockRows = await listTimetableSlotsInBlock(slot.tenant_id, slot.lesson_block_id);
+    for (const r of blockRows) {
+      if (r.room_index === slot.room_index && r.day_of_week === slot.day_of_week) {
+        periods.add(r.period_index);
+      }
+    }
+  }
+
+  // Also sweep same day/room/class for consecutive periods (orphans without shared block id).
+  const supabase = getServiceSupabase();
+  if (supabase) {
+    let { data, error } = await supabase
+      .from("timetable_slots")
+      .select(slotSelect)
+      .eq("tenant_id", slot.tenant_id)
+      .eq("class_id", slot.class_id)
+      .eq("room_index", slot.room_index)
+      .eq("day_of_week", slot.day_of_week)
+      .order("period_index", { ascending: true });
+    if (error && lessonBlockColumnUnavailableError(error)) {
+      const legacy = await supabase
+        .from("timetable_slots")
+        .select(slotSelectLegacy)
+        .eq("tenant_id", slot.tenant_id)
+        .eq("class_id", slot.class_id)
+        .eq("room_index", slot.room_index)
+        .eq("day_of_week", slot.day_of_week)
+        .order("period_index", { ascending: true });
+      data = legacy.data as typeof data;
+      error = legacy.error;
+    }
+    if (!error && data) {
+      const sameClass = (data as Record<string, unknown>[]).map((row) => mapSlot(row));
+      const indexes = sameClass.map((s) => s.period_index).sort((a, b) => a - b);
+      // Expand from the clicked period through contiguous neighbors.
+      let lo = slot.period_index;
+      let hi = slot.period_index;
+      const occupied = new Set(indexes);
+      while (occupied.has(lo - 1)) lo -= 1;
+      while (occupied.has(hi + 1)) hi += 1;
+      for (let p = lo; p <= hi; p += 1) periods.add(p);
+    }
+  }
+
+  return [...periods].sort((a, b) => a - b);
+}
+
 /** Remove slots matching class + period + room on the given days (mirror delete). */
 export async function deleteTimetableSlotsMirrorKeys(
   tenantId: string,

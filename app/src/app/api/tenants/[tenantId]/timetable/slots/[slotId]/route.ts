@@ -3,13 +3,15 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant, listMembersForTenant } from "@/lib/data/memberships";
 import {
+  deleteTimetableLessonBlock,
+  deleteTimetableSlotsAtRoomPeriods,
   deleteTimetableSlotsMirrorKeys,
   getTimetableSettings,
   getTimetableSlot,
   insertTimetableSlot,
   isTimetableConflictError,
   listTimetableSlotsAt,
-  listTimetableSlotsInBlock,
+  resolveLessonPeriodIndexesForClear,
 } from "@/lib/data/timetableDb";
 import { timetableMirrorDayIndices } from "@/lib/timetable/timetableMirrorDays";
 import { allowedTimetableDayIndexSet, timetableMirrorDaysFilteredForSchool } from "@/lib/timetable/timetableSchoolWeekdays";
@@ -222,22 +224,29 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
     const existing = await getTimetableSlot(slotId, tenantId);
     if (!existing) return NextResponse.json({ error: "Slot not found." }, { status: 404 });
 
-    let periodIndexes = [existing.period_index];
-    if (existing.lesson_block_id) {
-      const blockRows = await listTimetableSlotsInBlock(tenantId, existing.lesson_block_id);
-      if (blockRows.length > 0) {
-        periodIndexes = [...new Set(blockRows.map((r) => r.period_index))].sort((a, b) => a - b);
-      }
-    }
+    const periodIndexes = await resolveLessonPeriodIndexesForClear(existing);
 
     const klass = await getClassInTenant(tenantId, existing.class_id);
     const days = klass
       ? timetableMirrorDayIndices(klass, existing.day_of_week)
       : [existing.day_of_week];
-    for (const p of periodIndexes) {
-      await deleteTimetableSlotsMirrorKeys(tenantId, existing.class_id, p, existing.room_index, days);
+
+    // Always include the day that was clicked, even if class active days changed.
+    const daySet = new Set(days);
+    daySet.add(existing.day_of_week);
+    const clearDays = [...daySet].sort((a, b) => a - b);
+
+    // Wipe the room cells for every period this lesson covered (not filtered by class_id),
+    // so orphaned multi-period siblings cannot leave the room "occupied".
+    await deleteTimetableSlotsAtRoomPeriods(tenantId, existing.room_index, periodIndexes, clearDays);
+
+    // Also remove any remaining rows for this lesson block id (other rooms should not happen,
+    // but finishes cleanup if block rows drifted).
+    if (existing.lesson_block_id) {
+      await deleteTimetableLessonBlock(tenantId, existing.lesson_block_id);
     }
-    return NextResponse.json({ ok: true });
+
+    return NextResponse.json({ ok: true, cleared_periods: periodIndexes, cleared_days: clearDays });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to delete.";
     return NextResponse.json({ error: msg }, { status: 500 });
