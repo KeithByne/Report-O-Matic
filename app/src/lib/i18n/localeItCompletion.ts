@@ -471,6 +471,9 @@ export const IT_COMPLETION: Record<string, string> = {
   "timetable.cancel": "Annulla",
   "timetable.class": "Classe",
   "timetable.clearSlot": "Cancella tutti gli slot",
+  "timetable.forceClearCell": "Libera questa aula/periodo",
+  "timetable.forceClearCellHint":
+    "Rimuove eventuali prenotazioni residue in questa aula per questo periodo nei giorni scolastici (anche se la cella sembra vuota ma blocca ancora).",
   "timetable.dayColumn": "Giorno",
   "timetable.editCell": "Lezione in questo slot",
   "timetable.emptyCell": "Vuoto",

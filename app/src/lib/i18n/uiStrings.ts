@@ -824,6 +824,9 @@ const EN: UiMessages = {
   "timetable.teacher": "Teacher",
   "timetable.roomRow": "Room row",
   "timetable.clearSlot": "Clear slot",
+  "timetable.forceClearCell": "Free this room/period",
+  "timetable.forceClearCellHint":
+    "Removes any leftover booking in this room for this period across school days (including ones that still block placement while the cell looks empty).",
   "timetable.saveSlot": "Save",
   "timetable.goToClass": "Go to class",
   "timetable.cancel": "Cancel",

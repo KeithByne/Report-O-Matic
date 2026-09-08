@@ -131,6 +131,9 @@ export const UI_FILL_ES: Record<string, string> = {
   "timetable.teacher": "Profesor",
   "timetable.roomRow": "Fila de aula",
   "timetable.clearSlot": "Vaciar hueco",
+  "timetable.forceClearCell": "Liberar esta aula/periodo",
+  "timetable.forceClearCellHint":
+    "Elimina cualquier reserva restante en esta aula para este periodo en los días lectivos (incluso si la celda parece vacía pero sigue bloqueando).",
   "timetable.saveSlot": "Guardar",
   "timetable.goToClass": "Ir a la clase",
   "timetable.cancel": "Cancelar",
@@ -530,6 +533,9 @@ export const UI_FILL_FR: Record<string, string> = {
   "timetable.teacher": "Enseignant",
   "timetable.roomRow": "Rangée salle",
   "timetable.clearSlot": "Vider le créneau",
+  "timetable.forceClearCell": "Libérer cette salle/période",
+  "timetable.forceClearCellHint":
+    "Supprime toute réservation restante dans cette salle pour cette période sur les jours scolaires (y compris si la case paraît vide mais bloque encore).",
   "timetable.saveSlot": "Enregistrer",
   "timetable.goToClass": "Aller à la classe",
   "timetable.cancel": "Annuler",
@@ -889,6 +895,9 @@ export const UI_FILL_EL: Record<string, string> = {
   "timetable.teacher": "Εκπαιδευτικός",
   "timetable.roomRow": "Σειρά αίθουσας",
   "timetable.clearSlot": "Καθαρισμός θέσης",
+  "timetable.forceClearCell": "Ελευθέρωση αίθουσας/περιόδου",
+  "timetable.forceClearCellHint":
+    "Αφαιρεί τυχόν υπόλοιπη κράτηση σε αυτή την αίθουσα για αυτή την περίοδο σε όλες τις σχολικές ημέρες (ακόμα κι αν το κελί φαίνεται άδειο).",
   "timetable.saveSlot": "Αποθήκευση",
   "timetable.goToClass": "Μετάβαση στην τάξη",
   "timetable.cancel": "Ακύρωση",

@@ -1,20 +1,26 @@
 import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
-import { getClassInTenant } from "@/lib/data/classesDb";
+import { getClassInTenant, updateClass } from "@/lib/data/classesDb";
 import { getRoleForTenant, listMembersForTenant } from "@/lib/data/memberships";
 import {
   deleteTimetableLessonBlock,
   deleteTimetableSlotsAtRoomPeriods,
+  deleteTimetableSlotsForClassAtPeriods,
   deleteTimetableSlotsMirrorKeys,
   getTimetableSettings,
   getTimetableSlot,
   insertTimetableSlot,
   isTimetableConflictError,
   listTimetableSlotsAt,
+  listTimetableSlotsForClassIds,
   resolveLessonPeriodIndexesForClear,
 } from "@/lib/data/timetableDb";
 import { timetableMirrorDayIndices } from "@/lib/timetable/timetableMirrorDays";
-import { allowedTimetableDayIndexSet, timetableMirrorDaysFilteredForSchool } from "@/lib/timetable/timetableSchoolWeekdays";
+import {
+  allowedTimetableDayIndexSet,
+  schoolWeekdaysToSortedDayIndexes,
+  timetableMirrorDaysFilteredForSchool,
+} from "@/lib/timetable/timetableSchoolWeekdays";
 
 export const runtime = "nodejs";
 
@@ -225,25 +231,44 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
     if (!existing) return NextResponse.json({ error: "Slot not found." }, { status: 404 });
 
     const periodIndexes = await resolveLessonPeriodIndexesForClear(existing);
+    const settings = await getTimetableSettings(tenantId);
+    const schoolDays = settings
+      ? schoolWeekdaysToSortedDayIndexes(settings.school_weekdays)
+      : [0, 1, 2, 3, 4];
 
     const klass = await getClassInTenant(tenantId, existing.class_id);
     const days = klass
       ? timetableMirrorDayIndices(klass, existing.day_of_week)
       : [existing.day_of_week];
 
-    // Always include the day that was clicked, even if class active days changed.
-    const daySet = new Set(days);
-    daySet.add(existing.day_of_week);
+    // Always include the day that was clicked, class mirror days, and all school days for this room/period
+    // so leftovers on other weekdays cannot block re-allocation while the cell looks empty.
+    const daySet = new Set<number>([...days, existing.day_of_week, ...schoolDays]);
     const clearDays = [...daySet].sort((a, b) => a - b);
 
     // Wipe the room cells for every period this lesson covered (not filtered by class_id),
     // so orphaned multi-period siblings cannot leave the room "occupied".
     await deleteTimetableSlotsAtRoomPeriods(tenantId, existing.room_index, periodIndexes, clearDays);
 
+    // Also remove this class from those periods on clear days (any room) — finishes a move leftovers.
+    await deleteTimetableSlotsForClassAtPeriods(tenantId, existing.class_id, periodIndexes, clearDays);
+
     // Also remove any remaining rows for this lesson block id (other rooms should not happen,
     // but finishes cleanup if block rows drifted).
     if (existing.lesson_block_id) {
       await deleteTimetableLessonBlock(tenantId, existing.lesson_block_id);
+    }
+
+    const remaining = await listTimetableSlotsForClassIds(tenantId, [existing.class_id]);
+    if (remaining.length === 0) {
+      try {
+        await updateClass(tenantId, existing.class_id, {
+          preferred_room_index: null,
+          preferred_lesson_period_index: null,
+        });
+      } catch {
+        /* optional */
+      }
     }
 
     return NextResponse.json({ ok: true, cleared_periods: periodIndexes, cleared_days: clearDays });

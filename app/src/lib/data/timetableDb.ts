@@ -631,6 +631,40 @@ export async function listTimetableSlotsAt(
   return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
 }
 
+/** List every slot in this room for the given periods and days. */
+export async function listTimetableSlotsAtRoomPeriods(
+  tenantId: string,
+  roomIndex: number,
+  periodIndexes: number[],
+  dayIndices: number[],
+): Promise<TimetableSlotRow[]> {
+  if (dayIndices.length === 0 || periodIndexes.length === 0) return [];
+  const periods = [...new Set(periodIndexes.map((p) => Math.floor(p)).filter((p) => Number.isFinite(p)))];
+  if (periods.length === 0) return [];
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+  let { data, error } = await supabase
+    .from("timetable_slots")
+    .select(slotSelect)
+    .eq("tenant_id", tenantId)
+    .eq("room_index", roomIndex)
+    .in("period_index", periods)
+    .in("day_of_week", dayIndices);
+  if (error && lessonBlockColumnUnavailableError(error)) {
+    const legacy = await supabase
+      .from("timetable_slots")
+      .select(slotSelectLegacy)
+      .eq("tenant_id", tenantId)
+      .eq("room_index", roomIndex)
+      .in("period_index", periods)
+      .in("day_of_week", dayIndices);
+    data = legacy.data as typeof data;
+    error = legacy.error;
+  }
+  if (error) throw new Error(formatErr(error));
+  return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
+}
+
 /** Remove every slot in this room for the given periods and days (full clear of those cells). */
 export async function deleteTimetableSlotsAtRoomPeriods(
   tenantId: string,
@@ -651,6 +685,63 @@ export async function deleteTimetableSlotsAtRoomPeriods(
     .in("period_index", periods)
     .in("day_of_week", dayIndices);
   if (error) throw new Error(formatErr(error));
+}
+
+/** Remove this class from the given periods on the given days (any room — used when moving a lesson). */
+export async function deleteTimetableSlotsForClassAtPeriods(
+  tenantId: string,
+  classId: string,
+  periodIndexes: number[],
+  dayIndices: number[],
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  if (dayIndices.length === 0 || periodIndexes.length === 0) return;
+  const periods = [...new Set(periodIndexes.map((p) => Math.floor(p)).filter((p) => Number.isFinite(p)))];
+  if (periods.length === 0) return;
+  const { error } = await supabase
+    .from("timetable_slots")
+    .delete()
+    .eq("tenant_id", tenantId)
+    .eq("class_id", classId)
+    .in("period_index", periods)
+    .in("day_of_week", dayIndices);
+  if (error) throw new Error(formatErr(error));
+}
+
+/** Slots for one teacher in the given periods/days (any room). */
+export async function listTimetableSlotsForTeacherAtPeriods(
+  tenantId: string,
+  teacherEmail: string,
+  periodIndexes: number[],
+  dayIndices: number[],
+): Promise<TimetableSlotRow[]> {
+  const email = teacherEmail.trim().toLowerCase();
+  if (!email || dayIndices.length === 0 || periodIndexes.length === 0) return [];
+  const periods = [...new Set(periodIndexes.map((p) => Math.floor(p)).filter((p) => Number.isFinite(p)))];
+  if (periods.length === 0) return [];
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+  let { data, error } = await supabase
+    .from("timetable_slots")
+    .select(slotSelect)
+    .eq("tenant_id", tenantId)
+    .eq("teacher_email", email)
+    .in("period_index", periods)
+    .in("day_of_week", dayIndices);
+  if (error && lessonBlockColumnUnavailableError(error)) {
+    const legacy = await supabase
+      .from("timetable_slots")
+      .select(slotSelectLegacy)
+      .eq("tenant_id", tenantId)
+      .eq("teacher_email", email)
+      .in("period_index", periods)
+      .in("day_of_week", dayIndices);
+    data = legacy.data as typeof data;
+    error = legacy.error;
+  }
+  if (error) throw new Error(formatErr(error));
+  return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
 }
 
 /**

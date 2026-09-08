@@ -518,6 +518,36 @@ export function TimetablePageClient({
     }
   }
 
+  async function forceClearEmptyCell() {
+    if (!modal || modal.slot || !settings) return;
+    setBusy(true);
+    setFormError(null);
+    try {
+      const span = Math.min(
+        formPeriodSpan,
+        maxPeriodSpanFrom(modal.periodIndex, settings.periods_am, settings.periods_pm),
+      );
+      const res = await fetch(`${base}/timetable/slots`, {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          day_of_week: modal.day,
+          period_index: modal.periodIndex,
+          room_index: modal.roomIndex,
+          period_span: span,
+          all_school_days: true,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
+      void refresh();
+    } catch (e: unknown) {
+      setFormError(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const pdfHref = useMemo(() => {
     const params = new URLSearchParams();
     params.set("lang", lang);
@@ -1350,7 +1380,18 @@ export function TimetablePageClient({
                   <Trash2 className={ICON_INLINE} aria-hidden />
                   {t("timetable.clearSlot")}
                 </button>
-              ) : null}
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy}
+                  title={t("timetable.forceClearCellHint")}
+                  onClick={() => void forceClearEmptyCell()}
+                  className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-50"
+                >
+                  <Trash2 className={ICON_INLINE} aria-hidden />
+                  {t("timetable.forceClearCell")}
+                </button>
+              )}
               <button
                 type="button"
                 disabled={busy}

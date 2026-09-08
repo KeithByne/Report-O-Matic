@@ -2,6 +2,7 @@ import type { ClassRow } from "@/lib/data/classesDb";
 import { listMembersForTenant } from "@/lib/data/memberships";
 import {
   deleteTimetableSlot,
+  deleteTimetableSlotsAtRoomPeriods,
   deleteTimetableSlotsForClass,
   getTimetableSettings,
   insertTimetableSlot,
@@ -46,6 +47,8 @@ export async function syncClassPresetToTimetableSlots(tenantId: string, klass: C
   if (mirrorDays.length === 0) return;
 
   await deleteTimetableSlotsForClass(tenantId, klass.id);
+  // Claim the target cells so ghost rows (empty on screen, still in DB) cannot block placement.
+  await deleteTimetableSlotsAtRoomPeriods(tenantId, room, [period], mirrorDays);
 
   const createdIds: string[] = [];
   try {
