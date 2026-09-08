@@ -9,6 +9,7 @@ import type { RomRole } from "@/lib/data/memberships";
 import { openPdfForPrint } from "@/lib/app/openPdfForPrint";
 import { WEEKDAY_KEYS, type WeekdayKey } from "@/lib/activeWeekdays";
 import { DEFAULT_TIMETABLE_SCHOOL_WEEKDAYS } from "@/lib/timetable/timetableSchoolWeekdays";
+import { TIMETABLE_PERIOD_COUNT_OPTIONS } from "@/lib/timetable/timetablePeriodLimits";
 
 type Props = {
   tenantId: string;
@@ -129,7 +130,7 @@ export function DashboardTimetableSnippet({
           <label className="flex flex-col text-[11px] font-medium text-zinc-700">
             {t("dash.timetablePeriodsAmLabel")}
             <select className="mt-0.5 rounded border border-zinc-300 px-1.5 py-1 text-xs" value={am} onChange={(e) => setAm(e.target.value)}>
-              {[1, 2, 3, 4, 5, 6].map((n) => (
+              {TIMETABLE_PERIOD_COUNT_OPTIONS.map((n) => (
                 <option key={n} value={n}>
                   {n}
                 </option>
@@ -139,7 +140,7 @@ export function DashboardTimetableSnippet({
           <label className="flex flex-col text-[11px] font-medium text-zinc-700">
             {t("dash.timetablePeriodsPmLabel")}
             <select className="mt-0.5 rounded border border-zinc-300 px-1.5 py-1 text-xs" value={pm} onChange={(e) => setPm(e.target.value)}>
-              {[1, 2, 3, 4, 5, 6].map((n) => (
+              {TIMETABLE_PERIOD_COUNT_OPTIONS.map((n) => (
                 <option key={n} value={n}>
                   {n}
                 </option>

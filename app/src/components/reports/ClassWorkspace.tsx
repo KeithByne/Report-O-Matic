@@ -483,8 +483,8 @@ export function ClassWorkspace({
           setTimetableRoomCount(rcVal);
           const am = Number(settings?.periods_am);
           const pm = Number(settings?.periods_pm);
-          if (Number.isFinite(am) && am >= 1 && am <= 6) periodsAm = Math.floor(am);
-          if (Number.isFinite(pm) && pm >= 1 && pm <= 6) periodsPm = Math.floor(pm);
+          if (Number.isFinite(am) && am >= 1 && am <= 12) periodsAm = Math.floor(am);
+          if (Number.isFinite(pm) && pm >= 1 && pm <= 12) periodsPm = Math.floor(pm);
 
           if (viewerRole === "owner" || viewerRole === "department_head") {
             const stRoom = c.preferred_room_index;

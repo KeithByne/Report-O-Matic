@@ -91,7 +91,26 @@ export type TimetableSlotRow = {
   teacher_email: string;
   created_at: string;
   class_name: string | null;
+  /** Shared across consecutive period rows that form one longer lesson; null = single period. */
+  lesson_block_id: string | null;
 };
+
+const slotSelect =
+  "id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, lesson_block_id, classes ( name )";
+const slotSelectLegacy =
+  "id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )";
+
+function lessonBlockColumnUnavailableError(e: unknown): boolean {
+  const msg = supabaseErrText(e).toLowerCase();
+  if (!msg.includes("lesson_block_id")) return false;
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    msg.includes("could not find") ||
+    msg.includes("pgrst") ||
+    (msg.includes("unknown") && msg.includes("column"))
+  );
+}
 
 const tenantTimetableSelect =
   "timetable_room_count, timetable_periods_am, timetable_periods_pm, timetable_school_weekdays, timetable_overview_rooms_per_page, timetable_display_density";
@@ -215,8 +234,8 @@ export async function updateTimetableSettings(
   const display_density = patch.display_density ?? current.display_density;
 
   if (room_count < 1 || room_count > 50) throw new Error("Rooms must be between 1 and 50.");
-  if (periods_am < 1 || periods_am > 6) throw new Error("Morning periods must be between 1 and 6.");
-  if (periods_pm < 1 || periods_pm > 6) throw new Error("Afternoon periods must be between 1 and 6.");
+  if (periods_am < 1 || periods_am > 12) throw new Error("Morning periods must be between 1 and 12.");
+  if (periods_pm < 1 || periods_pm > 12) throw new Error("Afternoon periods must be between 1 and 12.");
   if (school_weekdays.length === 0) throw new Error("Select at least one school day for the timetable.");
 
   const periodTotal = periods_am + periods_pm;
@@ -285,6 +304,9 @@ function mapSlot(raw: Record<string, unknown>): TimetableSlotRow {
   const classes = raw.classes as { name?: string } | { name?: string }[] | null | undefined;
   const name =
     Array.isArray(classes) ? classes[0]?.name : typeof classes === "object" && classes && "name" in classes ? classes.name : null;
+  const blockRaw = raw.lesson_block_id;
+  const lesson_block_id =
+    typeof blockRaw === "string" && blockRaw.trim().length > 0 ? blockRaw.trim() : null;
   return {
     id: raw.id as string,
     tenant_id: raw.tenant_id as string,
@@ -295,6 +317,7 @@ function mapSlot(raw: Record<string, unknown>): TimetableSlotRow {
     teacher_email: String(raw.teacher_email ?? "").trim().toLowerCase(),
     created_at: raw.created_at as string,
     class_name: typeof name === "string" ? name : null,
+    lesson_block_id,
   };
 }
 
@@ -341,12 +364,22 @@ export async function moveClassTimetableSlotsToRoom(
 export async function getTimetableSlot(slotId: string, tenantId: string): Promise<TimetableSlotRow | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("timetable_slots")
-    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
+    .select(slotSelect)
     .eq("id", slotId)
     .eq("tenant_id", tenantId)
     .maybeSingle();
+  if (error && lessonBlockColumnUnavailableError(error)) {
+    const legacy = await supabase
+      .from("timetable_slots")
+      .select(slotSelectLegacy)
+      .eq("id", slotId)
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+    data = legacy.data as typeof data;
+    error = legacy.error;
+  }
   if (error) throw new Error(formatErr(error));
   if (!data) return null;
   return mapSlot(data as Record<string, unknown>);
@@ -371,7 +404,7 @@ export async function listTimetableSlots(tenantId: string, opts?: { teacherEmail
   if (!supabase) return [];
   let q = supabase
     .from("timetable_slots")
-    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
+    .select(slotSelect)
     .eq("tenant_id", tenantId)
     .order("day_of_week", { ascending: true })
     .order("period_index", { ascending: true })
@@ -379,6 +412,19 @@ export async function listTimetableSlots(tenantId: string, opts?: { teacherEmail
   const te = opts?.teacherEmail?.trim().toLowerCase();
   if (te) q = q.eq("teacher_email", te);
   const { data, error } = await q;
+  if (error && lessonBlockColumnUnavailableError(error)) {
+    let q2 = supabase
+      .from("timetable_slots")
+      .select(slotSelectLegacy)
+      .eq("tenant_id", tenantId)
+      .order("day_of_week", { ascending: true })
+      .order("period_index", { ascending: true })
+      .order("room_index", { ascending: true });
+    if (te) q2 = q2.eq("teacher_email", te);
+    const legacy = await q2;
+    if (legacy.error) throw new Error(formatErr(legacy.error));
+    return (legacy.data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
+  }
   if (error) throw new Error(formatErr(error));
   return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
 }
@@ -390,7 +436,7 @@ export async function listTimetableSlotsForClassIds(tenantId: string, classIds: 
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("timetable_slots")
-    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
+    .select(slotSelect)
     .eq("tenant_id", tenantId)
     .in("class_id", classIds)
     .order("day_of_week", { ascending: true })
@@ -407,24 +453,114 @@ export async function insertTimetableSlot(opts: {
   room_index: number;
   class_id: string;
   teacher_email: string;
+  lesson_block_id?: string | null;
 }): Promise<TimetableSlotRow> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
   const teacher_email = opts.teacher_email.trim().toLowerCase();
-  const { data, error } = await supabase
-    .from("timetable_slots")
-    .insert({
-      tenant_id: opts.tenantId,
-      day_of_week: opts.day_of_week,
-      period_index: opts.period_index,
-      room_index: opts.room_index,
-      class_id: opts.class_id,
-      teacher_email,
-    })
-    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
-    .single();
+  const row: Record<string, unknown> = {
+    tenant_id: opts.tenantId,
+    day_of_week: opts.day_of_week,
+    period_index: opts.period_index,
+    room_index: opts.room_index,
+    class_id: opts.class_id,
+    teacher_email,
+  };
+  if (opts.lesson_block_id) row.lesson_block_id = opts.lesson_block_id;
+
+  let { data, error } = await supabase.from("timetable_slots").insert(row).select(slotSelect).single();
+  if (error && lessonBlockColumnUnavailableError(error) && "lesson_block_id" in row) {
+    delete row.lesson_block_id;
+    const legacy = await supabase.from("timetable_slots").insert(row).select(slotSelectLegacy).single();
+    data = legacy.data as typeof data;
+    error = legacy.error;
+  }
   if (error) throw new Error(formatErr(error));
   return mapSlot(data as Record<string, unknown>);
+}
+
+/** Insert consecutive period rows for one longer lesson on a single day. */
+export async function insertTimetableLessonBlock(opts: {
+  tenantId: string;
+  day_of_week: number;
+  period_index: number;
+  period_span: number;
+  room_index: number;
+  class_id: string;
+  teacher_email: string;
+}): Promise<TimetableSlotRow[]> {
+  const span = Math.max(1, Math.floor(opts.period_span));
+  if (span === 1) {
+    return [
+      await insertTimetableSlot({
+        tenantId: opts.tenantId,
+        day_of_week: opts.day_of_week,
+        period_index: opts.period_index,
+        room_index: opts.room_index,
+        class_id: opts.class_id,
+        teacher_email: opts.teacher_email,
+      }),
+    ];
+  }
+  const lesson_block_id = crypto.randomUUID();
+  const created: TimetableSlotRow[] = [];
+  try {
+    for (let i = 0; i < span; i += 1) {
+      created.push(
+        await insertTimetableSlot({
+          tenantId: opts.tenantId,
+          day_of_week: opts.day_of_week,
+          period_index: opts.period_index + i,
+          room_index: opts.room_index,
+          class_id: opts.class_id,
+          teacher_email: opts.teacher_email,
+          lesson_block_id,
+        }),
+      );
+    }
+  } catch (e) {
+    for (const s of created) {
+      try {
+        await deleteTimetableSlot(s.id, opts.tenantId);
+      } catch {
+        /* best-effort */
+      }
+    }
+    throw e;
+  }
+  return created;
+}
+
+export async function listTimetableSlotsInBlock(
+  tenantId: string,
+  lessonBlockId: string,
+): Promise<TimetableSlotRow[]> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("timetable_slots")
+    .select(slotSelect)
+    .eq("tenant_id", tenantId)
+    .eq("lesson_block_id", lessonBlockId)
+    .order("period_index", { ascending: true });
+  if (error) {
+    if (lessonBlockColumnUnavailableError(error)) return [];
+    throw new Error(formatErr(error));
+  }
+  return (data ?? []).map((row) => mapSlot(row as Record<string, unknown>));
+}
+
+/** Delete every period row in a multi-period lesson block. */
+export async function deleteTimetableLessonBlock(tenantId: string, lessonBlockId: string): Promise<number> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const { error, count } = await supabase
+    .from("timetable_slots")
+    .delete({ count: "exact" })
+    .eq("tenant_id", tenantId)
+    .eq("lesson_block_id", lessonBlockId);
+  if (error) throw new Error(formatErr(error));
+  return count ?? 0;
 }
 
 export async function updateTimetableSlot(
@@ -451,7 +587,7 @@ export async function updateTimetableSlot(
     .update(body)
     .eq("id", slotId)
     .eq("tenant_id", tenantId)
-    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
+    .select(slotSelect)
     .single();
   if (error) throw new Error(formatErr(error));
   return mapSlot(data as Record<string, unknown>);
@@ -485,7 +621,7 @@ export async function listTimetableSlotsAt(
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("timetable_slots")
-    .select("id, tenant_id, day_of_week, period_index, room_index, class_id, teacher_email, created_at, classes ( name )")
+    .select(slotSelect)
     .eq("tenant_id", tenantId)
     .eq("class_id", classId)
     .eq("period_index", periodIndex)

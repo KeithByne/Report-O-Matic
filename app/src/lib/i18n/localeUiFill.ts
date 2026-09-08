@@ -152,6 +152,13 @@ export const UI_FILL_ES: Record<string, string> = {
   "timetable.createNewClassHint":
     "La clase se crea con este aula, periodo y día. Puede completar el resto en la ficha de clase.",
   "timetable.noClassesYet": "Aún no hay clases — cree una abajo o en el panel Clases.",
+  "timetable.periodSpanLabel": "Duración de la clase",
+  "timetable.periodSpanOne": "1 periodo",
+  "timetable.periodSpanMany": "{n} periodos",
+  "timetable.periodSpanShort": "{n}p",
+  "timetable.periodSpanHint":
+    "Une periodos consecutivos en una clase más larga. No puede cruzar el almuerzo.",
+  "timetable.periodContinuation": "…",
   "timetable.overviewRoomsRange": "Aulas {from}–{to} de {total}",
   "timetable.overviewRoomsPage": "(página {page} de {total})",
   "timetable.printModeByClass": "Por clase",
@@ -544,6 +551,13 @@ export const UI_FILL_FR: Record<string, string> = {
   "timetable.createNewClassHint":
     "La classe est créée avec cette salle, ce créneau et ce jour. Vous pourrez compléter les réglages sur la fiche classe.",
   "timetable.noClassesYet": "Aucune classe pour l’instant — créez-en une ci-dessous ou depuis le panneau Classes.",
+  "timetable.periodSpanLabel": "Durée du cours",
+  "timetable.periodSpanOne": "1 période",
+  "timetable.periodSpanMany": "{n} périodes",
+  "timetable.periodSpanShort": "{n}p",
+  "timetable.periodSpanHint":
+    "Réunit des périodes consécutives en un cours plus long. Ne peut pas traverser la pause déjeuner.",
+  "timetable.periodContinuation": "…",
   "timetable.overviewRoomsRange": "Salles {from}–{to} sur {total}",
   "timetable.overviewRoomsPage": "(page {page} sur {total})",
   "timetable.printModeByClass": "Par classe",
@@ -896,6 +910,13 @@ export const UI_FILL_EL: Record<string, string> = {
   "timetable.createNewClassHint":
     "Η τάξη δημιουργείται με αυτή την αίθουσα, την περίοδο και την ημέρα. Τα υπόλοιπα μπορείτε να τα ορίσετε στη σελίδα τάξης.",
   "timetable.noClassesYet": "Δεν υπάρχουν ακόμα τάξεις — δημιουργήστε μία παρακάτω ή από το πάνελ Τάξεις.",
+  "timetable.periodSpanLabel": "Διάρκεια μαθήματος",
+  "timetable.periodSpanOne": "1 περίοδος",
+  "timetable.periodSpanMany": "{n} περίοδοι",
+  "timetable.periodSpanShort": "{n}π",
+  "timetable.periodSpanHint":
+    "Ενώστε διαδοχικές περιόδους σε μεγαλύτερο μάθημα. Δεν μπορεί να περάσει το διάλειμμα φαγητού.",
+  "timetable.periodContinuation": "…",
   "timetable.overviewRoomsRange": "Αίθουσες {from}–{to} από {total}",
   "timetable.overviewRoomsPage": "(σελίδα {page} από {total})",
   "timetable.printModeByClass": "Ανά τάξη",

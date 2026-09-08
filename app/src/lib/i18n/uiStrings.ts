@@ -847,6 +847,13 @@ const EN: UiMessages = {
   "timetable.createNewClassHint":
     "The class is created with this room, period, and weekday. You can finish other settings on the class page later.",
   "timetable.noClassesYet": "No classes yet — create one below or from the Classes panel.",
+  "timetable.periodSpanLabel": "Lesson length",
+  "timetable.periodSpanOne": "1 period",
+  "timetable.periodSpanMany": "{n} periods",
+  "timetable.periodSpanShort": "{n}p",
+  "timetable.periodSpanHint":
+    "Join consecutive teaching periods into one longer lesson. Cannot cross lunch.",
+  "timetable.periodContinuation": "…",
   "timetable.overviewRoomsRange": "Rooms {from}–{to} of {total}",
   "timetable.overviewRoomsPage": "(page {page} of {total})",
   "timetable.printModeLabel": "Print mode",

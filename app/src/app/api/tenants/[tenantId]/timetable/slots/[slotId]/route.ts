@@ -9,6 +9,7 @@ import {
   insertTimetableSlot,
   isTimetableConflictError,
   listTimetableSlotsAt,
+  listTimetableSlotsInBlock,
 } from "@/lib/data/timetableDb";
 import { timetableMirrorDayIndices } from "@/lib/timetable/timetableMirrorDays";
 import { allowedTimetableDayIndexSet, timetableMirrorDaysFilteredForSchool } from "@/lib/timetable/timetableSchoolWeekdays";
@@ -221,22 +222,21 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
     const existing = await getTimetableSlot(slotId, tenantId);
     if (!existing) return NextResponse.json({ error: "Slot not found." }, { status: 404 });
 
-    const klass = await getClassInTenant(tenantId, existing.class_id);
-    if (!klass) {
-      await deleteTimetableSlotsMirrorKeys(tenantId, existing.class_id, existing.period_index, existing.room_index, [
-        existing.day_of_week,
-      ]);
-      return NextResponse.json({ ok: true });
+    let periodIndexes = [existing.period_index];
+    if (existing.lesson_block_id) {
+      const blockRows = await listTimetableSlotsInBlock(tenantId, existing.lesson_block_id);
+      if (blockRows.length > 0) {
+        periodIndexes = [...new Set(blockRows.map((r) => r.period_index))].sort((a, b) => a - b);
+      }
     }
 
-    const days = timetableMirrorDayIndices(klass, existing.day_of_week);
-    await deleteTimetableSlotsMirrorKeys(
-      tenantId,
-      existing.class_id,
-      existing.period_index,
-      existing.room_index,
-      days,
-    );
+    const klass = await getClassInTenant(tenantId, existing.class_id);
+    const days = klass
+      ? timetableMirrorDayIndices(klass, existing.day_of_week)
+      : [existing.day_of_week];
+    for (const p of periodIndexes) {
+      await deleteTimetableSlotsMirrorKeys(tenantId, existing.class_id, p, existing.room_index, days);
+    }
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to delete.";

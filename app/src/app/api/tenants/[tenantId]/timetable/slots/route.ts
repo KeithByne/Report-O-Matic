@@ -5,10 +5,11 @@ import { getRoleForTenant, listMembersForTenant } from "@/lib/data/memberships";
 import {
   deleteTimetableSlot,
   getTimetableSettings,
-  insertTimetableSlot,
+  insertTimetableLessonBlock,
   isTimetableConflictError,
 } from "@/lib/data/timetableDb";
 import { allowedTimetableDayIndexSet, timetableMirrorDaysFilteredForSchool } from "@/lib/timetable/timetableSchoolWeekdays";
+import { maxPeriodSpanFrom, parsePeriodSpan } from "@/lib/timetable/timetablePeriodLimits";
 
 export const runtime = "nodejs";
 
@@ -41,6 +42,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     period_index?: unknown;
     room_index?: unknown;
     class_id?: unknown;
+    period_span?: unknown;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -52,6 +54,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const period_index = typeof body.period_index === "number" ? Math.floor(body.period_index) : NaN;
   const room_index = typeof body.room_index === "number" ? Math.floor(body.room_index) : NaN;
   const class_id = typeof body.class_id === "string" ? body.class_id.trim() : "";
+  const period_span = parsePeriodSpan(body.period_span, 1);
 
   if (!Number.isFinite(day_of_week) || day_of_week < 0 || day_of_week > 6) {
     return NextResponse.json({ error: "day_of_week must be 0–6 (Monday–Sunday)." }, { status: 400 });
@@ -72,6 +75,16 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const periodTotal = settings.periods_am + settings.periods_pm;
   if (!Number.isFinite(period_index) || period_index < 0 || period_index >= periodTotal) {
     return NextResponse.json({ error: "period_index is out of range for this school’s period configuration." }, { status: 400 });
+  }
+  const maxSpan = maxPeriodSpanFrom(period_index, settings.periods_am, settings.periods_pm);
+  if (period_span > maxSpan) {
+    return NextResponse.json(
+      {
+        error:
+          "That lesson length would cross lunch or run past the end of the morning/afternoon. Shorten it or start earlier.",
+      },
+      { status: 400 },
+    );
   }
   if (!Number.isFinite(room_index) || room_index < 0 || room_index >= settings.room_count) {
     return NextResponse.json({ error: "room_index is out of range for this school’s room count." }, { status: 400 });
@@ -104,23 +117,24 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       { status: 400 },
     );
   }
-  const created: Awaited<ReturnType<typeof insertTimetableSlot>>[] = [];
+  const created: Awaited<ReturnType<typeof insertTimetableLessonBlock>>[number][] = [];
 
   try {
     for (const d of days) {
-      created.push(
-        await insertTimetableSlot({
-          tenantId,
-          day_of_week: d,
-          period_index,
-          room_index,
-          class_id,
-          teacher_email,
-        }),
-      );
+      const block = await insertTimetableLessonBlock({
+        tenantId,
+        day_of_week: d,
+        period_index,
+        period_span,
+        room_index,
+        class_id,
+        teacher_email,
+      });
+      created.push(...block);
     }
-    const anchor = created.find((s) => s.day_of_week === day_of_week) ?? created[0];
-    return NextResponse.json({ slot: anchor, slots: created });
+    const anchor =
+      created.find((s) => s.day_of_week === day_of_week && s.period_index === period_index) ?? created[0];
+    return NextResponse.json({ slot: anchor, slots: created, period_span });
   } catch (e: unknown) {
     for (const s of created) {
       try {

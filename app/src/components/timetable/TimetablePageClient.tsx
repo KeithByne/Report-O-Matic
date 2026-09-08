@@ -28,6 +28,7 @@ import {
   timetableGridRowHeights,
   type TimetableDisplayDensity,
 } from "@/lib/timetable/timetableDisplay";
+import { maxPeriodSpanFrom, TIMETABLE_PERIOD_COUNT_OPTIONS } from "@/lib/timetable/timetablePeriodLimits";
 import { teacherHexColor } from "@/lib/timetable/teacherColor";
 
 type Settings = {
@@ -47,6 +48,7 @@ type SlotApi = {
   class_id: string;
   teacher_email: string;
   class_name: string | null;
+  lesson_block_id?: string | null;
 };
 
 type TeacherOpt = { email: string; label: string };
@@ -110,6 +112,7 @@ export function TimetablePageClient({
   } | null>(null);
   const [formClassId, setFormClassId] = useState("");
   const [formTeacher, setFormTeacher] = useState("");
+  const [formPeriodSpan, setFormPeriodSpan] = useState(1);
   const [emptyCellMode, setEmptyCellMode] = useState<"existing" | "new">("existing");
   const [newClassName, setNewClassName] = useState("");
   const [newClassTeacher, setNewClassTeacher] = useState("");
@@ -159,6 +162,32 @@ export function TimetablePageClient({
     window.addEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
     return () => window.removeEventListener(CLASS_SETTINGS_SAVED_EVENT, onClassSettingsSaved);
   }, [tenantId, refresh]);
+
+  /** For multi-period lessons: span and whether this cell is the block’s first period. */
+  const lessonBlockMeta = useMemo(() => {
+    const meta = new Map<string, { span: number; isAnchor: boolean; anchorPeriod: number }>();
+    const byBlock = new Map<string, SlotApi[]>();
+    for (const s of slots) {
+      const bid = s.lesson_block_id?.trim();
+      if (!bid) {
+        meta.set(s.id, { span: 1, isAnchor: true, anchorPeriod: s.period_index });
+        continue;
+      }
+      const key = `${bid}|${s.day_of_week}|${s.room_index}`;
+      const list = byBlock.get(key) ?? [];
+      list.push(s);
+      byBlock.set(key, list);
+    }
+    for (const list of byBlock.values()) {
+      const sorted = [...list].sort((a, b) => a.period_index - b.period_index);
+      const anchorPeriod = sorted[0]!.period_index;
+      const span = sorted.length;
+      for (const s of sorted) {
+        meta.set(s.id, { span, isAnchor: s.period_index === anchorPeriod, anchorPeriod });
+      }
+    }
+    return meta;
+  }, [slots]);
 
   const periodTotal = settings ? settings.periods_am + settings.periods_pm : 0;
 
@@ -315,12 +344,30 @@ export function TimetablePageClient({
   function openModal(day: number, periodIndex: number, roomIndex: number) {
     if (!canEditGrid) return;
     const key = `${day}-${periodIndex}-${roomIndex}`;
-    const slot = slotMap.get(key) ?? null;
+    let slot = slotMap.get(key) ?? null;
+    // Open the start of a multi-period lesson when clicking a continuation cell.
+    if (slot?.lesson_block_id) {
+      const meta = lessonBlockMeta.get(slot.id);
+      if (meta && !meta.isAnchor) {
+        const anchorKey = `${day}-${meta.anchorPeriod}-${roomIndex}`;
+        slot = slotMap.get(anchorKey) ?? slot;
+        setModal({ day, periodIndex: meta.anchorPeriod, roomIndex, slot });
+        setFormClassId(slot?.class_id ?? "");
+        setFormError(null);
+        setEmptyCellMode("existing");
+        setNewClassName("");
+        setNewClassTeacher("");
+        setFormPeriodSpan(meta.span);
+        return;
+      }
+    }
     setFormClassId(slot?.class_id ?? "");
     setFormError(null);
     setEmptyCellMode("existing");
     setNewClassName("");
     setNewClassTeacher("");
+    const existingMeta = slot ? lessonBlockMeta.get(slot.id) : null;
+    setFormPeriodSpan(existingMeta?.span && existingMeta.isAnchor ? existingMeta.span : 1);
     setModal({ day, periodIndex, roomIndex, slot });
   }
 
@@ -354,17 +401,39 @@ export function TimetablePageClient({
       const classId = (createData as { class?: { id?: string } }).class?.id;
       if (!classId) throw new Error(t("common.failed"));
 
+      const span =
+        settings != null ? Math.min(formPeriodSpan, maxPeriodSpanFrom(modal.periodIndex, settings.periods_am, settings.periods_pm)) : 1;
+
+      const patchBody: Record<string, unknown> = {
+        preferred_room_index: modal.roomIndex,
+        active_weekdays: [dayKey],
+      };
+      // Single-period lessons can sync from class presets; multi-period lessons are placed via slots API.
+      if (span <= 1) patchBody.preferred_lesson_period_index = modal.periodIndex;
+
       const patchRes = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          preferred_room_index: modal.roomIndex,
-          preferred_lesson_period_index: modal.periodIndex,
-          active_weekdays: [dayKey],
-        }),
+        body: JSON.stringify(patchBody),
       });
       const patchData = await patchRes.json().catch(() => ({}));
       if (!patchRes.ok) throw new Error((patchData as { error?: string }).error || t("common.failed"));
+
+      if (span > 1) {
+        const slotRes = await fetch(`${base}/timetable/slots`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            day_of_week: modal.day,
+            period_index: modal.periodIndex,
+            room_index: modal.roomIndex,
+            class_id: classId,
+            period_span: span,
+          }),
+        });
+        const slotData = await slotRes.json().catch(() => ({}));
+        if (!slotRes.ok) throw new Error((slotData as { error?: string }).error || t("common.failed"));
+      }
 
       setModal(null);
       void refresh();
@@ -405,6 +474,10 @@ export function TimetablePageClient({
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error((data as { error?: string }).error || t("common.failed"));
       } else {
+        const span = Math.min(
+          formPeriodSpan,
+          maxPeriodSpanFrom(modal.periodIndex, settings.periods_am, settings.periods_pm),
+        );
         const res = await fetch(`${base}/timetable/slots`, {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -413,6 +486,7 @@ export function TimetablePageClient({
             period_index: modal.periodIndex,
             room_index: modal.roomIndex,
             class_id: classId,
+            period_span: span,
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -736,7 +810,7 @@ export function TimetablePageClient({
             {schoolName}
           </h2>
           <p className="mt-1 text-xs text-zinc-500">
-            {t("dash.timetableRoomsLabel")} · {t("dash.timetablePeriodsAmLabel")} · {t("dash.timetablePeriodsPmLabel")} (1–6 each)
+            {t("dash.timetableRoomsLabel")} · {t("dash.timetablePeriodsAmLabel")} · {t("dash.timetablePeriodsPmLabel")} (1–12 each)
           </p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
             <label className="block min-w-0 text-xs font-medium text-zinc-700">
@@ -757,7 +831,7 @@ export function TimetablePageClient({
                 value={ownerAm}
                 onChange={(e) => setOwnerAm(e.target.value)}
               >
-                {[1, 2, 3, 4, 5, 6].map((n) => (
+                {TIMETABLE_PERIOD_COUNT_OPTIONS.map((n) => (
                   <option key={n} value={n}>
                     {n}
                   </option>
@@ -771,7 +845,7 @@ export function TimetablePageClient({
                 value={ownerPm}
                 onChange={(e) => setOwnerPm(e.target.value)}
               >
-                {[1, 2, 3, 4, 5, 6].map((n) => (
+                {TIMETABLE_PERIOD_COUNT_OPTIONS.map((n) => (
                   <option key={n} value={n}>
                     {n}
                   </option>
@@ -911,6 +985,8 @@ export function TimetablePageClient({
                       effectiveViewMode === "by_teacher"
                         ? teacherSlotByDayPeriod.get(`${d}-${periodIndex}`)
                         : classSlotByDayPeriod.get(`${d}-${periodIndex}`);
+                    const block = slot ? lessonBlockMeta.get(slot.id) : null;
+                    const isContinuation = Boolean(block && !block.isAnchor);
                     const emailForColor = slot ? teacherEmailForDisplay(slot) : "";
                     const bg = emailForColor ? teacherHexColor(emailForColor) : "#f8fafc";
                     return (
@@ -920,9 +996,19 @@ export function TimetablePageClient({
                           style={{ backgroundColor: bg, minHeight: `${gridRowHeights.singleSlotMinPx}px` }}
                         >
                           {slot ? (
-                            <>
+                            isContinuation ? (
+                              <div className="flex flex-1 items-center text-[10px] font-medium text-zinc-600">
+                                {t("timetable.periodContinuation")}
+                              </div>
+                            ) : (
+                              <>
                               <div className="text-[10px] font-semibold text-zinc-600">
                                 {t("pdf.timetableRoomN", { n: slot.room_index + 1 })}
+                                {block && block.span > 1 ? (
+                                  <span className="ml-1 font-bold text-emerald-800">
+                                    · {t("timetable.periodSpanShort", { n: block.span })}
+                                  </span>
+                                ) : null}
                               </div>
                               {effectiveViewMode === "by_teacher" ? (
                                 <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
@@ -932,7 +1018,8 @@ export function TimetablePageClient({
                               <div className="mt-0.5 text-[10px] leading-tight text-zinc-700">
                                 {teacherLabelForEmail(teacherEmailForDisplay(slot))}
                               </div>
-                            </>
+                              </>
+                            )
                           ) : (
                             <div
                               className="flex items-center justify-center text-[11px] text-zinc-500"
@@ -955,6 +1042,8 @@ export function TimetablePageClient({
                             : Array.from({ length: settings.room_count }, (_, i) => i)
                         ).map((roomRowIndex) => {
                           const slot = slotMapForView.get(`${d}-${periodIndex}-${roomRowIndex}`);
+                          const block = slot ? lessonBlockMeta.get(slot.id) : null;
+                          const isContinuation = Boolean(block && !block.isAnchor);
                           const emailForColor = slot ? teacherEmailForDisplay(slot) : "";
                           const bg = emailForColor ? teacherHexColor(emailForColor) : "#f8fafc";
                           const interactive = canEditGrid;
@@ -969,8 +1058,19 @@ export function TimetablePageClient({
                               }`}
                               style={{ backgroundColor: bg, height: `${gridRowHeights.overviewRoomRowPx}px` }}
                             >
+                              {isContinuation ? (
+                                <div className="truncate text-[10px] font-medium text-zinc-600">
+                                  {t("timetable.periodContinuation")}
+                                </div>
+                              ) : (
+                                <>
                               <div className="text-[10px] font-semibold text-zinc-600">
                                 {t("pdf.timetablePageRoom", { n: roomRowIndex + 1 })}
+                                {block && block.span > 1 ? (
+                                  <span className="ml-1 font-bold text-emerald-800">
+                                    · {t("timetable.periodSpanShort", { n: block.span })}
+                                  </span>
+                                ) : null}
                               </div>
                               {slot ? (
                                 <div className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-900">
@@ -984,6 +1084,8 @@ export function TimetablePageClient({
                                   {teacherLabelForEmail(teacherEmailForDisplay(slot))}
                                 </div>
                               ) : null}
+                                </>
+                              )}
                             </button>
                           );
                         })}
@@ -1069,6 +1171,31 @@ export function TimetablePageClient({
                 room: modal.roomIndex + 1,
               })}
             </p>
+            {!modal.slot && settings ? (
+              <label className="mt-3 block min-w-0 text-xs font-medium text-zinc-700">
+                <span className="mb-1 block">{t("timetable.periodSpanLabel")}</span>
+                <select
+                  className="block w-full rounded border border-zinc-300 px-2 py-2 text-sm"
+                  value={String(formPeriodSpan)}
+                  onChange={(e) => setFormPeriodSpan(Number.parseInt(e.target.value, 10) || 1)}
+                >
+                  {Array.from(
+                    { length: maxPeriodSpanFrom(modal.periodIndex, settings.periods_am, settings.periods_pm) },
+                    (_, i) => i + 1,
+                  ).map((n) => (
+                    <option key={n} value={String(n)}>
+                      {n === 1 ? t("timetable.periodSpanOne") : t("timetable.periodSpanMany", { n })}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1 block text-[11px] font-normal text-zinc-500">{t("timetable.periodSpanHint")}</span>
+              </label>
+            ) : null}
+            {modal.slot && (lessonBlockMeta.get(modal.slot.id)?.span ?? 1) > 1 ? (
+              <p className="mt-2 text-xs text-emerald-900">
+                {t("timetable.periodSpanMany", { n: lessonBlockMeta.get(modal.slot.id)!.span })}
+              </p>
+            ) : null}
             {!modal.slot ? (
               <div
                 className="mt-4 flex flex-wrap gap-2"
