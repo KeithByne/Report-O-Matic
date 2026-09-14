@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Archive,
   ArrowDown,
   BookOpen,
   CalendarDays,
@@ -12,7 +11,6 @@ import {
   Printer,
   Search,
   SlidersHorizontal,
-  UserCheck,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -30,9 +28,7 @@ export type SchoolWorkspacePanel =
   | "invites"
   | "subjects"
   | "classes"
-  | "activeStudents"
   | "findStudent"
-  | "inactiveStudents"
   | "timetable";
 
 export type SchoolWorkspaceMenuVariant = "owner" | "department_head";
@@ -51,17 +47,12 @@ type StudentsItem = {
   panel?: SchoolWorkspacePanel;
   labelKey: string;
   guideKey: string;
-  Icon: typeof UserCheck;
+  Icon: typeof Search;
   action: "panel" | "registers";
 };
 
 const SETUP_PANELS = new Set<SchoolWorkspacePanel>(["pdf", "invites", "subjects", "timetable"]);
-const STUDENTS_PANELS = new Set<SchoolWorkspacePanel>([
-  "activeStudents",
-  "findStudent",
-  "classes",
-  "inactiveStudents",
-]);
+const STUDENTS_PANELS = new Set<SchoolWorkspacePanel>(["findStudent", "classes"]);
 
 const GUIDE_KEYS: Record<
   SchoolWorkspaceMenuVariant,
@@ -73,40 +64,34 @@ const GUIDE_KEYS: Record<
     invite: string;
     subjects: string;
     timetable: string;
-    activeStudents: string;
     findStudent: string;
     classes: string;
     registers: string;
-    inactiveStudents: string;
   }
 > = {
   owner: {
     overview: "owner_overview",
     setupPrimary: "owner_pdf",
-    studentsPrimary: "owner_active_students",
+    studentsPrimary: "owner_find_student",
     pdf: "owner_pdf",
     invite: "owner_invite",
     subjects: "owner_subjects",
     timetable: "owner_timetable",
-    activeStudents: "owner_active_students",
     findStudent: "owner_find_student",
     classes: "owner_classes",
     registers: "owner_registers",
-    inactiveStudents: "owner_inactive_students",
   },
   department_head: {
     overview: "dh_overview",
     setupPrimary: "dh_invite",
-    studentsPrimary: "dh_active_students",
+    studentsPrimary: "dh_find_student",
     pdf: "dh_pdf",
     invite: "dh_invite",
     subjects: "dh_subjects",
     timetable: "dh_timetable",
-    activeStudents: "dh_active_students",
     findStudent: "dh_find_student",
     classes: "dh_classes",
     registers: "dh_registers",
-    inactiveStudents: "dh_inactive_students",
   },
 };
 
@@ -206,13 +191,6 @@ export function SchoolWorkspaceGroupedMenu({
   const studentsItems = useMemo<StudentsItem[]>(
     () => [
       {
-        panel: "activeStudents",
-        labelKey: "dash.panelActiveStudents",
-        guideKey: guide.activeStudents,
-        Icon: UserCheck,
-        action: "panel",
-      },
-      {
         panel: "findStudent",
         labelKey: "dash.panelFindStudent",
         guideKey: guide.findStudent,
@@ -231,13 +209,6 @@ export function SchoolWorkspaceGroupedMenu({
         guideKey: guide.registers,
         Icon: Printer,
         action: "registers",
-      },
-      {
-        panel: "inactiveStudents",
-        labelKey: "dash.panelInactiveStudents",
-        guideKey: guide.inactiveStudents,
-        Icon: Archive,
-        action: "panel",
       },
     ],
     [guide],

@@ -607,7 +607,10 @@ const EN: UiMessages = {
   "dash.panelFindStudent": "Find Student",
   "dash.panelInactiveStudents": "Inactive Students",
   "dash.findStudentHint":
-    "Search any pupil enrolled in this school. Results show active or inactive status and the class they are in (or last attended if inactive).",
+    "Search any pupil enrolled in this school. Results show active or inactive status and current class (or last class if inactive). Add pupils here, locate them into a class, archive, or re-activate.",
+  "dash.guide.findStudent1": "Open Find Student to search any pupil enrolled in this school.",
+  "dash.guide.findStudent2": "Results show active or inactive status, current class, or last class if inactive.",
+  "dash.guide.findStudent3": "Add pupils here, locate them into a class, archive them, or re-activate inactive pupils.",
   "dash.findStudentSearchLabel": "Search by name",
   "dash.findStudentSearchPlaceholder": "Type a pupil name…",
   "dash.findStudentTypeToSearch": "Start typing a name to find pupils.",
@@ -1779,7 +1782,7 @@ const FR: UiMessages = {
   "dash.panelFindStudent": "Trouver un élève",
   "dash.panelInactiveStudents": "Élèves inactifs",
   "dash.findStudentHint":
-    "Recherchez tout élève inscrit dans cette école. Les résultats indiquent s’il est actif ou inactif et la classe actuelle (ou la dernière classe s’il est inactif).",
+    "Recherchez tout élève inscrit dans cette école. Les résultats indiquent s’il est actif ou inactif et la classe actuelle (ou la dernière classe s’il est inactif). Ajoutez des élèves ici, placez-les dans une classe, archivez ou réactivez.",
   "dash.findStudentSearchLabel": "Rechercher par nom",
   "dash.findStudentSearchPlaceholder": "Saisissez un nom d’élève…",
   "dash.findStudentTypeToSearch": "Commencez à taper un nom pour trouver des élèves.",
@@ -2532,7 +2535,7 @@ const ES: UiMessages = {
   "dash.panelFindStudent": "Buscar alumno",
   "dash.panelInactiveStudents": "Alumnos inactivos",
   "dash.findStudentHint":
-    "Busque cualquier alumno matriculado en esta escuela. Los resultados indican si está activo o inactivo y la clase actual (o la última clase si está inactivo).",
+    "Busque cualquier alumno matriculado en esta escuela. Los resultados indican si está activo o inactivo y la clase actual (o la última clase si está inactivo). Añada alumnos aquí, colóquelos en una clase, archive o reactive.",
   "dash.findStudentSearchLabel": "Buscar por nombre",
   "dash.findStudentSearchPlaceholder": "Escriba un nombre de alumno…",
   "dash.findStudentTypeToSearch": "Empiece a escribir un nombre para encontrar alumnos.",
