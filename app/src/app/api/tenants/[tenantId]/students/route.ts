@@ -3,7 +3,7 @@ import { canAccessClass, canAddStudentsToClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant, listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
-import { insertStudent, listStudents } from "@/lib/data/students";
+import { insertStudent, listImportPupilCandidates, listStudents } from "@/lib/data/students";
 import { logStudentEvent } from "@/lib/data/studentEvents";
 
 function isUuid(s: string): boolean {
@@ -19,7 +19,24 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   if (!role) return NextResponse.json({ error: "No access." }, { status: 403 });
   const url = new URL(req.url);
   const classId = url.searchParams.get("classId")?.trim() || "";
+  const importCandidates = url.searchParams.get("importCandidates") === "1";
+  const excludeClassId = url.searchParams.get("excludeClassId")?.trim() || "";
+
   try {
+    if (importCandidates) {
+      if (role !== "owner" && role !== "department_head") {
+        return NextResponse.json({ error: "Only owners and department heads can import pupils." }, { status: 403 });
+      }
+      const exclude = excludeClassId && isUuid(excludeClassId) ? excludeClassId : "";
+      if (!exclude) {
+        return NextResponse.json({ error: "excludeClassId is required for import search." }, { status: 400 });
+      }
+      const cls = await getClassInTenant(tenantId, exclude);
+      if (!cls) return NextResponse.json({ error: "Class not found." }, { status: 404 });
+      const candidates = await listImportPupilCandidates(tenantId, exclude);
+      return NextResponse.json({ candidates });
+    }
+
     if (classId && isUuid(classId)) {
       const cls = await getClassInTenant(tenantId, classId);
       if (!cls) return NextResponse.json({ error: "Class not found." }, { status: 404 });

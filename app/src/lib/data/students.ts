@@ -1,5 +1,10 @@
 import { getServiceSupabase } from "@/lib/supabase/service";
-import { getSchoolStudentInTenant, insertSchoolStudent } from "@/lib/data/schoolStudents";
+import {
+  getSchoolStudentInTenant,
+  hasOpenEnrollmentInClass,
+  insertSchoolStudent,
+  reactivateSchoolStudent,
+} from "@/lib/data/schoolStudents";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
@@ -77,6 +82,159 @@ export async function listStudents(
     rows = rows.filter((r) => activeIds.has(r.school_student_id));
   }
   return rows;
+}
+
+export type ImportPupilCandidate = {
+  /** Open enrollment to move, when the pupil is currently in another class. */
+  student_id: string | null;
+  school_student_id: string;
+  display_name: string;
+  first_name: string;
+  last_name: string;
+  gender: Gender | null;
+  class_id: string | null;
+  class_name: string | null;
+  school_status: "active" | "inactive";
+};
+
+/**
+ * Whole-school import search: every pupil on the school roster (active or inactive),
+ * excluding anyone who already has an open enrollment in `excludeClassId`.
+ * Pupils with open enrollments in other classes appear once per such enrollment.
+ * Pupils with no open enrollment (e.g. inactivated) appear as roster-only rows.
+ */
+export async function listImportPupilCandidates(
+  tenantId: string,
+  excludeClassId: string,
+): Promise<ImportPupilCandidate[]> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+
+  const { data: rosterRows, error: rosterErr } = await supabase
+    .from("school_students")
+    .select("id, first_name, last_name, display_name, gender, status")
+    .eq("tenant_id", tenantId)
+    .order("display_name", { ascending: true });
+  if (rosterErr) throw new Error(formatErr(rosterErr));
+
+  const { data: enrollRows, error: enrollErr } = await supabase
+    .from("students")
+    .select("id, school_student_id, class_id, classes ( name )")
+    .eq("tenant_id", tenantId)
+    .is("enrollment_ended_at", null);
+  if (enrollErr) throw new Error(formatErr(enrollErr));
+
+  const opensBySchool = new Map<
+    string,
+    { id: string; class_id: string; class_name: string }[]
+  >();
+  for (const raw of (enrollRows ?? []) as Record<string, unknown>[]) {
+    const schoolId = raw.school_student_id as string;
+    const cls = raw.classes as { name: string } | { name: string }[] | null;
+    const className = Array.isArray(cls) ? cls[0]?.name : cls?.name;
+    const entry = {
+      id: raw.id as string,
+      class_id: raw.class_id as string,
+      class_name: typeof className === "string" ? className : "",
+    };
+    const list = opensBySchool.get(schoolId) ?? [];
+    list.push(entry);
+    opensBySchool.set(schoolId, list);
+  }
+
+  const out: ImportPupilCandidate[] = [];
+  for (const row of (rosterRows ?? []) as {
+    id: string;
+    first_name: string;
+    last_name: string;
+    display_name: string;
+    gender: Gender | null;
+    status: string;
+  }[]) {
+    const status = row.status === "inactive" ? "inactive" : "active";
+    const opens = opensBySchool.get(row.id) ?? [];
+    if (opens.some((o) => o.class_id === excludeClassId)) continue;
+    const elsewhere = opens.filter((o) => o.class_id !== excludeClassId);
+    if (elsewhere.length > 0) {
+      for (const o of elsewhere) {
+        out.push({
+          student_id: o.id,
+          school_student_id: row.id,
+          display_name: row.display_name,
+          first_name: row.first_name,
+          last_name: row.last_name,
+          gender: row.gender,
+          class_id: o.class_id,
+          class_name: o.class_name,
+          school_status: status,
+        });
+      }
+    } else {
+      out.push({
+        student_id: null,
+        school_student_id: row.id,
+        display_name: row.display_name,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        gender: row.gender,
+        class_id: null,
+        class_name: null,
+        school_status: status,
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Import into a class: move an open enrollment from elsewhere, or reactivate a roster
+ * pupil (including inactive) and create an enrollment.
+ */
+export async function importPupilIntoClass(opts: {
+  tenantId: string;
+  toClassId: string;
+  studentId?: string | null;
+  schoolStudentId?: string | null;
+}): Promise<StudentWithClass> {
+  const studentId = opts.studentId?.trim() || "";
+  const schoolStudentId = opts.schoolStudentId?.trim() || "";
+
+  if (studentId) {
+    const existing = await getStudentInTenant(opts.tenantId, studentId);
+    if (!existing) throw new Error("Pupil enrollment not found.");
+    if (existing.class_id === opts.toClassId) {
+      throw new Error("This pupil is already in this class.");
+    }
+    const school = await getSchoolStudentInTenant(opts.tenantId, existing.school_student_id);
+    if (school?.status === "inactive") {
+      await reactivateSchoolStudent(opts.tenantId, existing.school_student_id);
+    }
+    return moveStudentToClass({
+      tenantId: opts.tenantId,
+      studentId,
+      toClassId: opts.toClassId,
+    });
+  }
+
+  if (!schoolStudentId) {
+    throw new Error("student_id or school_student_id is required.");
+  }
+
+  let school = await getSchoolStudentInTenant(opts.tenantId, schoolStudentId);
+  if (!school) throw new Error("Pupil not found on the school roster.");
+  if (school.status === "inactive") {
+    school = await reactivateSchoolStudent(opts.tenantId, schoolStudentId);
+  }
+
+  if (await hasOpenEnrollmentInClass(opts.tenantId, schoolStudentId, opts.toClassId)) {
+    throw new Error("This pupil is already in this class.");
+  }
+
+  return enrollSchoolStudentInClass({
+    tenantId: opts.tenantId,
+    schoolStudentId,
+    classId: opts.toClassId,
+  });
 }
 
 export async function insertStudent(opts: {
