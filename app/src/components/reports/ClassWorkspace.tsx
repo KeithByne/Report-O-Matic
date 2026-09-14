@@ -912,11 +912,21 @@ export function ClassWorkspace({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
-      await refreshStudents();
-      await refreshOrgStudents();
+      // Return to the class pupil list immediately (do not wait on refreshes).
       setImportFromOtherSearch("");
       setStudentPanelAction("add");
+      try {
+        await refreshStudents();
+        await refreshOrgStudents();
+      } catch {
+        /* panel already back on class list; refresh can retry on next open */
+      }
       router.refresh();
+      requestAnimationFrame(() => {
+        document
+          .getElementById("class-workspace-panel-students")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
