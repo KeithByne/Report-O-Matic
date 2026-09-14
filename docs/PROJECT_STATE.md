@@ -1,9 +1,19 @@
 # Report-O-Matic — project state (handoff)
 
-**Last updated:** 2026-05-27  
+**Last updated:** 2026-09-14  
 **Maintainer note:** Operator resting; **Wise Business deferred** until £50 available for Advanced plan.
 
 Read this file at the start of infrastructure, billing, or go-live work. Details: `docs/PADDLE_SETUP.md`, `docs/OPERATIONS.md`, `docs/EMAIL_SETUP.md`.
+
+**Also read:** `docs/PERMISSIONS.md` — access rules. Agents must **not** change role permissions without asking first.
+
+---
+
+## Access rule (do not “improve” without asking)
+
+- **Owner, department head, and teacher** may all **add students** on class roster and school Active Students (and related enroll flows).
+- This has always been the product rule. Agents must **not** restrict add-student to owner/DH only, or redesign who can add, without explicit maintainer approval in that chat.
+- Cursor always-on rule: `.cursor/rules/permissions-students.mdc`.
 
 ---
 
@@ -29,7 +39,7 @@ Read this file at the start of infrastructure, billing, or go-live work. Details
 - SaaS health check requires Paddle secrets when `ROM_PADDLE_ENABLED=true`
 - Weekend go-live checklist in `docs/PADDLE_SETUP.md`
 - Branded email on site and in Vercel env
-- Last pushed commit: **Paddle go-live prep** (`e9f681e` area — verify with `git log -1`)
+- Last pushed commit: verify with `git log -1`
 
 ---
 
@@ -75,4 +85,4 @@ Read this file at the start of infrastructure, billing, or go-live work. Details
 
 ## Quick prompts for next session
 
-> Continue Report-O-Matic go-live: read `docs/PROJECT_STATE.md`. Wise is deferred (£50). Next step when ready: Wise Advanced → Paddle sandbox → Vercel env → test purchase. Checkout still off until `ROM_PADDLE_ENABLED=true`.
+> Continue Report-O-Matic go-live: read `docs/PROJECT_STATE.md` and `docs/PERMISSIONS.md`. Wise is deferred (£50). Next step when ready: Wise Advanced → Paddle sandbox → Vercel env → test purchase. Checkout still off until `ROM_PADDLE_ENABLED=true`.

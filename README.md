@@ -2,6 +2,12 @@
 
 This folder is your **repo** (repository): the project folder that contains all the code/config needed to build and deploy the SaaS.
 
+### Access permissions (agents)
+
+- **All school roles** (owner, department head, teacher) may **add students** on every add surface.
+- **Do not change role/access rules** without explicit maintainer approval. See `docs/PERMISSIONS.md` and `.cursor/rules/permissions-students.mdc`.
+- Session handoff: `docs/PROJECT_STATE.md`.
+
 ### What you will build (high level)
 - **Web app**: Next.js hosted on Vercel (`report-o-matic.online`)
 - **Database/Auth/Storage**: Supabase (multi-tenant with Row Level Security)

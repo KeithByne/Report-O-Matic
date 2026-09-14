@@ -10,6 +10,12 @@ alwaysApply: true
 - **Automate what you can.** Run commands, read files, grep the codebase, fix lints, run builds/tests when reasonable, and use MCP or other tools instead of handing the user a to-do list. Only stop for steps that need human-only access (e.g. browser logins you cannot perform, secret values not in env).
 - **Be brief** when summarizing: what changed, result, one blocker if any—no filler closings.
 
+## Access / role permissions — ask first
+
+- **Never** change who may do what by role (especially **adding students**) without **explicit maintainer approval in that chat**.
+- Product baseline: **owner, department head, and teacher** may all add students on every add surface. See `docs/PERMISSIONS.md` and `.cursor/rules/permissions-students.mdc`.
+- Restoring a broken allow-path so an existing role works again is OK; inventing new denials is not.
+
 ## Copy-paste blocks: full context
 
 When the user may **copy and paste** something (terminal commands, PowerShell one-liners, `curl`, SQL snippets, paths, small scripts): give **complete, runnable context** in each block—**not** fragments that assume they already know the working directory or shell.

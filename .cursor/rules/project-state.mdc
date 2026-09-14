@@ -7,6 +7,8 @@ alwaysApply: true
 
 Before **Paddle**, **Wise**, **Vercel env**, **Supabase migrations**, or **go-live** work, read **`docs/PROJECT_STATE.md`** for the latest handoff.
 
+**Permissions:** Read **`docs/PERMISSIONS.md`**. **All roles** (owner, department head, teacher) may **add students** on every add surface. **Never** change role/access rules without asking the maintainer first. See `.cursor/rules/permissions-students.mdc`.
+
 ## Snapshot (2026-05-27)
 
 - **Live:** `report-o-matic.online` on Vercel; git on `main`, auto-deploy.
@@ -17,6 +19,7 @@ Before **Paddle**, **Wise**, **Vercel env**, **Supabase migrations**, or **go-li
 ## Key docs
 
 - `docs/PROJECT_STATE.md` — full handoff (update when priorities change)
+- `docs/PERMISSIONS.md` — who may add students and other access rules (ask before changing)
 - `docs/PADDLE_SETUP.md` — step-by-step Paddle + Wise weekend checklist
 - `docs/OPERATIONS.md` — DNS, Vercel, email, Supabase
 - `docs/EMAIL_SETUP.md` — Resend + Namecheap Private Email
@@ -26,5 +29,6 @@ Before **Paddle**, **Wise**, **Vercel env**, **Supabase migrations**, or **go-li
 - Stripe is legacy; new checkout is **Paddle only**.
 - Wise is **not** wired into the app — only Paddle dashboard payout settings.
 - Do not enable `ROM_PADDLE_ENABLED=true` on production without sandbox test first.
+- Do not invent new role restrictions (especially around adding students).
 
 When the operator returns after resting or funds Wise, offer to resume from **`docs/PROJECT_STATE.md`** step list.

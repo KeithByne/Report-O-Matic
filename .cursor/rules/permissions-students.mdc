@@ -1,0 +1,29 @@
+---
+description: Hard rule — all school roles may add students; never change role permissions without asking
+alwaysApply: true
+---
+
+# Student add permissions (non-negotiable)
+
+## Product rule
+
+**Every school member role** — `owner`, `department_head`, and `teacher` — **may add students** on every surface that adds pupils:
+
+- Class Students panel (`POST /api/tenants/.../students`)
+- School Active Students list (`POST /api/tenants/.../school-students`)
+- Locate / enroll from active list into a class (`POST .../school-students/.../enrollments`) when the actor can use that class
+
+Helpers: `canAddStudentsToClass`, `canUseSchoolRoster` in `app/src/lib/auth/`. Do **not** reintroduce owner/DH-only gates on **add**.
+
+Archive / remove from active list / move between classes may stay lead-only (`canManageSchoolRoster`) unless the maintainer says otherwise.
+
+## Do not change without asking
+
+**Never** tighten, loosen, or redesign **role / access permissions** (who may add students, edit classes, timetable, billing, etc.) without **explicit maintainer approval in that chat first**.
+
+Fixing a bug that blocks an allowed role from doing something they already should do is fine. Inventing a new restriction is not.
+
+## Docs
+
+- `docs/PERMISSIONS.md` — canonical permission notes
+- `docs/PROJECT_STATE.md` — handoff (also mentions this rule)
