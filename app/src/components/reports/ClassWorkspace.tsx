@@ -146,7 +146,7 @@ type ClassDetail = {
 };
 
 type ClassListRow = { id: string; name: string };
-type TimetableSlotLite = { class_id: string; room_index: number };
+type TimetableSlotLite = { class_id: string; room_index: number; period_index: number };
 
 type ViewerRole = "owner" | "department_head" | "teacher";
 
@@ -481,6 +481,8 @@ export function ClassWorkspace({
 
       let periodsAm = 4;
       let periodsPm = 4;
+      let classSlots: TimetableSlotLite[] = [];
+      let roomCount = 1;
       try {
         const ttRes = await fetch(`${base}/timetable`, { cache: "no-store" });
         const ttData = await ttRes.json().catch(() => ({}));
@@ -490,33 +492,16 @@ export function ClassWorkspace({
             | { room_count?: unknown; periods_am?: unknown; periods_pm?: unknown }
             | undefined;
           const roomCountRaw = Number(settings?.room_count ?? 1);
-          const rcVal = Number.isFinite(roomCountRaw) && roomCountRaw > 0 ? Math.floor(roomCountRaw) : 1;
-          setTimetableRoomCount(rcVal);
+          roomCount = Number.isFinite(roomCountRaw) && roomCountRaw > 0 ? Math.floor(roomCountRaw) : 1;
+          setTimetableRoomCount(roomCount);
           const am = Number(settings?.periods_am);
           const pm = Number(settings?.periods_pm);
           if (Number.isFinite(am) && am >= 1 && am <= 12) periodsAm = Math.floor(am);
           if (Number.isFinite(pm) && pm >= 1 && pm <= 12) periodsPm = Math.floor(pm);
 
-          if (viewerRole === "owner" || viewerRole === "department_head") {
-            const stRoom = c.preferred_room_index;
-            const storedRi =
-              typeof stRoom === "number" && Number.isFinite(stRoom) ? Math.floor(stRoom) : null;
-            if (storedRi !== null && storedRi >= 0 && storedRi < rcVal) {
-              setPreferredRoomNumber(String(storedRi + 1));
-            } else {
-              const classSlots = Array.isArray(ttData.slots)
-                ? (ttData.slots as TimetableSlotLite[]).filter((s) => s.class_id === classId)
-                : [];
-              const rooms = [
-                ...new Set(classSlots.map((s) => Number(s.room_index)).filter((n) => Number.isFinite(n) && n >= 0)),
-              ];
-              if (rooms.length === 1) {
-                setPreferredRoomNumber(String(rooms[0]! + 1));
-              } else {
-                setPreferredRoomNumber("");
-              }
-            }
-          }
+          classSlots = Array.isArray(ttData.slots)
+            ? (ttData.slots as TimetableSlotLite[]).filter((s) => s.class_id === classId)
+            : [];
         }
       } catch {
         /* ignore timetable metadata load */
@@ -525,12 +510,47 @@ export function ClassWorkspace({
       setTimetablePeriodsAm(periodsAm);
       setTimetablePeriodsPm(periodsPm);
 
+      if (viewerRole === "owner" || viewerRole === "department_head") {
+        const stRoom = c.preferred_room_index;
+        const storedRi =
+          typeof stRoom === "number" && Number.isFinite(stRoom) ? Math.floor(stRoom) : null;
+        if (storedRi !== null && storedRi >= 0 && storedRi < roomCount) {
+          setPreferredRoomNumber(String(storedRi + 1));
+        } else {
+          const rooms = [
+            ...new Set(classSlots.map((s) => Number(s.room_index)).filter((n) => Number.isFinite(n) && n >= 0)),
+          ];
+          if (rooms.length === 1) {
+            setPreferredRoomNumber(String(rooms[0]! + 1));
+          } else {
+            setPreferredRoomNumber("");
+          }
+        }
+      }
+
       const totalPeriods = periodsAm + periodsPm;
       const prefRaw = c.preferred_lesson_period_index;
       let prefSelect = "";
       if (typeof prefRaw === "number" && Number.isFinite(prefRaw)) {
         const n = Math.floor(prefRaw);
         if (n >= 0 && n < totalPeriods) prefSelect = String(n);
+      }
+      // Match room: if class preference is missing, show the period from the current timetable placement.
+      if (!prefSelect && classSlots.length > 0) {
+        const periods = [
+          ...new Set(
+            classSlots
+              .map((s) => Number(s.period_index))
+              .filter((n) => Number.isFinite(n) && n >= 0 && n < totalPeriods)
+              .map((n) => Math.floor(n)),
+          ),
+        ].sort((a, b) => a - b);
+        if (periods.length === 1) {
+          prefSelect = String(periods[0]!);
+        } else if (periods.length > 1) {
+          // Multi-period lesson: use the starting (lowest) period index.
+          prefSelect = String(periods[0]!);
+        }
       }
       setLessonPeriodSelect(prefSelect);
     } catch (e: unknown) {
@@ -738,19 +758,10 @@ export function ClassWorkspace({
     }
     setBusy("class-save");
     try {
-      const prevRoom =
-        typeof detail?.preferred_room_index === "number" && Number.isFinite(detail.preferred_room_index)
-          ? Math.floor(detail.preferred_room_index)
-          : null;
       const nextRoom =
         preferredRoomNumber.trim() === ""
           ? null
           : Math.max(0, Number.parseInt(preferredRoomNumber, 10) - 1);
-      const prevPeriod =
-        typeof detail?.preferred_lesson_period_index === "number" &&
-        Number.isFinite(detail.preferred_lesson_period_index)
-          ? Math.floor(detail.preferred_lesson_period_index)
-          : null;
       const nextPeriod =
         lessonPeriodSelect.trim() === ""
           ? null
@@ -769,12 +780,13 @@ export function ClassWorkspace({
         default_new_report_period: defNewReportPeriod,
         active_weekdays: activeDays,
         assigned_teacher_email: assignTeacher.trim() ? assignTeacher.trim().toLowerCase() : null,
+        // Always persist the form values so reopen shows the same room/period the operator left.
+        preferred_room_index: nextRoom,
+        preferred_lesson_period_index: nextPeriod,
       };
       if (!REPORT_SUBJECTS.some((s) => s.code === normalizedSubject.trim().toLowerCase())) {
         patchBody.default_subject_rubric_profile = classGradeRubric;
       }
-      if (nextRoom !== prevRoom) patchBody.preferred_room_index = nextRoom;
-      if (nextPeriod !== prevPeriod) patchBody.preferred_lesson_period_index = nextPeriod;
 
       const res = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, {
         method: "PATCH",
@@ -1409,7 +1421,11 @@ export function ClassWorkspace({
             ) : (
               <p className="mt-0 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm text-zinc-800">
                 {(() => {
-                  const pref = detail?.preferred_lesson_period_index;
+                  const fromSelect =
+                    lessonPeriodSelect.trim() !== "" ? Number.parseInt(lessonPeriodSelect, 10) : NaN;
+                  const pref = Number.isFinite(fromSelect)
+                    ? fromSelect
+                    : detail?.preferred_lesson_period_index;
                   if (typeof pref !== "number" || !Number.isFinite(pref)) return "—";
                   const n = Math.floor(pref);
                   const total = timetablePeriodsAm + timetablePeriodsPm;

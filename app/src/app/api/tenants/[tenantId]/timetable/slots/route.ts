@@ -10,7 +10,6 @@ import {
   insertTimetableLessonBlock,
   isTimetableConflictError,
   listTimetableSlotsAtRoomPeriods,
-  listTimetableSlotsForClassIds,
   listTimetableSlotsForTeacherAtPeriods,
 } from "@/lib/data/timetableDb";
 import {
@@ -40,19 +39,6 @@ function periodRange(start: number, span: number): number[] {
   const out: number[] = [];
   for (let i = 0; i < span; i += 1) out.push(start + i);
   return out;
-}
-
-async function clearClassPrefsIfNoSlots(tenantId: string, classId: string): Promise<void> {
-  const remaining = await listTimetableSlotsForClassIds(tenantId, [classId]);
-  if (remaining.length > 0) return;
-  try {
-    await updateClass(tenantId, classId, {
-      preferred_room_index: null,
-      preferred_lesson_period_index: null,
-    });
-  } catch {
-    /* preferences are optional cleanup */
-  }
 }
 
 export async function POST(req: Request, context: { params: Promise<{ tenantId: string }> }) {
@@ -186,6 +172,17 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     }
     const anchor =
       created.find((s) => s.day_of_week === day_of_week && s.period_index === period_index) ?? created[0];
+
+    // Keep Class Settings in sync with the live timetable placement.
+    try {
+      await updateClass(tenantId, class_id, {
+        preferred_room_index: room_index,
+        preferred_lesson_period_index: period_index,
+      });
+    } catch {
+      /* placement succeeded; settings sync is best-effort */
+    }
+
     return NextResponse.json({ slot: anchor, slots: created, period_span });
   } catch (e: unknown) {
     for (const s of created) {
@@ -265,13 +262,8 @@ export async function DELETE(req: Request, context: { params: Promise<{ tenantId
   }
 
   const before = await listTimetableSlotsAtRoomPeriods(tenantId, room_index, periods, clearDays);
-  const classIds = [...new Set(before.map((s) => s.class_id))];
 
   await deleteTimetableSlotsAtRoomPeriods(tenantId, room_index, periods, clearDays);
-
-  for (const id of classIds) {
-    await clearClassPrefsIfNoSlots(tenantId, id);
-  }
 
   return NextResponse.json({
     ok: true,

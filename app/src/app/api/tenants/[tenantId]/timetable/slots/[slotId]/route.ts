@@ -12,7 +12,6 @@ import {
   insertTimetableSlot,
   isTimetableConflictError,
   listTimetableSlotsAt,
-  listTimetableSlotsForClassIds,
   resolveLessonPeriodIndexesForClear,
 } from "@/lib/data/timetableDb";
 import { timetableMirrorDayIndices } from "@/lib/timetable/timetableMirrorDays";
@@ -184,6 +183,14 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       );
     }
     const anchor = created.find((s) => s.day_of_week === resolvedDay) ?? created[0];
+    try {
+      await updateClass(tenantId, resolvedClassId, {
+        preferred_room_index: resolvedRoom,
+        preferred_lesson_period_index: resolvedPeriod,
+      });
+    } catch {
+      /* placement succeeded; settings sync is best-effort */
+    }
     return NextResponse.json({ slot: anchor, slots: created });
   } catch (e: unknown) {
     try {
@@ -259,17 +266,8 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
       await deleteTimetableLessonBlock(tenantId, existing.lesson_block_id);
     }
 
-    const remaining = await listTimetableSlotsForClassIds(tenantId, [existing.class_id]);
-    if (remaining.length === 0) {
-      try {
-        await updateClass(tenantId, existing.class_id, {
-          preferred_room_index: null,
-          preferred_lesson_period_index: null,
-        });
-      } catch {
-        /* optional */
-      }
-    }
+    // Do not clear preferred_room_index / preferred_lesson_period_index on the class.
+    // Class Settings must keep those values until the operator changes them there.
 
     return NextResponse.json({ ok: true, cleared_periods: periodIndexes, cleared_days: clearDays });
   } catch (e: unknown) {

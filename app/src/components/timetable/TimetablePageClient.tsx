@@ -406,10 +406,9 @@ export function TimetablePageClient({
 
       const patchBody: Record<string, unknown> = {
         preferred_room_index: modal.roomIndex,
+        preferred_lesson_period_index: modal.periodIndex,
         active_weekdays: [dayKey],
       };
-      // Single-period lessons can sync from class presets; multi-period lessons are placed via slots API.
-      if (span <= 1) patchBody.preferred_lesson_period_index = modal.periodIndex;
 
       const patchRes = await fetch(`${base}/classes/${encodeURIComponent(classId)}`, {
         method: "PATCH",
