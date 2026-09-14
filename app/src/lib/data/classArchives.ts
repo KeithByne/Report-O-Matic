@@ -1,6 +1,6 @@
 import { getServiceSupabase } from "@/lib/supabase/service";
 import type { ReportRow } from "@/lib/data/reportsDb";
-import { listReportsForTenant } from "@/lib/data/reportsDb";
+import { listReportsForStudentIds, listReportsForTenant } from "@/lib/data/reportsDb";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { normalizeScholasticYearLabel } from "@/lib/scholasticYear";
 
@@ -303,10 +303,25 @@ export async function healStalePreviousYearReportsForClass(opts: {
     "Year not specified";
 
   const students = await listOpenStudentsInClass(opts.tenantId, opts.classId);
+  if (students.length === 0) return 0;
+
+  // One batched reports fetch — avoid N+1 round-trips that timed out the class page.
+  const allReports = await listReportsForStudentIds(
+    opts.tenantId,
+    students.map((s) => s.id),
+  );
+  if (allReports.length === 0) return 0;
+  const reportsByStudent = new Map<string, ReportRow[]>();
+  for (const r of allReports) {
+    const list = reportsByStudent.get(r.student_id) ?? [];
+    list.push(r);
+    reportsByStudent.set(r.student_id, list);
+  }
+
   let cleared = 0;
 
   for (const st of students) {
-    const reports = await listReportsForTenant(opts.tenantId, st.id);
+    const reports = reportsByStudent.get(st.id) ?? [];
     if (reports.length === 0) continue;
 
     const { data: priorEnrollments, error: priorErr } = await supabase

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { canAccessClass, canAddStudentsToClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { healStalePreviousYearReportsForClass } from "@/lib/data/classArchives";
@@ -44,12 +44,12 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       if (!canAccessClass({ role, viewerEmail: gate.email, klass: cls })) {
         return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
       }
-      // Archive any previous-year reports still attached to pupils in this class.
-      try {
-        await healStalePreviousYearReportsForClass({ tenantId, classId });
-      } catch {
-        /* listing should still work if heal fails */
-      }
+      // Do not block the roster on archive heal — that was causing Gateway Timeouts.
+      after(() => {
+        void healStalePreviousYearReportsForClass({ tenantId, classId }).catch(() => {
+          /* best-effort */
+        });
+      });
     }
     let students;
     if (role === "teacher" && (!classId || !isUuid(classId))) {

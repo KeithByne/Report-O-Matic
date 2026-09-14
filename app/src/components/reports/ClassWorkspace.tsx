@@ -606,16 +606,14 @@ export function ClassWorkspace({
     try {
       const [sRes, rRes] = await Promise.all([
         fetch(`${base}/students?classId=${encodeURIComponent(classId)}`),
-        fetch(`${base}/reports`),
+        fetch(`${base}/reports?classId=${encodeURIComponent(classId)}`),
       ]);
       const sData = await sRes.json().catch(() => ({}));
       const rData = await rRes.json().catch(() => ({}));
       if (!sRes.ok) throw new Error(sData.error || t("class.errLoadStudents"));
       if (!rRes.ok) throw new Error(rData.error || t("class.errLoadReports"));
       setStudents(sData.students ?? []);
-      const all = (rData.reports ?? []) as Report[];
-      const sid = new Set((sData.students ?? []).map((x: Student) => x.id));
-      setReports(all.filter((r) => sid.has(r.student_id)));
+      setReports((rData.reports ?? []) as Report[]);
     } catch (e: unknown) {
       setLoadError(e instanceof Error ? e.message : t("common.loadFailed"));
     }

@@ -4,7 +4,7 @@ import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant, listClasses } from "@/lib/data/classesDb";
 import { getTenantDefaultReportLanguage } from "@/lib/data/tenantLanguage";
 import { getRoleForTenant } from "@/lib/data/memberships";
-import { insertReport, listReportsForTenant } from "@/lib/data/reportsDb";
+import { insertReport, listReportsForStudentIds, listReportsForTenant } from "@/lib/data/reportsDb";
 import { getStudentInTenant, listStudents } from "@/lib/data/students";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { listTenantCustomSubjects, rubricMapFromCustomSubjects } from "@/lib/data/tenantCustomSubjects";
@@ -30,16 +30,31 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
 
   const url = new URL(req.url);
   const studentId = url.searchParams.get("studentId")?.trim() || "";
+  const classId = url.searchParams.get("classId")?.trim() || "";
   try {
-    let reports = await listReportsForTenant(tenantId, studentId && isUuid(studentId) ? studentId : undefined);
-    if (role === "teacher") {
-      const myClasses = await listClasses(tenantId, { viewerRole: role, viewerEmail: gate.email });
-      const ids = new Set(myClasses.map((c) => c.id));
-      const visibleStudents = ids.size
-        ? await listStudents(tenantId, undefined, { classIds: [...ids] })
-        : [];
-      const allowed = new Set(visibleStudents.map((s) => s.id));
-      reports = reports.filter((r) => allowed.has(r.student_id));
+    let reports;
+    if (classId && isUuid(classId)) {
+      const cls = await getClassInTenant(tenantId, classId);
+      if (!cls) return NextResponse.json({ error: "Class not found." }, { status: 404 });
+      if (!canAccessClass({ role, viewerEmail: gate.email, klass: cls })) {
+        return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
+      }
+      const classStudents = await listStudents(tenantId, classId);
+      reports = await listReportsForStudentIds(
+        tenantId,
+        classStudents.map((s) => s.id),
+      );
+    } else {
+      reports = await listReportsForTenant(tenantId, studentId && isUuid(studentId) ? studentId : undefined);
+      if (role === "teacher") {
+        const myClasses = await listClasses(tenantId, { viewerRole: role, viewerEmail: gate.email });
+        const ids = new Set(myClasses.map((c) => c.id));
+        const visibleStudents = ids.size
+          ? await listStudents(tenantId, undefined, { classIds: [...ids] })
+          : [];
+        const allowed = new Set(visibleStudents.map((s) => s.id));
+        reports = reports.filter((r) => allowed.has(r.student_id));
+      }
     }
     return NextResponse.json({ reports });
   } catch (e: unknown) {

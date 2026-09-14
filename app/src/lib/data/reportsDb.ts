@@ -62,6 +62,29 @@ export async function listReportsForTenant(tenantId: string, studentId?: string)
   return (data ?? []).map((r) => rowFromDb(r as Record<string, unknown>));
 }
 
+/** List reports for many students (chunked). Used by class pages to avoid loading the whole school. */
+export async function listReportsForStudentIds(tenantId: string, studentIds: string[]): Promise<ReportRow[]> {
+  const ids = [...new Set(studentIds.map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) return [];
+  const supabase = getServiceSupabase();
+  if (!supabase) return [];
+
+  const out: ReportRow[] = [];
+  const chunkSize = 80;
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    const { data, error } = await supabase
+      .from("reports")
+      .select(reportSelect)
+      .eq("tenant_id", tenantId)
+      .in("student_id", chunk)
+      .order("updated_at", { ascending: false });
+    if (error) throw new Error(formatErr(error));
+    for (const r of data ?? []) out.push(rowFromDb(r as Record<string, unknown>));
+  }
+  return out;
+}
+
 export async function getReport(tenantId: string, reportId: string): Promise<ReportRow | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;
