@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { DashboardFindStudentPanel } from "@/components/dashboard/DashboardFindStudentPanel";
 import { allowedClassLevelsForRubric } from "@/lib/classLevel";
@@ -285,6 +286,7 @@ export function ClassWorkspace({
   const [studentPanelAction, setStudentPanelAction] = useState<StudentPanelAction>("add");
   const [importFromOtherSearch, setImportFromOtherSearch] = useState("");
   const [importCandidates, setImportCandidates] = useState<ImportCandidate[]>([]);
+  const [highlightStudentId, setHighlightStudentId] = useState<string | null>(null);
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");
@@ -385,14 +387,16 @@ export function ClassWorkspace({
 
   useEffect(() => {
     setOpenClassPanel(initialOpenPanel ?? null);
+    setStudentPanelAction("add");
+    setHighlightStudentId(null);
   }, [tenantId, classId, initialOpenPanel]);
 
   useEffect(() => {
     didScrollToFocusStudent.current = false;
-  }, [tenantId, classId, initialFocusStudentId]);
+  }, [tenantId, classId, initialFocusStudentId, highlightStudentId]);
 
   useEffect(() => {
-    const sid = initialFocusStudentId?.trim();
+    const sid = (highlightStudentId ?? initialFocusStudentId)?.trim();
     if (!sid || didScrollToFocusStudent.current) return;
     if (!students.some((s) => s.id === sid)) return;
     didScrollToFocusStudent.current = true;
@@ -400,7 +404,7 @@ export function ClassWorkspace({
       document.getElementById(`class-student-row-${sid}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 100);
     return () => window.clearTimeout(t);
-  }, [students, initialFocusStudentId]);
+  }, [students, initialFocusStudentId, highlightStudentId]);
 
   const toggleClassPanel = useCallback((id: ClassWorkspacePanelId) => {
     setClassPdfPreview(null);
@@ -915,21 +919,50 @@ export function ClassWorkspace({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
-      // Return to the class pupil list immediately (do not wait on refreshes).
-      setImportFromOtherSearch("");
-      setStudentPanelAction("add");
-      try {
-        await refreshStudents();
-        await refreshOrgStudents();
-      } catch {
-        /* panel already back on class list; refresh can retry on next open */
-      }
-      router.refresh();
-      requestAnimationFrame(() => {
-        document
-          .getElementById("class-workspace-panel-students")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      const imported = data.student as
+        | {
+            id?: string;
+            school_student_id?: string;
+            display_name?: string;
+            first_name?: string | null;
+            last_name?: string | null;
+            gender?: Student["gender"];
+            class_id?: string;
+            class_name?: string;
+          }
+        | undefined;
+      const importedId = typeof imported?.id === "string" ? imported.id : null;
+
+      // Force the pupils list to show before any background refresh can stall the UI.
+      flushSync(() => {
+        setImportFromOtherSearch("");
+        setImportCandidates([]);
+        setStudentPanelAction("add");
+        if (importedId) {
+          setHighlightStudentId(importedId);
+          setStudents((prev) => {
+            if (prev.some((s) => s.id === importedId)) return prev;
+            const next: Student = {
+              id: importedId,
+              school_student_id: imported?.school_student_id,
+              display_name: imported?.display_name || candidate.display_name,
+              first_name: imported?.first_name ?? candidate.first_name,
+              last_name: imported?.last_name ?? candidate.last_name,
+              gender: imported?.gender,
+              class_id: imported?.class_id || classId,
+              class_name: imported?.class_name || cName.trim() || initialClassName,
+            };
+            return [...prev, next].sort((a, b) =>
+              a.display_name.localeCompare(b.display_name, undefined, { sensitivity: "base" }),
+            );
+          });
+        }
       });
+
+      void refreshStudents();
+      void refreshOrgStudents();
+      router.refresh();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : t("common.failed"));
     } finally {
@@ -1876,7 +1909,8 @@ export function ClassWorkspace({
                   key={s.id}
                   id={`class-student-row-${s.id}`}
                   className={`px-2 py-3 ${
-                    initialFocusStudentId && s.id === initialFocusStudentId
+                    (highlightStudentId ?? initialFocusStudentId) &&
+                    s.id === (highlightStudentId ?? initialFocusStudentId)
                       ? "scroll-mt-24 rounded-lg bg-emerald-50/80 ring-2 ring-emerald-400/50"
                       : ""
                   }`}
