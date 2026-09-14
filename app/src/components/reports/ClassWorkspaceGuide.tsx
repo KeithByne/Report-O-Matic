@@ -67,15 +67,21 @@ export function ClassWorkspaceGuide({
   return (
     <div className="mt-4 border-t border-emerald-100 pt-4 text-left">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-emerald-800/90">{t("dash.guide.title")}</h3>
-      {activeStage ? (
-        <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
-          <ol className="ml-5 list-decimal space-y-1.5 text-left text-xs leading-relaxed text-zinc-600">
-            {activeStage.linesKeys.map((key) => (
-              <li key={key}>{t(key)}</li>
-            ))}
-          </ol>
-        </div>
-      ) : null}
+      {/*
+        Keep a fixed tip footprint so hover-driven tips do not grow/shrink the page.
+        Otherwise buttons below jump under the cursor and cause hover flutter.
+      */}
+      <div className="mt-2 min-h-[6.25rem]" aria-live="polite">
+        {activeStage ? (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
+            <ol className="ml-5 list-decimal space-y-1.5 text-left text-xs leading-relaxed text-zinc-600">
+              {activeStage.linesKeys.map((key) => (
+                <li key={key}>{t(key)}</li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
