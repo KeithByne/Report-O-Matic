@@ -45,6 +45,7 @@ export const EL_BODY: Record<string, string> = {
   "dash.panelInviteTeam": "Πρόσκληση ομάδας",
   "dash.panelActiveStudents": "Ενεργοί μαθητές",
   "dash.panelFindStudent": "Εύρεση μαθητή",
+  "class.studentsActionFind": "Εύρεση μαθητή",
   "dash.panelInactiveStudents": "Ανενεργοί μαθητές",
   "dash.findStudentHint":
     "Αναζητήστε οποιονδήποτε μαθητή που είναι εγγεγραμμένος στο σχολείο. Τα αποτελέσματα δείχνουν αν είναι ενεργός ή ανενεργός και την τάξη του (ή την τελευταία τάξη αν είναι ανενεργός).",

@@ -13,6 +13,7 @@ export const IT_LABELS: Record<string, string> = {
   "a11y.uiLanguage": "Lingua dell’interfaccia",
   "dash.title": "Cruscotto",
   "dash.panelFindStudent": "Trova studente",
+  "class.studentsActionFind": "Trova studente",
   "dash.findStudentHint":
     "Cerca qualsiasi studente iscritto in questa scuola. I risultati mostrano se è attivo o inattivo e la classe attuale (o l’ultima classe se inattivo).",
   "dash.findStudentSearchLabel": "Cerca per nome",
@@ -379,6 +380,7 @@ export const PT_LABELS: Record<string, string> = {
   "a11y.uiLanguage": "Idioma da interface",
   "dash.title": "Painel",
   "dash.panelFindStudent": "Encontrar aluno",
+  "class.studentsActionFind": "Encontrar aluno",
   "dash.findStudentHint":
     "Pesquise qualquer aluno inscrito nesta escola. Os resultados mostram se está ativo ou inativo e a turma atual (ou a última turma se estiver inativo).",
   "dash.findStudentSearchLabel": "Pesquisar por nome",
@@ -754,6 +756,7 @@ export const DE_LABELS: Record<string, string> = {
   "a11y.uiLanguage": "Oberflächensprache",
   "dash.title": "Dashboard",
   "dash.panelFindStudent": "Schüler finden",
+  "class.studentsActionFind": "Schüler finden",
   "dash.findStudentHint":
     "Suchen Sie jeden an dieser Schule eingeschriebenen Schüler. Ergebnisse zeigen aktiv/inaktiv und die aktuelle Klasse (oder die letzte Klasse bei Inaktiven).",
   "dash.findStudentSearchLabel": "Nach Name suchen",

@@ -9,9 +9,10 @@ import type { SchoolStudentWithClasses } from "@/lib/data/schoolStudents";
 
 type Props = {
   tenantId: string;
+  onRosterChanged?: () => void;
 };
 
-export function DashboardFindStudentPanel({ tenantId }: Props) {
+export function DashboardFindStudentPanel({ tenantId, onRosterChanged }: Props) {
   const { t } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -98,6 +99,7 @@ export function DashboardFindStudentPanel({ tenantId }: Props) {
       const created = data.student as SchoolStudentWithClasses | undefined;
       if (created?.display_name) setQuery(created.display_name);
       await refresh();
+      onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
@@ -114,6 +116,7 @@ export function DashboardFindStudentPanel({ tenantId }: Props) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       await refresh();
+      onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
@@ -131,6 +134,7 @@ export function DashboardFindStudentPanel({ tenantId }: Props) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       await refresh();
+      onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {
@@ -152,6 +156,7 @@ export function DashboardFindStudentPanel({ tenantId }: Props) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       await refresh();
+      onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
     } finally {

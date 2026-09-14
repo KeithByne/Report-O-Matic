@@ -10,6 +10,7 @@ import {
   ClipboardList,
   FolderKanban,
   Printer,
+  Search,
   Settings2,
   Users,
   type LucideIcon,
@@ -18,6 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
+import { DashboardFindStudentPanel } from "@/components/dashboard/DashboardFindStudentPanel";
 import { allowedClassLevelsForRubric } from "@/lib/classLevel";
 import {
   classDefaultSubjectUiLine,
@@ -50,7 +52,7 @@ import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoVi
 
 type ClassWorkspacePanelId = "settings" | "students" | "bulkDownload" | "registerPreview";
 
-type StudentPanelAction = "add" | "move" | "import";
+type StudentPanelAction = "add" | "move" | "import" | "find";
 
 const CLASS_PANEL_ICON: Record<ClassWorkspacePanelId, LucideIcon> = {
   settings: Settings2,
@@ -70,6 +72,7 @@ const STUDENT_ACTION_GUIDE_KEY: Record<StudentPanelAction, string> = {
   add: "class_students",
   move: "class_move",
   import: "class_import_other",
+  find: "class_find_student",
 };
 
 const CLASS_BULK_PDF_ID = "class-bulk-reports";
@@ -1682,6 +1685,17 @@ export function ClassWorkspace({
               <ArrowRightToLine className={ICON_INLINE} aria-hidden />
               {t("class.studentsActionImport")}
             </button>
+            <button
+              type="button"
+              aria-pressed={studentPanelAction === "find"}
+              onMouseEnter={() => setClassGuideHoverKey(STUDENT_ACTION_GUIDE_KEY.find)}
+              onFocus={() => setClassGuideHoverKey(STUDENT_ACTION_GUIDE_KEY.find)}
+              onClick={() => setStudentPanelAction("find")}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${studentActionButtonClass("find")}`}
+            >
+              <Search className={ICON_INLINE} aria-hidden />
+              {t("class.studentsActionFind")}
+            </button>
           </nav>
         ) : null}
 
@@ -1785,6 +1799,12 @@ export function ClassWorkspace({
                 </button>
               </div>
             </div>
+          </div>
+        ) : null}
+
+        {canManageStudents && studentPanelAction === "find" ? (
+          <div className="mt-4">
+            <DashboardFindStudentPanel tenantId={tenantId} onRosterChanged={() => void refreshStudents()} />
           </div>
         ) : null}
 

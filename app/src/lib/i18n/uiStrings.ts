@@ -729,6 +729,10 @@ const EN: UiMessages = {
   "class.guide.importFromOther2":
     "Their reports for this year travel with them; they disappear from the previous class list.",
   "class.guide.importFromOther3": "Use Locate from Active Students instead if the pupil should stay in more than one class.",
+  "class.guide.findStudentTitle": "Find Student",
+  "class.guide.findStudent1": "Search the school roster for active or inactive pupils and see their current or last class.",
+  "class.guide.findStudent2": "Add to the school list, locate into a class, archive, or reactivate from here.",
+  "class.guide.findStudent3": "Useful when you need a pupil quickly without leaving this class.",
   "dash.ownerBackToSchools": "Back to schools",
   "dash.ownerMenuClassesAndReports": "Classes and Reports",
   "profile.pageTitle": "Your account",
@@ -1407,6 +1411,7 @@ const EN: UiMessages = {
   "class.studentsActionAdd": "Add new student",
   "class.studentsActionMove": "Move student",
   "class.studentsActionImport": "Import student",
+  "class.studentsActionFind": "Find Student",
   "class.backToClassesList": "Back to Classes",
   "class.firstName": "First name(s)",
   "class.lastName": "Last name(s)",
@@ -2332,6 +2337,7 @@ const FR: UiMessages = {
   "class.studentsActionAdd": "Ajouter un nouvel élève",
   "class.studentsActionMove": "Déplacer un élève",
   "class.studentsActionImport": "Importer un élève",
+  "class.studentsActionFind": "Trouver un élève",
   "class.backToClassesList": "Retour aux classes",
   "class.firstName": "Prénom(s)",
   "class.lastName": "Nom(s)",
@@ -2423,6 +2429,12 @@ const FR: UiMessages = {
     "Ses rapports de l’année suivent ; il disparaît de la liste de l’ancienne classe.",
   "class.guide.importFromOther3":
     "Utilisez Placer depuis Élèves actifs si l’élève doit rester dans plusieurs classes.",
+  "class.guide.findStudentTitle": "Trouver un élève",
+  "class.guide.findStudent1":
+    "Recherchez dans la liste de l’école les élèves actifs ou inactifs et voyez leur classe actuelle ou précédente.",
+  "class.guide.findStudent2":
+    "Ajoutez à la liste de l’école, placez dans une classe, archivez ou réactivez depuis ici.",
+  "class.guide.findStudent3": "Utile pour retrouver un élève rapidement sans quitter cette classe.",
   "class.importFromOtherClassTitle": "Importer un élève d’une autre classe",
   "class.importFromOtherClassHint":
     "Recherchez dans toute l’école par nom — toutes les classes, y compris les élèves inactifs. L’import les place ici avec leurs rapports (ou les réactive s’ils étaient inactifs).",
@@ -3085,6 +3097,7 @@ const ES: UiMessages = {
   "class.studentsActionAdd": "Añadir alumno nuevo",
   "class.studentsActionMove": "Mover alumno",
   "class.studentsActionImport": "Importar alumno",
+  "class.studentsActionFind": "Buscar alumno",
   "class.backToClassesList": "Volver a las clases",
   "class.firstName": "Nombre(s)",
   "class.lastName": "Apellido(s)",
@@ -3176,6 +3189,12 @@ const ES: UiMessages = {
     "Sus informes del año viajan con él; desaparece de la lista de la clase anterior.",
   "class.guide.importFromOther3":
     "Use Colocar desde Alumnos activos si el alumno debe permanecer en más de una clase.",
+  "class.guide.findStudentTitle": "Buscar alumno",
+  "class.guide.findStudent1":
+    "Busque en la lista escolar alumnos activos o inactivos y vea su clase actual o última.",
+  "class.guide.findStudent2":
+    "Añada a la lista escolar, coloque en una clase, archive o reactive desde aquí.",
+  "class.guide.findStudent3": "Útil para encontrar un alumno rápido sin salir de esta clase.",
   "class.importFromOtherClassTitle": "Importar alumno de otra clase",
   "class.importFromOtherClassHint":
     "Busque en toda la escuela por nombre — todas las clases, incluidos alumnos inactivos. La importación los trae aquí con sus informes (o los reactiva si estaban inactivos).",

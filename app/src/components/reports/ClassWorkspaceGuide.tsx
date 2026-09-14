@@ -39,10 +39,16 @@ export function classWorkspaceGuideStages(viewerRole: RomRole): StageDef[] {
       titleKey: "class.guide.importFromOtherTitle",
       linesKeys: ["class.guide.importFromOther1", "class.guide.importFromOther2", "class.guide.importFromOther3"],
     });
+    stages.push({
+      key: "class_find_student",
+      n: 6,
+      titleKey: "class.guide.findStudentTitle",
+      linesKeys: ["class.guide.findStudent1", "class.guide.findStudent2", "class.guide.findStudent3"],
+    });
   }
   stages.push({
     key: "class_register",
-    n: viewerRole === "owner" || viewerRole === "department_head" ? 6 : 4,
+    n: viewerRole === "owner" || viewerRole === "department_head" ? 7 : 4,
     titleKey: "class.guide.registerTitle",
     linesKeys: ["class.guide.register1", "class.guide.register2", "class.guide.register3"],
   });

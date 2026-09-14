@@ -30,7 +30,101 @@ const CLASS_GUIDE_KEYS = [
   "class.guide.locate1",
   "class.guide.locate2",
   "class.guide.locate3",
+  "class.guide.findStudentTitle",
+  "class.guide.findStudent1",
+  "class.guide.findStudent2",
+  "class.guide.findStudent3",
 ] as const;
+
+const CLASS_GUIDE_FIND_IT: Record<string, string> = {
+  "class.guide.findStudentTitle": "Trova studente",
+  "class.guide.findStudent1":
+    "Cerca nell’elenco scolastico studenti attivi o inattivi e vedi la classe attuale o l’ultima.",
+  "class.guide.findStudent2":
+    "Aggiungi all’elenco scolastico, colloca in una classe, archivia o riattiva da qui.",
+  "class.guide.findStudent3": "Utile per trovare uno studente subito senza lasciare questa classe.",
+};
+
+const CLASS_GUIDE_FIND_DE: Record<string, string> = {
+  "class.guide.findStudentTitle": "Schüler finden",
+  "class.guide.findStudent1":
+    "Durchsuchen Sie die Schul-Liste nach aktiven oder inaktiven Schülern und sehen Sie aktuelle oder letzte Klasse.",
+  "class.guide.findStudent2":
+    "Hier zur Schul-Liste hinzufügen, einer Klasse zuordnen, archivieren oder reaktivieren.",
+  "class.guide.findStudent3": "Nützlich, um einen Schüler schnell zu finden, ohne diese Klasse zu verlassen.",
+};
+
+const CLASS_GUIDE_FIND_PT: Record<string, string> = {
+  "class.guide.findStudentTitle": "Encontrar aluno",
+  "class.guide.findStudent1":
+    "Pesquise na lista da escola alunos ativos ou inativos e veja a turma atual ou a última.",
+  "class.guide.findStudent2":
+    "Adicione à lista da escola, coloque numa turma, archive ou reative daqui.",
+  "class.guide.findStudent3": "Útil para encontrar um aluno depressa sem sair desta turma.",
+};
+
+const CLASS_GUIDE_FIND_EL: Record<string, string> = {
+  "class.guide.findStudentTitle": "Εύρεση μαθητή",
+  "class.guide.findStudent1":
+    "Αναζητήστε στο σχολικό κατάλογο ενεργούς ή ανενεργούς μαθητές και δείτε την τρέχουσα ή τελευταία τάξη.",
+  "class.guide.findStudent2":
+    "Προσθέστε στη σχολική λίστα, τοποθετήστε σε τάξη, αρχειοθετήστε ή επανενεργοποιήστε από εδώ.",
+  "class.guide.findStudent3": "Χρήσιμο για γρήγορη εύρεση μαθητή χωρίς να φύγετε από αυτή την τάξη.",
+};
+
+const CLASS_GUIDE_FIND_NL: Record<string, string> = {
+  "class.guide.findStudentTitle": "Leerling zoeken",
+  "class.guide.findStudent1":
+    "Zoek in de schoollijst naar actieve of inactieve leerlingen en zie hun huidige of laatste klas.",
+  "class.guide.findStudent2":
+    "Voeg toe aan de schoollijst, plaats in een klas, archiveer of activeer opnieuw vanaf hier.",
+  "class.guide.findStudent3": "Handig om snel een leerling te vinden zonder deze klas te verlaten.",
+};
+
+const CLASS_GUIDE_FIND_PL: Record<string, string> = {
+  "class.guide.findStudentTitle": "Znajdź ucznia",
+  "class.guide.findStudent1":
+    "Szukaj na liście szkolnej aktywnych lub nieaktywnych uczniów i zobacz obecną lub ostatnią klasę.",
+  "class.guide.findStudent2":
+    "Dodaj do listy szkolnej, umieść w klasie, archiwizuj lub reaktywuj stąd.",
+  "class.guide.findStudent3": "Przydatne, by szybko znaleźć ucznia bez opuszczania tej klasy.",
+};
+
+const CLASS_GUIDE_FIND_RO: Record<string, string> = {
+  "class.guide.findStudentTitle": "Găsește elev",
+  "class.guide.findStudent1":
+    "Căutați în lista școlii elevi activi sau inactivi și vedeți clasa curentă sau ultima.",
+  "class.guide.findStudent2":
+    "Adăugați la lista școlii, plasați într-o clasă, arhivați sau reactivați de aici.",
+  "class.guide.findStudent3": "Util pentru a găsi rapid un elev fără a părăsi această clasă.",
+};
+
+const CLASS_GUIDE_FIND_RU: Record<string, string> = {
+  "class.guide.findStudentTitle": "Найти ученика",
+  "class.guide.findStudent1":
+    "Ищите в школьном списке активных или неактивных учеников и смотрите текущий или последний класс.",
+  "class.guide.findStudent2":
+    "Добавляйте в школьный список, размещайте в класс, архивируйте или реактивируйте отсюда.",
+  "class.guide.findStudent3": "Удобно быстро найти ученика, не покидая этот класс.",
+};
+
+const CLASS_GUIDE_FIND_UK: Record<string, string> = {
+  "class.guide.findStudentTitle": "Знайти учня",
+  "class.guide.findStudent1":
+    "Шукайте у шкільному списку активних або неактивних учнів і бачте поточний або останній клас.",
+  "class.guide.findStudent2":
+    "Додавайте до шкільного списку, розміщуйте в клас, архівуйте або реактивуйте звідси.",
+  "class.guide.findStudent3": "Корисно швидко знайти учня, не залишаючи цей клас.",
+};
+
+const CLASS_GUIDE_FIND_AR: Record<string, string> = {
+  "class.guide.findStudentTitle": "البحث عن تلميذ",
+  "class.guide.findStudent1":
+    "ابحث في قائمة المدرسة عن تلاميذ نشطين أو غير نشطين واعرض صفّهم الحالي أو الأخير.",
+  "class.guide.findStudent2":
+    "أضف إلى قائمة المدرسة أو عيّن في صف أو أرشف أو أعد التفعيل من هنا.",
+  "class.guide.findStudent3": "مفيد للعثور على تلميذ بسرعة دون مغادرة هذا الصف.",
+};
 
 const CLASS_GUIDE_LOCATE_IT: Record<string, string> = {
   "class.guide.locateTitle": "Colloca da Studenti attivi",
@@ -111,6 +205,7 @@ export const CLASS_WORKSPACE_GUIDE_IT: Record<string, string> = {
   "class.guide.move2": "Scegli studente e classe di destinazione, poi conferma.",
   "class.guide.move3": "Utile quando uno studente cambia gruppo a metà anno.",
   ...CLASS_GUIDE_LOCATE_IT,
+  ...CLASS_GUIDE_FIND_IT,
 };
 
 export const CLASS_WORKSPACE_GUIDE_EL: Record<string, string> = {
@@ -139,6 +234,7 @@ export const CLASS_WORKSPACE_GUIDE_EL: Record<string, string> = {
   "class.guide.move2": "Επιλέξτε μαθητή και τάξη προορισμού, μετά επιβεβαιώστε.",
   "class.guide.move3": "Χρήσιμο όταν ένας μαθητής αλλάζει ομάδα στη μέση της χρονιάς.",
   ...CLASS_GUIDE_LOCATE_FR,
+  ...CLASS_GUIDE_FIND_EL,
 };
 
 export const CLASS_WORKSPACE_GUIDE_DE: Record<string, string> = {
@@ -167,6 +263,7 @@ export const CLASS_WORKSPACE_GUIDE_DE: Record<string, string> = {
   "class.guide.move2": "Schüler und Zielklasse wählen, dann bestätigen.",
   "class.guide.move3": "Nützlich, wenn ein Schüler die Gruppe im Jahresverlauf wechselt.",
   ...CLASS_GUIDE_LOCATE_DE,
+  ...CLASS_GUIDE_FIND_DE,
 };
 
 export const CLASS_WORKSPACE_GUIDE_PT: Record<string, string> = {
@@ -195,6 +292,7 @@ export const CLASS_WORKSPACE_GUIDE_PT: Record<string, string> = {
   "class.guide.move2": "Escolha o aluno e a turma de destino e confirme.",
   "class.guide.move3": "Útil quando um aluno muda de grupo a meio do ano letivo.",
   ...CLASS_GUIDE_LOCATE_ES,
+  ...CLASS_GUIDE_FIND_PT,
 };
 
 export const CLASS_WORKSPACE_GUIDE_NL: Record<string, string> = {
@@ -223,6 +321,7 @@ export const CLASS_WORKSPACE_GUIDE_NL: Record<string, string> = {
   "class.guide.move2": "Kies leerling en doelklas en bevestig.",
   "class.guide.move3": "Handig wanneer een leerling van groep wisselt tijdens het schooljaar.",
   ...CLASS_GUIDE_LOCATE_FR,
+  ...CLASS_GUIDE_FIND_NL,
 };
 
 export const CLASS_WORKSPACE_GUIDE_PL: Record<string, string> = {
@@ -251,6 +350,7 @@ export const CLASS_WORKSPACE_GUIDE_PL: Record<string, string> = {
   "class.guide.move2": "Wybierz ucznia i klasę docelową, potem potwierdź.",
   "class.guide.move3": "Przydatne, gdy uczeń zmienia grupę w trakcie roku.",
   ...CLASS_GUIDE_LOCATE_FR,
+  ...CLASS_GUIDE_FIND_PL,
 };
 
 export const CLASS_WORKSPACE_GUIDE_RO: Record<string, string> = {
@@ -279,6 +379,7 @@ export const CLASS_WORKSPACE_GUIDE_RO: Record<string, string> = {
   "class.guide.move2": "Alegeți elevul și clasa destinație, apoi confirmați.",
   "class.guide.move3": "Util când un elev schimbă grupa la mijlocul anului.",
   ...CLASS_GUIDE_LOCATE_FR,
+  ...CLASS_GUIDE_FIND_RO,
 };
 
 export const CLASS_WORKSPACE_GUIDE_RU: Record<string, string> = {
@@ -307,6 +408,7 @@ export const CLASS_WORKSPACE_GUIDE_RU: Record<string, string> = {
   "class.guide.move2": "Выберите ученика и класс назначения, затем подтвердите.",
   "class.guide.move3": "Полезно, когда ученик меняет группу в середине года.",
   ...CLASS_GUIDE_LOCATE_RU,
+  ...CLASS_GUIDE_FIND_RU,
 };
 
 export const CLASS_WORKSPACE_GUIDE_UK: Record<string, string> = {
@@ -341,6 +443,7 @@ export const CLASS_WORKSPACE_GUIDE_UK: Record<string, string> = {
   "class.guide.locate2":
     "Оберіть учня та підтвердіть — він лишається в активному списку для інших класів.",
   "class.guide.locate3": "Спочатку додайте учнів у «Активні учні» на панелі.",
+  ...CLASS_GUIDE_FIND_UK,
 };
 
 export const CLASS_WORKSPACE_GUIDE_AR: Record<string, string> = {
@@ -367,6 +470,7 @@ export const CLASS_WORKSPACE_GUIDE_AR: Record<string, string> = {
   "class.guide.move2": "اختر التلميذ والصف الوجهة ثم أكّد.",
   "class.guide.move3": "مفيد عندما يغيّر التلميذ مجموعته منتصف العام.",
   ...CLASS_GUIDE_LOCATE_AR,
+  ...CLASS_GUIDE_FIND_AR,
 };
 
 /** Keys exported for tests or validation. */

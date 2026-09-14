@@ -39,6 +39,7 @@ import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
 import { DashboardScholasticArchivesOverview } from "@/components/dashboard/DashboardScholasticArchivesOverview";
 import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTable";
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
+import { DashboardSchoolStudentsPanel } from "@/components/dashboard/DashboardSchoolStudentsPanel";
 import { DashboardFindStudentPanel } from "@/components/dashboard/DashboardFindStudentPanel";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
@@ -79,7 +80,9 @@ type WorkspaceDashPanel =
   | "invites"
   | "subjects"
   | "classes"
+  | "activeStudents"
   | "findStudent"
+  | "inactiveStudents"
   | "timetable"
   | "schoolType";
 
@@ -1363,12 +1366,36 @@ export function DashboardClientView({
                 ) : null}
 
                 {primaryMembership &&
+                workspaceDashPanel === "activeStudents" &&
+                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
+                  <div id="dash-workspace-panel-activeStudents">
+                    <DashboardSchoolStudentsPanel
+                      key={`${primaryMembership.tenantId}-active-students`}
+                      tenantId={primaryMembership.tenantId}
+                      status="active"
+                    />
+                  </div>
+                ) : null}
+
+                {primaryMembership &&
                 workspaceDashPanel === "findStudent" &&
                 (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
                   <DashboardFindStudentPanel
                     key={`${primaryMembership.tenantId}-find-student`}
                     tenantId={primaryMembership.tenantId}
                   />
+                ) : null}
+
+                {primaryMembership &&
+                workspaceDashPanel === "inactiveStudents" &&
+                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
+                  <div id="dash-workspace-panel-inactiveStudents">
+                    <DashboardSchoolStudentsPanel
+                      key={`${primaryMembership.tenantId}-inactive-students`}
+                      tenantId={primaryMembership.tenantId}
+                      status="inactive"
+                    />
+                  </div>
                 ) : null}
 
                 {primaryMembership && workspaceDashPanel === "schoolType" && primaryMembership.role === "owner" ? (
