@@ -604,7 +604,20 @@ const EN: UiMessages = {
   "dash.ownerViewingSchool": "You are viewing: {name}",
   "dash.ownerAllRegisterLists": "Registers",
   "dash.panelActiveStudents": "Active Students",
+  "dash.panelFindStudent": "Find Student",
   "dash.panelInactiveStudents": "Inactive Students",
+  "dash.findStudentHint":
+    "Search any pupil enrolled in this school. Results show active or inactive status and the class they are in (or last attended if inactive).",
+  "dash.findStudentSearchLabel": "Search by name",
+  "dash.findStudentSearchPlaceholder": "Type a pupil name…",
+  "dash.findStudentTypeToSearch": "Start typing a name to find pupils.",
+  "dash.findStudentEmpty": "No pupils match that search.",
+  "dash.findStudentStatusActive": "Active",
+  "dash.findStudentStatusInactive": "Inactive",
+  "dash.findStudentClasses": "Class: {classes}",
+  "dash.findStudentLastClass": "Last class: {className}",
+  "dash.findStudentNoLastClass": "No previous class on record",
+  "dash.findStudentOpenClass": "Open class",
   "dash.activeStudentsHint":
     "School-wide list of all pupils. Add names here, then locate them into any class without removing them from this list. Removing a pupil archives them and ends every class enrollment (reports are kept).",
   "dash.inactiveStudentsHint":
@@ -1763,7 +1776,20 @@ const FR: UiMessages = {
   "dash.ownerViewingSchool": "Vous consultez : {name}",
   "dash.ownerAllRegisterLists": "Registres",
   "dash.panelActiveStudents": "Élèves actifs",
+  "dash.panelFindStudent": "Trouver un élève",
   "dash.panelInactiveStudents": "Élèves inactifs",
+  "dash.findStudentHint":
+    "Recherchez tout élève inscrit dans cette école. Les résultats indiquent s’il est actif ou inactif et la classe actuelle (ou la dernière classe s’il est inactif).",
+  "dash.findStudentSearchLabel": "Rechercher par nom",
+  "dash.findStudentSearchPlaceholder": "Saisissez un nom d’élève…",
+  "dash.findStudentTypeToSearch": "Commencez à taper un nom pour trouver des élèves.",
+  "dash.findStudentEmpty": "Aucun élève ne correspond à cette recherche.",
+  "dash.findStudentStatusActive": "Actif",
+  "dash.findStudentStatusInactive": "Inactif",
+  "dash.findStudentClasses": "Classe : {classes}",
+  "dash.findStudentLastClass": "Dernière classe : {className}",
+  "dash.findStudentNoLastClass": "Aucune classe précédente enregistrée",
+  "dash.findStudentOpenClass": "Ouvrir la classe",
   "dash.activeStudentsHint":
     "Liste de tous les élèves de l’établissement. Ajoutez des noms ici, puis placez-les dans une classe sans les retirer de cette liste. La suppression archive l’élève et met fin à toutes les inscriptions (les rapports sont conservés).",
   "dash.inactiveStudentsHint":
@@ -2503,7 +2529,20 @@ const ES: UiMessages = {
   "dash.ownerViewingSchool": "Está viendo: {name}",
   "dash.ownerAllRegisterLists": "Registros",
   "dash.panelActiveStudents": "Alumnos activos",
+  "dash.panelFindStudent": "Buscar alumno",
   "dash.panelInactiveStudents": "Alumnos inactivos",
+  "dash.findStudentHint":
+    "Busque cualquier alumno matriculado en esta escuela. Los resultados indican si está activo o inactivo y la clase actual (o la última clase si está inactivo).",
+  "dash.findStudentSearchLabel": "Buscar por nombre",
+  "dash.findStudentSearchPlaceholder": "Escriba un nombre de alumno…",
+  "dash.findStudentTypeToSearch": "Empiece a escribir un nombre para encontrar alumnos.",
+  "dash.findStudentEmpty": "Ningún alumno coincide con esa búsqueda.",
+  "dash.findStudentStatusActive": "Activo",
+  "dash.findStudentStatusInactive": "Inactivo",
+  "dash.findStudentClasses": "Clase: {classes}",
+  "dash.findStudentLastClass": "Última clase: {className}",
+  "dash.findStudentNoLastClass": "No hay clase anterior registrada",
+  "dash.findStudentOpenClass": "Abrir clase",
   "dash.activeStudentsHint":
     "Lista de todos los alumnos del centro. Añada nombres aquí y colóquelos en cualquier clase sin quitarlos de esta lista. Al eliminar, se archiva y se da de baja en todas las clases (los informes se conservan).",
   "dash.inactiveStudentsHint":

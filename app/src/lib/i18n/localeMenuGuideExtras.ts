@@ -10,6 +10,10 @@ export const MENU_GUIDE_EXTRAS_EN: Record<string, string> = {
   "dash.guide.activeStudents1": "Open Active Students to manage the school-wide pupil roster.",
   "dash.guide.activeStudents2": "Add pupils here, then locate them into one or more classes.",
   "dash.guide.activeStudents3": "Removing someone moves them to Inactive Students; their reports are kept.",
+  "dash.guide.findStudentTitle": "Find Student",
+  "dash.guide.findStudent1": "Open Find Student to search any pupil enrolled in this school.",
+  "dash.guide.findStudent2": "Results show whether the pupil is active or inactive.",
+  "dash.guide.findStudent3": "For inactive pupils, the last class they were in is shown.",
   "dash.guide.inactiveStudentsTitle": "Inactive Students",
   "dash.guide.inactiveStudents1": "Open Inactive Students to see pupils no longer on the active list.",
   "dash.guide.inactiveStudents2": "Re-activate a pupil to return them to Active Students.",
@@ -41,6 +45,10 @@ export const MENU_GUIDE_EXTRAS_FR: Record<string, string> = {
   "dash.guide.activeStudents2": "Ajoutez des élèves ici, puis placez-les dans une ou plusieurs classes.",
   "dash.guide.activeStudents3":
     "Retirer quelqu’un l’envoie vers Élèves inactifs ; leurs rapports sont conservés.",
+  "dash.guide.findStudentTitle": "Trouver un élève",
+  "dash.guide.findStudent1": "Ouvrez Trouver un élève pour rechercher tout élève inscrit dans cette école.",
+  "dash.guide.findStudent2": "Les résultats indiquent si l’élève est actif ou inactif.",
+  "dash.guide.findStudent3": "Pour les élèves inactifs, la dernière classe fréquentée est affichée.",
   "dash.guide.inactiveStudentsTitle": "Élèves inactifs",
   "dash.guide.inactiveStudents1":
     "Ouvrez Élèves inactifs pour voir les élèves qui ne sont plus sur la liste active.",
@@ -76,6 +84,10 @@ export const MENU_GUIDE_EXTRAS_ES: Record<string, string> = {
   "dash.guide.activeStudents2": "Añada alumnos aquí y colóquelos en una o varias clases.",
   "dash.guide.activeStudents3":
     "Al quitar a alguien pasa a Alumnos inactivos; sus informes se conservan.",
+  "dash.guide.findStudentTitle": "Buscar alumno",
+  "dash.guide.findStudent1": "Abra Buscar alumno para localizar cualquier alumno matriculado en esta escuela.",
+  "dash.guide.findStudent2": "Los resultados indican si el alumno está activo o inactivo.",
+  "dash.guide.findStudent3": "Para alumnos inactivos se muestra la última clase en la que estuvo.",
   "dash.guide.inactiveStudentsTitle": "Alumnos inactivos",
   "dash.guide.inactiveStudents1":
     "Abra Alumnos inactivos para ver alumnos que ya no están en la lista activa.",
@@ -112,6 +124,10 @@ export const MENU_GUIDE_EXTRAS_DE: Record<string, string> = {
   "dash.guide.activeStudents2": "Legen Sie hier Schüler an und ordnen Sie sie einer oder mehreren Klassen zu.",
   "dash.guide.activeStudents3":
     "Entfernen verschiebt nach „Inaktive Schüler“; Berichte bleiben erhalten.",
+  "dash.guide.findStudentTitle": "Schüler finden",
+  "dash.guide.findStudent1": "Öffnen Sie „Schüler finden“, um jeden eingeschriebenen Schüler zu suchen.",
+  "dash.guide.findStudent2": "Ergebnisse zeigen, ob der Schüler aktiv oder inaktiv ist.",
+  "dash.guide.findStudent3": "Bei inaktiven Schülern wird die letzte Klasse angezeigt.",
   "dash.guide.inactiveStudentsTitle": "Inaktive Schüler",
   "dash.guide.inactiveStudents1":
     "Öffnen Sie „Inaktive Schüler“ für Schüler, die nicht mehr auf der aktiven Liste stehen.",
@@ -147,6 +163,10 @@ export const MENU_GUIDE_EXTRAS_PT: Record<string, string> = {
   "dash.guide.activeStudents2": "Adicione alunos aqui e coloque-os numa ou mais turmas.",
   "dash.guide.activeStudents3":
     "Remover move para Alunos inativos; os relatórios são mantidos.",
+  "dash.guide.findStudentTitle": "Encontrar aluno",
+  "dash.guide.findStudent1": "Abra Encontrar aluno para pesquisar qualquer aluno inscrito nesta escola.",
+  "dash.guide.findStudent2": "Os resultados mostram se o aluno está ativo ou inativo.",
+  "dash.guide.findStudent3": "Para alunos inativos, mostra-se a última turma em que esteve.",
   "dash.guide.inactiveStudentsTitle": "Alunos inativos",
   "dash.guide.inactiveStudents1":
     "Abra Alunos inativos para alunos que já não estão na lista ativa.",
@@ -181,6 +201,10 @@ export const MENU_GUIDE_EXTRAS_IT: Record<string, string> = {
   "dash.guide.activeStudents2": "Aggiungi studenti qui, poi collocali in una o più classi.",
   "dash.guide.activeStudents3":
     "Rimuovere sposta in Studenti inattivi; i rapporti restano.",
+  "dash.guide.findStudentTitle": "Trova studente",
+  "dash.guide.findStudent1": "Apri Trova studente per cercare qualsiasi studente iscritto in questa scuola.",
+  "dash.guide.findStudent2": "I risultati indicano se lo studente è attivo o inattivo.",
+  "dash.guide.findStudent3": "Per gli inattivi viene mostrata l’ultima classe frequentata.",
   "dash.guide.inactiveStudentsTitle": "Studenti inattivi",
   "dash.guide.inactiveStudents1":
     "Apri Studenti inattivi per chi non è più nell’elenco attivo.",

@@ -10,6 +10,7 @@ import {
   LayoutList,
   Library,
   Printer,
+  Search,
   SlidersHorizontal,
   UserCheck,
   UserPlus,
@@ -30,6 +31,7 @@ export type SchoolWorkspacePanel =
   | "subjects"
   | "classes"
   | "activeStudents"
+  | "findStudent"
   | "inactiveStudents"
   | "timetable";
 
@@ -54,7 +56,12 @@ type StudentsItem = {
 };
 
 const SETUP_PANELS = new Set<SchoolWorkspacePanel>(["pdf", "invites", "subjects", "timetable"]);
-const STUDENTS_PANELS = new Set<SchoolWorkspacePanel>(["activeStudents", "classes", "inactiveStudents"]);
+const STUDENTS_PANELS = new Set<SchoolWorkspacePanel>([
+  "activeStudents",
+  "findStudent",
+  "classes",
+  "inactiveStudents",
+]);
 
 const GUIDE_KEYS: Record<
   SchoolWorkspaceMenuVariant,
@@ -67,6 +74,7 @@ const GUIDE_KEYS: Record<
     subjects: string;
     timetable: string;
     activeStudents: string;
+    findStudent: string;
     classes: string;
     registers: string;
     inactiveStudents: string;
@@ -81,6 +89,7 @@ const GUIDE_KEYS: Record<
     subjects: "owner_subjects",
     timetable: "owner_timetable",
     activeStudents: "owner_active_students",
+    findStudent: "owner_find_student",
     classes: "owner_classes",
     registers: "owner_registers",
     inactiveStudents: "owner_inactive_students",
@@ -94,6 +103,7 @@ const GUIDE_KEYS: Record<
     subjects: "dh_subjects",
     timetable: "dh_timetable",
     activeStudents: "dh_active_students",
+    findStudent: "dh_find_student",
     classes: "dh_classes",
     registers: "dh_registers",
     inactiveStudents: "dh_inactive_students",
@@ -200,6 +210,13 @@ export function SchoolWorkspaceGroupedMenu({
         labelKey: "dash.panelActiveStudents",
         guideKey: guide.activeStudents,
         Icon: UserCheck,
+        action: "panel",
+      },
+      {
+        panel: "findStudent",
+        labelKey: "dash.panelFindStudent",
+        guideKey: guide.findStudent,
+        Icon: Search,
         action: "panel",
       },
       {

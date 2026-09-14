@@ -3,7 +3,11 @@ import { canUseSchoolRoster } from "@/lib/auth/schoolRoster";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { SchoolStudentStatus } from "@/lib/data/schoolStudents";
-import { insertSchoolStudent, listSchoolStudents } from "@/lib/data/schoolStudents";
+import {
+  insertSchoolStudent,
+  listAllSchoolStudentsWithClasses,
+  listSchoolStudents,
+} from "@/lib/data/schoolStudents";
 import { logStudentEvent } from "@/lib/data/studentEvents";
 import type { Gender } from "@/lib/data/students";
 
@@ -20,12 +24,15 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   if (!canUseSchoolRoster(role)) {
     return NextResponse.json({ error: "No access to the school pupil lists." }, { status: 403 });
   }
-  const status = (new URL(req.url).searchParams.get("status")?.trim() || "active") as SchoolStudentStatus;
-  if (status !== "active" && status !== "inactive") {
-    return NextResponse.json({ error: "status must be active or inactive." }, { status: 400 });
+  const statusRaw = new URL(req.url).searchParams.get("status")?.trim() || "active";
+  if (statusRaw !== "active" && statusRaw !== "inactive" && statusRaw !== "all") {
+    return NextResponse.json({ error: "status must be active, inactive, or all." }, { status: 400 });
   }
   try {
-    const students = await listSchoolStudents(tenantId, status);
+    const students =
+      statusRaw === "all"
+        ? await listAllSchoolStudentsWithClasses(tenantId)
+        : await listSchoolStudents(tenantId, statusRaw as SchoolStudentStatus);
     return NextResponse.json({ students });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to load pupils.";
@@ -68,7 +75,16 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       type: "added",
       schoolStudentId: student.id,
     });
-    return NextResponse.json({ student: { ...student, class_names: [], class_ids: [], enrollment_ids: [] } });
+    return NextResponse.json({
+      student: {
+        ...student,
+        class_names: [],
+        class_ids: [],
+        enrollment_ids: [],
+        last_class_name: null,
+        last_class_id: null,
+      },
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to add pupil.";
     return NextResponse.json({ error: msg }, { status: 500 });

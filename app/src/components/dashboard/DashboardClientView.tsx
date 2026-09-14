@@ -40,6 +40,7 @@ import { DashboardScholasticArchivesOverview } from "@/components/dashboard/Dash
 import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTable";
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
 import { DashboardSchoolStudentsPanel } from "@/components/dashboard/DashboardSchoolStudentsPanel";
+import { DashboardFindStudentPanel } from "@/components/dashboard/DashboardFindStudentPanel";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -80,6 +81,7 @@ type WorkspaceDashPanel =
   | "subjects"
   | "classes"
   | "activeStudents"
+  | "findStudent"
   | "inactiveStudents"
   | "timetable"
   | "schoolType";
@@ -1373,6 +1375,15 @@ export function DashboardClientView({
                       status="active"
                     />
                   </div>
+                ) : null}
+
+                {primaryMembership &&
+                workspaceDashPanel === "findStudent" &&
+                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
+                  <DashboardFindStudentPanel
+                    key={`${primaryMembership.tenantId}-find-student`}
+                    tenantId={primaryMembership.tenantId}
+                  />
                 ) : null}
 
                 {primaryMembership &&

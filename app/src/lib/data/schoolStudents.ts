@@ -24,6 +24,9 @@ export type SchoolStudentWithClasses = SchoolStudentRow & {
   class_names: string[];
   class_ids: string[];
   enrollment_ids: string[];
+  /** Most recently ended enrollment’s class (for inactive / unplaced pupils). */
+  last_class_name: string | null;
+  last_class_id: string | null;
 };
 
 function displayFromParts(first: string, last: string): string {
@@ -34,16 +37,31 @@ export async function listSchoolStudents(
   tenantId: string,
   status: SchoolStudentStatus,
 ): Promise<SchoolStudentWithClasses[]> {
+  return listSchoolStudentsFiltered(tenantId, status);
+}
+
+/** Active and inactive pupils with current class placements (for school-wide Find Student). */
+export async function listAllSchoolStudentsWithClasses(
+  tenantId: string,
+): Promise<SchoolStudentWithClasses[]> {
+  return listSchoolStudentsFiltered(tenantId, null);
+}
+
+async function listSchoolStudentsFiltered(
+  tenantId: string,
+  status: SchoolStudentStatus | null,
+): Promise<SchoolStudentWithClasses[]> {
   const supabase = getServiceSupabase();
   if (!supabase) return [];
-  const { data, error } = await supabase
+  let q = supabase
     .from("school_students")
     .select(
       "id, tenant_id, first_name, last_name, display_name, gender, status, inactivated_at, created_at, students ( id, class_id, enrollment_ended_at, classes ( name ) )",
     )
     .eq("tenant_id", tenantId)
-    .eq("status", status)
     .order("display_name", { ascending: true });
+  if (status) q = q.eq("status", status);
+  const { data, error } = await q;
   if (error) throw new Error(formatErr(error));
 
   return (data ?? []).map((row: Record<string, unknown>) => {
@@ -59,6 +77,24 @@ export async function listSchoolStudents(
       const name = Array.isArray(cls) ? cls[0]?.name : cls?.name;
       if (typeof name === "string" && name) class_names.push(name);
     }
+
+    const ended = enrollments
+      .filter((e) => typeof e.enrollment_ended_at === "string" && e.enrollment_ended_at)
+      .sort((a, b) => {
+        const ta = new Date(String(a.enrollment_ended_at)).getTime();
+        const tb = new Date(String(b.enrollment_ended_at)).getTime();
+        return tb - ta;
+      });
+    const lastEnded = ended[0];
+    let last_class_name: string | null = null;
+    let last_class_id: string | null = null;
+    if (lastEnded) {
+      last_class_id = typeof lastEnded.class_id === "string" ? lastEnded.class_id : null;
+      const cls = lastEnded.classes as { name: string } | { name: string }[] | null;
+      const name = Array.isArray(cls) ? cls[0]?.name : cls?.name;
+      last_class_name = typeof name === "string" && name ? name : null;
+    }
+
     return {
       id: row.id as string,
       tenant_id: row.tenant_id as string,
@@ -72,6 +108,8 @@ export async function listSchoolStudents(
       class_names,
       class_ids,
       enrollment_ids,
+      last_class_name,
+      last_class_id,
     };
   });
 }
