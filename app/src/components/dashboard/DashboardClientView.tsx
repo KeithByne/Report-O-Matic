@@ -154,18 +154,19 @@ export function DashboardClientView({
   const [myAgentEdit, setMyAgentEdit] = useState<Partial<MyAgentLink>>({});
   const [myAgentSaving, setMyAgentSaving] = useState(false);
 
-  const uniqueSchools = useMemo(() => {
+  /** Schools this user owns — owner workspace focus must not include teacher-only schools. */
+  const ownedSchools = useMemo(() => {
     const byId = new Map<string, string>();
     for (const m of memberships) {
-      if (!byId.has(m.tenantId)) byId.set(m.tenantId, m.tenantName);
+      if (m.role === "owner" && !byId.has(m.tenantId)) byId.set(m.tenantId, m.tenantName);
     }
     return [...byId.entries()].sort((a, b) =>
       a[1].localeCompare(b[1], undefined, { sensitivity: "base" }),
     );
   }, [memberships]);
   const ownerTenantIds = useMemo(
-    () => new Set(memberships.filter((m) => m.role === "owner").map((m) => m.tenantId)),
-    [memberships],
+    () => new Set(ownedSchools.map(([id]) => id)),
+    [ownedSchools],
   );
 
   /** Schools where this user is department head (alphabetical); used to pick a default workspace without a selector. */
@@ -192,7 +193,7 @@ export function DashboardClientView({
       setOwnerFocusTenantId(null);
       return;
     }
-    const ids = uniqueSchools.map(([id]) => id);
+    const ids = ownedSchools.map(([id]) => id);
     if (ids.length === 0) {
       setOwnerFocusTenantId(null);
       return;
@@ -205,7 +206,7 @@ export function DashboardClientView({
       if (prev && ids.includes(prev)) return prev;
       return null;
     });
-  }, [hasOwner, memberships, uniqueSchools]);
+  }, [hasOwner, memberships, ownedSchools]);
 
   useEffect(() => {
     if (hasOwner || !hasDeptHead) {
@@ -662,7 +663,7 @@ export function DashboardClientView({
                   {t("dash.schoolFocusTitle")}
                 </h2>
                 <ul className="mt-4 space-y-2" role="radiogroup" aria-label={t("dash.schoolFocusTitle")}>
-                  {uniqueSchools.map(([tenantId, tenantName]) => (
+                  {ownedSchools.map(([tenantId, tenantName]) => (
                     <li key={tenantId}>
                       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2.5">
                         <label

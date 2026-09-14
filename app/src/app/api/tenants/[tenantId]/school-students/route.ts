@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canManageSchoolRoster } from "@/lib/auth/schoolRoster";
+import { canUseSchoolRoster } from "@/lib/auth/schoolRoster";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { SchoolStudentStatus } from "@/lib/data/schoolStudents";
@@ -17,8 +17,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const gate = await requireTenantMember(tenantId);
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
-  if (!canManageSchoolRoster(role)) {
-    return NextResponse.json({ error: "Only owners and department heads can view the school pupil lists." }, { status: 403 });
+  if (!canUseSchoolRoster(role)) {
+    return NextResponse.json({ error: "No access to the school pupil lists." }, { status: 403 });
   }
   const status = (new URL(req.url).searchParams.get("status")?.trim() || "active") as SchoolStudentStatus;
   if (status !== "active" && status !== "inactive") {
@@ -39,8 +39,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const gate = await requireTenantMember(tenantId);
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
-  if (!canManageSchoolRoster(role)) {
-    return NextResponse.json({ error: "Only owners and department heads can add pupils to the active list." }, { status: 403 });
+  if (!canUseSchoolRoster(role)) {
+    return NextResponse.json({ error: "No access to add pupils to the active list." }, { status: 403 });
   }
 
   let body: { first_name?: unknown; last_name?: unknown; gender?: unknown };

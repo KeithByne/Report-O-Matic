@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canAccessClass } from "@/lib/auth/classAccess";
+import { canAccessClass, canAddStudentsToClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant, listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
@@ -49,6 +49,9 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!role) return NextResponse.json({ error: "No access." }, { status: 403 });
+  if (!canAddStudentsToClass({ role })) {
+    return NextResponse.json({ error: "You cannot add students to this class." }, { status: 403 });
+  }
 
   let body: {
     display_name?: unknown;
@@ -86,29 +89,27 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       ? (genderRaw as "male" | "female" | "non_binary")
       : null;
 
+  const schoolStudentIdRaw =
+    typeof body.school_student_id === "string" && isUuid(body.school_student_id.trim())
+      ? body.school_student_id.trim()
+      : undefined;
+
   try {
     const cls = await getClassInTenant(tenantId, cid);
     if (!cls) return NextResponse.json({ error: "Class not found in this organisation." }, { status: 404 });
-    if (!canAccessClass({ role, viewerEmail: gate.email, klass: cls })) {
-      return NextResponse.json({ error: "You cannot add students to this class." }, { status: 403 });
-    }
 
-    const schoolStudentId =
-      typeof body.school_student_id === "string" && isUuid(body.school_student_id.trim())
-        ? body.school_student_id.trim()
-        : undefined;
     const student = await insertStudent({
       tenantId,
       classId: cid,
       firstName: firstName,
       lastName: lastName,
       gender,
-      schoolStudentId,
+      schoolStudentId: schoolStudentIdRaw,
     });
     await logStudentEvent({
       tenantId,
       actorEmail: gate.email,
-      type: schoolStudentId ? "enrolled" : "added",
+      type: schoolStudentIdRaw ? "enrolled" : "added",
       studentId: student.id,
       schoolStudentId: student.school_student_id,
       toClassId: cid,

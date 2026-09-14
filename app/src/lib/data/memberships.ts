@@ -38,7 +38,7 @@ export async function getMembershipsForEmail(email: string): Promise<MembershipW
     const name =
       Array.isArray(t) ? t[0]?.name : typeof t === "object" && t && "name" in t ? t.name : null;
     if (!name) continue;
-    const role = row.role as RomRole;
+    const role = String(row.role ?? "").trim().toLowerCase() as RomRole;
     if (role !== "owner" && role !== "department_head" && role !== "teacher") continue;
     out.push({
       membershipId: row.id,
@@ -79,7 +79,7 @@ export async function getRoleForTenant(email: string, tenantId: string): Promise
     .eq("tenant_id", tenantId);
   if (error || !data?.length) return null;
   const roles = (data as { role: string }[])
-    .map((row) => row.role)
+    .map((row) => String(row.role ?? "").trim().toLowerCase())
     .filter((r): r is RomRole => r === "owner" || r === "department_head" || r === "teacher");
   if (!roles.length) return null;
   if (roles.includes("owner")) return "owner";

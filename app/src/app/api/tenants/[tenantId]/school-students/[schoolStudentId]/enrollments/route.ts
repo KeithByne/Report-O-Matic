@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { canAccessClass } from "@/lib/auth/classAccess";
-import { canManageSchoolRoster } from "@/lib/auth/schoolRoster";
+import { canUseSchoolRoster } from "@/lib/auth/schoolRoster";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
@@ -21,11 +21,8 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   const gate = await requireTenantMember(tenantId);
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
-  if (!canManageSchoolRoster(role)) {
-    return NextResponse.json(
-      { error: "Only owners and department heads can locate pupils into classes." },
-      { status: 403 },
-    );
+  if (!canUseSchoolRoster(role)) {
+    return NextResponse.json({ error: "No access to locate pupils into classes." }, { status: 403 });
   }
 
   let body: { class_id?: unknown };

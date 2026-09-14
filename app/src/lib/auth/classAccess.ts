@@ -9,3 +9,11 @@ export function canAccessClass(opts: { role: RomRole; viewerEmail: string; klass
   if (!want) return false;
   return want === opts.viewerEmail.trim().toLowerCase();
 }
+
+/**
+ * Any school member (owner, department head, or teacher) may add pupils to a class in that school.
+ * Viewing/editing the class still uses canAccessClass.
+ */
+export function canAddStudentsToClass(opts: { role: RomRole }): boolean {
+  return opts.role === "owner" || opts.role === "department_head" || opts.role === "teacher";
+}
