@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { canAccessClass, canAddStudentsToClass } from "@/lib/auth/classAccess";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
+import { healStalePreviousYearReportsForClass } from "@/lib/data/classArchives";
 import { getClassInTenant, listClasses } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { insertStudent, listImportPupilCandidates, listStudents } from "@/lib/data/students";
@@ -42,6 +43,12 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
       if (!cls) return NextResponse.json({ error: "Class not found." }, { status: 404 });
       if (!canAccessClass({ role, viewerEmail: gate.email, klass: cls })) {
         return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
+      }
+      // Archive any previous-year reports still attached to pupils in this class.
+      try {
+        await healStalePreviousYearReportsForClass({ tenantId, classId });
+      } catch {
+        /* listing should still work if heal fails */
       }
     }
     let students;

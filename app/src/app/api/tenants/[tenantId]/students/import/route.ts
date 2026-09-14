@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getClassInTenant } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
-import { importPupilIntoClass } from "@/lib/data/students";
+import { getStudentInTenant, importPupilIntoClass } from "@/lib/data/students";
 import { logStudentEvent } from "@/lib/data/studentEvents";
 
 export const runtime = "nodejs";
@@ -51,6 +51,12 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
     const cls = await getClassInTenant(tenantId, classId);
     if (!cls) return NextResponse.json({ error: "Class not found." }, { status: 404 });
 
+    let fromClassId: string | null = null;
+    if (studentId) {
+      const existing = await getStudentInTenant(tenantId, studentId);
+      fromClassId = existing?.class_id ?? null;
+    }
+
     const student = await importPupilIntoClass({
       tenantId,
       toClassId: classId,
@@ -64,6 +70,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       type: "moved",
       studentId: student.id,
       schoolStudentId: student.school_student_id,
+      fromClassId: fromClassId && fromClassId !== classId ? fromClassId : null,
       toClassId: classId,
     });
 

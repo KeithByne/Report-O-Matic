@@ -5,6 +5,10 @@ import {
   insertSchoolStudent,
   reactivateSchoolStudent,
 } from "@/lib/data/schoolStudents";
+import {
+  archiveAndClearPriorEnrollmentsIfScholasticYearDiffers,
+  archiveAndClearStudentReportsIfScholasticYearDiffers,
+} from "@/lib/data/classArchives";
 
 function formatErr(e: { message: string; details?: string | null; hint?: string | null }): string {
   const parts = [e.message, e.details, e.hint].filter((x): x is string => Boolean(x && String(x).trim()));
@@ -230,6 +234,12 @@ export async function importPupilIntoClass(opts: {
     throw new Error("This pupil is already in this class.");
   }
 
+  await archiveAndClearPriorEnrollmentsIfScholasticYearDiffers({
+    tenantId: opts.tenantId,
+    schoolStudentId,
+    toClassId: opts.toClassId,
+  });
+
   return enrollSchoolStudentInClass({
     tenantId: opts.tenantId,
     schoolStudentId,
@@ -428,6 +438,24 @@ export async function moveStudentToClass(opts: {
 }): Promise<StudentWithClass> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
+
+  const existing = await getStudentInTenant(opts.tenantId, opts.studentId);
+  if (!existing) throw new Error("Pupil enrollment not found.");
+  if (existing.class_id === opts.toClassId) {
+    throw new Error("This pupil is already in this class.");
+  }
+
+  await archiveAndClearStudentReportsIfScholasticYearDiffers({
+    tenantId: opts.tenantId,
+    studentId: opts.studentId,
+    fromClassId: existing.class_id,
+    toClassId: opts.toClassId,
+    displayName: existing.display_name,
+    firstName: existing.first_name,
+    lastName: existing.last_name,
+    gender: existing.gender,
+  });
+
   const { data, error } = await supabase
     .from("students")
     .update({ class_id: opts.toClassId })
