@@ -39,8 +39,12 @@ import { TenantClassesPanel } from "@/components/reports/TenantClassesPanel";
 import { DashboardScholasticArchivesOverview } from "@/components/dashboard/DashboardScholasticArchivesOverview";
 import { DashboardRosterTable } from "@/components/dashboard/DashboardRosterTable";
 import { DashboardTenantLanguage } from "@/components/dashboard/DashboardTenantLanguage";
-import { DashboardSchoolStudentsPanel } from "@/components/dashboard/DashboardSchoolStudentsPanel";
-import { DashboardFindStudentPanel } from "@/components/dashboard/DashboardFindStudentPanel";
+import { DashboardPupilsPanel } from "@/components/dashboard/DashboardPupilsPanel";
+import {
+  SchoolWorkspaceGroupedMenu,
+  type SchoolWorkspacePanel,
+  normalizeSchoolWorkspacePanel,
+} from "@/components/dashboard/SchoolWorkspaceGroupedMenu";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -50,7 +54,6 @@ import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCar
 import { ProfileEditor } from "@/components/dashboard/ProfileEditor";
 import { TeacherDownloadsCard } from "@/components/dashboard/TeacherDownloadsCard";
 import { DashboardStagedGuide } from "@/components/dashboard/DashboardStagedGuide";
-import { SchoolWorkspaceGroupedMenu } from "@/components/dashboard/SchoolWorkspaceGroupedMenu";
 import { OverviewDataPrivacySection } from "@/components/dashboard/OverviewDataPrivacySection";
 import { DeleteSchoolButton } from "@/components/dashboard/DeleteSchoolButton";
 import { InviteTeamForm } from "@/components/dashboard/InviteTeamForm";
@@ -75,15 +78,7 @@ type MyAgentLink = {
 };
 
 type WorkspaceDashPanel =
-  | "overview"
-  | "pdf"
-  | "invites"
-  | "subjects"
-  | "classes"
-  | "activeStudents"
-  | "findStudent"
-  | "inactiveStudents"
-  | "timetable"
+  | SchoolWorkspacePanel
   | "schoolType";
 
 type TeacherWorkspacePanel = "profile" | "classes" | "downloads";
@@ -263,15 +258,18 @@ export function DashboardClientView({
   const [workspaceGuideHoverKey, setWorkspaceGuideHoverKey] = useState<string | null>(null);
   const [teacherGuideHoverKey, setTeacherGuideHoverKey] = useState<string | null>(null);
 
-  /** Only one dashboard block (menu panel or PDF preview) open at a time. */
-  const toggleWorkspacePanel = useCallback((panel: WorkspaceDashPanel) => {
-    setDashboardPdfPreview(null);
-    setWorkspaceDashPanel((cur) => (cur === panel ? null : panel));
-  }, []);
-
   const openWorkspacePanel = useCallback((panel: WorkspaceDashPanel) => {
     setDashboardPdfPreview(null);
-    setWorkspaceDashPanel(panel);
+    const next =
+      panel === "schoolType" ? panel : (normalizeSchoolWorkspacePanel(panel) ?? panel);
+    setWorkspaceDashPanel(next);
+  }, []);
+
+  const toggleWorkspacePanel = useCallback((panel: WorkspaceDashPanel) => {
+    setDashboardPdfPreview(null);
+    const next =
+      panel === "schoolType" ? panel : (normalizeSchoolWorkspacePanel(panel) ?? panel);
+    setWorkspaceDashPanel((cur) => (cur === next ? null : next));
   }, []);
 
   const openOwnerOverview = useCallback(() => {
@@ -1366,36 +1364,12 @@ export function DashboardClientView({
                 ) : null}
 
                 {primaryMembership &&
-                workspaceDashPanel === "activeStudents" &&
+                workspaceDashPanel === "pupils" &&
                 (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
-                  <div id="dash-workspace-panel-activeStudents">
-                    <DashboardSchoolStudentsPanel
-                      key={`${primaryMembership.tenantId}-active-students`}
-                      tenantId={primaryMembership.tenantId}
-                      status="active"
-                    />
-                  </div>
-                ) : null}
-
-                {primaryMembership &&
-                workspaceDashPanel === "findStudent" &&
-                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
-                  <DashboardFindStudentPanel
-                    key={`${primaryMembership.tenantId}-find-student`}
+                  <DashboardPupilsPanel
+                    key={`${primaryMembership.tenantId}-pupils`}
                     tenantId={primaryMembership.tenantId}
                   />
-                ) : null}
-
-                {primaryMembership &&
-                workspaceDashPanel === "inactiveStudents" &&
-                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
-                  <div id="dash-workspace-panel-inactiveStudents">
-                    <DashboardSchoolStudentsPanel
-                      key={`${primaryMembership.tenantId}-inactive-students`}
-                      tenantId={primaryMembership.tenantId}
-                      status="inactive"
-                    />
-                  </div>
                 ) : null}
 
                 {primaryMembership && workspaceDashPanel === "schoolType" && primaryMembership.role === "owner" ? (

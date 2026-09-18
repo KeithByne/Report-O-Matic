@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Archive,
   ArrowDown,
   BookOpen,
   CalendarDays,
@@ -10,9 +9,7 @@ import {
   LayoutList,
   Library,
   Printer,
-  Search,
   SlidersHorizontal,
-  UserCheck,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -30,14 +27,18 @@ export type SchoolWorkspacePanel =
   | "invites"
   | "subjects"
   | "classes"
+  | "pupils"
+  /** @deprecated Mapped to pupils */
   | "activeStudents"
+  /** @deprecated Mapped to pupils */
   | "findStudent"
+  /** @deprecated Mapped to pupils */
   | "inactiveStudents"
   | "timetable";
 
 export type SchoolWorkspaceMenuVariant = "owner" | "department_head";
 
-type MenuGroup = "setup" | "students";
+type MenuGroup = "setup" | "classes";
 
 type SetupItem = {
   panel: SchoolWorkspacePanel;
@@ -47,19 +48,20 @@ type SetupItem = {
   show: boolean;
 };
 
-type StudentsItem = {
+type ClassesItem = {
   panel?: SchoolWorkspacePanel;
   labelKey: string;
   guideKey: string;
-  Icon: typeof UserCheck;
+  Icon: typeof BookOpen;
   action: "panel" | "registers";
 };
 
 const SETUP_PANELS = new Set<SchoolWorkspacePanel>(["pdf", "invites", "subjects", "timetable"]);
-const STUDENTS_PANELS = new Set<SchoolWorkspacePanel>([
+const CLASSES_PANELS = new Set<SchoolWorkspacePanel>(["classes"]);
+const PUPILS_PANELS = new Set<SchoolWorkspacePanel>([
+  "pupils",
   "activeStudents",
   "findStudent",
-  "classes",
   "inactiveStudents",
 ]);
 
@@ -67,46 +69,40 @@ const GUIDE_KEYS: Record<
   SchoolWorkspaceMenuVariant,
   {
     overview: string;
+    pupils: string;
+    classesPrimary: string;
     setupPrimary: string;
-    studentsPrimary: string;
     pdf: string;
     invite: string;
     subjects: string;
     timetable: string;
-    activeStudents: string;
-    findStudent: string;
     classes: string;
     registers: string;
-    inactiveStudents: string;
   }
 > = {
   owner: {
     overview: "owner_overview",
+    pupils: "owner_pupils",
+    classesPrimary: "owner_classes",
     setupPrimary: "owner_pdf",
-    studentsPrimary: "owner_active_students",
     pdf: "owner_pdf",
     invite: "owner_invite",
     subjects: "owner_subjects",
     timetable: "owner_timetable",
-    activeStudents: "owner_active_students",
-    findStudent: "owner_find_student",
     classes: "owner_classes",
     registers: "owner_registers",
-    inactiveStudents: "owner_inactive_students",
   },
   department_head: {
     overview: "dh_overview",
+    pupils: "dh_pupils",
+    classesPrimary: "dh_classes",
     setupPrimary: "dh_invite",
-    studentsPrimary: "dh_active_students",
     pdf: "dh_pdf",
     invite: "dh_invite",
     subjects: "dh_subjects",
     timetable: "dh_timetable",
-    activeStudents: "dh_active_students",
-    findStudent: "dh_find_student",
     classes: "dh_classes",
     registers: "dh_registers",
-    inactiveStudents: "dh_inactive_students",
   },
 };
 
@@ -130,11 +126,22 @@ function menuGroupForPanel(
   workspaceDashPanel: SchoolWorkspacePanel | null,
   registersPreviewActive: boolean,
 ): MenuGroup | null {
-  if (registersPreviewActive) return "students";
+  if (registersPreviewActive) return "classes";
   if (!workspaceDashPanel || workspaceDashPanel === "overview") return null;
+  if (PUPILS_PANELS.has(workspaceDashPanel)) return null;
   if (SETUP_PANELS.has(workspaceDashPanel)) return "setup";
-  if (STUDENTS_PANELS.has(workspaceDashPanel)) return "students";
+  if (CLASSES_PANELS.has(workspaceDashPanel)) return "classes";
   return null;
+}
+
+export function normalizeSchoolWorkspacePanel(
+  panel: SchoolWorkspacePanel | null,
+): SchoolWorkspacePanel | null {
+  if (!panel) return null;
+  if (panel === "activeStudents" || panel === "findStudent" || panel === "inactiveStudents") {
+    return "pupils";
+  }
+  return panel;
 }
 
 export function SchoolWorkspaceGroupedMenu({
@@ -168,6 +175,7 @@ export function SchoolWorkspaceGroupedMenu({
   const guideMode: DashboardStagedGuideMode =
     variant === "owner" ? "owner_workspace" : "department_head";
   const menuIdPrefix = variant === "owner" ? "owner" : "dh";
+  const normalizedPanel = normalizeSchoolWorkspacePanel(workspaceDashPanel);
 
   const setupItems = useMemo<SetupItem[]>(
     () => [
@@ -203,22 +211,8 @@ export function SchoolWorkspaceGroupedMenu({
     [guide, showWorkspaceInvitesTab, showWorkspacePdfTab],
   );
 
-  const studentsItems = useMemo<StudentsItem[]>(
+  const classesItems = useMemo<ClassesItem[]>(
     () => [
-      {
-        panel: "activeStudents",
-        labelKey: "dash.panelActiveStudents",
-        guideKey: guide.activeStudents,
-        Icon: UserCheck,
-        action: "panel",
-      },
-      {
-        panel: "findStudent",
-        labelKey: "dash.panelFindStudent",
-        guideKey: guide.findStudent,
-        Icon: Search,
-        action: "panel",
-      },
       {
         panel: "classes",
         labelKey: "tenant.panelClasses",
@@ -232,27 +226,16 @@ export function SchoolWorkspaceGroupedMenu({
         Icon: Printer,
         action: "registers",
       },
-      {
-        panel: "inactiveStudents",
-        labelKey: "dash.panelInactiveStudents",
-        guideKey: guide.inactiveStudents,
-        Icon: Archive,
-        action: "panel",
-      },
     ],
     [guide],
   );
 
   useEffect(() => {
-    setMenuGroup(menuGroupForPanel(workspaceDashPanel, registersPreviewActive));
-  }, [registersPreviewActive, workspaceDashPanel]);
+    setMenuGroup(menuGroupForPanel(normalizedPanel, registersPreviewActive));
+  }, [registersPreviewActive, normalizedPanel]);
 
-  const revealSetupGroup = () => setMenuGroup("setup");
-  const revealStudentsGroup = () => setMenuGroup("students");
-
-  const handleMenuMouseLeave = () => {
-    const pinned = menuGroupForPanel(workspaceDashPanel, registersPreviewActive);
-    setMenuGroup(pinned);
+  const toggleGroup = (group: MenuGroup) => {
+    setMenuGroup((current) => (current === group ? null : group));
   };
 
   const openOverview = () => {
@@ -260,24 +243,27 @@ export function SchoolWorkspaceGroupedMenu({
     onOpenOverview();
   };
 
-  const overviewActive = workspaceDashPanel === "overview";
+  const openPupils = () => {
+    setMenuGroup(null);
+    onOpenPanel("pupils");
+  };
+
+  const overviewActive = normalizedPanel === "overview";
+  const pupilsActive = normalizedPanel === "pupils";
   const setupGroupActive =
-    menuGroup === "setup" || (workspaceDashPanel !== null && SETUP_PANELS.has(workspaceDashPanel));
-  const studentsGroupActive =
-    menuGroup === "students" ||
+    menuGroup === "setup" || (normalizedPanel !== null && SETUP_PANELS.has(normalizedPanel));
+  const classesGroupActive =
+    menuGroup === "classes" ||
     registersPreviewActive ||
-    (workspaceDashPanel !== null && STUDENTS_PANELS.has(workspaceDashPanel));
+    (normalizedPanel !== null && CLASSES_PANELS.has(normalizedPanel));
 
   return (
-    <div className="min-w-0" onMouseLeave={handleMenuMouseLeave}>
+    <div className="min-w-0">
       <nav className="flex flex-wrap items-center gap-2" aria-label={t("dash.schoolWorkspaceMenuTitle")}>
         <button
           type="button"
           aria-pressed={overviewActive}
-          onMouseEnter={() => {
-            onGuideHover(guide.overview);
-            setMenuGroup(null);
-          }}
+          onMouseEnter={() => onGuideHover(guide.overview)}
           onFocus={() => onGuideHover(guide.overview)}
           onClick={openOverview}
           className={primaryButtonClass(overviewActive)}
@@ -287,49 +273,48 @@ export function SchoolWorkspaceGroupedMenu({
         </button>
         <button
           type="button"
-          aria-expanded={menuGroup === "setup"}
-          aria-haspopup="true"
-          aria-controls={`dash-${menuIdPrefix}-menu-setup`}
-          aria-pressed={setupGroupActive && !overviewActive}
-          onMouseEnter={() => {
-            revealSetupGroup();
-            onGuideHover(guide.setupPrimary);
-          }}
-          onFocus={() => {
-            revealSetupGroup();
-            onGuideHover(guide.setupPrimary);
-          }}
-          onClick={revealSetupGroup}
-          className={primaryButtonClass(setupGroupActive && !overviewActive)}
+          aria-pressed={pupilsActive}
+          onMouseEnter={() => onGuideHover(guide.pupils)}
+          onFocus={() => onGuideHover(guide.pupils)}
+          onClick={openPupils}
+          className={primaryButtonClass(pupilsActive)}
         >
-          <SlidersHorizontal className={ICON_INLINE} aria-hidden />
-          {t("dash.panelSetUp")}
+          <Users className={ICON_INLINE} aria-hidden />
+          {t("dash.panelPupils")}
+        </button>
+        <button
+          type="button"
+          aria-expanded={menuGroup === "classes"}
+          aria-haspopup="true"
+          aria-controls={`dash-${menuIdPrefix}-menu-classes`}
+          aria-pressed={classesGroupActive && !overviewActive && !pupilsActive}
+          onMouseEnter={() => onGuideHover(guide.classesPrimary)}
+          onFocus={() => onGuideHover(guide.classesPrimary)}
+          onClick={() => toggleGroup("classes")}
+          className={primaryButtonClass(classesGroupActive && !overviewActive && !pupilsActive)}
+        >
+          <BookOpen className={ICON_INLINE} aria-hidden />
+          {t("dash.panelClassesGroup")}
           <ChevronDown
-            className={`h-4 w-4 shrink-0 transition-transform ${menuGroup === "setup" ? "rotate-180" : ""}`}
+            className={`h-4 w-4 shrink-0 transition-transform ${menuGroup === "classes" ? "rotate-180" : ""}`}
             aria-hidden
           />
         </button>
         <button
           type="button"
-          aria-expanded={menuGroup === "students"}
+          aria-expanded={menuGroup === "setup"}
           aria-haspopup="true"
-          aria-controls={`dash-${menuIdPrefix}-menu-students`}
-          aria-pressed={studentsGroupActive && !overviewActive}
-          onMouseEnter={() => {
-            revealStudentsGroup();
-            onGuideHover(guide.studentsPrimary);
-          }}
-          onFocus={() => {
-            revealStudentsGroup();
-            onGuideHover(guide.studentsPrimary);
-          }}
-          onClick={revealStudentsGroup}
-          className={primaryButtonClass(studentsGroupActive && !overviewActive)}
+          aria-controls={`dash-${menuIdPrefix}-menu-setup`}
+          aria-pressed={setupGroupActive && !overviewActive && !pupilsActive}
+          onMouseEnter={() => onGuideHover(guide.setupPrimary)}
+          onFocus={() => onGuideHover(guide.setupPrimary)}
+          onClick={() => toggleGroup("setup")}
+          className={primaryButtonClass(setupGroupActive && !overviewActive && !pupilsActive)}
         >
-          <Users className={ICON_INLINE} aria-hidden />
-          {t("dash.panelStudents")}
+          <SlidersHorizontal className={ICON_INLINE} aria-hidden />
+          {t("dash.panelSetUp")}
           <ChevronDown
-            className={`h-4 w-4 shrink-0 transition-transform ${menuGroup === "students" ? "rotate-180" : ""}`}
+            className={`h-4 w-4 shrink-0 transition-transform ${menuGroup === "setup" ? "rotate-180" : ""}`}
             aria-hidden
           />
         </button>
@@ -339,6 +324,40 @@ export function SchoolWorkspaceGroupedMenu({
           </span>
         ) : null}
       </nav>
+
+      {menuGroup === "classes" ? (
+        <div
+          id={`dash-${menuIdPrefix}-menu-classes`}
+          role="group"
+          aria-label={t("dash.panelClassesGroup")}
+          className="mt-3 flex w-full flex-wrap gap-2 rounded-lg border border-emerald-100 bg-emerald-50/40 p-2"
+        >
+          {classesItems.map((item) => {
+            const active =
+              item.action === "registers"
+                ? registersPreviewActive
+                : normalizedPanel === item.panel;
+            return (
+              <button
+                key={item.labelKey}
+                type="button"
+                aria-pressed={active}
+                onMouseEnter={() => onGuideHover(item.guideKey)}
+                onFocus={() => onGuideHover(item.guideKey)}
+                onClick={() => {
+                  setMenuGroup("classes");
+                  if (item.action === "registers") onOpenRegisters();
+                  else if (item.panel) onOpenPanel(item.panel);
+                }}
+                className={subButtonClass(active)}
+              >
+                <item.Icon className={ICON_INLINE} aria-hidden />
+                {t(item.labelKey)}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       {menuGroup === "setup" ? (
         <div
@@ -353,53 +372,19 @@ export function SchoolWorkspaceGroupedMenu({
               <button
                 key={panel}
                 type="button"
-                aria-pressed={workspaceDashPanel === panel}
+                aria-pressed={normalizedPanel === panel}
                 onMouseEnter={() => onGuideHover(guideKey)}
                 onFocus={() => onGuideHover(guideKey)}
                 onClick={() => {
                   setMenuGroup("setup");
                   onOpenPanel(panel);
                 }}
-                className={subButtonClass(workspaceDashPanel === panel)}
+                className={subButtonClass(normalizedPanel === panel)}
               >
                 <Icon className={ICON_INLINE} aria-hidden />
                 {t(labelKey)}
               </button>
             ))}
-        </div>
-      ) : null}
-
-      {menuGroup === "students" ? (
-        <div
-          id={`dash-${menuIdPrefix}-menu-students`}
-          role="group"
-          aria-label={t("dash.panelStudents")}
-          className="mt-3 flex w-full flex-wrap gap-2 rounded-lg border border-emerald-100 bg-emerald-50/40 p-2"
-        >
-          {studentsItems.map((item) => {
-            const active =
-              item.action === "registers"
-                ? registersPreviewActive
-                : workspaceDashPanel === item.panel;
-            return (
-              <button
-                key={item.labelKey}
-                type="button"
-                aria-pressed={active}
-                onMouseEnter={() => onGuideHover(item.guideKey)}
-                onFocus={() => onGuideHover(item.guideKey)}
-                onClick={() => {
-                  setMenuGroup("students");
-                  if (item.action === "registers") onOpenRegisters();
-                  else if (item.panel) onOpenPanel(item.panel);
-                }}
-                className={subButtonClass(active)}
-              >
-                <item.Icon className={ICON_INLINE} aria-hidden />
-                {t(item.labelKey)}
-              </button>
-            );
-          })}
         </div>
       ) : null}
 

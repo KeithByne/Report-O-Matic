@@ -62,58 +62,46 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
         linesKeys: ["dash.guide.ownerSchoolType1", "dash.guide.ownerSchoolType2", "dash.guide.ownerSchoolType3"],
       },
       {
-        key: "owner_pdf",
+        key: "owner_pupils",
         n: 3,
+        titleKey: "dash.guide.pupilsTitle",
+        linesKeys: ["dash.guide.pupils1", "dash.guide.pupils2", "dash.guide.pupils3"],
+      },
+      {
+        key: "owner_classes",
+        n: 4,
+        titleKey: "dash.guide.stepClassesTitle",
+        linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
+      },
+      {
+        key: "owner_registers",
+        n: 5,
+        titleKey: "dash.guide.registersTitle",
+        linesKeys: ["dash.guide.registers1", "dash.guide.registers2", "dash.guide.registers3"],
+      },
+      {
+        key: "owner_pdf",
+        n: 6,
         titleKey: "dash.guide.stepLetterheadTitle",
         linesKeys: ["dash.guide.ownerLetterhead1", "dash.guide.ownerLetterhead2", "dash.guide.ownerLetterhead3"],
       },
       {
         key: "owner_invite",
-        n: 4,
+        n: 7,
         titleKey: "dash.guide.stepInviteTitle",
         linesKeys: ["dash.guide.invite1", "dash.guide.invite2", "dash.guide.invite3"],
       },
       {
         key: "owner_subjects",
-        n: 5,
+        n: 8,
         titleKey: "dash.guide.ownerSubjectsTitle",
         linesKeys: ["dash.guide.ownerSubjects1", "dash.guide.ownerSubjects2", "dash.guide.ownerSubjects3"],
       },
       {
-        key: "owner_classes",
-        n: 6,
-        titleKey: "dash.guide.stepClassesTitle",
-        linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
-      },
-      {
-        key: "owner_active_students",
-        n: 7,
-        titleKey: "dash.guide.activeStudentsTitle",
-        linesKeys: ["dash.guide.activeStudents1", "dash.guide.activeStudents2", "dash.guide.activeStudents3"],
-      },
-      {
-        key: "owner_find_student",
-        n: 8,
-        titleKey: "dash.guide.findStudentTitle",
-        linesKeys: ["dash.guide.findStudent1", "dash.guide.findStudent2", "dash.guide.findStudent3"],
-      },
-      {
-        key: "owner_inactive_students",
-        n: 9,
-        titleKey: "dash.guide.inactiveStudentsTitle",
-        linesKeys: ["dash.guide.inactiveStudents1", "dash.guide.inactiveStudents2", "dash.guide.inactiveStudents3"],
-      },
-      {
         key: "owner_timetable",
-        n: 10,
+        n: 9,
         titleKey: "dash.guide.ownerTimetableTitle",
         linesKeys: ["dash.guide.ownerTimetable1", "dash.guide.ownerTimetable2", "dash.guide.ownerTimetable3"],
-      },
-      {
-        key: "owner_registers",
-        n: 11,
-        titleKey: "dash.guide.registersTitle",
-        linesKeys: ["dash.guide.registers1", "dash.guide.registers2", "dash.guide.registers3"],
       },
     ];
   }
@@ -132,62 +120,50 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
         linesKeys: ["dash.guide.dhOverview1", "dash.guide.dhOverview2", "dash.guide.dhOverview3"],
       },
       {
-        key: "dh_invite",
+        key: "dh_pupils",
         n: 2,
+        titleKey: "dash.guide.pupilsTitle",
+        linesKeys: ["dash.guide.pupils1", "dash.guide.pupils2", "dash.guide.pupils3"],
+      },
+      {
+        key: "dh_classes",
+        n: 3,
+        titleKey: "dash.guide.stepClassesTitle",
+        linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
+      },
+      {
+        key: "dh_registers",
+        n: 4,
+        titleKey: "dash.guide.registersTitle",
+        linesKeys: ["dash.guide.registers1", "dash.guide.registers2", "dash.guide.registers3"],
+      },
+      {
+        key: "dh_invite",
+        n: 5,
         titleKey: "dash.guide.stepInviteTitle",
         linesKeys: ["dash.guide.invite1", "dash.guide.invite2", "dash.guide.invite3"],
       },
       {
         key: "dh_subjects",
-        n: 3,
+        n: 6,
         titleKey: "dash.guide.ownerSubjectsTitle",
         linesKeys: ["dash.guide.ownerSubjects1", "dash.guide.ownerSubjects2", "dash.guide.ownerSubjects3"],
       },
       {
-        key: "dh_classes",
-        n: 4,
-        titleKey: "dash.guide.stepClassesTitle",
-        linesKeys: ["dash.guide.classDh1", "dash.guide.classDh2", "dash.guide.classDh3"],
-      },
-      {
-        key: "dh_active_students",
-        n: 5,
-        titleKey: "dash.guide.activeStudentsTitle",
-        linesKeys: ["dash.guide.activeStudents1", "dash.guide.activeStudents2", "dash.guide.activeStudents3"],
-      },
-      {
-        key: "dh_find_student",
-        n: 6,
-        titleKey: "dash.guide.findStudentTitle",
-        linesKeys: ["dash.guide.findStudent1", "dash.guide.findStudent2", "dash.guide.findStudent3"],
-      },
-      {
-        key: "dh_inactive_students",
-        n: 7,
-        titleKey: "dash.guide.inactiveStudentsTitle",
-        linesKeys: ["dash.guide.inactiveStudents1", "dash.guide.inactiveStudents2", "dash.guide.inactiveStudents3"],
-      },
-      {
         key: "dh_timetable",
-        n: 8,
+        n: 7,
         titleKey: "dash.guide.dhTimetableTitle",
         linesKeys: ["dash.guide.dhTimetable1", "dash.guide.dhTimetable2", "dash.guide.dhTimetable3"],
       },
       {
-        key: "dh_registers",
-        n: 9,
-        titleKey: "dash.guide.registersTitle",
-        linesKeys: ["dash.guide.registers1", "dash.guide.registers2", "dash.guide.registers3"],
-      },
-      {
         key: "dh_pdf",
-        n: 10,
+        n: 8,
         titleKey: "dash.guide.stepLetterheadTitle",
         linesKeys: ["dash.guide.dhPdf1", "dash.guide.dhPdf2", "dash.guide.dhPdf3"],
       },
       {
         key: "dh_downloads",
-        n: 11,
+        n: 9,
         titleKey: "dash.guide.menuDownloadsTitle",
         linesKeys: ["dash.guide.menuDownloads1", "dash.guide.menuDownloads2", "dash.guide.menuDownloads3"],
       },
@@ -253,39 +229,44 @@ export function DashboardStagedGuide({
       onMouseLeave={showTabs ? () => setInternalActiveStageKey("") : undefined}
     >
       <h3 className="text-xs font-semibold uppercase tracking-wide text-emerald-800/90">{t("dash.guide.title")}</h3>
-      {showTipList ? (
-        <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
-          {showTabs ? (
-            <div className="flex flex-wrap gap-2">
-              {stages.map((s) => {
-                const active = s.key === activeStage?.key;
-                return (
-                  <button
-                    key={s.key}
-                    type="button"
-                    onMouseEnter={() => setInternalActiveStageKey(s.key)}
-                    onFocus={() => setInternalActiveStageKey(s.key)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      active
-                        ? "border-emerald-600 bg-emerald-100 text-emerald-950"
-                        : "border-emerald-200 bg-white text-zinc-700 hover:bg-emerald-100/70"
-                    }`}
-                  >
-                    {s.n}. {t(s.titleKey)}
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
-          {activeStage ? (
-            <ol className={`ml-5 list-decimal space-y-1.5 text-left text-xs leading-relaxed text-zinc-600 ${showTabs ? "mt-3" : ""}`}>
-              {activeStage.linesKeys.map((key) => (
-                <li key={key}>{t(key)}</li>
-              ))}
-            </ol>
-          ) : null}
-        </div>
-      ) : null}
+      {/* Reserve tip height so hover tips do not shift menu controls. */}
+      <div className="mt-2 min-h-[6.25rem]" aria-live="polite">
+        {showTipList ? (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
+            {showTabs ? (
+              <div className="flex flex-wrap gap-2">
+                {stages.map((s) => {
+                  const active = s.key === activeStage?.key;
+                  return (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onMouseEnter={() => setInternalActiveStageKey(s.key)}
+                      onFocus={() => setInternalActiveStageKey(s.key)}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        active
+                          ? "border-emerald-600 bg-emerald-100 text-emerald-950"
+                          : "border-emerald-200 bg-white text-zinc-700 hover:bg-emerald-100/70"
+                      }`}
+                    >
+                      {s.n}. {t(s.titleKey)}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+            {activeStage ? (
+              <ol
+                className={`ml-5 list-decimal space-y-1.5 text-left text-xs leading-relaxed text-zinc-600 ${showTabs ? "mt-3" : ""}`}
+              >
+                {activeStage.linesKeys.map((key) => (
+                  <li key={key}>{t(key)}</li>
+                ))}
+              </ol>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
