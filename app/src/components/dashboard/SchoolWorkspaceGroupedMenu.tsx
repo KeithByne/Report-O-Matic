@@ -234,28 +234,20 @@ export function SchoolWorkspaceGroupedMenu({
     setMenuGroup(menuGroupForPanel(normalizedPanel, registersPreviewActive));
   }, [registersPreviewActive, normalizedPanel]);
 
-  const toggleGroup = (group: MenuGroup) => {
-    setMenuGroup((current) => (current === group ? null : group));
+  const openClassesGroup = () => {
+    setMenuGroup("classes");
+    onOpenPanel("classes");
   };
 
-  const openOverview = () => {
-    setMenuGroup(null);
-    onOpenOverview();
-  };
-
-  const openPupils = () => {
-    setMenuGroup(null);
-    onOpenPanel("pupils");
+  const openSetupGroup = () => {
+    setMenuGroup((current) => (current === "setup" ? null : "setup"));
   };
 
   const overviewActive = normalizedPanel === "overview";
   const pupilsActive = normalizedPanel === "pupils";
   const setupGroupActive =
     menuGroup === "setup" || (normalizedPanel !== null && SETUP_PANELS.has(normalizedPanel));
-  const classesGroupActive =
-    menuGroup === "classes" ||
-    registersPreviewActive ||
-    (normalizedPanel !== null && CLASSES_PANELS.has(normalizedPanel));
+  const classesPanelOpen = normalizedPanel === "classes" || registersPreviewActive;
 
   return (
     <div className="min-w-0">
@@ -287,11 +279,13 @@ export function SchoolWorkspaceGroupedMenu({
           aria-expanded={menuGroup === "classes"}
           aria-haspopup="true"
           aria-controls={`dash-${menuIdPrefix}-menu-classes`}
-          aria-pressed={classesGroupActive && !overviewActive && !pupilsActive}
+          aria-pressed={classesPanelOpen && !overviewActive && !pupilsActive}
           onMouseEnter={() => onGuideHover(guide.classesPrimary)}
           onFocus={() => onGuideHover(guide.classesPrimary)}
-          onClick={() => toggleGroup("classes")}
-          className={primaryButtonClass(classesGroupActive && !overviewActive && !pupilsActive)}
+          onClick={openClassesGroup}
+          className={primaryButtonClass(
+            (classesPanelOpen || menuGroup === "classes") && !overviewActive && !pupilsActive,
+          )}
         >
           <BookOpen className={ICON_INLINE} aria-hidden />
           {t("dash.panelClassesGroup")}
@@ -308,7 +302,7 @@ export function SchoolWorkspaceGroupedMenu({
           aria-pressed={setupGroupActive && !overviewActive && !pupilsActive}
           onMouseEnter={() => onGuideHover(guide.setupPrimary)}
           onFocus={() => onGuideHover(guide.setupPrimary)}
-          onClick={() => toggleGroup("setup")}
+          onClick={openSetupGroup}
           className={primaryButtonClass(setupGroupActive && !overviewActive && !pupilsActive)}
         >
           <SlidersHorizontal className={ICON_INLINE} aria-hidden />
