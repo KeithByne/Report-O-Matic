@@ -187,6 +187,14 @@ export function SaasOwnerView({
   const [testLinkBusy, setTestLinkBusy] = useState(false);
   const [testLinkErr, setTestLinkErr] = useState<string | null>(null);
   const [testLinkUrl, setTestLinkUrl] = useState<string | null>(null);
+  const [demoSeedBusy, setDemoSeedBusy] = useState(false);
+  const [demoSeedErr, setDemoSeedErr] = useState<string | null>(null);
+  const [demoSeedResult, setDemoSeedResult] = useState<{
+    school_name: string;
+    report_url: string;
+    pdf_url: string;
+    class_url: string;
+  } | null>(null);
 
   const [closeEmail, setCloseEmail] = useState("");
   const [closeConfirm, setCloseConfirm] = useState("");
@@ -385,6 +393,31 @@ export function SaasOwnerView({
     }
   }
 
+  async function createInhabitedDemoSchool() {
+    setDemoSeedBusy(true);
+    setDemoSeedErr(null);
+    setDemoSeedResult(null);
+    try {
+      const res = await fetch("/api/saas-owner/seed-demo-school", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("common.failed"));
+      setDemoSeedResult({
+        school_name: String(data.school_name || ""),
+        report_url: String(data.report_url || ""),
+        pdf_url: String(data.pdf_url || ""),
+        class_url: String(data.class_url || ""),
+      });
+    } catch (e: unknown) {
+      setDemoSeedErr(e instanceof Error ? e.message : t("common.failed"));
+    } finally {
+      setDemoSeedBusy(false);
+    }
+  }
+
   return (
     <div className="rom-saas-owner-page min-h-screen bg-emerald-100/80 text-zinc-950">
       <header className="rom-app-shell-header">
@@ -433,6 +466,50 @@ export function SaasOwnerView({
                 >
                   Copy
                 </button>
+              </div>
+            </div>
+          ) : null}
+        </section>
+
+        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-zinc-900">Inhabited demo school</div>
+              <div className="mt-1 text-xs text-zinc-500">
+                Creates a sandbox school under your SaaS-owner login: 3 classes, 12 pupils, and one{" "}
+                <span className="font-semibold">final</span> Term 1 report for Alex Martinez ready to Print / PDF.
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={demoSeedBusy}
+              onClick={() => void createInhabitedDemoSchool()}
+              className="rounded-lg bg-emerald-800 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+            >
+              {demoSeedBusy ? "Creating…" : "Create demo school"}
+            </button>
+          </div>
+          {demoSeedErr ? <div className="mt-3 text-sm text-red-700">{demoSeedErr}</div> : null}
+          {demoSeedResult ? (
+            <div className="mt-3 space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs">
+              <div className="font-semibold text-zinc-900">{demoSeedResult.school_name}</div>
+              <div>
+                <span className="font-medium text-zinc-700">Class: </span>
+                <a className="break-all text-emerald-900 underline" href={demoSeedResult.class_url}>
+                  {demoSeedResult.class_url}
+                </a>
+              </div>
+              <div>
+                <span className="font-medium text-zinc-700">Report: </span>
+                <a className="break-all text-emerald-900 underline" href={demoSeedResult.report_url}>
+                  {demoSeedResult.report_url}
+                </a>
+              </div>
+              <div>
+                <span className="font-medium text-zinc-700">PDF: </span>
+                <a className="break-all text-emerald-900 underline" href={demoSeedResult.pdf_url}>
+                  {demoSeedResult.pdf_url}
+                </a>
               </div>
             </div>
           ) : null}
