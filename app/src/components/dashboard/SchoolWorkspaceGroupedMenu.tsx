@@ -207,7 +207,10 @@ export function SchoolWorkspaceGroupedMenu({
   };
 
   const openSetupGroup = () => {
-    setMenuGroup((current) => (current === "setup" ? null : "setup"));
+    setMenuGroup("setup");
+    const firstVisible = setupItems.find((item) => item.show);
+    // Owners: Letterhead first. Department heads: first available setup item (Invite).
+    onOpenPanel(firstVisible?.panel ?? (showWorkspacePdfTab ? "pdf" : "invites"));
   };
 
   const overviewActive = normalizedPanel === "overview";
