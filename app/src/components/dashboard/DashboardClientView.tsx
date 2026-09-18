@@ -45,6 +45,7 @@ import {
   type SchoolWorkspacePanel,
   normalizeSchoolWorkspacePanel,
 } from "@/components/dashboard/SchoolWorkspaceGroupedMenu";
+import { SchoolSetupSiblingNav } from "@/components/dashboard/SchoolSetupSiblingNav";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
@@ -398,6 +399,28 @@ export function DashboardClientView({
   );
   const showWorkspaceDownloadsTab = visibleMemberships.some(
     (m) => m.role === "owner" || m.role === "department_head",
+  );
+  const setupSiblingGuideKeys = useMemo(() => {
+    const isDh = primaryMembership?.role === "department_head";
+    return {
+      pdf: isDh ? "dh_pdf" : "owner_pdf",
+      invite: isDh ? "dh_invite" : "owner_invite",
+      subjects: isDh ? "dh_subjects" : "owner_subjects",
+      timetable: isDh ? "dh_timetable" : "owner_timetable",
+    };
+  }, [primaryMembership?.role]);
+
+  const renderSetupSiblingNav = (
+    activePanel: "pdf" | "invites" | "subjects" | "timetable",
+  ) => (
+    <SchoolSetupSiblingNav
+      activePanel={activePanel}
+      showPdf={showWorkspacePdfTab}
+      showInvites={showWorkspaceInvitesTab}
+      onOpenPanel={openWorkspacePanel}
+      onGuideHover={setWorkspaceGuideHoverKey}
+      guideKeys={setupSiblingGuideKeys}
+    />
   );
   const menuOverviewSummary = useMemo(() => {
     if (!primaryMembership) return undefined;
@@ -1272,17 +1295,23 @@ export function DashboardClientView({
                         .filter((m) => m.role === "owner")
                         .map((m) => ({ tenantId: m.tenantId, tenantName: m.tenantName }))}
                       reportLangByTenant={reportLangByTenant}
+                      headerActions={renderSetupSiblingNav("pdf")}
                     />
                   </div>
                 ) : null}
 
                 {workspaceDashPanel === "invites" && showWorkspaceInvitesTab ? (
-                  <section id="dash-workspace-panel-invites" className="space-y-4">
-                    <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-                      <UserPlus className={ICON_INLINE} aria-hidden />
-                      {t("dash.inviteTeam")}
-                    </h2>
-                    <p className="text-sm text-zinc-600">{t("dash.inviteTeamHint")}</p>
+                  <section id="dash-workspace-panel-invites" className="space-y-4 rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+                          <UserPlus className={ICON_INLINE} aria-hidden />
+                          {t("dash.inviteTeam")}
+                        </h2>
+                        <p className="mt-1 text-sm text-zinc-600">{t("dash.inviteTeamHint")}</p>
+                      </div>
+                      {renderSetupSiblingNav("invites")}
+                    </div>
                     {visibleMemberships
                       .filter((m) => m.role === "owner")
                       .map((m) => (
@@ -1309,7 +1338,8 @@ export function DashboardClientView({
                 {primaryMembership &&
                 workspaceDashPanel === "subjects" &&
                 (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
-                  <div id="dash-workspace-panel-subjects">
+                  <div id="dash-workspace-panel-subjects" className="space-y-3">
+                    <div className="flex flex-wrap justify-end">{renderSetupSiblingNav("subjects")}</div>
                     <TenantClassesPanel
                       key={`${primaryMembership.tenantId}-subjects`}
                       tenantId={primaryMembership.tenantId}
@@ -1381,10 +1411,13 @@ export function DashboardClientView({
                     id="dash-workspace-panel-timetable"
                     className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5"
                   >
-                    <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-zinc-900">
-                      <CalendarDays className={ICON_SECTION} aria-hidden />
-                      {t("timetable.title")}
-                    </h2>
+                    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                      <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+                        <CalendarDays className={ICON_SECTION} aria-hidden />
+                        {t("timetable.title")}
+                      </h2>
+                      {renderSetupSiblingNav("timetable")}
+                    </div>
                     <TimetablePageClient
                       tenantId={primaryMembership.tenantId}
                       schoolName={primaryMembership.tenantName}

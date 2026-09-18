@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2, ExternalLink, Eye, FileImage, Mail, Phone, Save, Smartphone, Trash2, Upload, X } from "lucide-react";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { PdfBlobIframeViewer } from "@/components/dashboard/PdfBlobIframeViewer";
 import { ICON_INLINE } from "@/components/ui/iconSizes";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
@@ -54,9 +54,12 @@ function letterheadFromApi(lh: Record<string, unknown> | null | undefined): LhSt
 export function DashboardTenantPdfLetterhead({
   tenants,
   reportLangByTenant,
+  headerActions,
 }: {
   tenants: Tenant[];
   reportLangByTenant: Record<string, ReportLanguageCode>;
+  /** Set up siblings (Invite / Subjects / Timetable) shown in the card header. */
+  headerActions?: ReactNode;
 }) {
   const { t, lang: uiLang } = useUiLanguage();
   const dialogTitleId = useId();
@@ -191,11 +194,16 @@ export function DashboardTenantPdfLetterhead({
   return (
     <>
       <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-          <FileImage className={ICON_INLINE} aria-hidden />
-          {t("dash.pdfLetterheadTitle")}
-        </h2>
-        <p className="mt-1 text-sm text-zinc-600">{t("dash.pdfLetterheadHint")}</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <FileImage className={ICON_INLINE} aria-hidden />
+              {t("dash.pdfLetterheadTitle")}
+            </h2>
+            <p className="mt-1 text-sm text-zinc-600">{t("dash.pdfLetterheadHint")}</p>
+          </div>
+          {headerActions ? <div className="shrink-0">{headerActions}</div> : null}
+        </div>
         <ul className="mt-4 space-y-6">
           {tenants.map((ten) => {
             const f = byTenant[ten.tenantId] ?? emptyLhState();
