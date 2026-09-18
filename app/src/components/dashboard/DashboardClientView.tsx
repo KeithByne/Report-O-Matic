@@ -296,11 +296,8 @@ export function DashboardClientView({
   const closeDashboardPdfPreview = useCallback(() => setDashboardPdfPreview(null), []);
 
   const teacherRegistersPdfId = (tenantId: string) => `teacher-registers-${tenantId}`;
-  const schoolRegistersPdfId = (tenantId: string) => `school-registers-${tenantId}`;
   const teacherRegistersPdfUrl = (tenantId: string) =>
     `/api/tenants/${encodeURIComponent(tenantId)}/teacher/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
-  const schoolRegistersPdfUrl = (tenantId: string) =>
-    `/api/tenants/${encodeURIComponent(tenantId)}/school/registers-pdf?lang=${encodeURIComponent(uiLang)}`;
 
   const teacherMenuButtonClass = (panel: TeacherWorkspacePanel) =>
     `inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
@@ -745,10 +742,6 @@ export function DashboardClientView({
                       workspaceDashPanel={
                         workspaceDashPanel === "schoolType" ? null : workspaceDashPanel
                       }
-                      registersPreviewActive={
-                        dashboardPdfPreview?.anchor === "workspace" &&
-                        dashboardPdfPreview.id === schoolRegistersPdfId(primaryMembership.tenantId)
-                      }
                       showWorkspacePdfTab={showWorkspacePdfTab}
                       showWorkspaceInvitesTab={showWorkspaceInvitesTab}
                       showPanelArrow={Boolean(
@@ -756,14 +749,6 @@ export function DashboardClientView({
                       )}
                       onOpenPanel={openWorkspacePanel}
                       onOpenOverview={openOwnerOverview}
-                      onOpenRegisters={() =>
-                        previewDashboardPdf(
-                          "workspace",
-                          schoolRegistersPdfId(primaryMembership.tenantId),
-                          schoolRegistersPdfUrl(primaryMembership.tenantId),
-                          t("dash.ownerAllRegisterLists"),
-                        )
-                      }
                       guideHoverKey={workspaceGuideHoverKey}
                       onGuideHover={setWorkspaceGuideHoverKey}
                     />
@@ -935,10 +920,6 @@ export function DashboardClientView({
               workspaceDashPanel={
                 workspaceDashPanel === "schoolType" ? null : workspaceDashPanel
               }
-              registersPreviewActive={
-                dashboardPdfPreview?.anchor === "workspace" &&
-                dashboardPdfPreview.id === schoolRegistersPdfId(primaryMembership.tenantId)
-              }
               showWorkspacePdfTab={showWorkspacePdfTab}
               showWorkspaceInvitesTab={showWorkspaceInvitesTab}
               showPanelArrow={Boolean(
@@ -946,14 +927,6 @@ export function DashboardClientView({
               )}
               onOpenPanel={openWorkspacePanel}
               onOpenOverview={openOwnerOverview}
-              onOpenRegisters={() =>
-                previewDashboardPdf(
-                  "workspace",
-                  schoolRegistersPdfId(primaryMembership.tenantId),
-                  schoolRegistersPdfUrl(primaryMembership.tenantId),
-                  t("dash.ownerAllRegisterLists"),
-                )
-              }
               guideHoverKey={workspaceGuideHoverKey}
               onGuideHover={setWorkspaceGuideHoverKey}
             />
