@@ -2470,7 +2470,7 @@ const FR: UiMessages = {
   "class.guide.importFromOther2":
     "Ses rapports de l’année suivent ; il disparaît de la liste de l’ancienne classe.",
   "class.guide.importFromOther3":
-    "Utilisez Placer depuis Élèves actifs si l’élève doit rester dans plusieurs classes.",
+    "Utilisez Élèves sur le tableau de bord (Placer dans une classe) si l’élève doit rester dans plusieurs classes.",
   "class.guide.findStudentTitle": "Trouver un élève",
   "class.guide.findStudent1":
     "Recherchez dans la liste de l’école les élèves actifs ou inactifs et voyez leur classe actuelle ou précédente.",
@@ -3251,7 +3251,7 @@ const ES: UiMessages = {
   "class.guide.importFromOther2":
     "Sus informes del año viajan con él; desaparece de la lista de la clase anterior.",
   "class.guide.importFromOther3":
-    "Use Colocar desde Alumnos activos si el alumno debe permanecer en más de una clase.",
+    "Use Alumnos en el panel (Colocar en clase) si el alumno debe permanecer en más de una clase.",
   "class.guide.findStudentTitle": "Buscar alumno",
   "class.guide.findStudent1":
     "Busque en la lista escolar alumnos activos o inactivos y vea su clase actual o última.",
