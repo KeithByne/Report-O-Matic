@@ -14,7 +14,8 @@
     "preview": "npm run build && npm run start",
     "lint": "eslint",
     "i18n:audit": "node scripts/i18n-audit.mjs",
-    "i18n:export-missing": "node scripts/i18n-export-missing.mjs"
+    "i18n:export-missing": "node scripts/i18n-export-missing.mjs",
+    "seed:demo-school": "node scripts/seed-demo-school.mjs"
   },
   "dependencies": {
     "@paddle/paddle-node-sdk": "^2.5.0",
