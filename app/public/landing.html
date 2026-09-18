@@ -83,14 +83,28 @@
       .brand {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         margin-bottom: 10px;
+        max-width: 36rem;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 14px;
+        outline-offset: 4px;
+      }
+
+      a.brand:hover .title {
+        color: var(--accent-strong);
+      }
+
+      a.brand:focus-visible {
+        outline: 2px solid var(--accent-strong);
       }
 
       .logo {
-        width: 88px;
-        height: 88px;
-        border-radius: 12px;
+        width: 96px;
+        height: 96px;
+        flex-shrink: 0;
+        border-radius: 14px;
         background: linear-gradient(135deg, var(--bg-mid) 0%, var(--bg-deep) 100%);
         border: 1px solid rgba(61, 90, 132, 0.75);
         display: grid;
@@ -108,19 +122,24 @@
         object-fit: contain;
       }
 
+      .brandText {
+        min-width: 0;
+      }
+
       .title {
-        font-size: 18px;
+        font-size: clamp(1.35rem, 2.5vw, 1.85rem);
         font-weight: 800;
         margin: 0;
-        line-height: 1.1;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
         color: #eef5ff;
       }
 
       .subtitle {
-        margin: 0;
+        margin: 6px 0 0;
         color: var(--muted);
-        font-size: 13px;
-        line-height: 1.4;
+        font-size: 14px;
+        line-height: 1.45;
       }
 
       .landingNav {
@@ -504,20 +523,22 @@
     <div class="wrap">
       <div class="shell">
         <section class="hero">
-          <div class="brand">
-            <div class="logo" aria-label="Report-O-Matic">
+          <a class="brand" href="/landing.html" aria-label="Report-O-Matic home">
+            <span class="logo" aria-hidden="true">
               <img
                 class="logoImg"
                 src="/rom-logo-blue.png"
-                alt="Report-O-Matic logo"
+                alt=""
                 onerror="(function(img){var s=['/rom-logo-blue-trans.png','/Report-O-Matic%20NightView.png','/LogoReport-O-Matic.png'];var i=Number(img.dataset.logoIx||0);if(i<s.length){img.dataset.logoIx=String(i+1);img.src=s[i];}else{var p=img.parentElement;img.remove();if(p){p.textContent='R';p.setAttribute('aria-hidden','true');}}})(this);"
               />
-            </div>
-            <div>
-              <p class="title">Report-O-Matic</p>
-              <p class="subtitle">AI-assisted student reports • secure • printable A4 PDF</p>
-            </div>
-          </div>
+            </span>
+            <span class="brandText">
+              <span class="title">Report-O-Matic</span>
+              <span class="subtitle">
+                AI-assisted student reports for schools — moderated comments, consistent tone, and branded printable A4 PDFs in minutes.
+              </span>
+            </span>
+          </a>
 
           <nav class="landingNav" aria-label="Pricing and legal">
             <details class="navDrop">
