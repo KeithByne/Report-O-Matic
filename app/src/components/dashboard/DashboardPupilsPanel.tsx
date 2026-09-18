@@ -84,7 +84,7 @@ export function DashboardPupilsPanel({
   }, [refresh]);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    inputRef.current?.focus({ preventScroll: true });
   }, []);
 
   const visible = useMemo(() => {

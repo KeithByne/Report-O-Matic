@@ -369,7 +369,7 @@ export function DashboardClientView({
   useEffect(() => {
     if (!workspaceDashPanel) return;
     const el = document.getElementById(`dash-workspace-panel-${workspaceDashPanel}`);
-    scrollPanelContentTopIntoView(el, { block: "nearest" });
+    scrollPanelContentTopIntoView(el, { block: "start" });
   }, [workspaceDashPanel]);
 
   useEffect(() => {
@@ -378,7 +378,7 @@ export function DashboardClientView({
       dashboardPdfPreview.anchor === "workspace"
         ? "dash-workspace-panel-pdf-preview"
         : "dash-teacher-panel-pdf-preview";
-    scrollPanelContentTopIntoView(document.getElementById(id), { block: "nearest" });
+    scrollPanelContentTopIntoView(document.getElementById(id), { block: "start" });
   }, [dashboardPdfPreview]);
 
   useEffect(() => {
