@@ -47,6 +47,7 @@ import {
 } from "@/components/dashboard/SchoolWorkspaceGroupedMenu";
 import { SchoolSetupSiblingNav } from "@/components/dashboard/SchoolSetupSiblingNav";
 import { DashboardTenantPdfLetterhead } from "@/components/dashboard/DashboardTenantPdfLetterhead";
+import { DashboardSchoolRegistersPanel } from "@/components/dashboard/DashboardSchoolRegistersPanel";
 import { DashboardTimetableSnippet } from "@/components/dashboard/DashboardTimetableSnippet";
 import { CLASS_SETTINGS_SAVED_EVENT, type ClassSettingsSavedDetail } from "@/lib/appEvents";
 import { classesListHref, timetableHref } from "@/lib/app/classesNavigation";
@@ -1431,6 +1432,16 @@ export function DashboardClientView({
                     />
                   </div>
                 ) : null}
+
+                {primaryMembership &&
+                workspaceDashPanel === "registers" &&
+                (primaryMembership.role === "owner" || primaryMembership.role === "department_head") ? (
+                  <DashboardSchoolRegistersPanel
+                    tenantId={primaryMembership.tenantId}
+                    canExportPdfs={canExportPdfs}
+                  />
+                ) : null}
+
                 {dashboardPdfPreview?.anchor === "workspace" ? (
                   <InlinePdfPreviewCard
                     sectionId="dash-workspace-panel-pdf-preview"

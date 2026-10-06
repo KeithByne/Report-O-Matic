@@ -3,6 +3,7 @@
 import {
   ArrowDown,
   BookOpen,
+  ClipboardList,
   LayoutList,
   SlidersHorizontal,
   Users,
@@ -27,7 +28,8 @@ export type SchoolWorkspacePanel =
   | "findStudent"
   /** @deprecated Mapped to pupils */
   | "inactiveStudents"
-  | "timetable";
+  | "timetable"
+  | "registers";
 
 export type SchoolWorkspaceMenuVariant = "owner" | "department_head";
 
@@ -46,6 +48,7 @@ const GUIDE_KEYS: Record<
     pupils: string;
     classes: string;
     setupPrimary: string;
+    registers: string;
   }
 > = {
   owner: {
@@ -53,12 +56,14 @@ const GUIDE_KEYS: Record<
     pupils: "owner_pupils",
     classes: "owner_classes",
     setupPrimary: "owner_pdf",
+    registers: "owner_registers",
   },
   department_head: {
     overview: "dh_overview",
     pupils: "dh_pupils",
     classes: "dh_classes",
     setupPrimary: "dh_invite",
+    registers: "dh_registers",
   },
 };
 
@@ -119,6 +124,10 @@ export function SchoolWorkspaceGroupedMenu({
     onOpenPanel("classes");
   };
 
+  const openRegisters = () => {
+    onOpenPanel("registers");
+  };
+
   const openSetup = () => {
     // Letterhead for owners; Invite for department heads (no letterhead tab).
     if (showWorkspacePdfTab) onOpenPanel("pdf");
@@ -129,16 +138,29 @@ export function SchoolWorkspaceGroupedMenu({
   const overviewActive = normalizedPanel === "overview";
   const pupilsActive = normalizedPanel === "pupils";
   const classesActive = normalizedPanel === "classes";
+  const registersActive = normalizedPanel === "registers";
   const setupActive =
     normalizedPanel !== null &&
     SETUP_PANELS.has(normalizedPanel) &&
     !overviewActive &&
     !pupilsActive &&
-    !classesActive;
+    !classesActive &&
+    !registersActive;
 
   return (
     <div className="min-w-0">
       <nav className="flex flex-wrap items-center gap-2" aria-label={t("dash.schoolWorkspaceMenuTitle")}>
+        <button
+          type="button"
+          aria-pressed={setupActive}
+          onMouseEnter={() => onGuideHover(guide.setupPrimary)}
+          onFocus={() => onGuideHover(guide.setupPrimary)}
+          onClick={openSetup}
+          className={primaryButtonClass(setupActive)}
+        >
+          <SlidersHorizontal className={ICON_INLINE} aria-hidden />
+          {t("dash.panelSetUp")}
+        </button>
         <button
           type="button"
           aria-pressed={overviewActive}
@@ -149,17 +171,6 @@ export function SchoolWorkspaceGroupedMenu({
         >
           <LayoutList className={ICON_INLINE} aria-hidden />
           {t("dash.panelOverview")}
-        </button>
-        <button
-          type="button"
-          aria-pressed={pupilsActive}
-          onMouseEnter={() => onGuideHover(guide.pupils)}
-          onFocus={() => onGuideHover(guide.pupils)}
-          onClick={openPupils}
-          className={primaryButtonClass(pupilsActive)}
-        >
-          <Users className={ICON_INLINE} aria-hidden />
-          {t("dash.panelPupils")}
         </button>
         <button
           type="button"
@@ -174,14 +185,25 @@ export function SchoolWorkspaceGroupedMenu({
         </button>
         <button
           type="button"
-          aria-pressed={setupActive}
-          onMouseEnter={() => onGuideHover(guide.setupPrimary)}
-          onFocus={() => onGuideHover(guide.setupPrimary)}
-          onClick={openSetup}
-          className={primaryButtonClass(setupActive)}
+          aria-pressed={pupilsActive}
+          onMouseEnter={() => onGuideHover(guide.pupils)}
+          onFocus={() => onGuideHover(guide.pupils)}
+          onClick={openPupils}
+          className={primaryButtonClass(pupilsActive)}
         >
-          <SlidersHorizontal className={ICON_INLINE} aria-hidden />
-          {t("dash.panelSetUp")}
+          <Users className={ICON_INLINE} aria-hidden />
+          {t("dash.panelPupils")}
+        </button>
+        <button
+          type="button"
+          aria-pressed={registersActive}
+          onMouseEnter={() => onGuideHover(guide.registers)}
+          onFocus={() => onGuideHover(guide.registers)}
+          onClick={openRegisters}
+          className={primaryButtonClass(registersActive)}
+        >
+          <ClipboardList className={ICON_INLINE} aria-hidden />
+          {t("dash.panelRegisters")}
         </button>
         {showPanelArrow ? (
           <span className="inline-flex shrink-0 items-center font-bold text-emerald-900" aria-hidden>

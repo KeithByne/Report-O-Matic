@@ -97,6 +97,12 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
         titleKey: "dash.guide.ownerTimetableTitle",
         linesKeys: ["dash.guide.ownerTimetable1", "dash.guide.ownerTimetable2", "dash.guide.ownerTimetable3"],
       },
+      {
+        key: "owner_registers",
+        n: 9,
+        titleKey: "dash.guide.registersTitle",
+        linesKeys: ["dash.guide.registers1", "dash.guide.registers2", "dash.guide.registers3"],
+      },
     ];
   }
   if (mode === "department_head") {
@@ -144,14 +150,20 @@ export function dashboardGuideStagesForMode(mode: DashboardStagedGuideMode): Sta
         linesKeys: ["dash.guide.dhTimetable1", "dash.guide.dhTimetable2", "dash.guide.dhTimetable3"],
       },
       {
-        key: "dh_pdf",
+        key: "dh_registers",
         n: 7,
+        titleKey: "dash.guide.registersTitle",
+        linesKeys: ["dash.guide.registers1", "dash.guide.registers2", "dash.guide.registers3"],
+      },
+      {
+        key: "dh_pdf",
+        n: 8,
         titleKey: "dash.guide.stepLetterheadTitle",
         linesKeys: ["dash.guide.dhPdf1", "dash.guide.dhPdf2", "dash.guide.dhPdf3"],
       },
       {
         key: "dh_downloads",
-        n: 8,
+        n: 9,
         titleKey: "dash.guide.menuDownloadsTitle",
         linesKeys: ["dash.guide.menuDownloads1", "dash.guide.menuDownloads2", "dash.guide.menuDownloads3"],
       },

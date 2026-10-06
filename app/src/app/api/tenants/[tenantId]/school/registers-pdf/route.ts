@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
-import { listClasses } from "@/lib/data/classesDb";
+import { listClasses, type ClassRow } from "@/lib/data/classesDb";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import { isUiLang } from "@/lib/i18n/uiStrings";
 import { pdfExportResponse } from "@/lib/credits/exportPdf";
@@ -14,6 +14,20 @@ function isUuid(s: string): boolean {
 
 function safeFilename(s: string): string {
   return s.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 80) || "registers";
+}
+
+/** Accept `class_ids=a,b` and/or repeated `class_ids=a&class_ids=b`. */
+function parseRequestedClassIds(url: URL): string[] {
+  const raw: string[] = [];
+  for (const v of url.searchParams.getAll("class_ids")) {
+    for (const part of v.split(",")) {
+      const id = part.trim();
+      if (id) raw.push(id);
+    }
+  }
+  const single = url.searchParams.get("class_id")?.trim();
+  if (single) raw.push(single);
+  return [...new Set(raw.filter(isUuid))];
 }
 
 export async function GET(req: Request, context: { params: Promise<{ tenantId: string }> }) {
@@ -31,21 +45,38 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
   const langParam = (url.searchParams.get("lang") || "en").trim();
   const uiLang = isUiLang(langParam) ? langParam : "en";
   const inline = url.searchParams.get("inline") === "1";
+  const requestedIds = parseRequestedClassIds(url);
 
-  const classes = await listClasses(tenantId);
-  if (classes.length === 0) {
+  const allClasses = await listClasses(tenantId);
+  if (allClasses.length === 0) {
     return NextResponse.json({ error: "No classes in this school." }, { status: 404 });
+  }
+
+  let classes: ClassRow[] = allClasses;
+  if (requestedIds.length > 0) {
+    const byId = new Map(allClasses.map((c) => [c.id, c]));
+    classes = [];
+    for (const id of requestedIds) {
+      const row = byId.get(id);
+      if (!row) {
+        return NextResponse.json({ error: "One or more selected classes were not found." }, { status: 404 });
+      }
+      classes.push(row);
+    }
   }
 
   try {
     const { pdf, tenantRecordName } = await mergeRegisterPdfsForClassRows(tenantId, classes, uiLang);
-    const fname = `${safeFilename(tenantRecordName)}-all-registers.pdf`;
+    const fname =
+      requestedIds.length > 0
+        ? `${safeFilename(tenantRecordName)}-selected-registers.pdf`
+        : `${safeFilename(tenantRecordName)}-all-registers.pdf`;
     return pdfExportResponse(tenantId, pdf, { inline, filename: fname });
   } catch (e: unknown) {
     const msg = e instanceof Error && e.message === "NO_PRINTABLE_REGISTERS" ? null : e instanceof Error ? e.message : null;
     if (msg === null) {
       return NextResponse.json(
-        { error: "No printable registers — add at least one pupil to a class." },
+        { error: "No printable registers — add at least one pupil to a selected class." },
         { status: 409 },
       );
     }
