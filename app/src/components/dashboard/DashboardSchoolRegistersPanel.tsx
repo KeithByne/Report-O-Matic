@@ -1,12 +1,13 @@
 "use client";
 
 import { ClipboardList, Loader2, Printer } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCard";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
 import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
 
+const REGISTERS_CARD_ID = "dash-workspace-panel-registers";
 const REGISTERS_PDF_PREVIEW_ID = "dash-workspace-panel-registers-pdf-preview";
 
 type ClassRow = {
@@ -23,6 +24,7 @@ type Props = {
 export function DashboardSchoolRegistersPanel({ tenantId, canExportPdfs }: Props) {
   const { t, lang: uiLang } = useUiLanguage();
   const base = `/api/tenants/${encodeURIComponent(tenantId)}`;
+  const cardRef = useRef<HTMLElement | null>(null);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -56,6 +58,14 @@ export function DashboardSchoolRegistersPanel({ tenantId, canExportPdfs }: Props
     void refresh();
   }, [refresh]);
 
+  // Bring the Registers card into the upper portion of the window when opened.
+  useEffect(() => {
+    scrollPanelContentTopIntoView(cardRef.current ?? document.getElementById(REGISTERS_CARD_ID), {
+      block: "start",
+    });
+  }, []);
+
+  // Pin the PDF preview to the top of the window when generated / refreshed.
   useEffect(() => {
     if (!previewUrl) return;
     scrollPanelContentTopIntoView(document.getElementById(REGISTERS_PDF_PREVIEW_ID), {
@@ -93,7 +103,8 @@ export function DashboardSchoolRegistersPanel({ tenantId, canExportPdfs }: Props
 
   return (
     <section
-      id="dash-workspace-panel-registers"
+      ref={cardRef}
+      id={REGISTERS_CARD_ID}
       className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
       aria-labelledby="dash-registers-title"
     >

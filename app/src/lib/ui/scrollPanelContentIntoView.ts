@@ -1,9 +1,13 @@
 /**
  * Scrolls the window so `element` is brought into view, after layout so conditional panels have mounted.
  * Smooth scroll uses a custom duration (~2× native) so motion is slower and easier to follow.
+ * A newer call cancels any in-flight animated scroll so open-panel and open-PDF do not fight.
  */
 
 const SMOOTH_SCROLL_DURATION_MS = 1000;
+
+let scrollGeneration = 0;
+let activeRaf = 0;
 
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
@@ -28,23 +32,37 @@ function targetScrollYForBlock(element: Element, block: ScrollLogicalPosition): 
     return current + rect.bottom - viewH + margin;
   }
 
+  // "start" / "center" / "end": pin the element's top into the upper portion of the viewport.
   return current + rect.top - margin;
 }
 
-function animateWindowScrollTo(targetY: number, durationMs: number): void {
+function animateWindowScrollTo(targetY: number, durationMs: number, generation: number): void {
   const startY = window.scrollY;
   const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   const endY = Math.min(maxY, Math.max(0, targetY));
   const delta = endY - startY;
   if (Math.abs(delta) < 2) return;
 
+  if (activeRaf) {
+    cancelAnimationFrame(activeRaf);
+    activeRaf = 0;
+  }
+
   const start = performance.now();
   const step = (now: number) => {
+    if (generation !== scrollGeneration) {
+      activeRaf = 0;
+      return;
+    }
     const t = Math.min(1, (now - start) / durationMs);
     window.scrollTo(0, startY + delta * easeInOutCubic(t));
-    if (t < 1) requestAnimationFrame(step);
+    if (t < 1) {
+      activeRaf = requestAnimationFrame(step);
+    } else {
+      activeRaf = 0;
+    }
   };
-  requestAnimationFrame(step);
+  activeRaf = requestAnimationFrame(step);
 }
 
 export function scrollPanelContentTopIntoView(
@@ -62,7 +80,11 @@ export function scrollPanelContentTopIntoView(
   const durationMs =
     options?.durationMs ?? (behavior === "smooth" ? SMOOTH_SCROLL_DURATION_MS : 0);
 
+  const generation = ++scrollGeneration;
+
   const run = () => {
+    if (generation !== scrollGeneration) return;
+    if (!element.isConnected) return;
     if (behavior === "auto" || durationMs <= 0) {
       element.scrollIntoView({ behavior: "auto", block });
       return;
@@ -73,11 +95,13 @@ export function scrollPanelContentTopIntoView(
     }
     const targetY = targetScrollYForBlock(element, block);
     if (targetY === null) return;
-    animateWindowScrollTo(targetY, durationMs);
+    animateWindowScrollTo(targetY, durationMs, generation);
   };
 
   queueMicrotask(() => {
+    if (generation !== scrollGeneration) return;
     window.requestAnimationFrame(() => {
+      if (generation !== scrollGeneration) return;
       window.requestAnimationFrame(run);
     });
   });
