@@ -38,3 +38,6 @@ create unique index if not exists timetable_slots_teacher_period_unique
 create index if not exists timetable_slots_tenant_idx on public.timetable_slots (tenant_id);
 
 alter table public.timetable_slots enable row level security;
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.timetable_slots to service_role;

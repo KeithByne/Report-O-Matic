@@ -38,3 +38,7 @@ create table if not exists public.tenant_credit_ledger (
 create index if not exists tenant_credit_ledger_tenant_idx on public.tenant_credit_ledger (tenant_id, created_at desc);
 alter table public.tenant_credit_ledger enable row level security;
 
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.credit_packs to service_role;
+grant select, insert, update, delete on table public.tenant_credit_ledger to service_role;

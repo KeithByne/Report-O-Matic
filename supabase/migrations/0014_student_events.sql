@@ -18,3 +18,6 @@ create index if not exists student_events_created_idx on public.student_events (
 
 alter table public.student_events enable row level security;
 
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.student_events to service_role;

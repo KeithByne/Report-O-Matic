@@ -43,3 +43,6 @@ alter table public.students alter column class_id set not null;
 alter table public.students drop column if exists class_name;
 
 alter table public.classes enable row level security;
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.classes to service_role;

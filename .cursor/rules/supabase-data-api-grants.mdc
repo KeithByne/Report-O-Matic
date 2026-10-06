@@ -1,0 +1,20 @@
+---
+description: Explicit Data API grants on new public tables
+alwaysApply: true
+---
+
+# Supabase Data API grants
+
+From 30 October 2026, Supabase does not grant Data API access to new tables in `public`. Existing tables keep their current grants.
+
+When a migration creates a table in `public`, add the grant in that same migration, after the table exists:
+
+```sql
+grant select, insert, update, delete on table public.your_table to service_role;
+```
+
+Report-O-Matic reaches Postgres through the service role. Do not grant `anon` or `authenticated` unless the maintainer explicitly asks for that role to use the Data API on that table.
+
+Row level security stays on. Grants decide whether the Data API can see the table. Policies decide which rows a role can touch.
+
+The same rule applies to every Supabase project: a new `public` table is unreachable from `supabase-js`, PostgREST, and GraphQL until its migration grants the roles that should reach it.

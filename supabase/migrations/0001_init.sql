@@ -40,3 +40,8 @@ create index memberships_email_idx on public.memberships (lower(user_email));
 
 alter table public.tenants enable row level security;
 alter table public.memberships enable row level security;
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.otp_challenges to service_role;
+grant select, insert, update, delete on table public.tenants to service_role;
+grant select, insert, update, delete on table public.memberships to service_role;

@@ -14,3 +14,6 @@ create index if not exists owner_account_lifecycle_zero_balance_idx
   where zero_balance_since is not null and marked_inactive_at is null;
 
 alter table public.owner_account_lifecycle enable row level security;
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.owner_account_lifecycle to service_role;

@@ -21,3 +21,6 @@ create index if not exists openai_usage_events_actor_idx on public.openai_usage_
 
 alter table public.openai_usage_events enable row level security;
 
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.openai_usage_events to service_role;

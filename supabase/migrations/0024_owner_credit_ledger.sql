@@ -35,3 +35,6 @@ inner join lateral (
   order by user_email asc
   limit 1
 ) o on true;
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.owner_credit_ledger to service_role;

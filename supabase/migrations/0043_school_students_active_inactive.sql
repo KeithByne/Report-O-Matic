@@ -136,3 +136,6 @@ alter table public.student_events
 
 comment on column public.student_events.event_type is
   'added/deleted/moved = legacy class-row events; enrolled/unenrolled = locate/remove class; inactivated/reactivated = active/inactive lists';
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.school_students to service_role;

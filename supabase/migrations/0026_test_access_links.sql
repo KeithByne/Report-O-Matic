@@ -28,3 +28,6 @@ alter table public.tenants
 
 create index if not exists tenants_is_test_access_idx on public.tenants (is_test_access);
 
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.test_access_links to service_role;

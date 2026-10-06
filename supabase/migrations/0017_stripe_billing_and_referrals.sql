@@ -54,3 +54,8 @@ create index if not exists referral_earnings_status_idx on public.referral_earni
 create index if not exists referral_earnings_agent_idx on public.referral_earnings (lower(agent_email));
 alter table public.referral_earnings enable row level security;
 
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.tenant_billing to service_role;
+grant select, insert, update, delete on table public.agent_links to service_role;
+grant select, insert, update, delete on table public.referral_earnings to service_role;

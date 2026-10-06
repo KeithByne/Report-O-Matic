@@ -31,3 +31,7 @@ create index if not exists support_messages_thread_created_idx
 
 alter table public.support_threads enable row level security;
 alter table public.support_messages enable row level security;
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.support_threads to service_role;
+grant select, insert, update, delete on table public.support_messages to service_role;

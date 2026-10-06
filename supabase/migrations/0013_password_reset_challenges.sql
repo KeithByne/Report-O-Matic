@@ -15,3 +15,6 @@ create index if not exists password_reset_challenges_expires_at_idx on public.pa
 
 alter table public.password_reset_challenges enable row level security;
 
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.password_reset_challenges to service_role;

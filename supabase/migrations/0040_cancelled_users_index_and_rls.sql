@@ -20,3 +20,6 @@ create index if not exists cancelled_users_last_attempt_idx
   on public.cancelled_users (last_reaccess_attempt_at desc);
 
 alter table public.cancelled_users enable row level security;
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.cancelled_users to service_role;

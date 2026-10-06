@@ -13,3 +13,6 @@ create index class_scholastic_archives_class_idx on public.class_scholastic_arch
 create index class_scholastic_archives_tenant_idx on public.class_scholastic_archives (tenant_id);
 
 alter table public.class_scholastic_archives enable row level security;
+-- Data API grants. From 30 Oct 2026 Supabase no longer auto-exposes new public tables.
+-- This app reaches Postgres only through the service role.
+grant select, insert, update, delete on table public.class_scholastic_archives to service_role;
