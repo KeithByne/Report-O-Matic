@@ -5,6 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCard";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
+import { scrollPanelContentTopIntoView } from "@/lib/ui/scrollPanelContentIntoView";
+
+const REGISTERS_PDF_PREVIEW_ID = "dash-workspace-panel-registers-pdf-preview";
 
 type ClassRow = {
   id: string;
@@ -52,6 +55,13 @@ export function DashboardSchoolRegistersPanel({ tenantId, canExportPdfs }: Props
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!previewUrl) return;
+    scrollPanelContentTopIntoView(document.getElementById(REGISTERS_PDF_PREVIEW_ID), {
+      block: "start",
+    });
+  }, [previewUrl, previewKey]);
 
   const selectedIds = useMemo(
     () => classes.filter((c) => selected[c.id]).map((c) => c.id),
@@ -161,6 +171,7 @@ export function DashboardSchoolRegistersPanel({ tenantId, canExportPdfs }: Props
       {previewUrl ? (
         <div className="mt-5">
           <InlinePdfPreviewCard
+            sectionId={REGISTERS_PDF_PREVIEW_ID}
             title={t("dash.registersPreviewTitle")}
             pdfUrl={previewUrl}
             canExport={canExportPdfs}
