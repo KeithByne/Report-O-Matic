@@ -386,12 +386,14 @@ export function DashboardClientView({
   useEffect(() => {
     if (!teacherWorkspacePanel) return;
     const el = document.getElementById(`dash-teacher-panel-${teacherWorkspacePanel}`);
-    scrollPanelContentTopIntoView(el);
+    scrollPanelContentTopIntoView(el, { block: "start" });
   }, [teacherWorkspacePanel]);
 
   useEffect(() => {
     if (!agentStartupOpen) return;
-    scrollPanelContentTopIntoView(document.getElementById("dash-agent-expanded"));
+    scrollPanelContentTopIntoView(document.getElementById("dash-agent-expanded"), {
+      block: "start",
+    });
   }, [agentStartupOpen]);
 
   const showWorkspacePdfTab = visibleMemberships.some((m) => m.role === "owner");

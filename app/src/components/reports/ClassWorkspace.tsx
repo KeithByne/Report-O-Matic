@@ -375,7 +375,9 @@ export function ClassWorkspace({
     if (!students.some((s) => s.id === sid)) return;
     didScrollToFocusStudent.current = true;
     const t = window.setTimeout(() => {
-      document.getElementById(`class-student-row-${sid}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      scrollPanelContentTopIntoView(document.getElementById(`class-student-row-${sid}`), {
+        block: "start",
+      });
     }, 100);
     return () => window.clearTimeout(t);
   }, [students, initialFocusStudentId, highlightStudentId]);
@@ -401,12 +403,14 @@ export function ClassWorkspace({
   useEffect(() => {
     if (!openClassPanel) return;
     const el = document.getElementById(`class-workspace-panel-${openClassPanel}`);
-    scrollPanelContentTopIntoView(el);
+    scrollPanelContentTopIntoView(el, { block: "start" });
   }, [openClassPanel]);
 
   useEffect(() => {
     if (!classPdfPreview) return;
-    scrollPanelContentTopIntoView(document.getElementById("dash-teacher-panel-pdf-preview"));
+    scrollPanelContentTopIntoView(document.getElementById("dash-teacher-panel-pdf-preview"), {
+      block: "start",
+    });
   }, [classPdfPreview]);
 
   const classPanelButtonClass = useCallback(

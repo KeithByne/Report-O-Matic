@@ -47,7 +47,7 @@ export function DashboardScholasticArchivesOverview({ tenantId }: { tenantId: st
 
   useEffect(() => {
     if (!open) return;
-    scrollPanelContentTopIntoView(expandedRef.current);
+    scrollPanelContentTopIntoView(expandedRef.current, { block: "start" });
   }, [open]);
 
   return (

@@ -1,5 +1,6 @@
 /**
- * Scrolls the window so `element` is brought into view, after layout so conditional panels have mounted.
+ * Scrolls the window so `element` is brought into the upper portion of the viewport
+ * (top under scroll-padding), after layout so conditional panels have mounted.
  * Smooth scroll uses a custom duration (~2× native) so motion is slower and easier to follow.
  * A newer call cancels any in-flight animated scroll so open-panel and open-PDF do not fight.
  */
@@ -20,20 +21,10 @@ function scrollMarginPx(): number {
   return Number.isFinite(n) ? n : 8;
 }
 
-function targetScrollYForBlock(element: Element, block: ScrollLogicalPosition): number | null {
+/** Pin element top into the upper portion of the viewport (under scroll-padding). */
+function targetScrollYUpper(element: Element): number {
   const rect = element.getBoundingClientRect();
-  const viewH = window.innerHeight;
-  const current = window.scrollY;
-  const margin = scrollMarginPx();
-
-  if (block === "nearest") {
-    if (rect.top >= margin && rect.bottom <= viewH - margin) return null;
-    if (rect.top < margin) return current + rect.top - margin;
-    return current + rect.bottom - viewH + margin;
-  }
-
-  // "start" / "center" / "end": pin the element's top into the upper portion of the viewport.
-  return current + rect.top - margin;
+  return window.scrollY + rect.top - scrollMarginPx();
 }
 
 function animateWindowScrollTo(targetY: number, durationMs: number, generation: number): void {
@@ -46,6 +37,11 @@ function animateWindowScrollTo(targetY: number, durationMs: number, generation: 
   if (activeRaf) {
     cancelAnimationFrame(activeRaf);
     activeRaf = 0;
+  }
+
+  if (durationMs <= 0) {
+    window.scrollTo(0, endY);
+    return;
   }
 
   const start = performance.now();
@@ -65,9 +61,16 @@ function animateWindowScrollTo(targetY: number, durationMs: number, generation: 
   activeRaf = requestAnimationFrame(step);
 }
 
+/**
+ * Bring `element` into the upper portion of the window.
+ * `block` is accepted for call-site clarity; positioning is always upper/top
+ * (same Registers / PDF preview behavior). Use native overflow scrolling separately
+ * when the target sits inside a nested scroll container.
+ */
 export function scrollPanelContentTopIntoView(
   element: Element | null,
   options?: {
+    /** Ignored for positioning — always upper/top. Kept so call sites can pass `{ block: "start" }`. */
     block?: ScrollLogicalPosition;
     behavior?: ScrollBehavior;
     /** Smooth scroll duration; default ~2× native browser smooth (~1000ms). */
@@ -75,26 +78,23 @@ export function scrollPanelContentTopIntoView(
   },
 ): void {
   if (!element || typeof window === "undefined") return;
-  const block = options?.block ?? "start";
   const behavior = options?.behavior ?? "smooth";
+  const prefersReduced =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const durationMs =
-    options?.durationMs ?? (behavior === "smooth" ? SMOOTH_SCROLL_DURATION_MS : 0);
+    behavior === "auto" || prefersReduced
+      ? 0
+      : (options?.durationMs ?? SMOOTH_SCROLL_DURATION_MS);
 
   const generation = ++scrollGeneration;
 
   const run = () => {
     if (generation !== scrollGeneration) return;
     if (!element.isConnected) return;
-    if (behavior === "auto" || durationMs <= 0) {
-      element.scrollIntoView({ behavior: "auto", block });
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      element.scrollIntoView({ behavior: "auto", block });
-      return;
-    }
-    const targetY = targetScrollYForBlock(element, block);
-    if (targetY === null) return;
+    // Keep the target visible inside nested overflow parents first.
+    element.scrollIntoView({ behavior: "auto", block: "nearest", inline: "nearest" });
+    const targetY = targetScrollYUpper(element);
     animateWindowScrollTo(targetY, durationMs, generation);
   };
 

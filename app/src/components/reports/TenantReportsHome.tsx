@@ -110,7 +110,7 @@ export function TenantReportsHome({ tenantId, schoolName, viewerRole, bootPanels
     if (openPanels.size !== 1) return;
     const id = [...openPanels][0];
     const el = document.getElementById(`tenant-panel-${id}`);
-    scrollPanelContentTopIntoView(el);
+    scrollPanelContentTopIntoView(el, { block: "start" });
   }, [openPanels]);
 
   useEffect(() => {
