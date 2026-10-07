@@ -106,6 +106,21 @@ export function DashboardPupilsPanel({
       .slice(0, 80);
   }, [rows, query, statusFilter, excludeClassId, placeIntoClassId]);
 
+  /** Counts for filter chips — full roster allocation (not search-filtered). */
+  const statusCounts = useMemo(() => {
+    const exclude = excludeClassId?.trim() || placeIntoClassId?.trim() || "";
+    let all = 0;
+    let active = 0;
+    let inactive = 0;
+    for (const row of rows) {
+      if (exclude && row.class_ids.includes(exclude)) continue;
+      all += 1;
+      if (row.status === "active") active += 1;
+      else if (row.status === "inactive") inactive += 1;
+    }
+    return { all, active, inactive };
+  }, [rows, excludeClassId, placeIntoClassId]);
+
   const selected = useMemo(
     () => (selectedId ? rows.find((r) => r.id === selectedId) ?? null : null),
     [rows, selectedId],
@@ -295,7 +310,7 @@ export function DashboardPupilsPanel({
     }
   }
 
-  const filterChip = (id: StatusFilter, label: string) => {
+  const filterChip = (id: StatusFilter, label: string, count: number) => {
     const active = statusFilter === id;
     return (
       <button
@@ -303,13 +318,19 @@ export function DashboardPupilsPanel({
         type="button"
         aria-pressed={active}
         onClick={() => setStatusFilter(id)}
-        className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+        className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
           active
             ? "border-emerald-600 bg-emerald-100 text-emerald-950"
             : "border-emerald-200 bg-white text-zinc-700 hover:bg-emerald-50"
         }`}
       >
-        {label}
+        <span>{label}</span>
+        <span
+          className={`tabular-nums ${active ? "text-emerald-900" : "text-zinc-500"}`}
+          aria-label={String(count)}
+        >
+          {count}
+        </span>
       </button>
     );
   };
@@ -345,9 +366,9 @@ export function DashboardPupilsPanel({
 
       <div className="mt-4 space-y-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
-          {filterChip("all", t("dash.pupilsFilterAll"))}
-          {filterChip("active", t("dash.findStudentStatusActive"))}
-          {filterChip("inactive", t("dash.findStudentStatusInactive"))}
+          {filterChip("all", t("dash.pupilsFilterAll"), statusCounts.all)}
+          {filterChip("active", t("dash.findStudentStatusActive"), statusCounts.active)}
+          {filterChip("inactive", t("dash.findStudentStatusInactive"), statusCounts.inactive)}
         </div>
 
         <label className="block min-w-0 text-sm">
