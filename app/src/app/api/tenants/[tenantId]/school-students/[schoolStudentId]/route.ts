@@ -5,6 +5,7 @@ import { getRoleForTenant } from "@/lib/data/memberships";
 import {
   getSchoolStudentInTenant,
   inactivateSchoolStudent,
+  purgeSchoolStudent,
   updateSchoolStudent,
 } from "@/lib/data/schoolStudents";
 import { logStudentEvent } from "@/lib/data/studentEvents";
@@ -56,9 +57,12 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
   }
 }
 
-/** Remove from Active list → Inactive archive; ends all class enrollments. */
+/**
+ * Active → Inactive (archive), or
+ * Inactive + `?erase=1` → permanent erase (reports and enrollments cascade).
+ */
 export async function DELETE(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ tenantId: string; schoolStudentId: string }> },
 ) {
   const { tenantId, schoolStudentId } = await context.params;
@@ -69,12 +73,35 @@ export async function DELETE(
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!canManageSchoolRoster(role)) {
-    return NextResponse.json({ error: "Only owners and department heads can remove pupils from the active list." }, { status: 403 });
+    return NextResponse.json(
+      { error: "Only owners and department heads can archive or erase pupils." },
+      { status: 403 },
+    );
   }
+
+  const erase = new URL(req.url).searchParams.get("erase") === "1";
 
   try {
     const existing = await getSchoolStudentInTenant(tenantId, schoolStudentId);
     if (!existing) return NextResponse.json({ error: "Pupil not found." }, { status: 404 });
+
+    if (erase) {
+      if (existing.status !== "inactive") {
+        return NextResponse.json(
+          { error: "Move the pupil to Inactive before permanently erasing them." },
+          { status: 400 },
+        );
+      }
+      await logStudentEvent({
+        tenantId,
+        actorEmail: gate.email,
+        type: "deleted",
+        schoolStudentId,
+      });
+      await purgeSchoolStudent({ tenantId, schoolStudentId });
+      return NextResponse.json({ ok: true, erased: true });
+    }
+
     if (existing.status !== "active") {
       return NextResponse.json({ error: "Pupil is not on the active list." }, { status: 400 });
     }
@@ -87,7 +114,7 @@ export async function DELETE(
     });
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Failed to archive pupil.";
+    const msg = e instanceof Error ? e.message : "Failed to update pupil.";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

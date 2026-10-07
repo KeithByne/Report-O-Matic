@@ -30,7 +30,11 @@ export const IT_LABELS: Record<string, string> = {
   "dash.guide.registers2": "Spunta le classi, poi Stampa registri selezionati per un PDF multipagina.",
   "dash.guide.registers3": "Le classi senza studenti sono saltate nel PDF combinato.",
   "dash.pupilsHint":
-    "Cerca o aggiungi uno studente sopra. Seleziona un nome nell’elenco, poi modifica, colloca, archivia o riattiva dall’intestazione.",
+    "Cerca o aggiungi uno studente sopra. Senza classe resta Inattivo. Seleziona un nome per modificare, collocare, archiviare o cancellare definitivamente.",
+  "dash.inactiveStudentsErase": "Cancella definitivamente",
+  "dash.inactiveStudentsConfirmErase":
+    "Cancellare definitivamente {name} e tutti i suoi rapporti da questa scuola? Irreversibile.",
+  "dash.activeStudentsAdd": "Aggiungi studente",
   "dash.pupilsFilterAll": "Tutti",
   "dash.pupilsEmptyFilter": "Nessuno studente corrisponde a questo filtro.",
   "dash.pupilsPlaceClass": "Scegli classe…",
@@ -433,7 +437,11 @@ export const PT_LABELS: Record<string, string> = {
   "dash.guide.registers2": "Marque as turmas e Imprimir registos selecionados para um PDF multipágina.",
   "dash.guide.registers3": "Turmas sem alunos são omitidas no PDF combinado.",
   "dash.pupilsHint":
-    "Pesquise ou adicione um aluno acima. Selecione um nome na lista e edite, coloque na turma, archive ou reative no cabeçalho.",
+    "Pesquise ou adicione um aluno acima. Sem turma, fica Inativo. Selecione um nome para editar, colocar, arquivar ou apagar definitivamente.",
+  "dash.inactiveStudentsErase": "Apagar definitivamente",
+  "dash.inactiveStudentsConfirmErase":
+    "Apagar definitivamente {name} e todos os relatórios desta escola? Não pode ser anulado.",
+  "dash.activeStudentsAdd": "Adicionar aluno",
   "dash.pupilsFilterAll": "Todos",
   "dash.pupilsEmptyFilter": "Nenhum aluno corresponde a este filtro.",
   "dash.pupilsPlaceClass": "Escolher turma…",
@@ -845,7 +853,11 @@ export const DE_LABELS: Record<string, string> = {
   "dash.guide.registers2": "Klassen ankreuzen, dann Ausgewählte Register drucken für ein mehrseitiges PDF.",
   "dash.guide.registers3": "Klassen ohne Schüler werden im kombinierten PDF übersprungen.",
   "dash.pupilsHint":
-    "Oben suchen oder hinzufügen. Wählen Sie einen Namen in der Liste, dann im Kopfbereich bearbeiten, in Klasse setzen, archivieren oder reaktivieren.",
+    "Oben suchen oder hinzufügen. Ohne Klasse bleibt der Schüler Inaktiv. Namen wählen zum Bearbeiten, Setzen, Archivieren oder endgültigen Löschen.",
+  "dash.inactiveStudentsErase": "Endgültig löschen",
+  "dash.inactiveStudentsConfirmErase":
+    "{name} und alle Berichte dauerhaft aus dieser Schule löschen? Dies kann nicht rückgängig gemacht werden.",
+  "dash.activeStudentsAdd": "Schüler hinzufügen",
   "dash.pupilsFilterAll": "Alle",
   "dash.pupilsEmptyFilter": "Keine Schüler entsprechen diesem Filter.",
   "dash.pupilsPlaceClass": "Klasse wählen…",

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, RotateCcw, Search, Trash2, UserPlus, Users } from "lucide-react";
+import { Loader2, Search, Trash2, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
@@ -174,7 +174,8 @@ export function DashboardPupilsPanel({
       const created = data.student as SchoolStudentWithClasses | undefined;
       if (created?.id) {
         setQuery(created.display_name);
-        setStatusFilter("active");
+        // Unplaced pupils land on Inactive until assigned to a class.
+        setStatusFilter("inactive");
         setSelectedId(created.id);
       }
       await refresh();
@@ -230,15 +231,18 @@ export function DashboardPupilsPanel({
     }
   }
 
-  async function reactivate(id: string) {
-    setBusy("reactivate");
+  async function erasePermanently(id: string, name: string) {
+    if (!confirm(t("dash.inactiveStudentsConfirmErase", { name }))) return;
+    setBusy("erase");
     setErr(null);
     try {
-      const res = await fetch(`${base}/school-students/${encodeURIComponent(id)}/reactivate`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `${base}/school-students/${encodeURIComponent(id)}?erase=1`,
+        { method: "DELETE" },
+      );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
+      setSelectedId(null);
       await refresh();
       onRosterChanged?.();
     } catch (e: unknown) {
@@ -511,7 +515,7 @@ export function DashboardPupilsPanel({
                 >
                   {t("class.placePupilButton")}
                 </button>
-              ) : selectedActive ? (
+              ) : selectedActive || selectedInactive ? (
                 <>
                   <label className="block min-w-[12rem] flex-1 text-sm">
                     <span className="mb-1 block text-zinc-600">{t("dash.pupilsPlaceClass")}</span>
@@ -536,26 +540,28 @@ export function DashboardPupilsPanel({
                   >
                     {t("dash.pupilsPlaceButton")}
                   </button>
-                  <button
-                    type="button"
-                    disabled={busy !== null}
-                    onClick={() => void removeFromActive(selected.id, selected.display_name)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-50 disabled:opacity-50"
-                  >
-                    <Trash2 className={`${ICON_INLINE} h-3.5 w-3.5`} aria-hidden />
-                    {t("dash.activeStudentsRemove")}
-                  </button>
+                  {selectedActive ? (
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => void removeFromActive(selected.id, selected.display_name)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      <Trash2 className={`${ICON_INLINE} h-3.5 w-3.5`} aria-hidden />
+                      {t("dash.activeStudentsRemove")}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => void erasePermanently(selected.id, selected.display_name)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-semibold text-red-900 hover:bg-red-100 disabled:opacity-50"
+                    >
+                      <Trash2 className={`${ICON_INLINE} h-3.5 w-3.5`} aria-hidden />
+                      {t("dash.inactiveStudentsErase")}
+                    </button>
+                  )}
                 </>
-              ) : selectedInactive ? (
-                <button
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => void reactivate(selected.id)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-800 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-50"
-                >
-                  <RotateCcw className={`${ICON_INLINE} h-3.5 w-3.5`} aria-hidden />
-                  {t("dash.inactiveStudentsReactivate")}
-                </button>
               ) : null}
             </div>
           </div>

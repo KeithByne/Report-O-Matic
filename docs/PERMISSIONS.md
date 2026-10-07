@@ -31,6 +31,7 @@ Code helpers (keep add open to all three roles):
 |--------|---------------|--------|
 | View assigned class / reports (teachers) | Assigned teacher; owner/DH all classes | `canAccessClass` |
 | Remove / archive active list | Owner, department head | `canManageSchoolRoster` |
+| Permanently erase inactive pupil | Owner, department head | `canManageSchoolRoster` |
 | Move pupil between classes | Owner, department head | students PATCH |
 | Timetable edit | Owner, department head | slot routes |
 | Billing / buy credits | Owner | checkout route |

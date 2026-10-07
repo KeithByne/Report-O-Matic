@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canUseSchoolRoster } from "@/lib/auth/schoolRoster";
+import { canManageSchoolRoster, canUseSchoolRoster } from "@/lib/auth/schoolRoster";
 import { requireTenantMember } from "@/lib/auth/tenantApi";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { SchoolStudentStatus } from "@/lib/data/schoolStudents";
@@ -7,6 +7,7 @@ import {
   insertSchoolStudent,
   listAllSchoolStudentsWithClasses,
   listSchoolStudents,
+  syncUnallocatedActiveToInactive,
 } from "@/lib/data/schoolStudents";
 import { logStudentEvent } from "@/lib/data/studentEvents";
 import type { Gender } from "@/lib/data/students";
@@ -29,6 +30,8 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     return NextResponse.json({ error: "status must be active, inactive, or all." }, { status: 400 });
   }
   try {
+    // Heal Active pupils who no longer have a class (older data / class removal).
+    await syncUnallocatedActiveToInactive(tenantId, gate.email);
     const students =
       statusRaw === "all"
         ? await listAllSchoolStudentsWithClasses(tenantId)
@@ -47,7 +50,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
   if (!gate.ok) return gate.res;
   const role = await getRoleForTenant(gate.email, tenantId);
   if (!canUseSchoolRoster(role)) {
-    return NextResponse.json({ error: "No access to add pupils to the active list." }, { status: 403 });
+    return NextResponse.json({ error: "No access to add pupils to the school list." }, { status: 403 });
   }
 
   let body: { first_name?: unknown; last_name?: unknown; gender?: unknown };
@@ -68,7 +71,14 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       : null;
 
   try {
-    const student = await insertSchoolStudent({ tenantId, firstName: first, lastName: last, gender });
+    // No class yet → Inactive until placed (or added from a class workspace).
+    const student = await insertSchoolStudent({
+      tenantId,
+      firstName: first,
+      lastName: last,
+      gender,
+      status: "inactive",
+    });
     await logStudentEvent({
       tenantId,
       actorEmail: gate.email,

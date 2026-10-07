@@ -2,6 +2,7 @@ import { getServiceSupabase } from "@/lib/supabase/service";
 import {
   getSchoolStudentInTenant,
   hasOpenEnrollmentInClass,
+  inactivateIfNoOpenEnrollments,
   insertSchoolStudent,
   reactivateSchoolStudent,
 } from "@/lib/data/schoolStudents";
@@ -273,6 +274,7 @@ export async function insertStudent(opts: {
       firstName: first,
       lastName: last,
       gender: opts.gender,
+      status: "active",
     });
     schoolStudentId = created.id;
   }
@@ -305,9 +307,10 @@ export async function enrollSchoolStudentInClass(opts: {
   schoolStudentId: string;
   classId: string;
 }): Promise<StudentWithClass> {
-  const school = await getSchoolStudentInTenant(opts.tenantId, opts.schoolStudentId);
-  if (!school || school.status !== "active") {
-    throw new Error("Active pupil not found on the school roster.");
+  let school = await getSchoolStudentInTenant(opts.tenantId, opts.schoolStudentId);
+  if (!school) throw new Error("Pupil not found on the school roster.");
+  if (school.status === "inactive") {
+    school = await reactivateSchoolStudent(opts.tenantId, opts.schoolStudentId);
   }
   return insertStudent({
     tenantId: opts.tenantId,
@@ -413,10 +416,19 @@ export async function getStudentInTenant(
   }) ?? null;
 }
 
-/** Ends class enrollment; keeps school roster and reports. */
-export async function endEnrollmentInTenant(tenantId: string, studentId: string): Promise<void> {
+/**
+ * Ends class enrollment; keeps school roster and reports.
+ * If the pupil has no remaining open classes, they move to Inactive automatically.
+ */
+export async function endEnrollmentInTenant(
+  tenantId: string,
+  studentId: string,
+  opts?: { actorEmail?: string },
+): Promise<{ schoolStudentId: string | null; inactivated: boolean }> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
+  const existing = await getStudentInTenant(tenantId, studentId);
+  const schoolStudentId = existing?.school_student_id ?? null;
   const now = new Date().toISOString();
   const { error } = await supabase
     .from("students")
@@ -425,6 +437,16 @@ export async function endEnrollmentInTenant(tenantId: string, studentId: string)
     .eq("id", studentId)
     .is("enrollment_ended_at", null);
   if (error) throw new Error(formatErr(error));
+
+  let inactivated = false;
+  if (schoolStudentId) {
+    inactivated = await inactivateIfNoOpenEnrollments({
+      tenantId,
+      schoolStudentId,
+      actorEmail: opts?.actorEmail?.trim() || "system",
+    });
+  }
+  return { schoolStudentId, inactivated };
 }
 
 export async function deleteStudentInTenant(tenantId: string, studentId: string): Promise<void> {

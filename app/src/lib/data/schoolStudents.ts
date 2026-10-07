@@ -135,12 +135,18 @@ export async function insertSchoolStudent(opts: {
   firstName: string;
   lastName: string;
   gender?: Gender | null;
+  /**
+   * Pupils with no class belong on Inactive. Pass `"active"` only when creating
+   * together with an immediate class enrollment.
+   */
+  status?: SchoolStudentStatus;
 }): Promise<SchoolStudentRow> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Database not configured.");
   const first = opts.firstName.trim();
   const last = opts.lastName.trim();
   if (!first || !last) throw new Error("First name and last name are required.");
+  const status: SchoolStudentStatus = opts.status === "active" ? "active" : "inactive";
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("school_students")
@@ -150,7 +156,8 @@ export async function insertSchoolStudent(opts: {
       last_name: last,
       display_name: displayFromParts(first, last),
       gender: opts.gender ?? null,
-      status: "active",
+      status,
+      inactivated_at: status === "inactive" ? now : null,
       updated_at: now,
     })
     .select("id, tenant_id, first_name, last_name, display_name, gender, status, inactivated_at, created_at")
@@ -252,4 +259,91 @@ export async function hasOpenEnrollmentInClass(
     .maybeSingle();
   if (error) throw new Error(formatErr(error));
   return Boolean(data);
+}
+
+export async function countOpenEnrollments(
+  tenantId: string,
+  schoolStudentId: string,
+): Promise<number> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return 0;
+  const { count, error } = await supabase
+    .from("students")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId)
+    .eq("school_student_id", schoolStudentId)
+    .is("enrollment_ended_at", null);
+  if (error) throw new Error(formatErr(error));
+  return count ?? 0;
+}
+
+/**
+ * If the pupil is still Active but has no open class enrollment, move them to Inactive.
+ * Returns true when status changed.
+ */
+export async function inactivateIfNoOpenEnrollments(opts: {
+  tenantId: string;
+  schoolStudentId: string;
+  actorEmail: string;
+}): Promise<boolean> {
+  const school = await getSchoolStudentInTenant(opts.tenantId, opts.schoolStudentId);
+  if (!school || school.status !== "active") return false;
+  const open = await countOpenEnrollments(opts.tenantId, opts.schoolStudentId);
+  if (open > 0) return false;
+  await inactivateSchoolStudent(opts);
+  return true;
+}
+
+/**
+ * Heal Active pupils who have no class left (e.g. after class deletion or older data).
+ */
+export async function syncUnallocatedActiveToInactive(
+  tenantId: string,
+  actorEmail: string,
+): Promise<number> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return 0;
+  const { data, error } = await supabase
+    .from("school_students")
+    .select("id, students ( id, enrollment_ended_at )")
+    .eq("tenant_id", tenantId)
+    .eq("status", "active");
+  if (error) throw new Error(formatErr(error));
+
+  let moved = 0;
+  for (const row of data ?? []) {
+    const enrollments = (row.students as { id: string; enrollment_ended_at: string | null }[] | null) ?? [];
+    const open = enrollments.some((e) => !e.enrollment_ended_at);
+    if (open) continue;
+    await inactivateSchoolStudent({
+      tenantId,
+      schoolStudentId: String(row.id),
+      actorEmail,
+    });
+    moved += 1;
+  }
+  return moved;
+}
+
+/**
+ * Permanently erase an Inactive pupil and all class/report rows (FK cascade).
+ */
+export async function purgeSchoolStudent(opts: {
+  tenantId: string;
+  schoolStudentId: string;
+}): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Database not configured.");
+  const existing = await getSchoolStudentInTenant(opts.tenantId, opts.schoolStudentId);
+  if (!existing) throw new Error("Pupil not found.");
+  if (existing.status !== "inactive") {
+    throw new Error("Only inactive pupils can be permanently erased.");
+  }
+  const { error } = await supabase
+    .from("school_students")
+    .delete()
+    .eq("tenant_id", opts.tenantId)
+    .eq("id", opts.schoolStudentId)
+    .eq("status", "inactive");
+  if (error) throw new Error(formatErr(error));
 }

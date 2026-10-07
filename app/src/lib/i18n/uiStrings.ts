@@ -620,7 +620,10 @@ const EN: UiMessages = {
   "dash.guide.registers2": "Tick the classes you need, then Print selected registers for one multi-page PDF.",
   "dash.guide.registers3": "Classes with no pupils are skipped in the combined PDF.",
   "dash.pupilsHint":
-    "Find or add a pupil above. Select a name in the list, then edit, place in a class, archive, or reactivate from the header.",
+    "Find or add a pupil above. Pupils without a class stay Inactive. Select a name to edit, place in a class, archive, or permanently erase.",
+  "dash.inactiveStudentsErase": "Erase permanently",
+  "dash.inactiveStudentsConfirmErase":
+    "Permanently erase {name} and all their reports from this school? This cannot be undone.",
   "dash.pupilsFilterAll": "All",
   "dash.pupilsEmptyFilter": "No pupils match this filter.",
   "dash.pupilsPlaceClass": "Choose class…",
@@ -629,7 +632,7 @@ const EN: UiMessages = {
   "dash.pupilsSelectedLabel": "Selected: {name}",
   "dash.guide.pupilsTitle": "Pupils",
   "dash.guide.pupils1": "Open Pupils for the full school list — active and inactive in one place.",
-  "dash.guide.pupils2": "Search or add above, then select a pupil to edit, place in a class, archive, or reactivate.",
+  "dash.guide.pupils2": "Search or add above. Pupils without a class stay Inactive. Select one to place, archive, or erase permanently.",
   "dash.guide.pupils3": "Class name links on a selected row open that class’s pupil list.",
   "dash.panelFindStudent": "Find Student",
   "dash.panelInactiveStudents": "Inactive Students",
@@ -652,7 +655,7 @@ const EN: UiMessages = {
     "School-wide list of all pupils. Add names here, then locate them into any class without removing them from this list. Removing a pupil archives them and ends every class enrollment (reports are kept).",
   "dash.inactiveStudentsHint":
     "Archived pupils removed from the Active Students list. Re-activate to return them to the active roster; you can then locate them into classes again.",
-  "dash.activeStudentsAdd": "Add to active list",
+  "dash.activeStudentsAdd": "Add pupil",
   "dash.activeStudentsEmpty": "No pupils on the active list yet.",
   "dash.inactiveStudentsEmpty": "No inactive pupils.",
   "dash.activeStudentsClasses": "Classes",
@@ -1836,7 +1839,10 @@ const FR: UiMessages = {
   "dash.guide.registers2": "Cochez les classes voulues, puis Imprimer les registres sélectionnés pour un PDF multipage.",
   "dash.guide.registers3": "Les classes sans élèves sont ignorées dans le PDF combiné.",
   "dash.pupilsHint":
-    "Trouvez ou ajoutez un élève ci-dessus. Sélectionnez un nom dans la liste, puis modifiez, placez dans une classe, archivez ou réactivez depuis l’en-tête.",
+    "Trouvez ou ajoutez un élève ci-dessus. Sans classe, l’élève reste Inactif. Sélectionnez un nom pour modifier, placer, archiver ou effacer définitivement.",
+  "dash.inactiveStudentsErase": "Effacer définitivement",
+  "dash.inactiveStudentsConfirmErase":
+    "Effacer définitivement {name} et tous ses rapports de cette école ? Irréversible.",
   "dash.pupilsFilterAll": "Tous",
   "dash.pupilsEmptyFilter": "Aucun élève ne correspond à ce filtre.",
   "dash.pupilsPlaceClass": "Choisir une classe…",
@@ -1865,7 +1871,7 @@ const FR: UiMessages = {
     "Liste de tous les élèves de l’établissement. Ajoutez des noms ici, puis placez-les dans une classe sans les retirer de cette liste. La suppression archive l’élève et met fin à toutes les inscriptions (les rapports sont conservés).",
   "dash.inactiveStudentsHint":
     "Élèves archivés retirés de la liste active. Réactivez pour les remettre sur la liste active, puis placez-les dans les classes.",
-  "dash.activeStudentsAdd": "Ajouter à la liste active",
+  "dash.activeStudentsAdd": "Ajouter un élève",
   "dash.activeStudentsEmpty": "Aucun élève sur la liste active.",
   "dash.inactiveStudentsEmpty": "Aucun élève inactif.",
   "dash.activeStudentsClasses": "Classes",
@@ -2632,7 +2638,10 @@ const ES: UiMessages = {
   "dash.guide.registers2": "Marque las clases y pulse Imprimir registros seleccionados para un PDF multipágina.",
   "dash.guide.registers3": "Las clases sin alumnos se omiten en el PDF combinado.",
   "dash.pupilsHint":
-    "Busque o añada un alumno arriba. Seleccione un nombre en la lista y edite, coloque en clase, archive o reactive desde la cabecera.",
+    "Busque o añada un alumno arriba. Sin clase, el alumno permanece Inactivo. Seleccione un nombre para editar, colocar, archivar o borrar definitivamente.",
+  "dash.inactiveStudentsErase": "Borrar definitivamente",
+  "dash.inactiveStudentsConfirmErase":
+    "¿Borrar definitivamente a {name} y todos sus informes de esta escuela? No se puede deshacer.",
   "dash.pupilsFilterAll": "Todos",
   "dash.pupilsEmptyFilter": "Ningún alumno coincide con este filtro.",
   "dash.pupilsPlaceClass": "Elegir clase…",
@@ -2661,7 +2670,7 @@ const ES: UiMessages = {
     "Lista de todos los alumnos del centro. Añada nombres aquí y colóquelos en cualquier clase sin quitarlos de esta lista. Al eliminar, se archiva y se da de baja en todas las clases (los informes se conservan).",
   "dash.inactiveStudentsHint":
     "Alumnos archivados al salir de la lista activa. Reactive para volver a la lista activa y colocarlos en clases.",
-  "dash.activeStudentsAdd": "Añadir a la lista activa",
+  "dash.activeStudentsAdd": "Añadir alumno",
   "dash.activeStudentsEmpty": "No hay alumnos en la lista activa.",
   "dash.inactiveStudentsEmpty": "No hay alumnos inactivos.",
   "dash.activeStudentsClasses": "Clases",

@@ -98,7 +98,7 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
     if (klass && !canAccessClass({ role, viewerEmail: gate.email, klass })) {
       return NextResponse.json({ error: "You cannot delete this student." }, { status: 403 });
     }
-    await endEnrollmentInTenant(tenantId, studentId);
+    const ended = await endEnrollmentInTenant(tenantId, studentId, { actorEmail: gate.email });
     await logStudentEvent({
       tenantId,
       actorEmail: gate.email,
@@ -107,7 +107,17 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
       schoolStudentId: existing.school_student_id,
       fromClassId: existing.class_id,
     });
-    return NextResponse.json({ ok: true });
+    if (ended.inactivated && existing.school_student_id) {
+      await logStudentEvent({
+        tenantId,
+        actorEmail: gate.email,
+        type: "inactivated",
+        studentId,
+        schoolStudentId: existing.school_student_id,
+        fromClassId: existing.class_id,
+      });
+    }
+    return NextResponse.json({ ok: true, inactivated: ended.inactivated });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to delete student.";
     return NextResponse.json({ error: msg }, { status: 500 });
