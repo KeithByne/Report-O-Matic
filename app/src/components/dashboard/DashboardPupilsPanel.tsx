@@ -305,6 +305,8 @@ export function DashboardPupilsPanel({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       setRelocateClassId("");
+      // Placing into a class reactivates Inactive pupils — show them on Active.
+      setStatusFilter("active");
       await refresh();
       onRosterChanged?.();
     } catch (e: unknown) {

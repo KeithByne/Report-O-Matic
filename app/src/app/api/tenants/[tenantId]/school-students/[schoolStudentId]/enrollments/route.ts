@@ -12,7 +12,7 @@ function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 }
 
-/** Locate an active-list pupil into a class (does not remove them from the active list). */
+/** Place a school pupil into a class. Inactive pupils are reactivated on enroll. */
 export async function POST(req: Request, context: { params: Promise<{ tenantId: string; schoolStudentId: string }> }) {
   const { tenantId, schoolStudentId } = await context.params;
   if (!isUuid(tenantId) || !isUuid(schoolStudentId)) {
@@ -38,15 +38,26 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
 
   try {
     const school = await getSchoolStudentInTenant(tenantId, schoolStudentId);
-    if (!school || school.status !== "active") {
-      return NextResponse.json({ error: "Pupil not found on the active list." }, { status: 404 });
+    if (!school) {
+      return NextResponse.json({ error: "Pupil not found on the school roster." }, { status: 404 });
     }
     const klass = await getClassInTenant(tenantId, classId);
     if (!klass) return NextResponse.json({ error: "Class not found." }, { status: 404 });
     if (!canAccessClass({ role, viewerEmail: gate.email, klass })) {
       return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
     }
+    const wasInactive = school.status === "inactive";
     const enrollment = await enrollSchoolStudentInClass({ tenantId, schoolStudentId, classId });
+    if (wasInactive) {
+      await logStudentEvent({
+        tenantId,
+        actorEmail: gate.email,
+        type: "reactivated",
+        studentId: enrollment.id,
+        schoolStudentId,
+        toClassId: classId,
+      });
+    }
     await logStudentEvent({
       tenantId,
       actorEmail: gate.email,
@@ -55,7 +66,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       schoolStudentId,
       toClassId: classId,
     });
-    return NextResponse.json({ enrollment });
+    return NextResponse.json({ enrollment, reactivated: wasInactive });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to locate pupil in class.";
     return NextResponse.json({ error: msg }, { status: 500 });
