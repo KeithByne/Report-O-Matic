@@ -12,6 +12,7 @@ import {
   updateClass,
 } from "@/lib/data/classesDb";
 import { syncReportsLanguagesAfterClassOutputDefaultChange } from "@/lib/data/reportsDb";
+import { syncUnallocatedActiveToInactive } from "@/lib/data/schoolStudents";
 import { getRoleForTenant } from "@/lib/data/memberships";
 import type { ReportLanguageCode } from "@/lib/i18n/reportLanguages";
 import { isReportLanguageCode } from "@/lib/i18n/reportLanguages";
@@ -347,6 +348,12 @@ export async function DELETE(_req: Request, context: { params: Promise<{ tenantI
       return NextResponse.json({ error: "You do not have access to this class." }, { status: 403 });
     }
     await deleteClassInTenant(tenantId, classId);
+    // Class deletion ends enrollments via FK; move orphaned Active pupils to Inactive.
+    try {
+      await syncUnallocatedActiveToInactive(tenantId, gate.email);
+    } catch {
+      /* best-effort heal */
+    }
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to delete class.";

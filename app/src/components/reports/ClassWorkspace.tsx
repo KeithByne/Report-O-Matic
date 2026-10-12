@@ -42,7 +42,7 @@ import { subjectSuggestionLabelsByRubric } from "@/lib/subjectOptionsByEducation
 import { resolveDefaultSubjectInputToStorage, subjectFieldDisplayValueFromStored } from "@/lib/subjectFormResolve";
 import { WEEKDAY_KEYS, type WeekdayKey, isWeekdayKey } from "@/lib/activeWeekdays";
 import { labelForLessonPeriodIndex } from "@/lib/timetable/lessonPeriodLabels";
-import { classesListHref, timetableHref } from "@/lib/app/classesNavigation";
+import { classesListHref, schoolControlPanelHref, timetableHref } from "@/lib/app/classesNavigation";
 import { InlinePdfPreviewCard } from "@/components/dashboard/InlinePdfPreviewCard";
 import { ClassWorkspaceGuide } from "@/components/reports/ClassWorkspaceGuide";
 import { ICON_INLINE, ICON_SECTION } from "@/components/ui/iconSizes";
@@ -1517,13 +1517,16 @@ export function ClassWorkspace({
         id="class-workspace-panel-students"
         className="rounded-2xl border border-emerald-300/80 bg-white p-6 shadow-sm"
       >
+        <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-emerald-950">
+          {t("dash.ownerViewingSchool", { name: schoolName })}
+        </p>
         <h3 className="text-sm font-semibold text-zinc-900">{t("class.studentsTitle")}</h3>
         <Link
-          href={classesListHref(tenantId, viewerRole)}
+          href={schoolControlPanelHref(tenantId, viewerRole)}
           className="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
         >
           <ArrowLeft className={ICON_INLINE} aria-hidden />
-          {t("class.backToClassesList")}
+          {t("class.backToControlPanel")}
         </Link>
         <div className="mt-3 flex flex-wrap items-center gap-x-[2ch] gap-y-2 text-sm">
           <span className="text-zinc-600">{t("class.makeReportsForLabel")}</span>

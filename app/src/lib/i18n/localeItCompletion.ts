@@ -83,6 +83,7 @@ export const IT_COMPLETION: Record<string, string> = {
   "brand.saasName": "Report-O-Matic",
   "brand.subtitle": "Report-O-Matic",
   "class.backToClassesList": "Torna alle lezioni",
+  "class.backToControlPanel": "Torna al pannello di controllo",
   "class.bulkPdfNeedStudents": "Aggiungi alunni a questa classe prima di scaricare un PDF combinato.",
   "class.bulkPdfNotFinished": "Non è possibile scaricare tutti i rapporti di classe fino a quando non sono tutti finiti.",
   "class.bulkPdfNotFinishedTerm": "Ogni alunno ha bisogno di un rapporto finito per il termine selezionato.",

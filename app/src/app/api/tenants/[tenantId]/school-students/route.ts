@@ -7,7 +7,6 @@ import {
   insertSchoolStudent,
   listAllSchoolStudentsWithClasses,
   listSchoolStudents,
-  syncUnallocatedActiveToInactive,
 } from "@/lib/data/schoolStudents";
 import { logStudentEvent } from "@/lib/data/studentEvents";
 import type { Gender } from "@/lib/data/students";
@@ -30,8 +29,7 @@ export async function GET(req: Request, context: { params: Promise<{ tenantId: s
     return NextResponse.json({ error: "status must be active, inactive, or all." }, { status: 400 });
   }
   try {
-    // Heal Active pupils who no longer have a class (older data / class removal).
-    await syncUnallocatedActiveToInactive(tenantId, gate.email);
+    // Unallocated→Inactive is applied on unenroll / class removal, not on every list load.
     const students =
       statusRaw === "all"
         ? await listAllSchoolStudentsWithClasses(tenantId)

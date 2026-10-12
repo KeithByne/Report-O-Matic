@@ -113,6 +113,8 @@ export type DashboardClientViewProps = {
   bootOpenClassesPanel?: string | null;
   /** From `/dashboard?panel=timetable&tenant=` — open that school’s Timetable workspace card once. */
   bootOpenTimetablePanel?: string | null;
+  /** From `/dashboard?tenant=` (no panel) — focus that school’s control panel once. */
+  bootFocusTenant?: string | null;
   /** False when ROM_STRIPE_ENABLED is not true (card checkout and payout fields paused). */
   stripePaymentsEnabled: boolean;
 };
@@ -130,12 +132,15 @@ export function DashboardClientView({
   firstOwnerTenantId,
   bootOpenClassesPanel = null,
   bootOpenTimetablePanel = null,
+  bootFocusTenant = null,
   stripePaymentsEnabled,
 }: DashboardClientViewProps) {
   const { t, lang: uiLang } = useUiLanguage();
   const router = useRouter();
   const classesBootApplied = useRef(false);
   const timetableBootApplied = useRef(false);
+  const focusTenantBootApplied = useRef(false);
+  const settingsCacheRef = useRef<Record<string, { lang: ReportLanguageCode; rubric: GradeRubricProfile }>>({});
 
   const reportsClassesHref = (tenantId: string, role: MembershipWithTenant["role"]) =>
     classesListHref(tenantId, role);
@@ -369,6 +374,28 @@ export function DashboardClientView({
   }, [bootOpenTimetablePanel, memberships, router]);
 
   useEffect(() => {
+    if (focusTenantBootApplied.current || !bootFocusTenant) return;
+    if (bootOpenClassesPanel || bootOpenTimetablePanel) return;
+    const tenant = bootFocusTenant;
+    const m = memberships.find((x) => x.tenantId === tenant);
+    if (!m) return;
+    focusTenantBootApplied.current = true;
+    if (m.role === "teacher") {
+      router.replace(`/reports/${encodeURIComponent(tenant)}`);
+      return;
+    }
+    queueMicrotask(() => {
+      if (m.role === "owner") {
+        userClearedSchoolFocus.current = false;
+        setOwnerFocusTenantId(tenant);
+      } else if (m.role === "department_head") {
+        setDhFocusTenantId(tenant);
+      }
+      setWorkspaceDashPanel(null);
+    });
+  }, [bootFocusTenant, bootOpenClassesPanel, bootOpenTimetablePanel, memberships, router]);
+
+  useEffect(() => {
     if (!workspaceDashPanel) return;
     const el = document.getElementById(`dash-workspace-panel-${workspaceDashPanel}`);
     scrollPanelContentTopIntoView(el, { block: "start" });
@@ -431,6 +458,19 @@ export function DashboardClientView({
     return summaryByTenant[primaryMembership.tenantId];
   }, [primaryMembership, summaryByTenant]);
 
+  const settingsTenantIdsKey = useMemo(() => {
+    const targets =
+      hasOwner || hasDeptHead
+        ? visibleMemberships.length > 0
+          ? visibleMemberships
+          : []
+        : memberships;
+    return targets
+      .map((m) => m.tenantId)
+      .sort()
+      .join(",");
+  }, [hasOwner, hasDeptHead, memberships, visibleMemberships]);
+
   const refreshReportLangs = useCallback(async () => {
     const targets =
       hasOwner || hasDeptHead
@@ -443,22 +483,32 @@ export function DashboardClientView({
       return;
     }
     const next: Record<string, ReportLanguageCode> = {};
+    const rubricPatches: Record<string, GradeRubricProfile> = {};
     await Promise.all(
       targets.map(async (m) => {
+        const cached = settingsCacheRef.current[m.tenantId];
+        if (cached) {
+          next[m.tenantId] = cached.lang;
+          rubricPatches[m.tenantId] = cached.rubric;
+          return;
+        }
         const res = await fetch(`/api/tenants/${encodeURIComponent(m.tenantId)}/settings`);
         const data = await res.json().catch(() => ({}));
         const raw = typeof data.default_report_language === "string" ? data.default_report_language.trim() : "";
-        next[m.tenantId] = res.ok && isReportLanguageCode(raw) ? raw : "en";
+        const lang: ReportLanguageCode = res.ok && isReportLanguageCode(raw) ? raw : "en";
         const rubric = parseGradeRubricProfile(data.default_grade_rubric_profile, "language");
-        setSchoolGradeRubricByTenant((prev) => ({ ...prev, [m.tenantId]: rubric }));
+        settingsCacheRef.current[m.tenantId] = { lang, rubric };
+        next[m.tenantId] = lang;
+        rubricPatches[m.tenantId] = rubric;
       }),
     );
-    setReportLangByTenant(next);
+    setReportLangByTenant((prev) => ({ ...prev, ...next }));
+    setSchoolGradeRubricByTenant((prev) => ({ ...prev, ...rubricPatches }));
   }, [hasOwner, hasDeptHead, memberships, visibleMemberships]);
 
   useEffect(() => {
     void refreshReportLangs();
-  }, [refreshReportLangs]);
+  }, [settingsTenantIdsKey, refreshReportLangs]);
 
   const refreshMyAgent = useCallback(async () => {
     if (!hasOwner) return;
@@ -509,6 +559,8 @@ export function DashboardClientView({
 
   async function saveSchoolEducationType(tenantId: string, next: GradeRubricProfile) {
     setSchoolGradeRubricByTenant((prev) => ({ ...prev, [tenantId]: next }));
+    const prevCache = settingsCacheRef.current[tenantId];
+    if (prevCache) settingsCacheRef.current[tenantId] = { ...prevCache, rubric: next };
     setSchoolTypeSaving(true);
     try {
       const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}/settings`, {
@@ -1375,6 +1427,11 @@ export function DashboardClientView({
                   <DashboardPupilsPanel
                     key={`${primaryMembership.tenantId}-pupils`}
                     tenantId={primaryMembership.tenantId}
+                    schoolName={primaryMembership.tenantName}
+                    onBackToControlPanel={() => {
+                      setWorkspaceDashPanel(null);
+                      setWorkspaceGuideHoverKey(null);
+                    }}
                   />
                 ) : null}
 

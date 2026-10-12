@@ -407,6 +407,7 @@ export const EL_BODY: Record<string, string> = {
   "class.saveSettings": "Αποθήκευση ρυθμίσεων",
   "class.deleteClass": "Διαγραφή τάξης",
   "class.studentsTitle": "Μαθητές σε αυτή την τάξη",
+  "class.backToControlPanel": "Επιστροφή στον πίνακα ελέγχου",
   "class.firstName": "Όνομα(τα)",
   "class.lastName": "Επώνυμο(α)",
   "class.genderOptional": "Φύλο (προαιρετικό)",

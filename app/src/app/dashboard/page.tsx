@@ -109,6 +109,8 @@ export default async function DashboardPage({
     typeof tenantParam === "string" && isUuid(tenantParam.trim()) ? tenantParam.trim() : null;
   const bootOpenClassesPanel = wantsClassesPanel && bootClassesTenantId ? bootClassesTenantId : null;
   const bootOpenTimetablePanel = wantsTimetablePanel && bootClassesTenantId ? bootClassesTenantId : null;
+  const bootFocusTenant =
+    bootClassesTenantId && !wantsClassesPanel && !wantsTimetablePanel ? bootClassesTenantId : null;
 
   const stripePaymentsEnabled = isCardPaymentsEnabled();
 
@@ -135,6 +137,7 @@ export default async function DashboardPage({
       firstOwnerTenantId={firstOwnerTenantId}
       bootOpenClassesPanel={bootOpenClassesPanel}
       bootOpenTimetablePanel={bootOpenTimetablePanel}
+      bootFocusTenant={bootFocusTenant}
       stripePaymentsEnabled={stripePaymentsEnabled}
     />
   );

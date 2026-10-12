@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Search, Trash2, UserPlus, Users } from "lucide-react";
+import { ArrowLeft, Loader2, Search, Trash2, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUiLanguage } from "@/components/i18n/UiLanguageProvider";
@@ -11,6 +11,10 @@ type StatusFilter = "all" | "active" | "inactive";
 
 type Props = {
   tenantId: string;
+  /** School name for the “You are viewing” banner (full Pupils card). */
+  schoolName?: string;
+  /** Close Pupils and return to the school control panel menu. */
+  onBackToControlPanel?: () => void;
   onRosterChanged?: () => void;
   /** When set, Place enrolls into this class only (class workspace). */
   placeIntoClassId?: string;
@@ -22,8 +26,14 @@ type Props = {
   compact?: boolean;
 };
 
+function sortByDisplayName(a: SchoolStudentWithClasses, b: SchoolStudentWithClasses) {
+  return a.display_name.localeCompare(b.display_name, undefined, { sensitivity: "base" });
+}
+
 export function DashboardPupilsPanel({
   tenantId,
+  schoolName,
+  onBackToControlPanel,
   onRosterChanged,
   placeIntoClassId,
   placeIntoClassName,
@@ -173,12 +183,21 @@ export function DashboardPupilsPanel({
       setGender("");
       const created = data.student as SchoolStudentWithClasses | undefined;
       if (created?.id) {
+        const row: SchoolStudentWithClasses = {
+          ...created,
+          class_names: created.class_names ?? [],
+          class_ids: created.class_ids ?? [],
+          enrollment_ids: created.enrollment_ids ?? [],
+          last_class_name: created.last_class_name ?? null,
+          last_class_id: created.last_class_id ?? null,
+          status: created.status ?? "inactive",
+        };
+        setRows((prev) => [...prev.filter((r) => r.id !== row.id), row].sort(sortByDisplayName));
         setQuery(created.display_name);
         // Unplaced pupils land on Inactive until assigned to a class.
         setStatusFilter("inactive");
         setSelectedId(created.id);
       }
-      await refresh();
       onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
@@ -204,7 +223,26 @@ export function DashboardPupilsPanel({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
-      await refresh();
+      const updated = data.student as
+        | { id: string; first_name: string; last_name: string; display_name: string; gender: string | null }
+        | undefined;
+      if (updated?.id) {
+        setRows((prev) =>
+          [...prev]
+            .map((r) =>
+              r.id === updated.id
+                ? {
+                    ...r,
+                    first_name: updated.first_name,
+                    last_name: updated.last_name,
+                    display_name: updated.display_name,
+                    gender: (updated.gender as SchoolStudentWithClasses["gender"]) ?? null,
+                  }
+                : r,
+            )
+            .sort(sortByDisplayName),
+        );
+      }
       onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
@@ -222,7 +260,23 @@ export function DashboardPupilsPanel({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       setSelectedId(null);
-      await refresh();
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? {
+                ...r,
+                status: "inactive" as const,
+                inactivated_at: new Date().toISOString(),
+                class_ids: [],
+                class_names: [],
+                enrollment_ids: [],
+                last_class_name: r.class_names[0] ?? r.last_class_name,
+                last_class_id: r.class_ids[0] ?? r.last_class_id,
+              }
+            : r,
+        ),
+      );
+      setStatusFilter("inactive");
       onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
@@ -243,7 +297,7 @@ export function DashboardPupilsPanel({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
       setSelectedId(null);
-      await refresh();
+      setRows((prev) => prev.filter((r) => r.id !== id));
       onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
@@ -287,8 +341,28 @@ export function DashboardPupilsPanel({
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || t("common.failed"));
         const placedId = typeof data.student?.id === "string" ? data.student.id : null;
+        const placedName = placeIntoClassName?.trim() || "—";
         setSelectedId(null);
-        await refresh();
+        // Placed into this class — drop from the placeable list (exclude filter).
+        setRows((prev) =>
+          prev.map((r) =>
+            r.id === selected.id
+              ? {
+                  ...r,
+                  status: "active" as const,
+                  inactivated_at: null,
+                  class_ids: [...new Set([...r.class_ids.filter((c) => c !== placeIntoClassId), placeIntoClassId])],
+                  class_names: [
+                    ...r.class_names.filter((n) => n !== placedName),
+                    placedName,
+                  ],
+                  enrollment_ids: placedId
+                    ? [...new Set([...r.enrollment_ids, placedId])]
+                    : r.enrollment_ids,
+                }
+              : r,
+          ),
+        );
         onRosterChanged?.();
         onPlacedIntoClass?.(placedId);
         return;
@@ -304,10 +378,34 @@ export function DashboardPupilsPanel({
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("common.failed"));
+      const className = classes.find((c) => c.id === classId)?.name ?? "—";
+      const enrollmentId =
+        typeof data.student?.id === "string"
+          ? data.student.id
+          : typeof data.enrollment_id === "string"
+            ? data.enrollment_id
+            : null;
       setRelocateClassId("");
       // Placing into a class reactivates Inactive pupils — show them on Active.
       setStatusFilter("active");
-      await refresh();
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === selected.id
+            ? {
+                ...r,
+                status: "active" as const,
+                inactivated_at: null,
+                class_ids: [...new Set([...r.class_ids, classId])],
+                class_names: r.class_names.includes(className)
+                  ? r.class_names
+                  : [...r.class_names, className],
+                enrollment_ids: enrollmentId
+                  ? [...new Set([...r.enrollment_ids, enrollmentId])]
+                  : r.enrollment_ids,
+              }
+            : r,
+        ),
+      );
       onRosterChanged?.();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t("common.failed"));
@@ -354,10 +452,25 @@ export function DashboardPupilsPanel({
       }
       aria-labelledby="dash-pupils-title"
     >
+      {!compact && schoolName ? (
+        <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-emerald-950">
+          {t("dash.ownerViewingSchool", { name: schoolName })}
+        </p>
+      ) : null}
       <h2 id="dash-pupils-title" className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
         <Users className={ICON_INLINE} aria-hidden />
         {classScoped ? t("class.studentsActionPlace") : t("dash.panelPupils")}
       </h2>
+      {!compact && onBackToControlPanel ? (
+        <button
+          type="button"
+          onClick={onBackToControlPanel}
+          className="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-emerald-50/80"
+        >
+          <ArrowLeft className={ICON_INLINE} aria-hidden />
+          {t("class.backToControlPanel")}
+        </button>
+      ) : null}
       <p className="mt-1 text-sm text-zinc-600">
         {classScoped
           ? t("class.placePupilHint", { className: placeIntoClassName?.trim() || "—" })
